@@ -13,6 +13,15 @@ aioveu-server
 约定>配置>编码
 Only Do It
 
+微服务cloud整体聚合Maven父工程Project
+Maven父工程步骤
+1.New Project：只需要一个pom文件
+2.聚合总父工程名字:
+3.字符编码：
+4.注解生效激活
+5.java编译版本选17
+6.File Type过滤
+
 
 
 
