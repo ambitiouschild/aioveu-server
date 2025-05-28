@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.GradeDao">
+
+    <select id="getByStoreId" resultType="com.aioveu.vo.GradeVO">
+        select a.id, a.status, a.start_time, a.end_time, a.name, a.grade_template_id, a.grade_classroom_id, a.limit_number,
+        b.grade_level_id, d.name as levelname, c.name as gradeClassroom, i.`name` AS gradeAge,
+        g.name as storeName, g.`address` AS storeAddress, COUNT(DISTINCT(k.id)) AS enrollNumber, group_concat(distinct(m.name)) as teachers,
+        group_concat(distinct(concat(o.name, '*', n.class_hour))) as couponTemplates, group_concat(distinct(o.id)) as couponTemplateIds, GROUP_CONCAT(DISTINCT(p.explain_reason)) AS explainReason,
+        COUNT(s.id) AS experienceCount, COUNT(DISTINCT(u.id)) AS signNumber,
+        W.name AS 'venueName', GROUP_CONCAT(distinct V.name SEPARATOR ',') AS 'fieldNames'
+        from sport_grade a
+        left join sport_grade_template b on b.id = a.grade_template_id
+        left join sport_grade_classroom c on c.id = a.grade_classroom_id
+        left join sport_grade_level d on d.id = b.grade_level_id
+        LEFT JOIN `sport_grade_age` i ON i.id = b.`grade_age_id`
+        left join sport_store g on g.id = a.store_id
+        LEFT JOIN `sport_grade_enroll_user` k ON k.`grade_id` = a.`id` and k.`status` in (1, 3)
+        left join sport_grade_coach l on l.grade_id = a.id
+        left join sport_store_coach m on m.id = l.coach_id
+        left join sport_grade_coupon_template n on n.grade_id = a.id
+        left join sport_coupon_template o on o.id = n.coupon_template_id
+        left join sport_grade_cancel_record p on p.grade_id = a.id
+        LEFT JOIN `sport_grade_user_coupon` q ON q.`grade_id` = a.`id` AND q.`user_id` = k.`user_id`
+        LEFT JOIN sport_user_coupon r ON r.`id` = q.`user_coupon_id` AND r.`order_id` IS NOT NULL
+        LEFT JOIN sport_order s ON s.id = r.`order_id` AND s.`category_id` = #{experienceCategoryId}
+        left join sport_grade_sign_evaluate u on u.grade_id = a.id and (u.status = 1 OR u.status = 2)
+        left join sport_store_venue W on W.id = A.venue_id
+        left join sport_venue_field V on FIND_IN_SET(V.id , A.field_ids)
+        where a.store_id = #{storeId}
+        and a.status != 0
+        <if test="coachId != null">
+            and m.id =#{coachId}
+        </if>
+        <if test="status != null">
+            and FIND_IN_SET(a.status , #{status})
+        </if>
+        <if test="date != null">
+            and DATE_FORMAT(a.start_time, '%Y-%m-%d') =#{date}
+        </if>
+        <if test="startTime != null">
+            and a.start_time >= #{startTime}
+        </if>
+        <if test="endTime != null">
+            and #{endTime} >= a.start_time
+        </if>
+        GROUP BY a.id
+        order by a.start_time
+    </select>
+
+    <resultMap id="gradeDetailMap" type="com.aioveu.vo.GradeDetailVO" autoMapping="true">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+
+        <collection property="teacherList" ofType="com.aioveu.vo.BaseNameVO" columnPrefix="teacher_">
+            <id column="id" property="id"/>
+            <result column="name" property="name"/>
+        </collection>
+        <collection property="couponTemplateList" ofType="com.aioveu.vo.GradeCouponVO" columnPrefix="coupon_">
+            <id column="id" property="id"/>
+            <result column="name" property="name"/>
+            <result column="classHour" property="classHour"/>
+        </collection>
+    </resultMap>
+
+    <select id="getGradeDetailById" resultMap="gradeDetailMap">
+        select a.id, a.name, a.grade_template_id, a.start_time, a.end_time, a.grade_classroom_id, a.exceed,
+               a.remark, a.limit_number, a.min_number, a.status, m.id as teacher_id, m.name as teacher_name,
+               o.id as coupon_id, o.name as coupon_name, n.class_hour as coupon_classHour, a.venue_id, a.field_ids, a.shared_venue
+        from sport_grade a
+         left join sport_grade_coach l on l.grade_id = a.id
+         left join sport_store_coach m on m.id = l.coach_id
+         left join sport_grade_coupon_template n on n.grade_id = a.id
+         left join sport_coupon_template o on o.id = n.coupon_template_id
+        where a.id =#{id};
+    </select>
+
+    <select id="getUserAvailableGradeId" resultType="Long">
+        SELECT DISTINCT(d.`id`)
+        FROM `sport_user_coupon` a
+             left join sport_grade_coupon_template b on b.coupon_template_id = a.template_id
+             LEFT JOIN sport_grade d ON d.id = b.`grade_id` AND date_add(d.`start_time`, interval 15 minute) > NOW() AND d.`status` = 1
+             LEFT JOIN sport_store e ON e.id = d.store_id
+        <if test="coachUserId != null and coachUserId != ''">
+            join sport_grade_coach sc on d.id = sc.grade_id and sc.`status`=1
+            join sport_user_coach uc on uc.coach_id  = sc.coach_id  and uc.user_id=#{coachUserId}
+        </if>
+        WHERE a.`user_id` = #{userId}
+        <if test="companyId != null">
+            AND e.`company_id` = #{companyId}
+        </if>
+          AND a.`status` = 1
+          AND d.`id` IS NOT NULL;
+    </select>
+
+    <resultMap id="gradeItemMap" type="com.aioveu.vo.GradeUserItemVO" autoMapping="true">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+
+        <collection property="coachList" ofType="com.aioveu.vo.StoreSimpleCoachVO" columnPrefix="coach_">
+            <id column="id" property="id"/>
+            <result column="url" property="url"/>
+            <result column="name" property="name"/>
+        </collection>
+    </resultMap>
+
+    <select id="getByIdAndDate" resultMap="gradeItemMap">
+        SELECT a.id, a.`name`, a.`start_time`, a.`end_time`, a.limit_number, b.`name` AS storeName,
+               d.id as coach_id, d.name as coach_name, d.url as coach_url
+        FROM `sport_grade` a
+        LEFT JOIN sport_store b ON b.id = a.`store_id`
+        left join sport_grade_coach c on c.grade_id = a.id
+        left join sport_store_coach d on d.id = c.coach_id
+        WHERE a.id IN
+        <foreach collection="gradeIdList" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+        <if test="date != null">
+            AND DATE_FORMAT(a.start_time, '%Y-%m-%d') = #{date}
+        </if>
+        order by a.start_time
+    </select>
+
+    <resultMap id="detailMap" type="com.aioveu.vo.GradeUserDetailVO" autoMapping="true">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+
+        <collection property="coachList" ofType="com.aioveu.vo.StoreSimpleCoachVO" columnPrefix="coach_">
+            <id column="id" property="id"/>
+            <result column="url" property="url"/>
+            <result column="name" property="name"/>
+        </collection>
+        <collection property="courseList" ofType="com.aioveu.vo.ExerciseSimpleVO" columnPrefix="exercise_">
+            <id column="id" property="id"/>
+            <result column="categoryId" property="categoryId"/>
+            <result column="name" property="name"/>
+        </collection>
+    </resultMap>
+
+    <select id="userDetail" resultMap="detailMap">
+        SELECT a.`id`, a.`name`, a.`start_time`, a.`end_time`, a.`grade_template_id`, a.`limit_number`, a.`remark`, a.store_id,
+               b.`name` AS storeName, b.`address`, b.`latitude`, b.`longitude`, b.`tel`,
+               c.name AS gradeClassroomName, e.name AS gradeLevelName, f.name AS gradeAgeName,
+               h.id AS coach_id, h.name AS coach_name, h.url AS coach_url,
+               j.id AS exercise_id, j.category_id AS exercise_categoryId, j.name AS exercise_name,
+               W.name AS 'venueName', (SELECT group_concat(distinct(V.name) SEPARATOR ',') FROM sport_venue_field V
+                                       WHERE FIND_IN_SET(V.id , a.field_ids) group by v.venue_id) AS 'fieldNames'
+        FROM sport_grade a
+         LEFT JOIN sport_store b ON b.id = a.`store_id`
+         LEFT JOIN `sport_grade_classroom` c ON c.id = a.`grade_classroom_id`
+         LEFT JOIN `sport_grade_template` d ON d.id = a.`grade_template_id`
+         LEFT JOIN `sport_grade_level` e ON e.id = d.grade_level_id
+         LEFT JOIN `sport_grade_age` f ON f.id = d.grade_age_id
+         LEFT JOIN `sport_grade_coach` g ON g.grade_id = a.id
+         LEFT JOIN `sport_store_coach` h ON h.id = g.coach_id
+         left join sport_grade_coupon_template i on i.grade_id = a.id
+         left join sport_exercise_coupon k on k.coupon_template_id = i.coupon_template_id
+         left join `sport_exercise` j ON j.id = k.exercise_id
+         left join sport_store_venue W on W.id = A.venue_id
+        WHERE a.id = #{id} AND a.`status` = 1
+    </select>
+
+    <!-- 获取指定日期的班级-->
+    <select id="getGradeByField" resultType="com.aioveu.entity.Grade">
+        SELECT * FROM sport_grade A
+        WHERE FIND_IN_SET(#{fieldId}, A.field_ids) > 0
+          AND DATE_FORMAT(A.start_time, '%Y-%m-%d %H:00') &lt;= #{date} AND A.end_time > #{date}
+    </select>
+
+    <!-- 获取指定日期的班级-->
+    <select id="getGradeByDay" parameterType="String" resultType="com.aioveu.entity.Grade">
+        select id, name, grade_template_id, store_id, start_time, end_time,
+               grade_classroom_id, limit_number, exceed, remark, status
+        from sport_grade where DATE_FORMAT(start_time, '%Y-%m-%d') =#{day};
+    </select>
+
+    <select id="checkGradeTime" parameterType="com.aioveu.entity.Grade" resultType="Integer">
+        select count(id)
+        from sport_grade
+        where grade_template_id =#{gradeTemplateId}
+          and (#{startTime} >= start_time and end_time >=#{startTime}
+          or (#{endTime} >= start_time and end_time >=#{endTime}))
+    </select>
+
+    <select id="getGradeEnrollUserNumber" parameterType="List" resultType="Map">
+        SELECT COUNT(id) as enrollNumber, grade_id as gradeId
+        FROM `sport_grade_enroll_user`
+        WHERE grade_id IN
+        <foreach collection="gradeIdList" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+        and status in (1, 3)
+        GROUP BY grade_id
+    </select>
+
+    <select id="getByCoachId" resultType="com.aioveu.vo.GradeVO">
+        select  A.id, A.grade_id, A.coach_id, A.status, A.create_date, A.update_date, B.name
+        from sport_grade_coach A
+        LEFT JOIN sport_grade B on A.grade_id = B.id
+        where A.coach_id in
+        <foreach collection="coachIdList" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>;
+    </select>
+
+    <select id="getGradeTimeRule" resultType="com.aioveu.vo.GradeTimeRuleVO">
+        select A.id, A.name, A.grade_template_id, A.store_id, A.start_time, A.end_time,
+               A.grade_classroom_id, A.min_number, A.limit_number, A.exceed, A.remark,
+               A.status, A.create_date, A.update_date, B.time_type, B.date_list
+        from sport_grade A
+        LEFT JOIN sport_grade_template B on A.grade_template_id=B.id
+        where A.id = #{id} and A.status = 1;
+    </select>
+
+    <select id="getCancelGradeMessageByStoreId" resultType="com.aioveu.vo.GradeCancelRecordVo">
+        select A.name className,B.explain_reason reason,B.create_date cancelTime,start_time classTime,
+               (select name from sport_user where id = B.user_id) customerName
+        from sport_grade A LEFT JOIN sport_grade_cancel_record B on A.id= B.grade_id
+        WHERE `status` = 4 and store_id = #{dataDTO.storeId} and A.id= B.grade_id and
+        B.create_date BETWEEN #{dataDTO.start} AND #{dataDTO.end}'23:59:59'
+        ORDER BY B.create_date desc
+    </select>
+
+    <select id="getCancelGradeByRange" resultType="com.aioveu.entity.Grade">
+        SELECT b.id, b.`name`, b.store_id
+        FROM `sport_grade_cancel_record` a
+                 LEFT JOIN `sport_grade` b ON b.id = a.`grade_id` AND b.`store_id` = #{storeId}
+        WHERE a.`create_date`> #{start} AND #{end} > a.`create_date`
+          AND b.id IS NOT NULL
+        <if test="coachUserId != null and coachUserId != ''">
+            AND a.user_id = #{coachUserId}
+        </if>;
+    </select>
+
+    <select id="getCoachFinishGradeId" resultType="Long">
+        SELECT d.id
+        FROM `sport_user_coach` a
+             LEFT JOIN `sport_store_coach` b ON b.id = a.coach_id AND b.store_id = #{storeId} AND b.user_type = 1
+             LEFT JOIN `sport_grade_coach` c ON c.coach_id = b.id
+             LEFT JOIN `sport_grade` d ON d.id = c.grade_id AND d.status = 3 AND d.store_id = #{storeId} AND d.start_time > #{start} AND #{end} > d.end_time
+        WHERE a.user_id = #{coachUserId} AND a.status = 1 AND d.id IS NOT NULL;
+    </select>
+
+    <select id="getGradeDetailByIds" resultType="com.aioveu.vo.GradeDetailVO">
+        select a.id, a.name, d.time_type, GROUP_CONCAT(DISTINCT(m.name)) AS coachNames, a.start_time, a.end_time
+        from sport_grade a
+             LEFT JOIN sport_grade_template d ON d.id = a.grade_template_id
+             left join sport_grade_coach l on l.grade_id = a.id
+             left join sport_store_coach m on m.id = l.coach_id
+        where FIND_IN_SET(a.id , #{ids})
+        GROUP BY a.id;
+    </select>
+
+    <select id="getUserIdByGradeId" resultType="java.lang.String">
+        SELECT b.`user_id`
+        FROM `sport_grade_coach` a
+            LEFT JOIN `sport_user_coach` b ON b.`coach_id` = a.`coach_id`
+        WHERE a.`grade_id` = #{gradeId};
+    </select>
+
+    <select id="getCompanyIdByGradeId" resultType="java.lang.Long">
+        SELECT b.company_id
+        FROM `sport_grade` a
+            LEFT JOIN sport_store b ON b.id = a.`store_id`
+        WHERE a.`id` = #{gradeId};
+    </select>
+
+    <select id="getUnSignNumsByStoreId" resultType="com.aioveu.vo.StatisticsVo">
+        select gc.coach_id as id ,count(*) as total
+        from sport_grade  g
+        join sport_grade_enroll_user geu on g.id = geu.grade_id and geu.`status` in (1,3)
+        join sport_grade_coach gc on gc.grade_id = g.id
+        LEFT JOIN sport_grade_sign_evaluate gse on g.id = gse.grade_id and gse.grade_enroll_user_id = geu.id
+        where g.store_id = #{storeId} and g.start_time>= #{startDate} and #{endDate}>=g.end_time and g.`status` = 3
+        and gse.id is null
+        GROUP BY coach_id;
+    </select>
+
+    <select id="getUsedClassroomId" resultType="Long">
+        SELECT DISTINCT(grade_classroom_id)
+        FROM `sport_grade`
+        WHERE grade_classroom_id IS NOT NULL
+          AND STATUS = 1
+          AND start_time > NOW()
+          AND venue_id = #{venueId}
+          AND (
+                <foreach collection="timeList" item="item" open="(" separator="OR" close=")">
+                    (start_time >= #{item.startTime} AND #{item.endTime} >= end_time)
+                </foreach>
+            )
+    </select>
+
+</mapper>

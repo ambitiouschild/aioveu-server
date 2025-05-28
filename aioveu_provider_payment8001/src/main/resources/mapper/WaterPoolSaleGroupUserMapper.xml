@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.dao.WaterPoolSaleGroupUserDao">
+
+
+    <select id="getUserAll" resultType="com.aioveu.entity.WaterPoolSaleGroupUser">
+        select A.id, A.sale_group_id, A.user_id, A.create_date, A.update_date, B.name from
+        sport_water_pool_sale_group_user A
+        LEFT JOIN sport_water_pool_sale_group B
+        on A.sale_group_id = B.id where A.sale_group_id = #{saleGroupId} and A.status = 1
+    </select>
+
+
+    <select id="getGroupUserAll" resultType="com.aioveu.vo.WaterPoolSaleGroupUserVO">
+         select A.id, A.sale_group_id, A.user_id, A.create_date, B.name as groupname, C.name, C.username
+         from sport_water_pool_sale_group_user A
+        LEFT JOIN sport_water_pool_sale_group B on A.sale_group_id = B.id
+        LEFT JOIN sport_user C on A.user_id = C.id
+        where A.sale_group_id = #{saleGroupId} and A.status = 1
+    </select>
+
+
+</mapper>

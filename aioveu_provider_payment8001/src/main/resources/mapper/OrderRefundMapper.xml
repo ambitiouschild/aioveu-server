@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.OrderRefundDao">
+
+    <select id="getDateRangeRefundOrder" resultType="com.aioveu.vo.BasicRefundOrderVO">
+        SELECT b.id, b.`actual_amount`, b.`refund_amount`, b.`amount`, b.`coupon_amount`, b.`consume_amount`, b.`actual_amount`, b.name,
+        b.`can_refund_amount`, b.`pay_type`, b.`status`, b.create_date, a.create_date as refundDate
+        FROM `sport_order_refund` a
+            LEFT JOIN sport_order b ON b.id = a.`order_id`
+        WHERE #{end} >= a.create_date AND a.create_date >= #{start}
+            AND b.`store_id` =#{storeId} AND (b.`status` = 9 or b.`status` = 12) AND b.`category_id` =#{categoryId}
+    </select>
+
+
+
+</mapper>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.TopicDao">
+
+    <!--根据分类查找专题-->
+    <select id="getTopicListByCategoryId" resultType="com.aioveu.vo.TopicBaseVO">
+        SELECT a.id, a.name, a.cover, a.color, a.end_time, COUNT(DISTINCT c.id) AS enrollNumber, COUNT(DISTINCT d.id) AS total
+        FROM `sport_topic` a
+        LEFT JOIN `sport_topic_exercise` d ON d.`topic_id` = a.`id` AND d.status=1
+        LEFT JOIN sport_order b ON b.`product_id` = a.id AND (b.`status` = 2 or b.status = 6)
+        AND b.`category_id` = #{productCategoryId} AND b.`user_id` = #{userId}
+        LEFT JOIN sport_order_detail c ON c.`order_id` = b.`id` and c.product_id = d.exercise_id
+        WHERE a.status = 1
+            <if test="categoryId != null">
+                AND a.category_id =#{categoryId}
+            </if>
+        AND a.end_time > NOW()
+        GROUP BY a.`id`
+        ORDER BY a.priority DESC
+    </select>
+
+    <select id="getManagerList" resultType="com.aioveu.vo.TopicItemVO">
+        select a.id, a.name, a.status, a.start_time, a.end_time, b.name as categoryName
+        from sport_topic a
+            left join sport_category b on b.id = a.category_id
+        where a.status != 0
+          and a.end_time > now()
+        <if test="categoryId != null">
+            AND a.category_id =#{categoryId}
+        </if>
+        order by a.create_date desc
+    </select>
+
+    <!--根据分类查找专题-->
+    <select id="getStoreCategoryList" resultType="com.aioveu.vo.TopicStoreItemVO">
+        SELECT a.id, a.name, a.cover, a.end_time, COUNT(distinct c.id) AS pushNumber, COUNT(distinct e.store_id) AS storeNumber
+        FROM `sport_topic` a
+            LEFT JOIN `sport_topic_exercise` d ON d.`topic_id` = a.`id`
+            left join sport_exercise e on e.id = d.exercise_id
+            left join sport_push_topic c on c.topic_id = a.id and c.status = 1
+        WHERE a.status = 1
+        <if test="topicId != null">
+              AND a.`id`=#{topicId}
+        </if>
+        <if test="categoryId != null">
+            AND a.category_id = #{categoryId}
+        </if>
+        AND a.end_time > NOW()
+        GROUP BY a.`id`
+        ORDER BY a.priority DESC
+    </select>
+
+<!--    &lt;!&ndash;获取商家端活动商家数和推广人数&ndash;&gt;-->
+<!--    <select id="getStoreNumberAndPushNumberList" resultType="com.aioveu.vo.TopicStoreItemVO">-->
+<!--        SELECT a.id, a.name, a.cover, COUNT(c.id) AS pushNumber,COUNT(e.store_id) AS storeNumber-->
+<!--        FROM `sport_topic` a-->
+<!--        LEFT JOIN `sport_topic_exercise` d ON d.`topic_id` = a.`id`-->
+<!--        left join sport_exercise e on e.id = d.exercise_id-->
+<!--        left join sport_push_topic c on c.topic_id = a.id and c.status = 1-->
+<!--        WHERE c.`topic_id`=#{topicId} and a.status = 1-->
+<!--        <if test="categoryId != null">-->
+<!--            AND a.category_id = #{categoryId}-->
+<!--        </if>-->
+<!--        AND a.end_time > NOW()-->
+<!--        GROUP BY a.`id`-->
+<!--        ORDER BY a.priority DESC-->
+<!--    </select>-->
+
+</mapper>

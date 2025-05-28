@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.ExtensionPositionDao">
+
+    <!--根据用户id查找店铺-->
+    <select id="getExtensionUserRange" resultType="com.aioveu.vo.ExtensionUserRangeVo">
+        select *
+        from (
+            select
+                ROUND(
+                        (
+                                (
+                                        6378.138 * ACOS(
+                                                    COS(RADIANS(${latitude})) * COS(RADIANS(f.latitude)) * COS(
+                                                        RADIANS(f.longitude) - RADIANS(${longitude})
+                                                    ) + SIN(RADIANS(${latitude})) * SIN(RADIANS(f.latitude))
+                                        )
+                                    ) * 1000
+                            )
+                    ) AS distance, c.name AS extensionName, d.name AS themeName, f.longitude, f.latitude,d.cover AS logoUrl
+            FROM sport_extension_position f
+            LEFT JOIN sport_user c ON c.id = f.extension_id and c.name is not null
+            LEFT JOIN `sport_topic` d ON d.id = f.theme_id
+            where f.id in (
+                SELECT MAX(b.id)
+                FROM `sport_topic_exercise` a
+                         LEFT JOIN `sport_extension_position` b ON b.`theme_id` = a.`topic_id`
+                                                                       AND b.create_date > NOW() - INTERVAL 1 HOUR
+                WHERE a.`store_id` = #{storeId} AND b.id IS NOT NULL
+                <if test="themeId != null">
+                    AND a.topic_id =#{themeId}
+                </if>
+                GROUP BY a.topic_id
+            )
+        ) T where ${distance} > T.distance
+        ORDER BY T.distance
+    </select>
+
+    <!--查找店铺周边的地推人员-->
+    <select id="getStoreUserRange" resultType="com.aioveu.vo.ExtensionUserRangeVo">
+        select *
+            from (
+                select
+                    ROUND(
+                    (
+                        (
+                            6378.138 * ACOS(
+                                COS(RADIANS(${latitude})) * COS(RADIANS(f.latitude)) * COS(
+                                        RADIANS(f.longitude) - RADIANS(${longitude})
+                                    ) + SIN(RADIANS(${latitude})) * SIN(RADIANS(f.latitude))
+                                )
+                            ) * 1000
+                        )
+                    ) AS distance, c.name AS extensionName, d.name AS themeName, f.longitude, f.latitude ,d.cover AS logoUrl
+                FROM sport_extension_position f
+                LEFT JOIN sport_user c ON c.id = f.extension_id
+                LEFT JOIN `sport_topic` d ON d.id = f.theme_id
+                where f.id in (
+                    SELECT MAX(a.id)
+                    FROM `sport_extension_position` a
+                    WHERE a.create_date > NOW() - INTERVAL 1 HOUR
+                    <if test="themeId != null">
+                        AND a.theme_id =#{themeId}
+                    </if>
+                    GROUP BY a.extension_id
+            )
+        ) T where ${distance} > T.distance
+        ORDER BY T.distance
+    </select>
+
+
+</mapper>

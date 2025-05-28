@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.RoleMenuDao">
+
+    <select id="getRoleMenus" parameterType="List" resultType="com.aioveu.entity.RoleMiniAppMenu">
+        SELECT MAX(sm.NAME) AS NAME
+             , MAX(sm.icon) AS icon
+             , MAX(sm.priority) AS priority
+             , sm.code
+             , MAX(sm.bg_color) AS bg_color
+             , MAX(sm.path) AS path
+             , MAX(sm.parent_code) AS parent_code
+             , MAX(srm.role_code) AS role_code
+        FROM`sport_menu` sm
+        inner join `sport_role_menu` srm on srm.menu_code = sm.code and srm.status = 1
+        WHERE sm.status = 1 and sm.type = 0 and srm.role_code IN
+        <foreach collection="roleList" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+        group by sm.code
+        order by sm.priority
+    </select>
+
+    <select id="getRoleMenusByRoleCodeAndParentCode" resultType="com.aioveu.vo.RoleMenuVO">
+        SELECT a.id, a.name, a.code, a.`parent_code`, MAX(b.id) AS roleMenuId
+        FROM `sport_menu` a
+            LEFT JOIN `sport_role_menu` b ON b.`menu_code` = a.`code` AND b.`role_code` = #{roleCode}
+        WHERE a.type = #{type}
+        GROUP BY a.code
+        ORDER BY a.`priority`
+    </select>
+
+    <select id="getRoleMenusByRoleCode" resultType="com.aioveu.vo.RoleMenuVO">
+        SELECT b.id, b.`name`, b.`code`, b.`parent_code`, MAX(a.id) AS roleMenuId
+        FROM sport_role_menu a
+                 LEFT JOIN sport_menu b ON b.`code` = a.`menu_code`
+        WHERE a.`role_code` IN
+              <foreach collection="roleList" item="item" separator="," open="(" close=")">
+                #{item}
+              </foreach>
+        AND b.`type` =#{type}
+        AND b.`status` = 1
+        GROUP BY a.menu_code
+        ORDER BY b.`priority`
+    </select>
+
+</mapper>

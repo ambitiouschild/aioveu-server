@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.CouponChangeRecordDao">
+
+    <select id="getByStoreAndDate" resultType="com.aioveu.vo.CouponVerifyItemVO">
+        SELECT a.id,
+        a.`create_date`,
+        a.`remark`,
+        b.`name`     AS username,
+        e.`name`     AS templateName,
+        g.name       AS gradeName,
+        g.start_time AS gradeStartTime,
+        g.end_time   AS gradeEndTime
+        FROM `sport_coupon_change_record` a
+        LEFT JOIN sport_user b ON b.id = a.user_id
+        LEFT JOIN sport_user_coupon d ON d.id = a.user_coupon_id
+        LEFT JOIN sport_coupon_template e ON e.id = d.template_id
+        LEFT JOIN sport_grade g ON g.id = a.grade_id
+        where 1 = 1
+        <if test="phone != null">
+            AND b.phone =#{phone}
+        </if>
+        <if test="storeId != null and storeId != '' ">
+            AND e.store_id = #{storeId}
+        </if>
+        <if test="date != null">
+            AND DATE_FORMAT(a.create_date, '%Y-%m-%d') =#{date}
+        </if>
+        ORDER BY a.create_date DESC
+    </select>
+
+    <select id="getGradeId" resultType="Long">
+        select grade_id
+        from sport_grade_user_coupon
+        where user_id =#{userId}
+        and user_coupon_id =#{userCouponId}
+        order by create_date desc limit 1;
+    </select>
+
+</mapper>

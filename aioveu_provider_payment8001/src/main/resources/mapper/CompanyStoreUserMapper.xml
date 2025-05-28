@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.CompanyStoreUserDao">
+
+    <!--根据用户id查找店铺-->
+    <select id="getStoreByUserId" parameterType="String" resultType="com.aioveu.vo.StoreSimpleVO">
+        select b.id, b.name, a.company_id, b.longitude , b.latitude, b.logo
+        from sport_company_store_user a
+            left join sport_store b on b.id = a.store_id and b.status = 1
+        where a.user_id =#{userId} and a.status = 1 and a.store_id != 0
+        order by a.create_date desc;
+    </select>
+
+    <select id="getStoreAdminUser" resultType="String">
+        SELECT a.`user_id`
+        FROM `sport_company_store_user` a
+                 LEFT JOIN `sport_role_user` b ON b.`user_id` = a.`user_id` AND b.`role_code` = 'promotion_business'
+        WHERE a.store_id =#{storeId} AND b.`role_code` IS NOT NULL LIMIT 1;
+    </select>
+
+    <select id="findPhoneAndUserId" resultType="com.aioveu.vo.UserPhoneVO">
+        SELECT A.`id` as userId ,
+               A.`phone` as phone ,
+               A.`name` as userName,
+               GROUP_CONCAT(DISTINCT d.`name`)  as codeName,
+               B.store_id,
+               GROUP_CONCAT(DISTINCT B.`id`) as id
+        FROM `sport_user` as A
+        LEFT JOIN sport_role_user c on a.id=c.user_id
+        LEFT JOIN sport_role d ON d.code=c.role_code
+        LEFT JOIN `sport_company_store_user` as B on A.id = B.user_id And B.status=1
+        WHERE
+          <if test="id == null">
+              B.company_id=#{companyId} And B.store_id=#{storeId}
+          </if>
+          <if test="id != null">
+              B.id=#{id}
+          </if>
+        GROUP BY a.`id`
+    </select>
+
+    <select id="getListByUserId" resultType="com.aioveu.vo.CompanyStoreUserVo">
+        SELECT a.`id`, b.`name` AS storeName, c.name AS companyName, a.`create_date`
+        FROM `sport_company_store_user` a
+                 LEFT JOIN sport_store b ON b.`id` = a.`store_id`
+                 LEFT JOIN sport_company c ON c.`id` = b.`company_id`
+        WHERE a.`user_id` =#{userId}
+        ORDER BY a.`create_date` DESC
+    </select>
+
+</mapper>

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.UserCouponDao">
+
+    <select id="getOrderCoupon" resultType="com.aioveu.vo.OrderCouponVO">
+        SELECT *
+        FROM (
+                 SELECT a.id as orderId, a.name as orderName, a.`create_date`, a.user_id, c.`phone`, GROUP_CONCAT(DISTINCT(e.`child_name`)) AS childName,
+                        GROUP_CONCAT(DISTINCT(d.`name`)) AS couponName, COUNT(b.id) AS couponCount
+                 FROM sport_order a
+                          LEFT JOIN sport_user_coupon b ON b.order_id = a.id AND b.`status` = 1
+                          LEFT JOIN `sport_coupon_template` d ON d.id = b.`template_id`
+                          LEFT JOIN sport_user c ON c.id = a.`user_id`
+                          LEFT JOIN sport_company_store_user f ON a.user_id = f.`user_id` and f.store_id = a.store_id
+                          LEFT JOIN `sport_user_info` e ON e.`phone` = c.`phone` and f.company_id = e.company_id
+                <where>
+                    <if test="phone != null and phone != ''">
+                        c.`phone` = #{phone}
+                    </if>
+                </where>
+                 GROUP BY a.id
+             ) AS t
+        WHERE t.couponCount > 0
+        ORDER BY t.`create_date` DESC
+    </select>
+
+    <select id="getTotalList" resultType="com.aioveu.vo.UserCouponTotalVO">
+        SELECT
+        SUBSTRING_INDEX(tb.username, ',', -1) as username,
+        tb.*
+        FROM (SELECT a.user_id, b.`name`, b.`phone`,
+                     MAX(CONCAT(c.create_date,",",c.`child_name`)) as username,
+        GROUP_CONCAT( DISTINCT (sc.`id`)) AS coach_id ,
+        GROUP_CONCAT( DISTINCT (if(cc.type=1 and sc.user_type=1,sc.`name`,null))) AS seaPoolCoachName ,
+        GROUP_CONCAT( DISTINCT (if(cc.type=2 and sc.user_type=4,sc.`name`,null))) AS seaPoolSaleName
+        <if test="status != null">
+            , COUNT(DISTINCT CASE WHEN a.`status` = #{status} THEN a.id ELSE NULL END) AS couponCount
+        </if>
+        <if test="orderStatus != null">
+            , COUNT(DISTINCT CASE WHEN a.`status` = #{orderStatus} THEN a.id ELSE NULL END) AS orderCouponCount
+        </if>
+        FROM `sport_user_coupon` a
+        JOIN sport_user b ON b.id = a.`user_id`
+        JOIN `sport_grade_enroll_user` c ON c.`user_id` = a.`user_id`
+        LEFT JOIN sport_user_info rc on  rc.phone = b.phone
+        LEFT JOIN sport_user_receive_call cc on cc.user_info_id = rc.id
+        LEFT JOIN sport_user_coach uc on uc.user_id = cc.user_id
+        LEFT JOIN sport_store_coach sc on sc.id = uc.coach_id and sc.status=1 and sc.user_type in (1,4) and sc.store_id= #{storeId}
+        WHERE a.`status` IN (1, 3, 4, 5) and
+        a.`template_id` IN
+        <foreach collection="couponTemplateIdList" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+        <if test="phone != null and phone != ''">
+            and b.phone like concat('%',#{phone},'%')
+        </if>
+        <if test="userName != null and userName != ''">
+            and c.`child_name` like concat('%',#{userName},'%')
+        </if>
+        GROUP BY a.user_id
+        ORDER BY a.`user_id`) tb
+        WHERE 1=1
+        <if test="coachId != null and coachId != ''">
+            and tb.`coach_id` like concat('%',#{coachId},'%')
+        </if>
+        <if test="status != null">
+            <if test="countFrom != null">
+                and tb.couponCount >= #{countFrom}
+            </if>
+            <if test="countTo != null">
+                and tb.couponCount &lt;= #{countTo}
+            </if>
+            <if test="countFrom == null and countTo == null">
+                and tb.couponCount >= 1
+            </if>
+        </if>
+        <if test="orderStatus != null">
+            order by tb.orderCouponCount ${orderStatusDesc}
+        </if>
+    </select>
+
+    <select id="getCouponByUserList" resultType="com.aioveu.dto.UserCouponDTO">
+        SELECT a.`user_id`, a.`status`, c.`name`, c.id, a.rule, a.create_date, a.update_date, a.id as userCouponId, a.active_price, a.amount
+        FROM sport_user_coupon a
+                 LEFT JOIN `sport_coupon_template` c ON c.id = a.`template_id`
+        WHERE a.`status` IN (1, 3, 4, 5, 8) and
+        a.`user_id` IN
+        <foreach collection="userIdList" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+        <if test="storeId != null">
+            and c.store_id = #{storeId}
+        </if>
+    </select>
+
+    <select id="findUserCouponsByStatus" resultType="com.aioveu.entity.UserCoupon">
+        SELECT a.id,a.template_id,a.user_id,a.coupon_code,a.active_price,a.status,a.create_date,a.update_date,
+               a.rule as 'ruleStr',
+               a.amount,
+               a.order_id ,
+               c.vip_price_can_use
+        FROM sport_user_coupon a
+        LEFT JOIN `sport_coupon_template` c ON c.id = a.`template_id`
+        LEFT JOIN `sport_store` d ON d.id = c.store_id
+        WHERE a.`user_id` = #{userId}
+            <if test="status != null">
+                AND a.`status` = #{status}
+            </if>
+            <if test="companyId != null">
+                AND d.company_id = #{companyId}
+            </if>
+    </select>
+
+    <select id="getUserGradeCoupon" resultType="com.aioveu.dto.UserAvailableCouponDTO">
+        SELECT a.user_id, a.status, c.`phone`, b.`company_id`, b.`store_id`, d.name as storeName
+        FROM `sport_user_coupon` a
+                 LEFT JOIN `sport_coupon_template` b ON b.id = a.`template_id` AND b.`product_line` = 1
+                 LEFT JOIN sport_user c ON c.id = a.`user_id`
+                 LEFT JOIN sport_store d ON d.`id` = b.`store_id`
+        WHERE (a.status = 1 OR a.status = 3 OR a.status = 8) AND b.`company_id` IS NOT NULL AND c.`phone` IS NOT NULL;
+    </select>
+
+    <select id="queryCouponsBelowThreshold" resultType="com.aioveu.vo.UserCouponTotalVO">
+        select ut.user_id,u.phone,ut.couponNum, ut.company_id from
+        (select uc.user_id,count(uc.user_id) as couponNum, max(ct.company_id) as company_id
+         FROM `sport_user_coupon` uc
+        join sport_coupon_template ct on ct.id = uc.template_id and ct.`status` =1 and ct.store_id= #{storeId} and ct.category = '004'
+        join sport_order od on od.id=uc.order_id and od.category_id in (1001,1011,2013)
+        where uc.`status`=1
+        GROUP BY uc.user_id HAVING count(uc.user_id) > 0 and #{threshold} >= count(uc.user_id) ) ut
+        join sport_user u on u.id = ut.user_id
+    </select>
+
+    <select id="queryUserReceiveCallByUserIds" resultType="com.aioveu.vo.UserCouponTotalVO">
+        select u.id as userId,
+               max(ui.phone) as phone,
+               max(case when urc.type = 1 then sc.name else null end) as seaPoolCoachName,
+               max(case when urc.type = 2 then sc.name else null end) as seaPoolSaleName,
+               MAX(geu.child_name) as name
+        from sport_user u
+        left join sport_user_info ui on u.phone = ui.phone and ui.company_id= #{companyId}
+        left join sport_user_receive_call urc on urc.user_info_id = ui.id
+        left join sport_user_coach uc on uc.user_id = urc.user_id
+        left join sport_store_coach sc on sc.id=uc.coach_id and  sc.store_id= #{storeId} and sc.`status`=1
+            and (CASE when urc.type=1 then sc.user_type=1
+                      when urc.type=2 then sc.user_type=4
+                end)
+        LEFT JOIN (select user_id,max(child_name) AS child_name from sport_grade_enroll_user GROUP BY user_id) geu on geu.user_id = u.id
+        where u.id in
+        <foreach collection="userIds" open="(" close=")" separator="," item="userId">
+            #{userId}
+        </foreach>
+        GROUP BY u.id
+    </select>
+
+
+</mapper>

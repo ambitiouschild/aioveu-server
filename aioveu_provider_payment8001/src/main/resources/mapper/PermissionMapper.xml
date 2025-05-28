@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.PermissionDao">
+
+    <resultMap id="roleMap" type="com.aioveu.vo.RolePermissionVO" autoMapping="true">
+        <id property="permissionId" column="id"/>
+        <result column="name" property="permissionName"/>
+        <result column="url" property="url"/>
+        <result column="method" property="method"/>
+        <collection property="roles" ofType="java.lang.String" columnPrefix="child_">
+            <result column="role" property="role"/>
+        </collection>
+    </resultMap>
+
+    <select id="getById" resultMap="roleMap">
+        SELECT a.id, a.`name`, a.`url`, a.method, c.`role_code` as child_role
+        FROM `sport_permission` a
+                 LEFT JOIN `sport_menu_permission` b ON b.`permission_id` = a.id AND b.`status` = 1
+                 LEFT JOIN `sport_role_menu` c ON c.`menu_code` = b.`menu_code` AND c.`status` = 1
+        WHERE a.`status` = 1 and a.id =#{id};
+    </select>
+
+    <select id="getByMenuPermissionIdList" resultMap="roleMap">
+        SELECT c.id, c.`name`, c.`url`, c.method, b.`role_code` AS child_role
+        FROM `sport_menu_permission` a
+                 LEFT JOIN `sport_role_menu` b ON b.`menu_code` = a.`menu_code`
+                 LEFT JOIN sport_permission c ON c.`id` = a.`permission_id`
+        WHERE a.id in
+        <foreach collection="idList" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="getByRoleMenuIdList" resultMap="roleMap">
+        SELECT c.id, c.`name`, c.`url`, c.method, a.`role_code` AS child_role
+        FROM `sport_role_menu` a
+                 LEFT JOIN sport_menu_permission b ON b.`menu_code` = a.`menu_code`
+                 LEFT JOIN sport_permission c ON c.`id` = b.`permission_id`
+        WHERE a.id in
+        <foreach collection="idList" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach> AND c.id IS NOT NULL
+    </select>
+
+</mapper>

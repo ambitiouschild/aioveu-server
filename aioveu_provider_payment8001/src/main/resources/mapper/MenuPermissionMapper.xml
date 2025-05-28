@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.MenuPermissionDao">
+
+    <select id="getByMenuCode" resultType="com.aioveu.vo.MenuPermissionVo">
+        SELECT b.`name`, b.`id`, b.`url`, b.`method`, b.`need_token`, a.id as menuPermissionId
+        FROM `sport_menu_permission` a
+                 LEFT JOIN `sport_permission` b ON b.id = a.`permission_id`
+        WHERE a.`menu_code` = #{menuCode}
+        ORDER BY b.`create_date` DESC
+    </select>
+
+    <select id="getByMenuAndPermission" resultType="com.aioveu.entity.MenuPermission">
+        select id, menu_code, permission_id
+        from sport_menu_permission
+        where (permission_id, menu_code) in
+        <foreach collection="menuPermissions" item="item" open="(" close=")" separator=",">
+            (#{item.permissionId}, #{item.menuCode})
+        </foreach>
+    </select>
+
+
+</mapper>

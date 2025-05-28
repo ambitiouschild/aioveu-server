@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.StoreVenueDao">
+
+    <select id="getByStoreId" resultType="com.aioveu.vo.StoreVenueItemVO">
+        SELECT a.`id`, a.`name`, a.logo, a.`tags`,a.`status`, a.book_open, GROUP_CONCAT(b.`name` SEPARATOR ',') AS fields
+        FROM `sport_store_venue` a
+                 LEFT JOIN `sport_venue_field` b ON b.`venue_id` = a.`id`
+        <if test="status!=null">
+            AND b.status =#{status}
+        </if>
+        <if test="status==null">
+            AND b.status IN (1,2)
+        </if>
+        WHERE a.`store_id` =#{storeId}
+        <if test="status!=null">
+            AND a.status =#{status}
+        </if>
+        <if test="status==null">
+            AND a.status IN (1,2)
+        </if>
+        GROUP BY a.`id`
+        ORDER BY a.`create_date` desc
+    </select>
+
+    <select id="getActiveByStoreId" resultType="com.aioveu.vo.StoreVenueItemVO">
+        SELECT a.`id`, a.`name`, a.logo, a.`tags`, GROUP_CONCAT(b.`name` SEPARATOR '、') AS fields
+        FROM `sport_store_venue` a
+                 LEFT JOIN `sport_venue_field` b ON b.`venue_id` = a.`id`
+        WHERE a.`store_id` =#{storeId}
+        GROUP BY a.`id`
+        ORDER BY a.`create_date` desc
+    </select>
+
+</mapper>

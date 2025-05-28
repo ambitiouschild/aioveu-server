@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.UserMpSubscribeDao">
+
+    <select id="getSubscribeStatusByOpenId" resultType="com.aioveu.entity.UserMpSubscribe">
+        SELECT `event`, subscribe_scene
+        FROM `sport_user_mp_subscribe`
+        WHERE (`event` = 'subscribe' or event = 'unsubscribe') and open_id = #{openId}
+        ORDER BY create_date DESC
+            LIMIT 1;
+    </select>
+
+</mapper>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.OrderDetailDao">
+
+    <!--根据用户id查找角色-->
+    <select id="getEnrollUserList" parameterType="Map" resultType="com.aioveu.vo.UserEnterVO">
+        select a.product_id,a.user_id, b.head, b.name as nickName, b.gender
+        from sport_order_detail a
+                 left join sport_user b on b.id = a.user_id
+        where a.product_id in
+        <foreach collection="productIds" item="productId" open="(" separator="," close=")">
+            #{productId}
+        </foreach>
+        and a.category_id =#{categoryId} and a.status in (2, 3, 4, 6)
+        and b.head is not null order by a.create_date desc
+    </select>
+
+    <resultMap id="orderDetailMap" type="com.aioveu.vo.OrderDetailVO" autoMapping="true">
+        <id column="order_id" property="orderId"/>
+        <result column="amount" property="amount"/>
+        <collection property="consumeList" ofType="com.aioveu.vo.ConsumeVO" columnPrefix="child_">
+            <result column="phone" property="phone"/>
+            <result column="code" property="code"/>
+        </collection>
+    </resultMap>
+
+    <select id="getOrderDetail" parameterType="String" resultMap="orderDetailMap">
+        SELECT a.id AS order_id, a.name AS product_name, a.category_id, c.parent_id as parent_category_id,
+               c.code as categoryCode,
+               a.product_id, a.amount, a.coupon_amount, a.actual_amount, a.agreement_url,
+               a.refund_amount, a.status, a.create_date, a.consume_amount,
+               a.store_id, s.name AS storeName,s.address AS storeAddress, s.longitude, s.latitude,
+               b.phone AS child_phone, b.consume_code AS child_code, b.status as order_detail_status
+        FROM sport_order a
+                 LEFT JOIN sport_order_detail b ON b.order_id =a.id
+                 LEFT JOIN sport_category c on c.id = a.category_id
+                 LEFT JOIN sport_store s ON a.store_id = s.id
+        WHERE a.id =#{orderId}
+    </select>
+
+    <select id="getOrderDetailList" parameterType="String" resultType="com.aioveu.vo.OrderDetailVO">
+        select A.id, A.order_id, A.category_id, A.product_id, A.product_name, A.product_price,
+        A.product_quantity, A.product_image, A.user_id, A.phone, A.consume_code, A.category_id, A.user_id,
+        A.store_id, A.company_id, A.status, A.create_date, A.update_date, B.name as userName
+        from sport_order_detail A
+        LEFT JOIN sport_user B on A.user_id = B.id
+        WHERE a.order_id = #{orderId}
+    </select>
+
+    <select id="getFieldOrderDetailList" parameterType="String" resultType="com.aioveu.vo.FieldOrderDetailVO">
+        SELECT a.id, a.`status`, a.consume_code, a.phone, b.id AS fieldPlanId, DATE_FORMAT(b.field_day, '%Y-%m-%d') AS field_day,
+               DATE_FORMAT(b.start_time, '%H:%i') AS start_time, DATE_FORMAT(b.end_time, '%H:%i') AS end_time,
+               c.name AS venueName, d.name AS fieldName
+            FROM sport_order_detail a
+             LEFT JOIN sport_field_plan b ON a.product_id = b.id
+             LEFT JOIN sport_store_venue c ON c.id = b.venue_id
+             LEFT JOIN sport_venue_field d ON d.id = b.field_id
+        WHERE a.order_id = #{orderId}
+        order by b.field_day,b.start_time
+    </select>
+</mapper>

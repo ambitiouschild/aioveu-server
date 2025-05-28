@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.CategoryDao">
+
+    <!--根据条件查询分类-->
+    <select id="selCondition" resultType="com.aioveu.vo.CategoryVo">
+        select A.*
+        <if test="parentId!=null">
+            ,(select name from sport_category where id = #{parentId}) parentName
+        </if>
+        from sport_category A
+        where `status` = 1
+        <if test="parentId!=null">
+            and parent_id = #{parentId}
+        </if>
+        <if test="id!=null">
+            and id = #{id}
+        </if>
+        <if test="parentId==null and id==null">
+            and parent_id is null
+        </if>
+
+    </select>
+
+
+</mapper>

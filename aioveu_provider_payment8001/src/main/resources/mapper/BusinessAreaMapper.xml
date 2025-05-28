@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.BusinessAreaDao">
+    <!--根据用户id查找店铺-->
+    <select id="getBusinessAreaListByCondition" resultType="com.aioveu.vo.BusinessAreaConditionVO">
+        select A.`name` name,A.id id,A.region_id regionId,B.`name` regionName,C.`name` cityName,D.`name`
+        provinceName,A.priority priority,C.id cityId,D.id provinceId
+        from sport_business_area A left JOIN sport_region B on A.region_id = B.id LEFT JOIN sport_city C on B.city_id =
+        C.id LEFT JOIN sport_province D on C.province_id = D.id
+        where 1=1
+        <if test="name!=null">
+            and A.name LIKE CONCAT('%','${name}','%' )
+        </if>
+        <if test="parentId!=null">
+            and A.region_id = #{parentId}
+        </if>
+        <if test="id!=null">
+            and A.id = #{id}
+        </if>
+    </select>
+
+
+</mapper>

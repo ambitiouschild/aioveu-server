@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.dao.WxOpenAuthorizerDao">
+
+
+    <select id="getListByPage" resultType="com.aioveu.vo.WxOpenAuthorizerVo">
+        select oa.*,
+               oov.create_date as online_date,
+               oov.code_commit_id as online_code_commit_id,
+               osa.code_commit_id as audit_code_commit_id,
+               osa.audit_status,
+               osa.create_date as audit_date,
+               osa.fail_reason
+        from sport_wx_open_authorizer oa
+        left join sport_wx_open_submit_audit osa on osa.app_id = oa.authorizer_app_id and osa.`status`=1
+        left join sport_wx_open_online_version oov on oov.app_id = oa.authorizer_app_id and oov.`status`=1
+        <where>
+            <if test="authorizerUserId != null and authorizerUserId == ''">
+                oa.authorizer_user_id = #{authorizerUserId}
+            </if>
+        </where>
+    </select>
+</mapper>

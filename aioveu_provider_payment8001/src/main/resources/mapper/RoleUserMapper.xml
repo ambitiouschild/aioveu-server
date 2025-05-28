@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.RoleUserDao">
+
+    <select id="getUserRole" resultType="com.aioveu.vo.UserRoleVo">
+        SELECT a.id, a.`role_code`, a.`create_date`, a.`status`,
+               b.name AS storeName, c.`name` AS companyName, d.`name`, d.`type` AS roleType
+        FROM `sport_role_user` a
+                 LEFT JOIN `sport_store` b ON b.id = a.`store_id`
+                 LEFT JOIN `sport_company` c ON c.id = a.`company_id`
+                 LEFT JOIN `sport_role` d ON d.`code` = a.`role_code`
+        WHERE a.`user_id` = #{userId}
+    </select>
+
+
+
+
+</mapper>

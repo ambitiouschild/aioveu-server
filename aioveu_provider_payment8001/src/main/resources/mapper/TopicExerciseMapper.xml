@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.TopicExerciseDao">
+
+    <resultMap id="exerciseMap" type="com.aioveu.vo.ExerciseTopicItemVO" autoMapping="true">
+        <id column="id" property="id"/>
+        <collection property="imageList" ofType="java.lang.String" columnPrefix="image_">
+            <result column="url" property="url"/>
+        </collection>
+    </resultMap>
+
+    <select id="getExerciseList" parameterType="map" resultMap="exerciseMap">
+        SELECT * FROM (
+            SELECT b.id, b.name, b.description, b.top, b.end_time, v.name as storeName, v.address, v.logo as storeLogo, b.price,b.original_price,
+            ROUND(
+                (
+                    (
+                        6378.138 * ACOS(
+                            COS(RADIANS(${params.latitude})) * COS(RADIANS(v.latitude)) * COS(
+                                RADIANS(v.longitude) - RADIANS(${params.longitude})
+                            ) + SIN(RADIANS(${params.latitude})) * SIN(RADIANS(v.latitude))
+                        )
+                    ) * 1000
+                )
+            ) AS distance, c.id as orderDetailId, d.url as image_url
+            from sport_topic_exercise a
+            left join sport_exercise b on b.id = a.exercise_id
+            left join sport_store v on v.id = b.store_id
+            left join sport_order_detail c on c.product_id = a.exercise_id
+            and c.category_id =#{params.productCategoryId} and c.user_id =#{params.userId} and (c.status = 2 or c.status = 6)
+            left join sport_exercise_image d on d.exercise_id = a.exercise_id
+            where a.topic_id = #{params.topicId} and a.status = 1
+            <if test="params.categoryId!=null">
+                AND a.category_id = #{params.categoryId}
+            </if>
+            <if test="params.categoryId ==null">
+                AND a.category_id is null
+            </if>
+        ) T WHERE 1=1
+        <if test="params.sort!=null and params.sort!=''">
+            ORDER BY ${params.sort}
+        </if>
+    </select>
+
+    <select id="getByStoreId" resultType="com.aioveu.entity.TopicExercise">
+        SELECT b.`exercise_id`, c.`id` AS topicId
+        FROM `sport_exercise` a
+                 LEFT JOIN `sport_topic_exercise` b ON b.`exercise_id` = a.id
+                 LEFT JOIN sport_topic c ON c.id = b.`topic_id` AND c.`status` = 1
+        WHERE  a.`store_id` =#{storeId}  AND c.`id` IS NOT NULL;
+    </select>
+
+    <select id="getUserBuyExercise" resultType="Long">
+        SELECT b.`product_id`
+        FROM sport_order a
+                 LEFT JOIN sport_order_detail b ON b.`order_id` = a.`id`
+        WHERE a.`product_id` = #{topicId}
+          AND a.`category_id` = #{productCategoryId}
+          AND a.`status` = 2
+          and a.user_id = #{userId}
+    </select>
+
+    <select id="getByIdList" resultMap="exerciseMap">
+        SELECT b.id, b.name, b.price, v.name as storeName, v.address, v.logo as storeLogo
+        from sport_exercise b
+             left join sport_store v on v.id = b.store_id
+             left join sport_exercise_image d on d.exercise_id = b.id
+        where b.id in
+        <foreach collection="ids" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="getByStoreAndTopic" resultType="com.aioveu.entity.Exercise">
+        select b.id, b.name
+        from sport_topic_exercise a
+        left join sport_exercise b on b.id = a.exercise_id
+        where a.topic_id = #{topicId}
+          and b.status=1
+        and a.store_id =#{storeId} limit 1;
+    </select>
+
+    <select id="getStoreTopicColor" resultType="String">
+        SELECT b.`color`
+        FROM `sport_topic_exercise` a
+                 LEFT JOIN `sport_topic` b ON b.id = a.`topic_id`
+        WHERE a.`store_id` = #{storeId} AND b.`color` IS NOT NULL
+    </select>
+
+    <update id="updateExerciseTop">
+        update sport_exercise set top = 1 where id =#{exerciseId};
+        update sport_topic_exercise set priority =#{priority} where id =#{id};
+    </update>
+
+</mapper>

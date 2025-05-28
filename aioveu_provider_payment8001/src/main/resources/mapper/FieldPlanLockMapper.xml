@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.dao.FieldPlanLockDao">
+
+    <select id="getByStoreId" resultType="com.aioveu.entity.FieldPlanLock">
+        SELECT a.*,b.name AS 'venueName'
+        FROM sport_field_plan_lock a
+        JOIN sport_store_venue b ON b.id = a.venue_id
+        WHERE b.store_id = #{storeId}
+          AND a.status != 0
+        <if test="name != null and name != ''">
+            AND a.name like concat('%', #{name}, '%')
+        </if>
+        <if test="venueId != null">
+            AND a.venueId = #{venueId}
+        </if>
+        ORDER BY a.create_date DESC
+    </select>
+
+</mapper>

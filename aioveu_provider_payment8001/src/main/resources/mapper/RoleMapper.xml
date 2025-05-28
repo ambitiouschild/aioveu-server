@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.RoleDao">
+
+    <select id="getWebList" resultType="com.aioveu.vo.WebRoleVO">
+        SELECT a.`id`, a.`name`, a.`code`, a.`type`, a.`status`, a.create_date, a.`store_id`, a.`company_id`, b.name AS companyName,
+               c.name AS storeName
+        FROM `sport_role` a
+                 LEFT JOIN sport_company b ON b.`id` = a.`company_id`
+                 LEFT JOIN sport_store c ON c.id = a.`store_id`
+        where a.status != 0
+        <if test="type != null">
+            AND a.type =#{type}
+        </if>
+        <if test="storeId != null">
+            AND a.store_id = #{storeId}
+        </if>
+        <if test="companyId != null">
+            AND a.company_id = #{companyId}
+        </if>
+        ORDER BY a.`create_date` DESC
+    </select>
+
+
+</mapper>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.UserExtensionAccountDao">
+
+    <resultMap id="extensionMap" type="com.aioveu.vo.UserExtensionAccountVO" autoMapping="true">
+        <id property="id" column="id"/>
+        <collection property="storeList" ofType="com.aioveu.vo.StoreTelVO" autoMapping="true" columnPrefix="store_">
+            <id column="id" property="id"/>
+        </collection>
+    </resultMap>
+
+    <select id="getAllList" resultMap="extensionMap">
+        select a.id, b.phone AS username, a.balance, c.name as store_name, c.id as store_id,
+               c.tel as store_tel
+        from sport_user_extension_account a
+        left join sport_user b on b.id = a.user_id
+        left join sport_company_store_user d on d.user_id = a.user_id
+        left join sport_store c on c.id = d.store_id
+        where a.status = 1
+        <if test="phone != null">
+            and b.phone =#{phone}
+        </if>
+        order by a.balance DESC
+    </select>
+
+</mapper>

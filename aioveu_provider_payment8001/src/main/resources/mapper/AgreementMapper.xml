@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.AgreementDao">
+
+    <!--查询管理平台列表-->
+    <select id="getManagerAll" resultType="com.aioveu.vo.AgreementDetailVO">
+        select a.id, a.name, a.url, a.create_date, a.status, b.name as companyName, c.name as storeName
+        from sport_agreement a
+        left join sport_company b on b.id = a.company_id
+        left join sport_store c on c.id = a.store_id
+        where a.company_id =#{companyId}
+        order by a.create_date
+    </select>
+
+</mapper>

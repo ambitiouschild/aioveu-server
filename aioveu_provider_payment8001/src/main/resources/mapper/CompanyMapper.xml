@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.CompanyDao">
+
+    <select id="getOneByStoreId" resultType="com.aioveu.entity.Company">
+        select c.id,
+               c.name
+        from sport_company c
+        join sport_store s on s.company_id = c.id and s.`status`=1
+        where s.id=#{storeId}
+        and c.`status`= 1
+    </select>
+
+</mapper>

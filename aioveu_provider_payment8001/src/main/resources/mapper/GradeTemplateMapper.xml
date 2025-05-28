@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.GradeTemplateDao">
+
+    <select id="templateList" resultType="com.aioveu.vo.GradeTemplateVO">
+            select A.id, concat(concat(A.start_day,' '), A.start_time) as `startTime`,
+            concat(concat(A.end_day,' '), A.end_time) as `endTime`, A.name, A.status, A.grade_level_id,
+             A.grade_classroom_id, A.time_type, A.date_list, B.name as levelname, C.name as classname,
+             D.name AS 'venueName', GROUP_CONCAT(E.name SEPARATOR ',') AS 'fieldNames',
+            GROUP_CONCAT(F.name SEPARATOR ',') AS 'coachNames'
+            from sport_grade_template A
+            LEFT JOIN sport_grade_level B on A.grade_level_id = B.id
+            LEFT JOIN sport_grade_classroom C on A.grade_classroom_id = C.id
+            left join sport_store_venue D on D.id = A.venue_id
+            left join sport_venue_field E on FIND_IN_SET(E.id , A.field_ids)
+            LEFT JOIN `sport_store_coach` F ON FIND_IN_SET(F.id , A.coach_ids)
+            where (A.status = 1 or A.status = 2)
+                and A.store_id = #{storeId} AND A.`end_day` > NOW()
+            <if test="startDate!=null  and startDate != '' ">
+                AND A.create_date >=#{startDate}
+            </if>
+            <if test="endDate!=null  and endDate != ''">
+                AND A.create_date &lt;=#{endDate}
+            </if>
+            GROUP BY A.id
+            ORDER BY A.create_date desc
+    </select>
+
+    <select id="getDetail" resultType="com.aioveu.vo.GradeTemplateDetailVO">
+        select a.id, a.name, b.name as storeName, a.status,
+               a.store_id, a.grade_level_id, a.grade_age_id, a.grade_classroom_id,a.coupon_template_ids,
+               a.coach_ids, a.start_day, a.end_day, a.start_time, a.end_time, a.limit_number,
+               a.exceed, a.min_number, a.class_hour, a.time_type, a.skip_holiday, a.remark, a.date_list as dateStr,
+               a.venue_id, a.field_ids, a.shared_venue
+        from sport_grade_template a
+            left join sport_store b on b.id = a.store_id
+        where (a.status = 1 or a.status = 2)
+          and a.id =#{id};
+    </select>
+
+
+</mapper>

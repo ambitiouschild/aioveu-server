@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.UserOpenIdDao">
+
+
+    <select id="getPhoneByOpenId" resultType="String">
+        SELECT b.phone
+        FROM `sport_user_open_id` a
+        LEFT JOIN `sport_user` b ON b.id = a.user_id
+        WHERE a.open_id = #{openId}
+    </select>
+
+    <select id="getStoreMpUserOpenId" resultType="String">
+        SELECT c.`open_id`
+        FROM `sport_store` a
+                 LEFT JOIN `sport_company` b ON b.id = a.`company_id`
+                 LEFT JOIN `sport_user_open_id` c ON c.`app_id` = b.`mp_app_id` AND c.`user_id` =#{userId}
+        WHERE a.`id` =#{storeId} AND c.`open_id` IS NOT NULL
+    </select>
+
+
+
+
+
+</mapper>

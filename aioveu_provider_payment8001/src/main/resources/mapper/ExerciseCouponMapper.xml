@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.dao.ExerciseCouponDao">
+
+    <!--查询优惠券名字列表-->
+    <select id="getManagerAll" resultType="com.aioveu.vo.ExerciseCouponVO">
+       select  A.id,A.exercise_id,A.coupon_template_id,A.status != 0,A.create_date,
+               A.update_date,A.category_id,B.name as exerciseName from sport_exercise_coupon A
+               LEFT JOIN sport_exercise B on A.exercise_id=B.id where A.exercise_id=#{exerciseId}
+    </select>
+
+    <select id="getByExerciseId" resultType="com.aioveu.vo.ExerciseCouponSimpleVO">
+        select a.coupon_template_id ,a.coupon_template_id as id, a.coupon_expire_time, a.coupon_expire_day, a.coupon_number, b.name
+        from sport_exercise_coupon a
+        left join sport_coupon_template b on b.id = a.coupon_template_id
+        where a.exercise_id =#{exerciseId};
+    </select>
+
+</mapper>

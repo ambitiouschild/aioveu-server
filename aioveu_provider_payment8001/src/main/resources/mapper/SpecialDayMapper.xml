@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.SpecialDayDao">
+
+    <select id="getByDay" parameterType="String" resultType="com.aioveu.entity.SpecialDay">
+        select a.id, a.status, a.special_type, a.detail_day, a.name
+        from sport_special_day a
+        where a.status = 1
+          and DATE_FORMAT(a.detail_day, '%Y-%m-%d') =#{date};
+    </select>
+
+    <select id="getByDayWithType" parameterType="String" resultType="com.aioveu.entity.SpecialDay">
+        select a.id, a.status, a.special_type, a.detail_day, a.name
+        from sport_special_day a
+        where a.status = 1
+          and DATE_FORMAT(a.detail_day, '%Y-%m-%d') =#{date}
+          and special_type = #{specialType}
+    </select>
+
+    <select id="getDaysByYear" resultType="java.lang.String">
+        select GROUP_CONCAT(detail_day)from
+            (select * from sport_special_day a
+        where a.status = 1
+          and a.detail_day >= concat(#{year},'-01-01')
+          and concat(#{year},'-12-31') >= a.detail_day
+          and special_type = #{type}
+        order by detail_day)t
+        group by special_type
+    </select>
+
+</mapper>

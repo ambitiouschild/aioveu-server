@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.mapper.PayMapper">
+  <resultMap id="BaseResultMap" type="com.aioveu.entities.Pay">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="company_id" jdbcType="INTEGER" property="companyId" />
+    <result column="category_code" jdbcType="VARCHAR" property="categoryCode" />
+    <result column="logo" jdbcType="VARCHAR" property="logo" />
+    <result column="topic_logo" jdbcType="VARCHAR" property="topicLogo" />
+    <result column="introduce" jdbcType="VARCHAR" property="introduce" />
+    <result column="tags" jdbcType="VARCHAR" property="tags" />
+    <result column="recommend_order" jdbcType="TINYINT" property="recommendOrder" />
+    <result column="address" jdbcType="VARCHAR" property="address" />
+    <result column="longitude" jdbcType="DOUBLE" property="longitude" />
+    <result column="latitude" jdbcType="DOUBLE" property="latitude" />
+    <result column="tel" jdbcType="VARCHAR" property="tel" />
+    <result column="balance" jdbcType="DECIMAL" property="balance" />
+    <result column="business_area_id" jdbcType="INTEGER" property="businessAreaId" />
+    <result column="region_id" jdbcType="INTEGER" property="regionId" />
+    <result column="city_id" jdbcType="INTEGER" property="cityId" />
+    <result column="province_id" jdbcType="INTEGER" property="provinceId" />
+    <result column="app_id" jdbcType="VARCHAR" property="appId" />
+    <result column="path" jdbcType="VARCHAR" property="path" />
+    <result column="status" jdbcType="TINYINT" property="status" />
+    <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+    <result column="update_date" jdbcType="TIMESTAMP" property="updateDate" />
+  </resultMap>
+</mapper>

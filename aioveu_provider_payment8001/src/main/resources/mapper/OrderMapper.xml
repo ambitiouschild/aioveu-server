@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.OrderDao">
+
+    <!--获取店铺的订单-->
+    <select id="getStoreOrderList" resultType="com.aioveu.vo.OrderManagerVO">
+        SELECT b.`id`, b.`name`, b.`create_date`, b.`actual_amount` as amount , b.`product_id`, b.user_id, g.name as 'categoryName',
+               b.category_id, b.`status`, b.count, d.`name` AS username, group_concat(DISTINCT f.`name`) AS saleName,
+        GROUP_CONCAT(DISTINCT REPLACE(d.phone,SUBSTR(d.phone,4,4),"****")) AS phones
+        FROM `sport_order` b
+        LEFT JOIN sport_order_detail c ON c.order_id = b.`id`
+        LEFT JOIN sport_user d ON d.`id` = b.`user_id`
+        LEFT JOIN sport_user_coach e on e.user_id = b.sale_user_id
+        LEFT JOIN sport_store_coach f on f.id = e.coach_id AND f.store_id = b.store_id
+        LEFT JOIN sport_category g ON g.id = b.category_id
+        WHERE 1=1
+        <choose>
+            <when test="param.categoryCode == 'exercise_order'">
+                AND g.code NOT IN ('field_order', 'vip_order')
+            </when>
+            <when test="param.categoryCode != null and param.categoryCode != ''">
+                AND g.code =#{param.categoryCode}
+            </when>
+        </choose>
+        <if test="param.orderId != null and param.orderId != ''">
+            AND b.`id` =#{param.orderId}
+        </if>
+        <if test="param.storeId != null">
+            AND b.`store_id` =#{param.storeId}
+        </if>
+        <if test="param.orderUserId != null">
+            AND b.`user_id` =#{param.orderUserId}
+        </if>
+        <if test="param.productId != null">
+            AND b.`product_id` =#{param.productId}
+        </if>
+        <if test="param.status != null and param.status != ''">
+            AND b.`status` =#{param.status}
+        </if>
+        <if test="param.categoryId != null">
+            AND b.`category_id` =#{param.categoryId}
+        </if>
+        <if test="param.timeFrom != null and param.timeFrom != ''">
+            AND b.create_date >= #{param.timeFrom}
+        </if>
+        <if test="param.timeTo != null and param.timeTo != ''">
+            AND b.create_date &lt;= #{param.timeTo}
+        </if>
+        <if test="param.start != null">
+            AND ${param.end} > b.create_date and b.create_date > ${param.start}
+        </if>
+        GROUP BY b.`id`
+        ORDER BY b.`create_date` DESC
+    </select>
+
+    <select id="getExperiential" resultType="com.aioveu.vo.UserInfoOrderVO">
+        SELECT  a.id AS orderId,  a.category_id, a.`create_date`, a.`amount`,
+                a.`name` AS course, a.product_id, f.`child_name`,e.head, e.head AS childHead
+        FROM sport_order a
+                 LEFT JOIN sport_user e ON e.id = a.user_id
+                 LEFT JOIN sport_user_info f ON f.`phone` = e.`phone`
+        WHERE a.store_id =#{storeId} AND a.`status` IN (2, 3, 4, 6) AND a.`category_id` = #{categoryId}
+          and a.create_date &gt;= #{start}
+          and a.create_date &lt;= #{end}
+        ORDER BY a.`create_date` DESC
+    </select>
+
+    <select id="getTopicList" resultType="com.aioveu.vo.OrderTopicVO">
+        SELECT a.`order_id`, a.id AS orderDetailId, a.`product_name`, a.`create_date`,
+               b.`name` AS storeName, b.`address`, c.`name` AS topicName, e.reward_product, c.reward
+        FROM sport_order_detail a
+                 LEFT JOIN sport_store b ON b.id = a.`store_id`
+                 LEFT JOIN sport_order d ON d.id = a.`order_id`
+                 LEFT JOIN sport_topic c ON c.id = d.`product_id`
+                 left join sport_exercise_push_reward_config e on e.topic_id = d.product_id
+                                                                      and e.exercise_id = a.product_id and e.reward_type = 2
+        WHERE a.`category_id` = #{categoryId} AND a.`status` = #{status} AND a.`user_id` = #{userId}
+        ORDER BY a.`order_id`, a.`create_date`
+    </select>
+
+    <select id="plan2Store" resultType="com.aioveu.vo.PushExerciseStoreVO">
+        SELECT a.`product_name`, b.`name` AS storeName, b.`address`, b.longitude, b.latitude, b.logo
+        FROM sport_order_detail a
+            LEFT JOIN sport_store b ON b.id = a.`store_id`
+        WHERE a.`category_id` = #{categoryId} AND a.`status` = 2 AND a.`user_id` = #{userId}
+        ORDER BY a.`order_id`, a.`create_date` desc
+    </select>
+
+    <select id="getAnalysisOrderList" resultType="com.aioveu.vo.AnalysisOrderVO">
+        select a.id as orderId, a.actual_amount as amount, b.name as username, REPLACE(b.phone,SUBSTR(b.phone,4,4),"****") as phone, a.name, a.create_date
+        from sport_order a
+            LEFT JOIN sport_category g ON g.id = a.category_id
+            left join sport_user b on b.id = a.user_id
+        where a.status =#{status} and a.store_id =#{storeId}
+            <if test="saleUserId != null">
+                AND a.sale_user_id =#{saleUserId}
+            </if>
+            and g.code NOT IN ('field_order', 'vip_order', 'experience_class')
+            and a.active_time >= #{start} and #{end} >= a.active_time
+    </select>
+
+    <select id="getRenewalOrderList" resultType="com.aioveu.vo.AnalysisOrderVO">
+        select distinct a.id as orderId,
+                        (CASE WHEN g.code = 'vip_order' THEN 0 ELSE IFNULL(c.amount, 0) END + a.actual_amount) as amount,
+                        a.user_id,
+                        a.sale_user_id,
+                        g.id AS category_id,
+                        g.name AS category_name
+        from sport_order a
+        JOIN sport_category g ON g.id = a.category_id
+        LEFT JOIN sport_user_balance_change c ON c.order_id = a.id
+        WHERE a.store_id =#{storeId}
+          AND a.status IN
+            <foreach collection="statusList" item="status" index="index" open="(" close=")" separator=",">
+                #{status}
+            </foreach>
+          AND a.create_date > #{start} and #{end} > a.create_date
+            <if test="saleUserId != null and saleUserId != ''">
+                AND a.sale_user_id = #{saleUserId}
+            </if>
+    </select>
+
+    <select id="getInvoiceRequestOrderList" resultType="com.aioveu.vo.InvoiceRequestOrderVO">
+        select distinct a.id as order_id, a.name as orderName, IFNULL(c.amount, 0) + a.actual_amount as amount, a.status, a.create_date, g.code AS category_code
+        from sport_order a
+        JOIN sport_store s ON s.id = a.store_id
+        JOIN sport_category g ON g.id = a.category_id
+        LEFT JOIN sport_user_balance_change c ON c.order_id = a.id
+        LEFT JOIN sport_invoice_request_detail d ON d.order_id = a.id
+        LEFT JOIN sport_invoice_request e ON e.id = d.invoice_request_id
+        WHERE s.company_id =#{companyId}
+        AND a.user_id = #{userId}
+        AND a.create_date >= '2024-08-01'
+        AND (a.active_time IS NOT NULL OR g.code = 'field_order')
+        AND g.code not in ('vip_order')
+        AND (IFNULL(c.amount, 0) + a.actual_amount) > 0
+        AND (e.status IS NULL OR e.status = 3)
+        AND a.status IN
+        <foreach collection="statusList" item="status" index="index" open="(" close=")" separator=",">
+            #{status}
+        </foreach>
+        <if test="start != null">
+            AND a.create_date >= #{start}
+        </if>
+        <if test="end != null">
+            AND #{end} >= a.create_date
+        </if>
+        order by a.create_date desc
+    </select>
+
+    <select id="getOrderListById" resultType="com.aioveu.vo.AnalysisOrderVO">
+        select distinct a.id as orderId, (IFNULL(c.amount, 0) + a.actual_amount) as amount, b.name as username, b.phone, a.name, a.create_date, a.active_time
+        from sport_order a
+        LEFT JOIN sport_category g ON g.id = a.category_id
+        left join sport_user b on b.id = a.user_id
+        LEFT JOIN sport_user_balance_change c ON c.order_id = a.id
+        WHERE a.id IN
+        <foreach collection="orderIdList" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <!--获取订场的订单-->
+    <select id="getStoreFieldOrderList" resultType="com.aioveu.vo.FieldOrderManagerVO">
+        SELECT b.`id`, b.`name`, b.`create_date`, b.`status`, GROUP_CONCAT(DISTINCT CONCAT(d.`username`, ' ', d.`phone`) SEPARATOR ',') AS bookingUser,
+        MAX(e.`create_date`) AS refundTime, max(e.status) as refundStatus
+        FROM `sport_order` b
+        LEFT JOIN sport_field_book_user d on d.order_id = b.id
+        LEFT JOIN sport_category c ON c.id = b.category_id
+        LEFT JOIN sport_order_refund e ON e.order_id = b.id
+        WHERE c.code = 'field_order' AND b.status IN (2,6,9)
+        <if test="param.storeId != null">
+            AND b.`store_id` =#{param.storeId}
+        </if>
+        <if test="param.orderUserId != null">
+            AND b.`user_id` =#{param.orderUserId}
+        </if>
+        <if test="param.status != null">
+            AND b.`status` =#{param.status}
+        </if>
+        <if test="param.categoryId != null">
+            AND b.`category_id` =#{param.categoryId}
+        </if>
+        <if test="param.timeFrom != null and param.timeFrom != ''">
+            AND b.create_date >= #{param.timeFrom}
+        </if>
+        <if test="param.timeTo != null and param.timeTo != ''">
+            AND b.create_date &lt;= #{param.timeTo}
+        </if>
+        GROUP BY b.id
+        ORDER BY b.`create_date` DESC
+    </select>
+
+    <select id="getBasicOrderList" resultType="com.aioveu.vo.BasicOrderVO">
+        SELECT  a.id, a.name, a.amount, a.`consume_amount`, a.`actual_amount`, a.`refund_amount`, a.`coupon_amount`, a.`can_refund_amount`,
+                a.`create_date`, a.`status`, a.count
+        FROM `sport_order` a
+        WHERE a.status IN (2, 4, 6, 9)
+        <if test="param.start != null">
+            AND a.create_date >= #{param.start}
+        </if>
+        <if test="param.end != null">
+            AND #{param.end} >= a.create_date
+        </if>
+        <if test="param.categoryId != null">
+            AND a.`category_id` =#{param.categoryId}
+        </if>
+        <if test="param.storeId != null">
+            AND a.`store_id` =#{param.storeId}
+        </if>
+        <if test="param.payType != null">
+            AND (a.`pay_type` =#{param.payType} or a.`pay_type` = 'mix')
+        </if>
+        ORDER BY a.`create_date` DESC
+    </select>
+
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.VenueFieldDao">
+
+    <resultMap id="fieldMap" type="com.aioveu.vo.VenueFieldVO" autoMapping="true">
+        <id property="fieldId" column="field_id"/>
+        <id property="name" column="name"/>
+        <collection property="timeList" ofType="com.aioveu.vo.VenueFieldItemVO" autoMapping="true" columnPrefix="child_">
+            <id column="id" property="id"/>
+        </collection>
+    </resultMap>
+
+
+    <select id="getFieldByVenueId" resultMap="fieldMap">
+        SELECT a.`field_id`, b.`name`, a.`field_day`, a.id AS child_id, a.`start_time` AS child_startTime,
+               a.`end_time` AS child_endTime, a.`price` AS child_price, a.`vip_price` AS child_vipPrice, a.`field_plan_lock_id` AS child_fieldPlanLockId,
+               a.`status` AS child_status, a.`remark` AS child_remark, a.`lock_remark` AS child_lockRemark, c.`username` as child_username, c.`phone` as child_phone
+                , a.`grade_ids` as child_gradeIds
+        FROM `sport_field_plan` a
+                 LEFT JOIN `sport_venue_field` b ON b.`id` = a.`field_id`
+        LEFT JOIN (SELECT * FROM (SELECT t.*, ROW_NUMBER() OVER(PARTITION BY t.field_plan_id ORDER BY t.create_date DESC) AS RN FROM sport_field_book_user t) g
+                   WHERE g.RN = 1) c ON c.field_plan_id = a.id AND a.status = 6
+        WHERE a.`venue_id` = #{venueId} AND a.`field_day` = #{day} AND b.status = 1
+        ORDER BY b.`name`, a.`start_time`;
+    </select>
+
+    <select id="getFieldVenuesByStoreId" resultType="com.aioveu.vo.VenueFieldVO">
+        select vf.id AS field_id, vf.name, vf.venue_id, sv.`name` AS venue_name
+        from sport_venue_field vf
+            LEFT JOIN sport_store_venue sv on sv.id = vf.venue_id
+        where vf.store_id= #{storeId} and vf.`status`=1  and sv.`status`=1
+    </select>
+
+
+</mapper>

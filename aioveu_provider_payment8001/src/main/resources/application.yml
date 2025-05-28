@@ -1,0 +1,47 @@
+server:
+  port: 5009
+  servlet:
+    context-path: /api
+
+spring:
+  profiles:
+    active: dev  #ipconfig本地访问192.168.0.108
+  application:
+    name: eureka-client-sport-api
+  redis:
+    database: 0
+    host: ${server.local-ip}
+    password: 775825
+    port: 6379
+    # 连接超时时间
+    timeout: 10000
+    jedis:
+      pool:
+        max-active: 600
+        max-idle: 300
+        max-wait: 15000
+        min-idle: 10
+  # 日志多彩输出，如果支持的话
+  output:
+    ansi:
+      enabled: detect
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 500MB
+
+mybatis-plus:
+  # 支持统配符 * 或者 ; 分割
+  typeEnumsPackage: com.aioveu.enums
+
+feign:
+  client:
+    config:
+      default:  #服务名，填写default为所有服务
+        connectTimeout: 6000
+        readTimeout: 12000
+
+logging:
+  level:
+    com.aioveu: debug
+  path: /logs/sport

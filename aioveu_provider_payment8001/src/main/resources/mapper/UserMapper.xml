@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.UserDao">
+
+    <!--管理平台用户列表-->
+    <select id="list" resultType="com.aioveu.vo.user.UserItemVO">
+        select * from (
+              select a.id, a.username, a.name, a.status, a.create_date, a.phone, group_concat(b.`role_code`) as roleCodes,	GROUP_CONCAT(DISTINCT c.`name`) as codeName
+              from sport_user a
+              left join sport_role_user b on b.user_id = a.id and b.status = 1
+              left join sport_role c on c.code = b.role_code
+              group by a.`id`
+              order by a.create_date desc
+        ) t
+        where 1 = 1
+        <if test="role != null and role == 'user'">
+            and t.roleCodes is null or t.roleCodes like '%user%'
+        </if>
+        <if test="role != null">
+            and t.roleCodes LIKE CONCAT('%','${role}','%' )
+        </if>
+        <if test="phone != null">
+            and t.phone  LIKE CONCAT('%','${phone}','%' )
+        </if>
+        <if test="keyword != null">
+            and t.name like CONCAT('%','${keyword}','%' )
+        </if>
+    </select>
+
+    <select id="getFromUserOpenId" resultType="com.aioveu.entity.User">
+        SELECT b.id, b.name, b.username, b.password, b.head, a.open_id, b.phone, b.gender, b.status,
+               b.`account_expired_time`, b.`credentials_expired`, b.`create_date`, b.`mail`
+        FROM `sport_user_open_id` a
+                 LEFT JOIN `sport_user` b ON b.id = a.user_id
+        WHERE a.open_id = #{openId}
+    </select>
+
+
+    <select id="getUserByCreatorId" resultType="com.aioveu.vo.user.ManagerUserItemVO">
+        select a.id, MAX(a.name) AS NAME, MAX(a.phone) AS phone, MAX(a.username) AS username,
+               DATE_FORMAT(MAX(a.create_date), '%Y-%m-%d %H:%i') AS create_date, a.status AS status,
+               GROUP_CONCAT(DISTINCT(c.name)) AS storeNames, GROUP_CONCAT(DISTINCT(e.name)) AS roleNames
+        from sport_user a
+            LEFT JOIN sport_company_store_user b on b.user_id = a.id
+            LEFT JOIN sport_store c on c.id = b.store_id
+            LEFT JOIN sport_role_user d on d.user_id = a.id  and c.id=d.store_id
+            LEFT JOIN sport_role e ON e.`code` = d.`role_code`
+        where  a.status != 0 and a.creator_id = #{creatorId}
+        <if test="storeId != null and storeId != '' ">
+            and b.store_id = #{storeId}
+        </if>
+        GROUP BY a.id
+        ORDER BY a.`create_date` DESC
+    </select>
+
+    <resultMap id="storeUserMap" type="com.aioveu.vo.user.StoreUserForm" autoMapping="true">
+        <id property="id" column="id"/>
+        <collection property="roleCodes" ofType="String" columnPrefix="role_">
+            <result column="code"/>
+        </collection>
+        <collection property="storeIdList" ofType="Long" columnPrefix="store_">
+            <result column="id"/>
+        </collection>
+        <collection property="coachIdList" ofType="Long" columnPrefix="coach_">
+            <result column="id"/>
+        </collection>
+        <collection property="preSaleIdList" ofType="Long" columnPrefix="presale_">
+            <result column="id"/>
+        </collection>
+    </resultMap>
+
+    <select id="getStoreUserById" resultMap="storeUserMap">
+        select a.id, a.creator_id, a.mail, a.account_expired_time, a.name, a.phone, a.head, a.gender, a.username,
+               a.status, b.role_code, c.store_id, e.id as coach_id, f.id as presale_id
+        from sport_user a
+        left join sport_role_user b on b.user_id = a.id
+        left join sport_company_store_user c on c.user_id = a.id
+        left join sport_user_coach d on d.user_id = a.id
+        left join sport_store_coach e on d.coach_id = e.id and e.user_type = 1
+        left join sport_store_coach f on d.coach_id = f.id and f.user_type = 4
+        where a.id =#{id};
+    </select>
+
+    <select id="getPresale" resultType="com.aioveu.entity.User">
+        select A.id, name, username from sport_user A left join  sport_role_user B on A.id = B.user_id where B.role_code ='pre_sale'
+    </select>
+
+    <delete id="deleteUserById" parameterType="String">
+        delete from `sport_user` where id =#{id};
+        DELETE FROM `sport_user_open_id` WHERE user_id =#{id};
+        DELETE FROM `sport_order` WHERE user_id =#{id};
+        DELETE FROM `sport_order_detail` WHERE user_id =#{id};
+        DELETE FROM `sport_user_coupon` WHERE user_id =#{id};
+        DELETE FROM `sport_role_user` WHERE user_id =#{id};
+        DELETE FROM `sport_user_balance_change` WHERE user_id =#{id};
+        DELETE FROM `sport_user_view_position` WHERE user_id =#{id};
+    </delete>
+
+    <!--查询地推人员信息-->
+    <select id="selExtensionUser" resultType="com.aioveu.vo.user.UserVo">
+        select A.* ,D.name as topicName,D.id as topicId
+        from sport_user A
+        left join sport_role_user B on A.id = B.user_id
+        left join sport_push_topic C on C.user_id = A.id
+        left join sport_topic D on D.id=C.topic_id
+        where B.role_code="offline_promotion" AND A.`status` != 0
+        <if test="username != null">
+            AND A.username LIKE CONCAT('%','${username}','%' )
+        </if>
+        <if test="id != null">
+            AND A.id = #{id}
+        </if>
+    </select>
+
+    <select id="getUserBalance" resultType="com.aioveu.entity.UserExtensionAccount">
+        select `id`,`user_id`,`name`,`balance`
+        from `sport_user_extension_account`
+        where user_id=#{userId}
+    </select>
+
+    <update id="updateBalanceById" parameterType="com.aioveu.entity.UserExtensionAccount">
+        update
+        `sport_user_extension_account`
+        set balance = #{balance}
+        where id=#{id}
+    </update>
+
+
+</mapper>

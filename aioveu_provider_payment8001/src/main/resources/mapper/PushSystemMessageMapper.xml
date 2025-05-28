@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.PushSystemMessageDao">
+
+    <select id="userList" resultType="com.aioveu.entity.PushSystemMessage">
+        SELECT a.`name`, a.`id`, a.`create_date`, a.`message`, b.`status`
+        FROM `sport_push_system_message` a
+                 LEFT JOIN sport_push_system_message_record b ON b.`push_system_message_id` = a.`id`
+            AND b.`user_id` = #{userId}
+        WHERE a.status = 1
+        ORDER BY a.`create_date` DESC
+    </select>
+
+    <insert id="read">
+        insert into sport_push_system_message_record (push_system_message_id, user_id)
+        value (#{pushSystemMessageId}, #{userId});
+    </insert>
+
+    <select id="getMessageReadRecord" resultType="com.aioveu.entity.PushSystemMessageRecord">
+        select * from sport_push_system_message_record
+        where user_id =#{userId}
+          and push_system_message_id =#{pushSystemMessageId};
+    </select>
+
+
+</mapper>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.InvoiceRequestDetailDao">
+
+    <select id="getByInvoiceRequestId" resultType="com.aioveu.entity.InvoiceRequestDetail">
+        SELECT a.*,o.create_date AS order_create_date
+        FROM sport_invoice_request_detail a
+        JOIN sport_order o ON a.order_id = o.id
+        WHERE a.invoice_request_id = #{invoiceRequestId}
+        order by o.create_date desc
+    </select>
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.ExerciseCountTemplateDao">
+
+
+    <insert id="saveExerciseCountTemplateId">
+        insert into sport_exercise_count_template_id (exercise_id, exercise_count_template_id)
+        value (#{exerciseId}, #{templateId});
+    </insert>
+
+    <select id="getUserTemplate" resultType="com.aioveu.entity.ExerciseCountTemplate">
+        select a.id, a.name, a.start_day, a.end_day, a.status, a.exercise_start_time, a.exercise_end_time, a.create_date,
+               b.name as storeName
+        from sport_exercise_count_template a
+            left join sport_store b on b.id = a.store_id
+        where a.create_user_id = #{userId} and a.company_id = #{companyId} and a.status != 0
+        order by a.create_date desc;
+    </select>
+
+    <select id="getExerciseCountTemplateIdByExerciseId" resultType="String">
+        select exercise_count_template_id from sport_exercise_count_template_id
+        where exercise_id =#{exerciseId} and status = 1
+        limit 1;
+    </select>
+
+    <select id="getPayInfo" resultType="com.aioveu.vo.ExerciseCountPayVO">
+        select d.hour_price, b.name as venueName, d.venue_field_names as fieldName
+        from sport_exercise_count_template_id a
+            left join sport_exercise_count_template d on d.id = a.exercise_count_template_id and d.status = 1
+            left join sport_store_venue b on b.id = d.venue_id
+        where a.exercise_id =#{exerciseId}
+    </select>
+
+
+</mapper>

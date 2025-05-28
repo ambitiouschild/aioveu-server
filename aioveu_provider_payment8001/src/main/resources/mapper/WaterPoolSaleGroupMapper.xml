@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.WaterPoolSaleGroupDao">
+
+    <!--查询组下面的用户id集合-->
+    <select id="getGroupUserIdList" resultType="String">
+        select user_id
+        from sport_water_pool_sale_group_user
+        where sale_group_id = #{saleGroupId};
+    </select>
+
+</mapper>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.UserInfoDao">
+
+    <!--查询管理平台列表-->
+    <select id="orderList" resultType="com.aioveu.vo.UserInfoOrderVO">
+        SELECT  a.id AS orderId,  a.category_id, a.`create_date`, a.`amount`,
+                a.`name` AS course, a.product_id, f.`child_name`,e.head, e.head AS childHead
+        FROM sport_order a
+                 LEFT JOIN sport_user e ON e.id = a.user_id
+                 LEFT JOIN sport_user_info f ON f.`phone` = e.`phone`
+        WHERE a.user_id =#{userId} AND a.`status` IN (2, 3, 4, 6) AND a.`category_id` != #{categoryId}
+        ORDER BY a.`create_date` DESC
+    </select>
+
+    <select id="appointmentList" resultType="com.aioveu.vo.UserInfoOrderVO">
+        SELECT  a.id AS orderId,  a.category_id, a.`create_date`, a.`amount`,
+                a.`name` AS course, a.product_id, f.`child_name`,e.head, e.head AS childHead
+        FROM sport_order a
+                 LEFT JOIN sport_user e ON e.id = a.user_id
+                 LEFT JOIN sport_user_info f ON f.`phone` = e.`phone`
+        WHERE a.user_id =#{userId} AND a.`status` IN (2, 3, 4, 6) AND a.`category_id` = #{categoryId}
+        ORDER BY a.`create_date` DESC
+   </select>
+
+    <select id="getUserId" parameterType="Long" resultType="String">
+        select b.id
+        from sport_user_info a
+        left join sport_user b on b.phone = a.phone
+        where a.id =#{id};
+    </select>
+
+
+    <select id="userInfoList" resultType="com.aioveu.entity.UserInfo">
+        select a.* from sport_user_info a
+        left join sport_user_receive_call b ON a.id = b.user_info_id AND b.`type` = #{type}
+        where a.company_id = #{companyId} AND b.id is null
+        <if test="phone != '' and  phone != null ">
+            and a.phone like concat('%',#{phone},'%')
+        </if>
+        order by a.create_date desc
+    </select>
+
+    <select id="getUserIdByPhoneAndCompanyId" resultType="String">
+        select DISTINCT b.`user_id`
+        from sport_user_info a
+        left join sport_user_receive_call b on b.user_info_id = a.`id` and b.`status` = 1 AND b.`type` = #{type}
+        where a.phone = #{phone} and a.`company_id` = #{companyId};
+    </select>
+
+    <select id="getUserIdByIdAndCompanyId" resultType="String">
+        select DISTINCT b.`user_id`
+        from sport_user_info a
+        join sport_user_receive_call b on b.user_info_id = a.`id` and b.`status` = 1 AND b.`type` = #{type}
+        join sport_user u on a.phone = u.phone
+        where
+            a.`company_id` = #{companyId}
+            and u.id=#{userId};
+    </select>
+
+</mapper>

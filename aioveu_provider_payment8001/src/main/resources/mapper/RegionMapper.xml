@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.RegionDao">
+    <!--根据用户id查找店铺-->
+    <select id="getRegionListByCondition" resultType="com.aioveu.vo.RegionConditionVO">
+        select A.`name` name,A.id id,B.`name` cityName,C.`name` provinceName,A.priority priority,C.id provinceId,B.id cityId
+        from sport_region A  LEFT JOIN sport_city B on A.city_id = B.id LEFT JOIN sport_province C on B.province_id = C.id
+        where 1=1
+        <if test="name!=null">
+            and A.name LIKE CONCAT('%','${name}','%' )
+        </if>
+        <if test="parentId!=null">
+            and A.city_id = #{parentId}
+        </if>
+        <if test="id!=null">
+            and A.id = #{id}
+        </if>
+    </select>
+
+    <resultMap id="businessMap" type="com.aioveu.vo.RegionVO">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <collection property="childList" javaType="ArrayList" columnPrefix="child_" column="id" ofType="com.aioveu.vo.BusinessAreaVO">
+            <id column="id" property="id"/>
+            <result column="name" property="name"/>
+            <result column="regionId" property="regionId"/>
+        </collection>
+    </resultMap>
+
+    <select id="findAllByCityId" parameterType="Long" resultMap="businessMap">
+        SELECT a.id, a.name, b.id child_id, b.name child_name, b.region_id child_regionId
+        FROM sport_region a
+        LEFT JOIN sport_business_area b ON b.region_id = a.id
+        WHERE a.city_id=#{cityId};
+    </select>
+
+
+</mapper>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.GradeSignEvaluateDao">
+
+    <select id="getUserGradeEvaluate" resultType="com.aioveu.dto.GradeUserEvaluateDTO">
+        SELECT a.`evaluate`, b.name AS username, c.`name` AS grade, c.`start_time`, c.`end_time`, e.`name` AS teacher,
+               g.`open_id`
+        FROM `sport_grade_sign_evaluate` a
+                 LEFT JOIN `sport_user` b ON b.id = a.user_id
+                 LEFT JOIN sport_grade c ON c.id = a.`grade_id`
+                 LEFT JOIN `sport_user_coach` d ON d.`user_id` = a.`evaluate_user_id`
+                 LEFT JOIN `sport_store_coach` e ON e.id = d.`coach_id`
+        WHERE a.id =#{id} limit 1;
+    </select>
+
+    <select id="getUnSignUser" resultType="com.aioveu.entity.GradeEnrollUser">
+        SELECT a.`user_id`, a.`grade_id`, a.id
+        FROM sport_grade_enroll_user a
+                 LEFT JOIN sport_grade_sign_evaluate b ON b.grade_enroll_user_id = a.`id` and  b.`user_id` = a.`user_id` AND b.`grade_id` = a.`grade_id`
+        WHERE a.`grade_id` =#{gradeId} AND a.status in (1, 3) AND b.id IS NULL
+    </select>
+    <select id="getSignUserCouponIds" resultType="java.lang.Long">
+        SELECT a.user_coupon_id
+        FROM sport_grade_user_coupon a
+        JOIN sport_grade_sign_evaluate b ON b.grade_enroll_user_id = a.`grade_enroll_user_id` and b.`grade_id` = a.`grade_id`
+        WHERE a.`user_coupon_id` in
+        <foreach collection="userCouponIds" item="userCouponId" open="(" close=")" separator=",">
+            #{userCouponId}
+        </foreach>
+        AND a.status = 1
+    </select>
+
+
+</mapper>

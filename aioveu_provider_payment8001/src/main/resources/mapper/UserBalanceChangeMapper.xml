@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.UserBalanceChangeDao">
+
+    <select id="getDeduction" resultType="com.aioveu.entity.UserBalanceChange">
+        select a.*
+        from sport_user_balance_change a
+                 LEFT JOIN sport_order b on a.order_id = b.id
+                 LEFT JOIN sport_order_detail c on c.order_id=b.id
+                 LEFT JOIN sport_business_user_info d on d.order_detail_id = c.id
+        where d.status=8
+              AND d.order_detail_id=#{orderDetailId}
+    </select>
+
+    <select id="findByVipStatistics" resultType="com.aioveu.entity.UserBalanceChange">
+        SELECT * FROM sport_user_balance_change t
+        WHERE t.user_vip_card_id IS NOT NULL AND t.status = 1
+        <if test="name!=null">
+            AND t.name = #{name}
+        </if>
+        <if test="storeId!=null">
+            AND o.store_id =#{storeId}
+        </if>
+        <if test="start!=null">
+            AND t.create_date >=#{start}
+        </if>
+        <if test="end!=null">
+            AND t.create_date &lt;=#{end}
+        </if>
+    </select>
+
+
+
+    <select id="findByFieldStatistics" resultType="com.aioveu.entity.UserBalanceChange">
+        SELECT * FROM sport_user_balance_change t
+        JOIN sport_order o ON t.order_id = o.id
+        JOIN sport_category c ON c.id = o.category_id
+        WHERE t.user_vip_card_id IS NOT NULL
+          AND t.status = 1
+          AND c.code = 'field_order'
+        <if test="storeId!=null">
+            AND o.store_id =#{storeId}
+            AND o.`status` IN (4, 6)
+        </if>
+        <if test="start!=null">
+            AND t.create_date >=#{start}
+        </if>
+        <if test="end!=null">
+            AND t.create_date &lt;=#{end}
+        </if>
+    </select>
+
+</mapper>

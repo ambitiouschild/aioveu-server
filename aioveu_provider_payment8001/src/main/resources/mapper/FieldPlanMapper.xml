@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.FieldPlanDao">
+
+    <select id="getFieldBookUserByNotUsed" resultType="com.aioveu.entity.FieldBookUser">
+        SELECT * FROM sport_field_book_user a
+          LEFT JOIN sport_order_detail b ON a.order_id = b.order_id AND a.field_plan_id = b.product_id
+          LEFT JOIN sport_field_plan c ON a.field_plan_id = c.id
+        where a.user_id =#{userId} and c.venue_id = #{venueId} and b.`status` = 2;
+    </select>
+
+    <select id="getFieldBookUserDetail" resultType="com.aioveu.dto.FieldBookUserDTO">
+        select a.username, a.phone, a.gender, b.field_day, b.start_time, b.end_time, c.name as fieldName,
+            d.name as venueName
+        from sport_field_book_user a
+        left join sport_field_plan b on b.id = a.field_plan_id
+        left join sport_venue_field c on c.id = b.field_id
+        left join sport_store_venue d on d.id = c.venue_id
+        where a.order_id =#{orderId};
+    </select>
+
+    <select id="getByUser" resultType="com.aioveu.dto.FieldPlanDTO">
+        select b.id, b.field_id, b.venue_id, b.field_day, b.start_time, b.end_time, b.price, b.vip_price,
+        b.status, c.name, c.store_id, d.company_id
+        from sport_field_book_user a
+        JOIN sport_order od ON od.id = a.order_id
+        left join sport_field_plan b on b.id = a.field_plan_id
+        left join sport_venue_field c on c.id = b.field_id
+        left join sport_store d on d.id = c.store_id
+        where od.`status` NOT IN (0,1) AND a.user_id =#{userId} AND d.company_id = #{companyId}
+        <if test="status != null">
+            AND b.status = #{status}
+        </if>
+    </select>
+
+
+    <select id="listByCondition" resultType="com.aioveu.vo.FieldPlanVO">
+        select a.*,b.name AS 'venueName',c.name AS 'fieldName', GROUP_CONCAT(DISTINCT CONCAT(d.`username`, ' ', d.`phone`) SEPARATOR ',') AS 'bookingUser' from sport_field_plan a
+        left join sport_store_venue b on b.id = a.venue_id
+        left join sport_venue_field c on c.id = a.field_id
+        left join (SELECT u.* FROM sport_field_book_user u JOIN sport_order r ON u.order_id = r.id AND r.`status` IN (2, 6)) d ON d.field_plan_id = a.id
+        WHERE b.store_id = #{storeId}
+        <if test="venueId != null">
+            AND a.venue_id = #{venueId}
+        </if>
+        <if test="fieldId != null">
+            AND a.field_id = #{fieldId}
+        </if>
+        <if test="date != null">
+            AND a.field_day = #{date}
+        </if>
+        <if test="status != null">
+            AND a.status = #{status}
+        </if>
+        GROUP BY a.id
+        ORDER BY a.field_day, a.start_time
+    </select>
+
+    <select id="getFieldByGrade" resultType="com.aioveu.entity.FieldPlan">
+        SELECT A.* FROM sport_field_plan A
+        WHERE FIND_IN_SET(A.field_id, #{fieldIds}) > 0
+        AND A.field_day = #{day} AND (#{timeFrom} &lt;= A.start_time AND #{timeTo} > A.start_time)
+    </select>
+
+    <select id="getFieldByGradeId" resultType="com.aioveu.entity.FieldPlan">
+        SELECT A.* FROM sport_field_plan A
+        WHERE FIND_IN_SET(#{gradeId}, A.grade_ids) > 0
+    </select>
+    <select id="getFiledNameById" resultType="com.aioveu.dto.FieldPlanDTO">
+        SELECT A.*,v.`name` venue_name,f.`name` field_name, v.store_id
+        FROM sport_field_plan A
+        left join sport_store_venue v on a.venue_id=v.id
+        left join sport_venue_field f on f.id = a.field_id
+        where a.id= #{id}
+    </select>
+
+    <select id="getFieldLockedList4BookDayAndTime" resultType="com.aioveu.dto.FieldPlanDTO">
+        SELECT fp.id, fp.field_id, fp.venue_id, fp.store_id, fp.field_day, fp.start_time, fp.end_time, fp.status, fp.remark, fp.lock_remark,
+               fp.lock_channel, sv.`name` venueName, f.`name` fieldName
+        FROM `sport_field_plan` fp
+                 JOIN sport_store_venue sv ON sv.id = fp.venue_id AND sv.`status`= 1
+                 JOIN sport_venue_field f ON f.id = fp.field_id AND f.status = 1
+        WHERE fp.store_id =#{storeId}
+          AND fp.field_day >= #{start}
+          AND #{end} >= fp.field_day
+          AND fp.lock_channel != #{platformCode}
+          AND (fp.`status` = 4 OR fp.`status` = 6)
+          and fp.`venue_id` in
+            <foreach collection="venueIdList" item="item" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        ORDER BY fp.id;
+    </select>
+
+
+
+</mapper>

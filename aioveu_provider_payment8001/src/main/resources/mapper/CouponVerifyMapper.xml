@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.CouponVerifyDao">
+
+    <select id="getCouponVerifyList" resultType="com.aioveu.vo.CouponVerifyItemVO">
+        select a.id, a.`create_date`, a.remark, b.username as verifyUser, c.name as storeName,
+               e.name as templateName, f.name as username
+        from sport_coupon_verify a
+        left join sport_user b on b.id = a.user_id
+        left join sport_store c on c.id = a.store_id
+        left join sport_user_coupon d on d.id = a.user_coupon_id
+        left join sport_coupon_template e on e.id = d.template_id
+        left join sport_user f on f.id = d.user_id
+        where a.status != 0
+        <if test="storeId != null">
+            and a.store_id =#{storeId}
+        </if>
+        <if test="phone != null">
+            and f.phone =#{phone}
+        </if>
+        <if test="date != null">
+            and DATE_FORMAT(a.create_date, '%Y-%m-%d') =#{date}
+        </if>
+        order by a.create_date DESC
+    </select>
+
+</mapper>

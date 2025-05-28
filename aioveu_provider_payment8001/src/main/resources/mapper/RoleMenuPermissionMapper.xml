@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.RoleMenuPermissionDao">
+
+    <select id="getByRoleCode" resultType="com.aioveu.vo.RoleMenuPermissionVO">
+        select a.id, a.name, a.`url`, b.`menu_code`, c.id as roleMenuPermissionId
+        from sport_menu_permission b
+                 left join `sport_permission` a on b.`permission_id` = a.`id`
+                 left join `sport_role_menu_permission` c ON  c.`role_code` = #{roleCode}
+            and c.`permission_id` = a.`id` and c.menu_code = b.menu_code
+        where a.`status` = 1
+          and a.`need_token` = 1
+          and b.`menu_code` is not null
+          and b.`status` = 1
+    </select>
+
+    <select id="getRolePermissionById" resultType="com.aioveu.vo.RolePermissionVO">
+        SELECT a.`permission_id` AS id, b.`name`, b.`url`, b.method, GROUP_CONCAT(a.`role_code`) AS roleCodeStr
+        FROM `sport_role_menu_permission` a
+                 LEFT JOIN sport_permission b ON b.`id` = a.`permission_id`
+        WHERE a.`status` = 1 and a.id in
+        <foreach collection="idList" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+        GROUP BY a.`permission_id`
+    </select>
+
+</mapper>

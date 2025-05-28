@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.StoreCoachDao">
+
+    <resultMap id="tagMap" type="com.aioveu.vo.StoreCoachVO" autoMapping="true">
+        <id property="id" column="id"/>
+        <collection property="tagList" ofType="com.aioveu.vo.CoachTagVO" columnPrefix="child_">
+            <result column="name" property="name"/>
+            <result column="icon" property="icon"/>
+        </collection>
+    </resultMap>
+
+    <!--查询问题列表-->
+    <select id="getByStoreId" resultMap="tagMap">
+        select a.id, a.name, a.store_id, a.introduce, a.url, c.user_id, b.name as child_name, b.icon as child_icon
+        from sport_store_coach a
+        left join sport_coach_tag b on b.coach_id = a.id
+        left join sport_user_coach c on c.coach_id = a.id
+        where a.store_id =#{storeId} and a.status = 1 and a.user_type = #{userType}
+        <if test="hasBindUser == true">
+            and c.user_id is not null
+        </if>
+        order by a.priority desc
+    </select>
+
+    <select id="getCreateUserCoachList" resultType="com.aioveu.vo.StoreCoachUserVO">
+        select a.id, a.name, b.name as storeName, a.store_id
+        from sport_store_coach a
+        left join sport_store b on b.id = a.store_id
+        where a.user_type = #{userType}
+        <if test="storeId != null and storeId !=''">
+            and a.store_id = #{storeId}
+        </if>
+        <if test="companyId != null and companyId !=''">
+            and b.company_id = #{companyId}
+        </if>
+        order by a.store_id
+    </select>
+
+    <select id="getByUserAndStoreId" resultType="com.aioveu.entity.StoreCoach">
+        SELECT b.`name`, b.id, b.`user_type`
+        FROM `sport_user_coach` a
+                 LEFT JOIN `sport_store_coach` b ON b.id = a.`coach_id` AND b.`store_id` = #{storeId}
+        WHERE a.`user_id` = #{userId}  AND b.id IS NOT NULL;
+    </select>
+
+    <select id="getStoreCoachUser" resultType="com.aioveu.vo.StoreCoachVO">
+        SELECT MAX(a.id) AS id, MAX(a.name) AS NAME, MAX(a.store_id) AS store_id, c.user_id, MAX(a.`priority`) AS priority
+        FROM sport_store_coach a
+                 LEFT JOIN sport_user_coach c ON c.coach_id = a.id
+        WHERE a.store_id =#{storeId} AND a.status = 1 AND c.`user_id` IS NOT NULL
+        GROUP BY c.`user_id`
+        ORDER BY priority DESC;
+    </select>
+
+</mapper>

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.StoreDao">
+
+    <select id="getMiniList" parameterType="map" resultType="com.aioveu.vo.StoreMiniVO">
+        SELECT * FROM (
+            SELECT v.id, v.name, v.address, v.logo, v.recommend_order, v.introduce, v.tags, v.app_id, v.path,
+            ROUND(
+                (
+                    (
+                        6378.138 * ACOS(
+                                COS(RADIANS(${params.latitude})) * COS(RADIANS(v.latitude)) * COS(
+                                RADIANS(v.longitude) - RADIANS(${params.longitude})
+                            ) + SIN(RADIANS(${params.latitude})) * SIN(RADIANS(v.latitude))
+                        )
+                    ) * 1000
+                )
+            ) AS distance
+            from sport_store v
+                LEFT JOIN `sport_store_product_category` b ON b.`store_id` = v.`id`
+            where
+            v.status = 1
+            and v.category_code =#{params.categoryCode}
+            <if test="params.categoryId!=null">
+                AND b.category_id =#{params.categoryId}
+            </if>
+            <if test="params.companyId!=null">
+                AND v.company_id =#{params.companyId}
+            </if>
+            <if test="params.regionId!=null">
+                AND v.region_id =#{params.regionId}
+            </if>
+            <if test="params.businessId!=null">
+                AND v.business_area_id =#{params.businessId}
+            </if>
+            <if test="params.keyword!=null and params.keyword!=''">
+                AND v.name LIKE CONCAT('%','${params.keyword}','%' )
+            </if>
+            GROUP BY v.`id`
+        ) T WHERE 1=1
+        <if test="params.distanceLimit!=null and params.distanceLimit!=''">
+            AND #{params.distanceLimit} >= T.distance
+        </if>
+        <if test="params.sort!=null and params.sort!=''">
+            ORDER BY ${params.sort}
+        </if>
+    </select>
+
+    <select id="getStoreCategory" resultType="com.aioveu.vo.CategoryBaseVO">
+        select b.id, b.name, b.code, b.cover
+        from sport_store_product_category a
+            left join sport_category b on b.id = a.category_id
+        where a.store_id =#{storeId};
+    </select>
+
+    <select id="getByIdLocation" resultType="com.aioveu.entity.Store">
+        select * from (
+            SELECT v.id, v.name, v.address, v.logo, v.recommend_order, v.introduce, v.tags, v.app_id, v.path,
+                ROUND(
+                    (
+                        (
+                            6378.138 * ACOS(
+                                        COS(RADIANS(${latitude})) * COS(RADIANS(v.latitude)) * COS(
+                                            RADIANS(v.longitude) - RADIANS(${longitude})
+                                        ) + SIN(RADIANS(${latitude})) * SIN(RADIANS(v.latitude))
+                            )
+                        ) * 1000
+                    )
+                ) AS distance
+            from sport_store v
+            where v.id =#{storeId} and v.status = 1
+        ) T WHERE 100 > T.distance;
+    </select>
+
+    <resultMap id="nearMap" type="com.aioveu.vo.NearbyStoreVO">
+        <id column="id" property="id"></id>
+        <result column="storeName" property="name"></result>
+        <result column="address" property="address"></result>
+        <result column="logo" property="logo"></result>
+        <result column="latitude" property="latitude"></result>
+        <result column="longitude" property="longitude"></result>
+        <result column="storeLogo" property="storeLogo"></result>
+        <result column="distance" property="distance"></result>
+        <collection property="topicList" resultMap="topicMap"></collection>
+    </resultMap>
+
+    <resultMap id="topicMap" type="com.aioveu.entity.Topic">
+        <result column="topicName" property="name"></result>
+        <result column="topicCover" property="cover"></result>
+        <result column="reward" property="reward"></result>
+    </resultMap>
+
+    <select id="getNearbyStore" resultMap="nearMap">
+        select * from (
+                SELECT v.id, v.name as storeName, v.address, v.topic_logo as logo, v.latitude, v.longitude, v.logo as storeLogo,
+                       o.name as topicName, o.cover as topicCover, o.reward,
+                ROUND(
+                    (
+                        (
+                            6378.138 * ACOS(
+                                        COS(RADIANS(${latitude})) * COS(RADIANS(v.latitude)) * COS(
+                                            RADIANS(v.longitude) - RADIANS(${longitude})
+                                        ) + SIN(RADIANS(${latitude})) * SIN(RADIANS(v.latitude))
+                            )
+                        ) * 1000
+                    )
+                ) AS distance
+            from sport_store v
+            left join sport_topic_exercise e on e.store_id = v.id
+            left join sport_topic o on o.id = e.topic_id and o.end_time > NOW()
+            where v.status = 1
+        ) T WHERE 10000 > T.distance
+        order by T.distance;
+    </select>
+
+
+    <select id="getAll" parameterType="Map" resultType="com.aioveu.form.StoreForm">
+        select *
+        from `sport_store`
+        where 1=1
+        <if test="companyId != null">
+            AND company_id = #{companyId}
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        <if test="keyword != null">
+            AND name like concat('%',#{keyword},'%')
+        </if>
+        order by `create_date`
+    </select>
+
+
+
+</mapper>

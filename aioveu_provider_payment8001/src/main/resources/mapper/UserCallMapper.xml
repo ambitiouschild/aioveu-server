@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.UserCallDao">
+
+    <select id="newUserInfoList" resultType="com.aioveu.vo.NewUserInfoVO">
+        SELECT a.* FROM
+            (
+                SELECT a.*, CASE
+                        WHEN userId is null THEN 1
+                        WHEN FIND_IN_SET('custom_course', orderCategorys) OR FIND_IN_SET('course', orderCategorys) THEN 4
+                        WHEN FIND_IN_SET('experience_class', orderCategorys) THEN 3
+                        ELSE 2
+                        END as orderInfoStatus,
+                    CASE WHEN FIND_IN_SET('experience_class', orderCategorys) THEN 'Y'
+                        ELSE 'N'
+                    END as hasExperience
+                from (
+                    select b.id, REPLACE(b.phone,SUBSTR(b.phone,4,4),"****") as phone,b.name, b.phone as oPhone, c.id as userId, b.create_date, GROUP_CONCAT(DISTINCT f.name) AS receiveUserName, GROUP_CONCAT(g.code) AS orderCategorys, b.last_call
+                    from sport_user_info b
+                    left JOIN sport_user_receive_call a on b.id = a.user_info_id
+                    left join sport_user c on c.phone = b.phone
+                    left join sport_order d ON d.user_id = c.id AND d.active_time IS NOT NULL AND d.status IN
+                        <foreach collection="statusList" item="status" index="index" open="(" close=")" separator=",">
+                            #{status}
+                        </foreach>
+                    LEFT JOIN sport_user_coach e ON a.user_id = e.user_id
+                    LEFT JOIN sport_store_coach f on f.id = e.coach_id
+                    LEFT JOIN sport_category g on g.id = d.category_id
+                    where b.create_user_id IS NOT NULL
+                    <if test="userId != null">
+                        AND a.user_id = #{userId}
+                    </if>
+                    <if test="keyword != null">
+                        and b.phone  LIKE CONCAT('%','${keyword}','%' )
+                    </if>
+                    <if test="timeFrom != null and timeFrom != ''">
+                        AND b.create_date >= #{timeFrom}
+                    </if>
+                    <if test="timeTo != null and timeTo != ''">
+                        AND b.create_date &lt;= #{timeTo}
+                    </if>
+                    GROUP BY b.id, b.phone, b.create_date, c.id, b.last_call
+                    ) a
+            ) a
+        where 1=1
+        <if test="status != null">
+            AND a.orderInfoStatus = #{status}
+        </if>
+        order by a.create_date DESC
+    </select>
+
+    <!--查询管理平台列表-->
+    <select id="getByUserId" resultType="com.aioveu.vo.UserCallVO">
+        select b.id, REPLACE(b.phone,SUBSTR(b.phone,4,4),"****") as phone, b.phone as oPhone, b.name, b.province_name, b.city_name,
+               b.business_area_name, a.id as userReceiveCallId, a.create_date, b.last_call, c.id as userId, d.id as otherUserReceiveCallId
+            from sport_user_receive_call a
+            left join sport_user_info b on b.id = a.user_info_id
+            left join sport_user c on c.phone = b.phone
+            left join sport_user_receive_call d ON a.user_info_id = d.user_info_id AND d.`type` =
+        <if test="type == 1">2</if>
+        <if test="type == 2">1</if>
+        where a.type = #{type}
+        <if test="userId != null and userId != ''">
+            AND a.user_id in
+            <foreach collection="userId.split(',')" item="item" separator="," open="(" close=")">
+                 #{item}
+            </foreach>
+        </if>
+
+        <if test="keyword != null">
+            and b.phone  LIKE CONCAT('%','${keyword}','%' )
+        </if>
+        and b.company_id = #{companyId}
+        order by a.create_date desc
+    </select>
+
+    <update id="updateUserReceiveCallToUser">
+        update sport_user_receive_call set user_id =#{newUserId} where user_id =#{userId};
+    </update>
+
+    <!--查询用户跟进列表-->
+    <select id="getSimpleByUserId" resultType="com.aioveu.vo.UserCallSimpleVO">
+        select a.id, a.status, a.create_date, a.intention, a.introduce, a.user_id, b.name
+        from sport_user_call a
+        left join sport_user b on b.id = a.user_id
+        where a.user_info_id =#{userInfoId}
+        order by a.create_date
+    </select>
+
+    <insert id="batchUserReceiveCall" parameterType="List">
+        insert into sport_user_receive_call (user_info_id, user_id)
+        values
+        <foreach collection="receiveCallList" item="item" separator=",">
+            (#{item.userInfoId}, #{item.userId})
+        </foreach>
+    </insert>
+
+
+
+</mapper>

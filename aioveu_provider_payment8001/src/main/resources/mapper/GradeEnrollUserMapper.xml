@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.GradeEnrollUserDao">
+
+    <select id="getByUserId" resultType="com.aioveu.vo.GradeEnrollUserItemVO">
+        select distinct a.id, a.username, a.status, a.phone, b.start_time, b.end_time, b.name as gradeName, c.name as storeName,  d.id as fixedId
+        from sport_grade_enroll_user a
+        left join sport_grade b on b.id = a.grade_id
+        left join sport_store c on c.id = b.store_id
+        left join sport_grade_fixed_user d on d.grade_template_id = b.grade_template_id and d.user_id = a.user_id AND d.child_name = a.child_name
+        where a.user_id =#{userId} and c.company_id=#{companyId}
+        <choose>
+            <when test="status == 1">
+                and a.status = 1
+            </when>
+            <when test="status == 2">
+                and a.status in (2, 4, 8)
+            </when>
+            <when test="status == 3">
+                and a.status = 3
+            </when>
+        </choose>
+        <if test="storeId != null">
+            AND c.`id` = #{storeId}
+        </if>
+        order by a.`status`, b.start_time;
+    </select>
+
+    <select id="detail" resultType="com.aioveu.vo.GradeEnrollUserDetailVO">
+        select a.id, a.username, a.child_name, a.phone, a.child_age, a.status,
+               b.start_time, b.end_time, b.name as gradeName, c.name as storeName, c.id as storeId, c.`address` AS storeAddress,
+               d.id as fixedId, e.evaluate, f.`name` AS gradeClassroom, g.`name` AS gradeLevel, i.`name` AS gradeAge,
+               h.time_type, h.date_list, k.name as evaluateUser,
+               (SELECT group_concat(distinct(n.name) SEPARATOR ',') FROM sport_grade_coach m
+                    left join sport_store_coach n on n.id = m.coach_id
+                    WHERE m.grade_id = b.id group by m.grade_id) AS coachNames,
+               W.name AS 'venueName', (SELECT group_concat(distinct(V.name) SEPARATOR ',') FROM sport_venue_field V
+                                        WHERE FIND_IN_SET(V.id , b.field_ids) group by v.venue_id) AS 'fieldNames'
+        from sport_grade_enroll_user a
+        left join sport_grade b on b.id = a.grade_id
+        left join sport_store c on c.id = b.store_id
+        left join sport_grade_fixed_user d on d.grade_template_id = b.grade_template_id and d.user_id = a.user_id
+        left join sport_grade_sign_evaluate e on e.grade_id = a.grade_id  AND e.`grade_enroll_user_id` = a.`id`
+        LEFT JOIN `sport_grade_classroom` f ON f.id = b.`grade_classroom_id`
+        LEFT JOIN `sport_grade_template` h ON h.id = b.`grade_template_id`
+        LEFT JOIN `sport_grade_level` g ON g.id = h.`grade_level_id`
+        LEFT JOIN `sport_grade_age` i ON i.id = h.`grade_age_id`
+        left join sport_user k on k.id = e.evaluate_user_id
+        left join sport_store_venue W on W.id = b.venue_id
+        where a.id = #{id} and a.status != 0
+        limit 1;
+    </select>
+
+    <insert id="batchSaveGradeCouponList" parameterType="List">
+        insert into sport_grade_user_coupon (user_coupon_id, user_id, grade_id, grade_enroll_user_id)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.userCouponId}, #{item.userId}, #{item.gradeId}, #{item.gradeEnrollUserId})
+        </foreach>
+    </insert>
+
+    <update id="deleteByGradeEnrollId">
+        update sport_grade_user_coupon set status = 2
+        where user_id =#{userId} and grade_id =#{gradeId} and grade_enroll_user_id=#{gradeEnrollUserId};
+    </update>
+
+    <select id="getGradeCoupon" resultType="com.aioveu.entity.GradeUserCoupon">
+        select user_coupon_id, user_id, grade_id, status
+        from sport_grade_user_coupon
+        where user_id =#{userId} and grade_id =#{gradeId};
+    </select>
+
+    <select id="getGradeCouponByGradeEnrollId" resultType="com.aioveu.entity.GradeUserCoupon">
+        select user_coupon_id, user_id, grade_id,grade_enroll_user_id, status
+        from sport_grade_user_coupon
+        where user_id =#{userId} and grade_id =#{gradeId} and grade_enroll_user_id=#{gradeEnrollUserId};
+    </select>
+
+    <select id="getByGradeId" parameterType="Long" resultType="com.aioveu.vo.GradeEnrollUserSimpleVO">
+        select a.username, a.user_id, a.child_age, a.child_name, a.id, a.create_date, a.status, b.status as actionStatus,
+               a.phone, a.appointment_type, u.name as signUserName,IF(o.category_id = 2012,1,0) as experience
+        from sport_grade_enroll_user a
+        left join sport_grade_sign_evaluate b on a.grade_id = b.grade_id AND b.`grade_enroll_user_id` = a.`id`
+        left join sport_user u on u.id = b.sign_user_id
+        left join sport_grade_user_coupon guc on guc.grade_enroll_user_id = a.id
+        left join sport_user_coupon uc on uc.id = guc.user_coupon_id
+        LEFT JOIN sport_order o on o.id = uc.order_id
+        where a.grade_id =#{gradeId} and a.status != 0
+    </select>
+
+    <select id="getEvaluateListByGradeId" parameterType="Long" resultType="com.aioveu.vo.GradeEnrollUserSimpleVO">
+        select a.username, a.user_id, a.child_age, a.child_name, a.id, a.create_date, a.status, b.status as actionStatus,
+               b.evaluate
+        from sport_grade_enroll_user a
+        left join sport_grade_sign_evaluate b on a.grade_id = b.grade_id  AND b.`grade_enroll_user_id` = a.`id`
+        where a.grade_id =#{gradeId} and a.status in (1, 3) and b.status in (1, 2)
+    </select>
+
+    <select id="getGradeOrderId" resultType="String">
+        SELECT DISTINCT(b.`order_id`)
+        FROM `sport_grade_user_coupon` a
+                 LEFT JOIN `sport_user_coupon` b ON b.id = a.`user_coupon_id`
+        WHERE a.`status` = 1 AND a.`grade_id` = #{gradeId} AND b.`order_id` IS NOT NULL;
+    </select>
+
+    <select id="getGradeUsedCouponList" resultType="com.aioveu.entity.UserCoupon">
+        select uc.id,uc.amount,uc.user_id,uc.status
+        from sport_user_coupon uc
+        join sport_coupon_template ct on ct.id = uc.template_id and ct.store_id = #{storeId}
+        join sport_grade_user_coupon guc on guc.user_coupon_id=uc.id and guc.`status`=1
+        join sport_grade g on g.id = guc.grade_id and g.`status`  in (1,3) and g.start_time > #{start} and #{end} > g.`end_time`
+        WHERE uc.status = 3 order by uc.user_id
+    </select>
+
+    <select id="getStoreUnUsedCouponList" resultType="com.aioveu.entity.UserCoupon">
+        SELECT a.id, a.`amount`, a.`status`, b.`store_id`
+        FROM `sport_user_coupon` a
+                 LEFT JOIN sport_order b ON b.id = a.`order_id`
+        WHERE a.`status` = 1 AND a.`order_id` IS NOT NULL
+          AND b.`store_id` = #{storeId};
+    </select>
+
+    <select id="getUsedCouponListByGradeId" resultType="com.aioveu.entity.UserCoupon">
+        SELECT c.`user_id`, c.`amount`, c.`status`, c.id
+        FROM sport_grade_user_coupon a
+            LEFT JOIN `sport_user_coupon` c ON c.id = a.`user_coupon_id`
+        WHERE c.`amount` IS NOT NULL and a.grade_id in
+        <foreach collection="gradeList" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="getAnalysisCancelGradeCoupon" resultType="com.aioveu.vo.AnalysisCouponVO">
+        SELECT c.`amount`, d.name as couponName, a.create_date, b.name as username, b.phone
+        FROM sport_grade_user_coupon a
+            LEFT JOIN `sport_user_coupon` c ON c.id = a.`user_coupon_id`
+            left join sport_user b on b.id = a.user_id
+            left join sport_coupon_template d on d.id = c.template_id
+        WHERE #{end} > a.`create_date` AND a.`create_date` > #{start} and a.grade_id in
+        <foreach collection="gradeList" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="getGradeEnrollUserIdList" resultType="String">
+        SELECT user_id FROM `sport_grade_enroll_user`
+        GROUP BY user_id;
+    </select>
+
+    <select id="getGradeCouponOrderId" resultType="String">
+        SELECT b.order_id
+        FROM sport_grade_user_coupon a
+                 LEFT JOIN sport_user_coupon b ON b.id = a.user_coupon_id
+        WHERE a.grade_id = #{gradeId} AND a.user_id = #{userId}
+        LIMIT 1;
+    </select>
+
+    <select id="getLastClassTime" resultType="java.util.Date">
+        SELECT MAX(gr.start_time) FROM sport_grade_enroll_user us
+                                           JOIN sport_grade gr ON gr.id = us.grade_id
+        WHERE us.user_id = #{userId} AND us.`status` IN (2,3)
+        GROUP BY us.user_id
+    </select>
+
+    <select id="getCoachVerifyList" resultType="com.aioveu.entity.UserCoupon">
+        SELECT d.id, d.amount
+        FROM `sport_grade_coach` a
+                 LEFT JOIN `sport_grade` b ON b.`id` = a.`grade_id` AND b.`start_time` > #{start} AND #{end} > b.`end_time` AND b.`store_id` = #{storeId}
+                 LEFT JOIN `sport_grade_user_coupon` c ON c.`grade_id` = b.`id` AND c.`status` = 1
+                 LEFT JOIN `sport_user_coupon` d ON d.`id` = c.`user_coupon_id`
+        WHERE a.`coach_id` = #{coachId} AND b.id IS NOT NULL AND d.`amount` > 0;
+    </select>
+
+    <select id="getTimeRangeEnrollList" resultType="com.aioveu.dto.GradeWeekEnrollUserDTO">
+        SELECT a.`name`, a.`start_time`, a.`store_id`, b.`user_id`, b.`username`, b.`child_name`, b.`phone`, c.`company_id`, c.name as storeName
+        FROM `sport_grade` a
+             LEFT JOIN sport_grade_enroll_user b ON b.`grade_id` = a.`id` AND b.`status` = 1
+             LEFT JOIN sport_store c ON c.`id` = a.`store_id`
+        WHERE a.start_time >= #{start} AND #{end} >= a.`end_time` AND b.`user_id` IS NOT NULL;
+    </select>
+
+    <select id="getUserEnroll4TimeRange" resultType="com.aioveu.dto.GradeEnrollUserDTO">
+        SELECT b.`id`, b.`status`, a.name, a.start_time, a.end_time
+        FROM `sport_grade` a
+                 LEFT JOIN `sport_grade_enroll_user` b ON b.`grade_id` = a.`id` AND b.`user_id` =#{userId} and b.`status` = 1
+        WHERE a.start_time >= #{start} AND #{end} >= a.end_time
+        <if test="name != null">
+            and a.name LIKE CONCAT('%','${name}','%' )
+        </if>
+    </select>
+
+</mapper>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.ExerciseImageDao">
+
+    <!--查询管理平台列表-->
+    <select id="getManagerAll" resultType="com.aioveu.vo.ExerciseImageDetailVO">
+        select a.id, b.name as exerciseName, a.status, a.create_date, a.url, a.image_type,
+               CASE a.image_type
+                   WHEN 0 THEN '导航图'
+                   WHEN 1 THEN '图片描述'
+                   ELSE '未知' END as imageTypeName
+        from sport_exercise_image a
+        left join sport_exercise b on b.id = a.exercise_id
+        where a.exercise_id =#{exerciseId} and a.status != 0
+        order by a.exercise_id, a.image_type, a.create_date desc
+    </select>
+
+</mapper>

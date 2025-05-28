@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.AnalysisDao">
+
+    <select id="getStoreCheckedCouponByOrder" resultType="com.aioveu.vo.StoreCheckCouponItemVO">
+        select a.amount, a.order_id, b.name as username, b.phone, d.name as gradeName, d.start_time,
+               d.end_time, c.create_date
+        from sport_user_coupon a
+            left join sport_user b on b.id = a.user_id
+            left join sport_grade_user_coupon c on c.user_coupon_id = a.id and c.status = 1
+            left join sport_grade d on d.id = c.grade_id
+        where  a.id in
+            <foreach collection="idList" item="item" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+    </select>
+
+    <select id="getUserCancelGradeCouponAmount" resultType="java.math.BigDecimal">
+        SELECT SUM(d.amount)
+        FROM `sport_grade` a
+             LEFT JOIN `sport_grade_enroll_user` b ON b.grade_id = a.id AND b.status = 2 and b.`update_date`> #{start} AND #{end} > b.`update_date`
+             LEFT JOIN sport_grade_user_coupon c ON c.user_id = b.user_id AND c.grade_id = b.grade_id AND c.status = 2
+             LEFT JOIN `sport_user_coupon` d ON d.id = c.user_coupon_id
+        WHERE a.store_id =#{storeId} AND d.amount IS NOT NULL;
+    </select>
+
+    <select id="getUserCancelGradeCount" resultType="Integer">
+        SELECT count(b.`user_id`)
+        FROM `sport_grade` a
+             LEFT JOIN `sport_grade_enroll_user` b ON b.grade_id = a.id AND b.status = 2 and b.`update_date`> #{start} AND #{end} > b.`update_date`
+        WHERE a.store_id =#{storeId} AND b.`user_id` IS NOT NULL
+    </select>
+
+    <select id="getGradeCancelUserCountByGrade" resultType="Integer">
+        SELECT count(b.`user_id`)
+        FROM `sport_grade` a
+                 LEFT JOIN `sport_grade_enroll_user` b ON b.grade_id = a.id AND b.status = 2
+        WHERE a.id in
+            <foreach collection="idList" item="item" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+          AND b.`user_id` IS NOT NULL
+    </select>
+
+    <select id="getFullGradeRateList" resultType="java.util.HashMap">
+        select rate, count(rate) as rateCount from
+        (select a.id , ROUND(count(u.id)/a.limit_number*100,2) as rate
+        from sport_grade a
+        left join sport_grade_coach l on l.grade_id = a.id
+        left join sport_store_coach m on m.id = l.coach_id and m.status=1
+        LEFT JOIN sport_user_coach d ON d.coach_id = m.id and m.status=1
+        left join sport_grade_enroll_user u on u.grade_id = a.id and u.status in (1,3)
+        <where>
+            a.store_id = #{storeId}
+            <if test="multiUserGrade">
+                and a.limit_number > 1
+            </if>
+            AND a.`start_time`> #{start} AND #{end} > a.`end_time`
+            <if test="coachUserId != null and coachUserId != ''">
+                AND d.user_id = #{coachUserId}
+            </if>
+            <if test="status != null and status.size() > 0">
+                And a.status in
+                <foreach collection="status" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where> group by a.id ) t group by rate order by rate desc
+    </select>
+    <select id="getCountGradeLimitGroup" resultType="java.util.Map">
+        select count(a.id) as grade_count, a.limit_number
+        from sport_grade a
+        left join sport_grade_coach l on l.grade_id = a.id
+        left join sport_store_coach m on m.id = l.coach_id and m.status=1
+        LEFT JOIN sport_user_coach d ON d.coach_id = m.id and m.status=1
+        <where>
+            a.store_id = #{storeId}
+            <if test="multiUserGrade">
+                and a.limit_number > 1
+            </if>
+            AND a.`start_time`> #{start} AND #{end} > a.`end_time`
+            <if test="coachUserId != null and coachUserId != ''">
+                AND d.user_id = #{coachUserId}
+            </if>
+            <if test="status != null and status.size() > 0">
+                And a.status in
+                <foreach collection="status" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        group by a.limit_number
+        order by a.limit_number
+    </select>
+
+    <select id="getGradeUsedFieldTotal" resultType="com.aioveu.dto.AnalysisGradeFieldPlanDto">
+        SELECT d.id as gradeId
+             ,fp.id as fieldPlanId
+             ,fp.coach_price
+             ,d.end_time as grade_end_time
+             ,d.start_time as grade_start_time
+             ,d.shared_venue
+             ,CONCAT(fp.field_day, " ", fp.start_time) as field_plan_start_time
+             ,CONCAT(fp.field_day, " ", fp.end_time) as field_plan_end_time
+        FROM `sport_user_coach` a
+        LEFT JOIN `sport_store_coach` b ON b.id = a.coach_id AND b.store_id = #{storeId} AND b.user_type = 1
+        LEFT JOIN `sport_grade_coach` c ON c.coach_id = b.id
+        LEFT JOIN `sport_grade` d ON d.id = c.grade_id AND d.status in (1,3) AND d.store_id = #{storeId} AND d.start_time > #{start} AND #{end} > d.end_time
+        join sport_field_plan fp on FIND_IN_SET(d.id,fp.grade_ids) AND fp.field_day >=  #{start} AND #{end} > fp.field_day
+        WHERE
+        a.status = 1
+        <if test="coachUserId != null and coachUserId != ''">
+            AND a.user_id = #{coachUserId}
+        </if>
+        AND d.id IS NOT NULL
+        ORDER BY d.id,fp.id;
+    </select>
+    <select id="storeChartUserCouponAnalysis" resultType="java.util.Map">
+        select date,count(date) as count
+        from (
+            select
+            case
+                WHEN gap is null or gap='null' then FROM_UNIXTIME(deadline/1000,'%Y-%m')
+            ELSE (
+                CASE
+                when `status` = 1 then DATE_FORMAT(DATE_ADD(create_date, INTERVAL gap DAY), '%Y-%m')
+                WHEN `status` = 5 THEN DATE_FORMAT(DATE_ADD(update_date, INTERVAL gap DAY), '%Y-%m')
+                END
+            )
+            END as date
+            from (
+            select
+            uc.rule->>'$.expiration.deadline' as deadline,
+            uc.rule->>'$.expiration.gap' AS `gap`
+            ,uc.create_date
+            ,uc.update_date
+            ,uc.status
+            from sport_user_coupon uc
+            join sport_coupon_template ct on ct.id=uc.template_id and ct.`status`=1 and ct.store_id= #{storeId}
+            where uc.`status`in (1,5) and uc.rule is not NULL and uc.rule != '')t
+        ) tt
+        GROUP BY date order by date;
+    </select>
+
+    <select id="getStoreVenueFieldOrderList" resultType="com.aioveu.vo.AnalysisOrderVO">
+        select distinct o.id as orderId,
+                o.user_id,
+                o.category_id,
+              ( IFNULL(c.amount, 0) + o.actual_amount) as amount,
+              fp.venue_id,
+              sv.`name` as venue_name
+        from sport_order o
+        inner join sport_order_detail od on o.id = od.order_id
+        INNER JOIN sport_field_plan fp on fp.id = od.product_id
+        INNER JOIN sport_store_venue sv on sv.id=fp.venue_id
+        left JOIN sport_user_balance_change c ON c.order_id = o.id
+        where o.store_id =#{storeId} and o.category_id = 2042
+        AND o.status IN
+        <foreach collection="statusList" item="status" index="index" open="(" close=")" separator=",">
+            #{status}
+        </foreach>
+        AND o.create_date > #{start} and #{end} > o.create_date
+    </select>
+
+    <select id="getVenueNewSignatureFieldOrder" resultType="com.aioveu.entity.Order">
+        select o.id,o.user_id from sport_order o
+        inner join sport_order_detail od on o.id = od.order_id
+        INNER JOIN sport_field_plan fp on fp.id = od.product_id and fp.venue_id=#{venueId}
+        INNER JOIN sport_store_venue sv on sv.id=fp.venue_id
+        where o.store_id =#{storeId} and o.category_id = 2042
+        AND o.status IN
+        <foreach collection="statusList" item="status" index="index" open="(" close=")" separator=",">
+            #{status}
+        </foreach>
+        AND #{start} > o.create_date
+        and o.user_id = #{userId}
+        order by o.create_date desc
+        limit 1
+    </select>
+
+    <resultMap id="mapResult" type="java.util.HashMap">
+        <result property="countNum" column="count_num"/>
+        <result property="countAmount" column="count_amount" />
+    </resultMap>
+
+    <select id="manualUsedCouponVerifyStatistics" resultMap="mapResult">
+        select count(cv.user_coupon_id) as count_num,
+               sum(uc.amount) as count_amount
+        from  sport_coupon_verify cv
+        join sport_user_coupon uc on uc.id = cv.user_coupon_id
+        where cv.create_date > #{start} and #{end} > cv.create_date
+        and cv.store_id = #{storeId}
+        and cv.remark = '商家核销'
+        <if test="coachUserId != null  and coachUserId != ''">
+            and cv.user_id = #{coachUserId}
+        </if>
+    </select>
+</mapper>

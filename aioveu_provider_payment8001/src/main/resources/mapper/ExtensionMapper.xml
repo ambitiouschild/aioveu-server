@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.ExtensionDao">
+
+    <!--查询地推人员信息-->
+    <select id="selExtensionUser" resultType="com.aioveu.vo.user.UserVo">
+        select A.* from sport_user A left join sport_role_user B on A.id = B.user_id
+        where B.role_code="offline_promotion" AND A.`status` = 1
+        <if test="username != null">
+            AND A.username LIKE CONCAT('%','${username}','%' )
+        </if>
+        <if test="id != null">
+            AND A.id = #{id}
+        </if>
+    </select>
+
+</mapper>

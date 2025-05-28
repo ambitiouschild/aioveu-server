@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.VipCardDao">
+
+    <!--获取活动的会员卡-->
+    <select id="getExerciseVipCard" resultType="com.aioveu.dto.ExerciseVipDTO">
+        SELECT d.`name` AS companyName, c.`name` AS storeName, b.`fixed_time`, b.`receive_day`, a.`exercise_id`
+        FROM `sport_exercise_vip_card` a
+                 LEFT JOIN `sport_vip_card` b ON b.id = a.`vip_card_id`
+                 LEFT JOIN `sport_store` c ON c.id = b.`store_id`
+                 LEFT JOIN `sport_company` d ON d.`id` = b.`company_id`
+        WHERE a.exercise_id IN
+        <foreach collection="exerciseIdList" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+</mapper>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.UserCoachDao">
+
+    <!--查询管理平台列表-->
+    <select id="getByUserId" resultType="com.aioveu.entity.UserCoach">
+        select a.*
+        from sport_user_coach a
+        left join sport_store_coach b on b.id = a.coach_id and b.status=1
+        where a.status=1 and b.store_id=#{storeId}
+        and a.user_id = #{userId}
+        order by a.create_date
+    </select>
+
+    <select id="getStoreUserCoach" resultType="Long">
+        SELECT a.id
+        FROM sport_user_coach a
+                 LEFT JOIN sport_store_coach b ON b.id = a.coach_id AND b.status=1 AND b.`user_type` = 1
+        WHERE a.status=1 AND b.store_id =#{storeId}
+          AND a.user_id =#{userId}
+        LIMIT 1;
+    </select>
+
+    <select id="getCoachUserIdByGradeId" resultType="String">
+        SELECT b.`user_id`
+        FROM `sport_grade_coach` a
+                 LEFT JOIN `sport_user_coach` b ON b.`coach_id` = a.`coach_id` AND b.`status` = 1
+        WHERE a.`status` = 1 AND a.`grade_id` =#{gradeId}
+    </select>
+
+
+
+</mapper>

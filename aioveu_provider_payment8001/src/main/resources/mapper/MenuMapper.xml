@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.MenuDao">
+
+    <resultMap id="menuEntity" type="com.aioveu.entity.Menu" autoMapping="true">
+        <id column="id" property="id"/>
+        <result column="meta" property="meta" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler" />
+    </resultMap>
+
+    <select id="getWebMenuByRoleCode" resultMap="menuEntity">
+        SELECT b.`name`, b.`path`, b.`parent_code`, b.`component`, b.`redirect`, b.`meta`, b.`hidden`, b.`priority`, b.code
+        FROM `sport_role_menu` a
+                 LEFT JOIN `sport_menu` b ON b.code = a.`menu_code` AND b.type = 2
+        WHERE b.`path` IS NOT NULL and a.`role_code` IN
+        <foreach collection="roleCodes" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+
+</mapper>

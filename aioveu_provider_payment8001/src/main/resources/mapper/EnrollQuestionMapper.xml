@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.EnrollQuestionDao">
+
+    <resultMap id="questionMap" type="com.aioveu.vo.EnrollQuestionVO" autoMapping="true">
+        <id property="id" column="id"/>
+        <collection property="selectList" ofType="com.aioveu.vo.QuestionSelectVO" columnPrefix="child_">
+            <id column="id" property="id"/>
+            <result column="name" property="name"/>
+            <result column="code" property="code"/>
+        </collection>
+    </resultMap>
+
+    <!--查询问题列表-->
+    <select id="getQuestionList" resultMap="questionMap">
+        select a.id, a.name, a.question_type, b.name as child_name, b.code as child_code, b.id as child_id
+        from sport_enroll_question a
+        left join sport_question_select b on b.enroll_question_id = a.id
+        where a.form_enroll_id =#{formEnrollId}
+          and a.status = 1
+        order by priority;
+    </select>
+
+</mapper>

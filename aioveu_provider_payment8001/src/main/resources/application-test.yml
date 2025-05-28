@@ -1,0 +1,67 @@
+server:
+  local-ip: localhost   #ipconfig本地访问192.168.0.108
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${server.local-ip}:8000/eureka/
+  # docker部署的时候，会把容器id注册上去，导致使用有问题
+  instance:
+    prefer-ip-address: true
+
+spring:
+  datasource:
+    # 数据源
+    url: jdbc:mysql://${server.local-ip}:3306/h_sport?characterEncoding=utf8&characterSetResults=utf8&autoReconnect=true&serverTimezone=Asia/Shanghai&allowMultiQueries=true&useSSL=false
+    username: root
+    password: 775825
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 连接池
+    hikari:
+      maximum-pool-size: 8
+      minimum-idle: 4
+      idle-timeout: 30000
+      connection-timeout: 30000
+      max-lifetime: 45000
+      auto-commit: true
+      pool-name: SportApiHikariCP
+  rabbitmq:
+    username: user
+    password: 775825
+    port: 5672
+    addresses:               #${server.local-ip}
+    #开启发送失败返回
+    publisher-returns: true
+    #开启生产者确认模式
+    publisher-confirms: true
+    listener:
+      simple:
+        #指定最小的消费者数量
+        concurrency: 2
+        #指定最大的消费者数量
+        max-concurrency: 2
+        #开启ack
+        acknowledge-mode: auto
+      #开启ack
+      direct:
+        acknowledge-mode: auto
+    #支持消息的确认与返回
+    template:
+      mandatory: true
+
+sport:
+  server:
+    prefix: https://192.168.0.108  #ipconfig本地访问
+  web-manager:
+    prefix: https://'192.168.0.108'  # ipconfig本地访问
+  # python数据服务项目的地址
+  python:
+    data-url: http://localhost:6062
+  image:
+    path: /home/image
+  agreement:
+    path: /root/template/
+
+logging:
+  level:
+    com.aioveu: debug

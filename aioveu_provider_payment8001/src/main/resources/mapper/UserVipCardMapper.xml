@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.dao.UserVipCardDao">
+
+    <!--获取我的会员卡列表-->
+    <select id="getMyVipCardList" resultType="com.aioveu.vo.UserVipCardItemVO">
+        select a.id, a.name, a.vip_code, a.create_date, a.status, a.price, a.discount, a.balance, a.valid_time,
+               b.name as companyName, c.name as storeName, c.id as storeId
+        from sport_user_vip_card a
+        left join sport_company b on b.id = a.company_id
+        left join sport_store c on c.id = a.store_id
+        where a.user_id =#{userId} and a.status = 1
+        order by a.create_date desc
+    </select>
+
+    <select id="getManageList" resultType="com.aioveu.entity.UserVipCard">
+        select a.*, b.username as phone
+        from sport_user_vip_card a
+                 left join sport_user b on b.id = a.user_id
+        where 1=1 AND a.company_id = #{companyId}
+        <if test="phone != null and phone != ''">
+            and b.phone = #{phone}
+        </if>
+        <if test="vipCardNo != null and vipCardNo != ''">
+            and a.vip_code = #{vipCardNo}
+        </if>
+        <if test="username != null and username != ''">
+            and a.username like concat('%',#{username},'%')
+        </if>
+        order by a.create_date desc
+    </select>
+
+</mapper>

@@ -10,6 +10,18 @@
     <!--作为 maven pom的父工程-->
     <packaging>pom</packaging>
 
+    <!--module定义 -->
+    <modules>
+        <module>aioveu_MyBatis-Plus_Generator</module>
+<<<<<<< HEAD
+        <module>aioveu_MyBatis_Generator</module>
+        <module>aioveu_provider_payment8001</module>
+        <module>aioveu_commons</module>
+=======
+>>>>>>> 91720be78ee83d8d4cb39e19fb9a2e05398be688
+    </modules>
+
+    <!-- 项目的打包类型, 即项目的发布形式, 默认为 jar. 对于聚合项目的父模块来说, 必须指定为 pom -->
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
@@ -27,11 +39,18 @@
         <spring.boot.version>3.5.0</spring.boot.version>
         <spring.cloud.version>2024.0.1</spring.cloud.version>
         <spring.cloud.alibaba.version>2023.0.1.0</spring.cloud.alibaba.version>
+
+        <mybatis-plus-boot-starter.version>3.5.0</mybatis-plus-boot-starter.version>
+        <mybatis-plus-bom.version>3.5.12</mybatis-plus-bom.version>
+        <mybatis-plus-spring-boot3-starter.version>3.5.12</mybatis-plus-spring-boot3-starter.version>
+        <mybatis-plus-generator.version>3.5.1</mybatis-plus-generator.version>
     </properties>
 
+
+    <!--全局定义部分依赖的相关的版本，在子module中就无需指定版本号 -->
     <dependencyManagement>
         <dependencies>
-            <!--springboot 3.5.0-->
+            <!--定义 SpringCloud相关的版本 springboot 3.5.0-->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-parent</artifactId>
@@ -39,7 +58,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <!--springcloud 2024.0.1-->
+            <!--定义 SpringBoot相关的版本 springcloud 2024.0.1-->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -55,13 +74,82 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <!--SpringBoot集成mybatis-->
+
+            <!-- MyBatis-Plus 使用 maven bom 管理依赖，减少版本号的冲突。引入 mybatis-plus-bom 模块，然后引入 ..starter 和 ..jsqlparser.. 依赖-->
+<<<<<<< HEAD
             <dependency>
-                <groupId>org.mybatis.spring.boot</groupId>
-                <artifactId>mybatis-spring-boot-starter</artifactId>
-                <version>${mybatis.springboot.version}</version>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-bom</artifactId>
+                <version>${mybatis-plus-bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
-            <!--Mysql数据库驱动8 -->
+
+            <!-- 引入mybatis-plus --> <!--mybatis-plus启动器-->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <version>${mybatis-plus-boot-starter.version}</version>
+            </dependency>
+
+            <!-- MyBatis-Plus spring boot3 引入可选模块 你的MyBatis-Plus版本-->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>${mybatis-plus-spring-boot3-starter.version}</version>
+            </dependency>
+
+
+            <!-- MyBatis-Plus Generator  你的MyBatis-Plus Generator版本-->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-generator</artifactId>
+                <version>${mybatis-plus-generator.version}</version>
+            </dependency>
+
+            <!--SpringBoot集成mybatis-->
+=======
+>>>>>>> 91720be78ee83d8d4cb39e19fb9a2e05398be688
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-bom</artifactId>
+                <version>${mybatis-plus-bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+<<<<<<< HEAD
+=======
+
+            <!-- 引入mybatis-plus --> <!--mybatis-plus启动器-->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <version>${mybatis-plus-boot-starter.version}</version>
+            </dependency>
+
+            <!-- MyBatis-Plus spring boot3 引入可选模块 你的MyBatis-Plus版本-->
+<!--            <dependency>-->
+<!--                <groupId>com.baomidou</groupId>-->
+<!--                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>-->
+<!--                <version>${mybatis-plus-spring-boot3-starter.version}</version>-->
+<!--            </dependency>-->
+
+
+            <!-- MyBatis-Plus Generator  你的MyBatis-Plus Generator版本-->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-generator</artifactId>
+                <version>${mybatis-plus-generator.version}</version>
+            </dependency>
+
+            <!--SpringBoot集成mybatis-->
+<!--            <dependency>-->
+<!--                <groupId>org.mybatis.spring.boot</groupId>-->
+<!--                <artifactId>mybatis-spring-boot-starter</artifactId>-->
+<!--                <version>${mybatis.springboot.version}</version>-->
+<!--            </dependency>-->
+>>>>>>> 91720be78ee83d8d4cb39e19fb9a2e05398be688
+            <!--Mysql数据库驱动8 -->  <!--mysql驱动-->
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
@@ -86,24 +174,27 @@
                 <version>${persistence-api.version}</version>
             </dependency>
             <!-- fastjson2 -->
-            <dependency>
-                <groupId>com.alibaba.fastjson2</groupId>
-                <artifactId>fastjson2</artifactId>
-                <version>${fastjson2.version}</version>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>com.alibaba.fastjson2</groupId>-->
+<!--                <artifactId>fastjson2</artifactId>-->
+<!--                <version>${fastjson2.version}</version>-->
+<!--            </dependency>-->
             <!-- swagger3 调用方式 http://你的主机IP地址:5555/swagger-ui/index.html -->
-            <dependency>
-                <groupId>org.springdoc</groupId>
-                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-                <version>${swagger3.version}</version>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>org.springdoc</groupId>-->
+<!--                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>-->
+<!--                <version>${swagger3.version}</version>-->
+<!--            </dependency>-->
             <!--hutool-->
             <dependency>
                 <groupId>cn.hutool</groupId>
                 <artifactId>hutool-all</artifactId>
                 <version>${hutool.version}</version>
             </dependency>
-            <!--lombok-->
+
+            <!-- lombok 工具通过在代码编译时期动态的将注解替换为具体的代码,
+            IDEA 需要添加 lombok 插件 -->
+            <!--lombok--> <!--lombok用于简化实体类开发-->
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
@@ -117,7 +208,28 @@
                 <version>${spring.boot.test.version}</version>
                 <scope>test</scope>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
+
+<<<<<<< HEAD
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+    </repositories>
+
+=======
+>>>>>>> 91720be78ee83d8d4cb39e19fb9a2e05398be688
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
 
 </project>
