@@ -11,6 +11,7 @@ aioveu-server
 订单-支付，业务需求说明
 
 约定>配置>编码
+Only Do It
 
 
 
