@@ -1,11 +1,118 @@
 # aioveu-server
 aioveu-server
 
+#aioveu_MyBatis-Plus_Generator
 
 【aioveu微服务架构】【0.1】
 
 
 
+
+
+
+---------------------------------------------
+
+mybatis-generator
+https://mybatis.org/generator
+mybatis通用Mapper4
+
+src\main\resources
+config.properties
+generatorConfig.xml
+
+mybatisplus生成实体类
+在MyBatis-Plus中，生成实体类（Entity）通常是通过逆向工程（Reverse Engineering）来实现的。MyBatis-Plus 提供了一种便捷的方式来根据数据库表自动生成实体类，这样可以大大提高开发效率，避免手动编写大量的实体类代码。
+
+使用 MyBatis-Plus Generator 生成实体类
+MyBatis-Plus Generator 是一个强大的代码生成器，可以基于数据库表结构自动生成实体类、Mapper 接口、XML 文件等。以下是如何使用 MyBatis-Plus Generator 来生成实体类的步骤：
+
+
+Baomidou是中国团队开发的MyBatis增强工具包（MyBatis-Plus）的开发者团队‌，其官网（baomidou.com）明确标注了国内代码托管平台Gitee的链接（https://gitee.com/baomidou/mybatis-plus），且官方文档发布地址为中文域名（http://mp.baomidou.com/）。
+
+关键证据：
+‌团队归属与开源地址‌：
+
+MyBatis-Plus的代码托管在国内外平台（GitHub和Gitee），但Gitee作为国内平台是主要发布渠道之一。
+官方文档域名直接使用中文拼音"baomidou"，符合国内开发者的命名习惯。
+‌相关项目生态‌：
+
+Baomidou团队的其他开源产品（如MybatisX、Mybatis-Mate等）均面向国内开发者，部分工具（如FlowLong）专门针对“中国特色审批流”设计。
+‌时效性与权威性‌：
+
+尽管搜索结果中的时效性一般（2023年），但的时效性非常高（2025年），且内容直接来源于团队官网，权威性更高。
+综上，‌Baomidou是中国本土团队‌，其核心产品MyBatis-Plus广泛应用于国内Java开发领域。
+
+1. 添加依赖
+   首先，确保你的项目中已经添加了 MyBatis-Plus 和 MyBatis-Plus Generator 的依赖。如果你使用的是 Maven，可以在 pom.xml 文件中添加如下依赖：
+<!-- MyBatis-Plus -->
+<dependency>
+    <groupId>com.baomidou</groupId>
+    <artifactId>mybatis-plus-boot-starter</artifactId>
+    <version>你的MyBatis-Plus版本</version>
+</dependency>
+<!-- MyBatis-Plus Generator -->
+<dependency>
+    <groupId>com.baomidou</groupId>
+    <artifactId>mybatis-plus-generator</artifactId>
+    <version>你的MyBatis-Plus Generator版本</version>
+</dependency>
+<!-- 数据库驱动，根据实际使用的数据库选择 -->
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <version>你的数据库驱动版本</version>
+</dependency>
+
+2. 配置代码生成器
+   创建一个配置类来配置代码生成器，例如 CodeGenerator.java：
+   import com.baomidou.mybatisplus.core.exceptions.MybatisPlusException;
+   import com.baomidou.mybatisplus.core.toolkit.StringPool;
+   import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+   import com.baomidou.mybatisplus.generator.AutoGenerator;
+   import com.baomidou.mybatisplus.generator.config.*;
+   import com.baomidou.mybatisplus.generator.config.rules.DateType;
+   import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
+   import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
+
+import java.util.Scanner;
+
+public class CodeGenerator {
+
+    public static String scanner(String tip) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("请输入" + tip + "：");
+        if (scanner.hasNext()) {
+            String ipt = scanner.next();
+            if (StringUtils.isNotBlank(ipt)) {
+                return ipt;
+            }
+        }
+        throw new MybatisPlusException("请输入正确的" + tip + "！");
+    }
+ 
+    public static void main(String[] args) {
+        // 代码生成器
+        AutoGenerator mpg = new AutoGenerator();
+ 
+        // 全局配置
+        GlobalConfig gc = new GlobalConfig();
+        String projectPath = System.getProperty("user.dir");
+        gc.setOutputDir(projectPath + "/src/main/java");
+        gc.setAuthor("作者名");
+        gc.setOpen(false); // 是否打开资源管理器
+        gc.setFileOverride(true); // 是否覆盖文件
+        gc.setServiceName("%sService"); // 默认Service名称，%s会自动填充表名，默认ServiceImpl会加Impl后缀，如果想自定义可以不加%s, 如UserServiceImpl, UserMapper等。
+        gc.setIdType(IdType.AUTO); // 主键策略，默认自增，可选的有NONE, AUTO, INPUT, ASSIGN_ID, ASSIGN_UUID, ...等。
+        gc.setDateType(DateType.ONLY_DATE); // 定义生成的实体类中日期类型，默认是LocalDateTime。可选的有ONLY_DATE, TIME_PACK, ONLY_TIME等。
+        mpg.setGlobalConfig(gc);
+ 
+        // 数据源配置
+        DataSourceConfig dsc = new DataSourceConfig();
+        dsc.setUrl("jdbc:mysql://localhost:3306/数据库名?useUnicode=true&useSSL=false&characterEncoding=utf8");
+        dsc.setDriverName("com.mysql.cj.jdbc.Driver");
+        dsc.setUsername
+
+---------------------------------------------
 
 微服务架构编码Base工程模块构建
 订单-支付，业务需求说明
@@ -38,7 +145,7 @@ dependencyManagement 元素中指定的版本号。
 *     如果子项目中指定了版本号，那么会使用子项目中指定的jar版本。
 
 
-
+---------------------------------------------
 
 
 
@@ -111,7 +218,7 @@ MySQL: 8.0+
 
 【aioveu微服务架构】【0.1】
 
-
+---------------------------------------------
 【服务注册与发现】 Consul  Alibaba Nacos
 【服务调用和负载均衡】 LoadBalancer OpenFeign
 【分布式事务】Alibaba Seata
@@ -121,7 +228,7 @@ MySQL: 8.0+
 【分布式配置管理】Consul Alibaba Nacos
 
 
-
+---------------------------------------------
 GroupId 的命名规则
 反向域名格式：推荐使用反向域名命名，如 com.example、org.apache，这样可以避免命名冲突。
 唯一性：每个 GroupId 应该唯一地标识一个组织、公司或开源项目。
@@ -184,7 +291,7 @@ GroupId 的命名规则
 19.找小程序开发公司，最好找干时间长的公司合作，比如5年,10年以上，防止他们突然倒闭了，不干了，你小程序没人接手维护。
 
 20.一些特殊类型的小程序，比如交友，多商家入驻等，是需要办ICP经营许可证的次啊能上线的，开发前，一定要问清楚，防止你程序开发好了，上不了线，那你小程序的开发费用就白花了
-
+---------------------------------------------
 
 aioveu我爱你-小程序，助力商家实现销量大爆发
 无需开发
