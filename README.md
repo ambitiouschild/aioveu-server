@@ -2,8 +2,90 @@
 aioveu-server
 
 
+【aioveu微服务架构】【0.1】
 
 
+【aioveu版本选择】boot, cloud, cloud alibaba【0.1】
+
+若同时使用boot和cloud,由话事人cloud决定boot版本
+Java: Java17+
+
+cloud: 2024.0.1
+Spring-Cloud版本选择
+https://github.com/spring-cloud
+https://spring.io/projects/spring-cloud#overview
+
+<properties>
+    <spring-cloud.version>2024.0.0</spring-cloud.version>
+</properties>
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-dependencies</artifactId>
+            <version>${spring-cloud.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+
+boot: 3.5.0
+Spring-Boot版本选择
+https://github.com/spring-projects/spring-boot/releases/
+Spring-Boot版本说明
+https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Release-Notes
+
+Spring Boot 3.0 requires Java 17 as a minimum version. If you are currently using Java 8 or Java 11,
+you’ll need to upgrade your JDK before you can develop Spring Boot 3.0 applications.
+Spring Boot 3.0 also works well, and has been tested with JDK 19.
+
+
+cloud alibaba : 2023.0.1.0
+Spring-Cloud-Alibaba版本选择
+https://github.com/alibaba/spring-cloud-alibaba/wiki/
+https://github.com/alibaba/spring-cloud-alibaba?spm=5176.29160081.0.0.74805c72d83SmI
+2023.x branch: Corresponds to Spring Cloud 2023 & Spring Boot 3.2.x, JDK 17 or later versions are supported.
+https://sca.aliyun.com/docs/2023/overview/version-explain/?spm=5176.29160081.0.0.74805c7286RlIq
+
+Spring Cloud Alibaba Version	Spring Cloud Version	Spring Boot Version
+2023.0.1.0*	Spring Cloud 2023.0.1	3.2.4
+2023.0.0.0-RC1	Spring Cloud 2023.0.0	3.2.0
+
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+            <version>2023.0.1.0</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+
+Maven: 3.9+
+MySQL: 8.0+
+
+【aioveu微服务架构】【0.1】
+
+
+【服务注册与发现】 Consul  Alibaba Nacos
+【服务调用和负载均衡】 LoadBalancer OpenFeign
+【分布式事务】Alibaba Seata
+【服务熔断和降级】Circuit Breaker Alibaba Sentinel
+【服务链路追踪】Micrometer Tracing
+【服务网关】Gateway
+【分布式配置管理】Consul Alibaba Nacos
+
+
+
+GroupId 的命名规则
+反向域名格式：推荐使用反向域名命名，如 com.example、org.apache，这样可以避免命名冲突。
+唯一性：每个 GroupId 应该唯一地标识一个组织、公司或开源项目。
+与 Java 包一致：通常，GroupId 会与项目的 Java 包名一致，这样可以保证它的唯一性。
+————————————————
+<groupId>com.aioveu</groupId>
 
 小程序，这20个坑一定不踩
 
