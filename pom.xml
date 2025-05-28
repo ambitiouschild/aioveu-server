@@ -10,20 +10,18 @@
     <!--作为 maven pom的父工程-->
     <packaging>pom</packaging>
 
-<<<<<<< .mine
     <!--module定义 -->
     <modules>
         <module>aioveu_MyBatis-Plus_Generator</module>
-<<<<<<< HEAD
         <module>aioveu_MyBatis_Generator</module>
         <module>aioveu_provider_payment8001</module>
         <module>aioveu_commons</module>
-=======
->>>>>>> 91720be78ee83d8d4cb39e19fb9a2e05398be688
+        <module>aioveu_cloudalibaba-provider-payment9001</module>
+
     </modules>
 
     <!-- 项目的打包类型, 即项目的发布形式, 默认为 jar. 对于聚合项目的父模块来说, 必须指定为 pom -->
-=======
+
     <!--module定义 -->
     <modules>
         <module>aioveu_MyBatis-Plus_Generator</module>
@@ -32,11 +30,6 @@
     <!-- 项目的打包类型, 即项目的发布形式, 默认为 jar. 对于聚合项目的父模块来说, 必须指定为 pom -->
 
 
-
-
-
-
->>>>>>> .theirs
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
@@ -89,10 +82,9 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-<<<<<<< .mine
 
             <!-- MyBatis-Plus 使用 maven bom 管理依赖，减少版本号的冲突。引入 mybatis-plus-bom 模块，然后引入 ..starter 和 ..jsqlparser.. 依赖-->
-<<<<<<< HEAD
+
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-bom</artifactId>
@@ -124,44 +116,7 @@
             </dependency>
 
             <!--SpringBoot集成mybatis-->
-=======
-
             <!-- MyBatis-Plus 使用 maven bom 管理依赖，减少版本号的冲突。引入 mybatis-plus-bom 模块，然后引入 ..starter 和 ..jsqlparser.. 依赖-->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
->>>>>>> .theirs
-=======
->>>>>>> 91720be78ee83d8d4cb39e19fb9a2e05398be688
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-bom</artifactId>
@@ -169,49 +124,16 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-<<<<<<< .mine
-<<<<<<< HEAD
-=======
 
-            <!-- 引入mybatis-plus --> <!--mybatis-plus启动器-->
-=======
 
             <!-- 引入mybatis-plus --> <!--mybatis-plus启动器-->
 
 
->>>>>>> .theirs
+            <!-- 引入mybatis-plus --> <!--mybatis-plus启动器-->
+
+
             <dependency>
-<<<<<<< .mine
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-boot-starter</artifactId>
-                <version>${mybatis-plus-boot-starter.version}</version>
-            </dependency>
 
-            <!-- MyBatis-Plus spring boot3 引入可选模块 你的MyBatis-Plus版本-->
-<!--            <dependency>-->
-<!--                <groupId>com.baomidou</groupId>-->
-<!--                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>-->
-<!--                <version>${mybatis-plus-spring-boot3-starter.version}</version>-->
-<!--            </dependency>-->
-
-
-            <!-- MyBatis-Plus Generator  你的MyBatis-Plus Generator版本-->
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-generator</artifactId>
-                <version>${mybatis-plus-generator.version}</version>
-            </dependency>
-
-            <!--SpringBoot集成mybatis-->
-<!--            <dependency>-->
-<!--                <groupId>org.mybatis.spring.boot</groupId>-->
-<!--                <artifactId>mybatis-spring-boot-starter</artifactId>-->
-<!--                <version>${mybatis.springboot.version}</version>-->
-<!--            </dependency>-->
->>>>>>> 91720be78ee83d8d4cb39e19fb9a2e05398be688
-            <!--Mysql数据库驱动8 -->  <!--mysql驱动-->
-            <dependency>
-=======
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-boot-starter</artifactId>
                 <version>${mybatis-plus-boot-starter.version}</version>
@@ -241,7 +163,35 @@
             <!--Mysql数据库驱动8 -->  <!--mysql驱动-->
             <dependency>
 
->>>>>>> .theirs
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <version>${mybatis-plus-boot-starter.version}</version>
+            </dependency>
+
+            <!-- MyBatis-Plus spring boot3 引入可选模块 你的MyBatis-Plus版本-->
+<!--            <dependency>-->
+<!--                <groupId>com.baomidou</groupId>-->
+<!--                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>-->
+<!--                <version>${mybatis-plus-spring-boot3-starter.version}</version>-->
+<!--            </dependency>-->
+
+
+            <!-- MyBatis-Plus Generator  你的MyBatis-Plus Generator版本-->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-generator</artifactId>
+                <version>${mybatis-plus-generator.version}</version>
+            </dependency>
+
+            <!--SpringBoot集成mybatis-->
+<!--            <dependency>-->
+<!--                <groupId>org.mybatis.spring.boot</groupId>-->
+<!--                <artifactId>mybatis-spring-boot-starter</artifactId>-->
+<!--                <version>${mybatis.springboot.version}</version>-->
+<!--            </dependency>-->
+            <!--Mysql数据库驱动8 -->  <!--mysql驱动-->
+            <dependency>
+
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
                 <version>${mysql.version}</version>
@@ -303,8 +253,6 @@
         </dependencies>
     </dependencyManagement>
 
-<<<<<<< .mine
-<<<<<<< HEAD
     <repositories>
         <repository>
             <id>central</id>
@@ -312,8 +260,6 @@
         </repository>
     </repositories>
 
-=======
->>>>>>> 91720be78ee83d8d4cb39e19fb9a2e05398be688
     <build>
         <plugins>
             <plugin>
