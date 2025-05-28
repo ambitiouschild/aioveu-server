@@ -3,6 +3,16 @@ aioveu-server
 
 #aioveu_MyBatis-Plus_Generator
 
+
+
+
+Nacos
+
+
+D:\SoftWares\nacos-server2.2.3\bin
+startup.cmd -m standalone
+---------------------------------------------
+
 【aioveu微服务架构】【0.1】
 
 
