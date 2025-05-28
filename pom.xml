@@ -86,21 +86,6 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- 引入mybatis-plus --> <!--mybatis-plus启动器-->
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-boot-starter</artifactId>
-                <version>${mybatis-plus-boot-starter.version}</version>
-            </dependency>
-
-            <!-- MyBatis-Plus spring boot3 引入可选模块 你的MyBatis-Plus版本-->
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
-                <version>${mybatis-plus-spring-boot3-starter.version}</version>
-            </dependency>
-
-
             <!-- MyBatis-Plus Generator  你的MyBatis-Plus Generator版本-->
             <dependency>
                 <groupId>com.baomidou</groupId>
@@ -118,28 +103,6 @@
                 <scope>import</scope>
             </dependency>
 
-
-            <!-- 引入mybatis-plus --> <!--mybatis-plus启动器-->
-
-
-            <!-- 引入mybatis-plus --> <!--mybatis-plus启动器-->
-
-
-            <dependency>
-
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-boot-starter</artifactId>
-                <version>${mybatis-plus-boot-starter.version}</version>
-            </dependency>
-
-            <!-- MyBatis-Plus spring boot3 引入可选模块 你的MyBatis-Plus版本-->
-<!--            <dependency>-->
-<!--                <groupId>com.baomidou</groupId>-->
-<!--                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>-->
-<!--                <version>${mybatis-plus-spring-boot3-starter.version}</version>-->
-<!--            </dependency>-->
-
-
             <!-- MyBatis-Plus Generator  你的MyBatis-Plus Generator版本-->
             <dependency>
                 <groupId>com.baomidou</groupId>
@@ -147,44 +110,10 @@
                 <version>${mybatis-plus-generator.version}</version>
             </dependency>
 
-            <!--SpringBoot集成mybatis-->
-<!--            <dependency>-->
-<!--                <groupId>org.mybatis.spring.boot</groupId>-->
-<!--                <artifactId>mybatis-spring-boot-starter</artifactId>-->
-<!--                <version>${mybatis.springboot.version}</version>-->
-<!--            </dependency>-->
+
+
             <!--Mysql数据库驱动8 -->  <!--mysql驱动-->
             <dependency>
-
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-boot-starter</artifactId>
-                <version>${mybatis-plus-boot-starter.version}</version>
-            </dependency>
-
-            <!-- MyBatis-Plus spring boot3 引入可选模块 你的MyBatis-Plus版本-->
-<!--            <dependency>-->
-<!--                <groupId>com.baomidou</groupId>-->
-<!--                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>-->
-<!--                <version>${mybatis-plus-spring-boot3-starter.version}</version>-->
-<!--            </dependency>-->
-
-
-            <!-- MyBatis-Plus Generator  你的MyBatis-Plus Generator版本-->
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-generator</artifactId>
-                <version>${mybatis-plus-generator.version}</version>
-            </dependency>
-
-            <!--SpringBoot集成mybatis-->
-<!--            <dependency>-->
-<!--                <groupId>org.mybatis.spring.boot</groupId>-->
-<!--                <artifactId>mybatis-spring-boot-starter</artifactId>-->
-<!--                <version>${mybatis.springboot.version}</version>-->
-<!--            </dependency>-->
-            <!--Mysql数据库驱动8 -->  <!--mysql驱动-->
-            <dependency>
-
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
                 <version>${mysql.version}</version>
@@ -262,13 +191,5 @@
         </plugins>
     </build>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>
