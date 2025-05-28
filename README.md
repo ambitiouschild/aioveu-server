@@ -30,6 +30,8 @@ https://spring.io/projects/spring-cloud#overview
     </dependencies>
 </dependencyManagement>
 
+让程序员专注于业务逻辑，有第三方支撑
+
 boot: 3.5.0
 Spring-Boot版本选择
 https://github.com/spring-projects/spring-boot/releases/
