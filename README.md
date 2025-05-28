@@ -5,6 +5,18 @@ aioveu-server
 【aioveu微服务架构】【0.1】
 
 
+
+
+微服务架构编码Base工程模块构建
+订单-支付，业务需求说明
+
+约定>配置>编码
+
+
+
+
+
+
 【aioveu版本选择】boot, cloud, cloud alibaba【0.1】
 
 若同时使用boot和cloud,由话事人cloud决定boot版本
@@ -33,7 +45,7 @@ https://spring.io/projects/spring-cloud#overview
 让程序员专注于业务逻辑，有第三方支撑
 Spring Cloud 2025微服务
 Spring Cloud 微服务对应的组件支撑
-Spring Cloud 升级
+Spring Cloud 2025升级
 
 boot: 3.5.0
 Spring-Boot版本选择
