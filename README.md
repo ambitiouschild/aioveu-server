@@ -5,6 +5,13 @@ aioveu-server
 
 
 
+Sentinel
+D:\SoftWares\sentinel-dashboard-1.8.6
+java -jar sentinel-dashboard-1.8.6.jar
+
+localhost:8080
+
+---------------------------------------------
 
 Nacos
 

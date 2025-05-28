@@ -18,6 +18,7 @@
         <module>aioveu_commons</module>
         <module>aioveu_cloudalibaba-provider-payment9001</module>
         <module>aioveu_cloudalibaba-consumer-nacos-order83</module>
+        <module>aioveu_cloudalibaba-sentinel-service8401</module>
 
     </modules>
 
