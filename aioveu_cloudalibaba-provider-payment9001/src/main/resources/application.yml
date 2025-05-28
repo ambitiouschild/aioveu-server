@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: nacos-payment-provider
+    name: aioveu-nacos-payment-provider-9001
   cloud:
     nacos:
       discovery:

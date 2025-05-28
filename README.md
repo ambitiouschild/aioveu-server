@@ -11,6 +11,9 @@ Nacos
 
 D:\SoftWares\nacos-server2.2.3\bin
 startup.cmd -m standalone
+
+localhost:8848/nacos
+
 ---------------------------------------------
 
 【aioveu微服务架构】【0.1】
