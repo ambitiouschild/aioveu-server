@@ -19,6 +19,8 @@
         <module>aioveu_cloudalibaba-provider-payment9001</module>
         <module>aioveu_cloudalibaba-consumer-nacos-order83</module>
         <module>aioveu_cloudalibaba-sentinel-service8401</module>
+        <module>aioveu_seata-order-service2001</module>
+        <module>aioveu_cloud-consumer-feign-order80</module>
 
     </modules>
 
@@ -119,17 +121,17 @@
                 <version>${persistence-api.version}</version>
             </dependency>
             <!-- fastjson2 -->
-<!--            <dependency>-->
-<!--                <groupId>com.alibaba.fastjson2</groupId>-->
-<!--                <artifactId>fastjson2</artifactId>-->
-<!--                <version>${fastjson2.version}</version>-->
-<!--            </dependency>-->
+            <dependency>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
+                <version>${fastjson2.version}</version>
+            </dependency>
             <!-- swagger3 调用方式 http://你的主机IP地址:5555/swagger-ui/index.html -->
-<!--            <dependency>-->
-<!--                <groupId>org.springdoc</groupId>-->
-<!--                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>-->
-<!--                <version>${swagger3.version}</version>-->
-<!--            </dependency>-->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${swagger3.version}</version>
+            </dependency>
             <!--hutool-->
             <dependency>
                 <groupId>cn.hutool</groupId>
