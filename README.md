@@ -32,6 +32,7 @@ https://spring.io/projects/spring-cloud#overview
 
 让程序员专注于业务逻辑，有第三方支撑
 Spring Cloud 2025微服务
+Spring Cloud 微服务对应的组件支撑
 
 boot: 3.5.0
 Spring-Boot版本选择
