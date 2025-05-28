@@ -22,13 +22,6 @@
 
     <!-- 项目的打包类型, 即项目的发布形式, 默认为 jar. 对于聚合项目的父模块来说, 必须指定为 pom -->
 
-    <!--module定义 -->
-    <modules>
-        <module>aioveu_MyBatis-Plus_Generator</module>
-    </modules>
-
-    <!-- 项目的打包类型, 即项目的发布形式, 默认为 jar. 对于聚合项目的父模块来说, 必须指定为 pom -->
-
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -269,8 +262,6 @@
         </plugins>
     </build>
 
-
-=======
     <build>
         <plugins>
             <plugin>
@@ -280,16 +271,4 @@
         </plugins>
     </build>
 
-
-
-
-
-
-
-
-
-
-
-
->>>>>>> .theirs
 </project>
