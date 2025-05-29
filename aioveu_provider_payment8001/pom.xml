@@ -151,6 +151,12 @@
             <version>8.3.14</version>
         </dependency>
 
+
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>3.0.3</version> <!-- 当前最新稳定版本 -->
+        </dependency>
         <!-- MyBatis-Plus 启动器-->
         <dependency>
             <groupId>com.baomidou</groupId>
@@ -212,6 +218,12 @@
         <dependency>
             <groupId>com.alibaba.fastjson2</groupId>
             <artifactId>fastjson2</artifactId>
+            <version>2.0.40</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.fastjson2</groupId>
+            <artifactId>fastjson2-extension</artifactId>
+            <version>2.0.47</version>
         </dependency>
         <!--lombok-->
         <dependency>
@@ -225,6 +237,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>7.0.47</version>
         </dependency>
 
     </dependencies>
