@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: aioveu_cloud-consumer-openfeign-order80
+    name: aioveu-consumer-openfeign-order80
   ####Spring Cloud Consul for Service Discovery
   cloud:
     # -------------------------------------------------------

@@ -1,0 +1,22 @@
+server:
+  port: 9527
+
+spring:
+  application:
+    name: aioveu-gateway9527 #以微服务注册进consul或nacos服务列表内
+  cloud:
+    # ========================nacos===================
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+    #消费者将要去访问的微服务名称(nacos微服务提供者叫什么你写什么)
+    service-url:
+      nacos-user-service: http://nacos-payment-provider
+
+    # ========================consul===================
+    consul: #配置consul地址
+      host: localhost
+      port: 8500
+      discovery:
+        prefer-ip-address: true
+        service-name: ${spring.application.name}

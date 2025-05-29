@@ -21,6 +21,7 @@
         <module>aioveu_cloudalibaba-sentinel-service8401</module>
         <module>aioveu_seata-order-service2001</module>
         <module>aioveu_cloud-consumer-feign-order80</module>
+        <module>aioveu_gateway9527</module>
 
     </modules>
 
@@ -41,11 +42,11 @@
         <fastjson2.version>2.0.40</fastjson2.version>
         <persistence-api.version>1.0.2</persistence-api.version>
         <spring.boot.test.version>3.1.5</spring.boot.test.version>
-        <spring.boot.version>3.4.5</spring.boot.version>
-        <spring.cloud.version>2024.0.1</spring.cloud.version>
-        <spring.cloud.alibaba.version>2022.0.0.0-RC2</spring.cloud.alibaba.version>
+        <spring.boot.version>3.3.0</spring.boot.version>
+        <spring.cloud.version>2023.0.1</spring.cloud.version>
+        <spring.cloud.alibaba.version>2023.0.1.0</spring.cloud.alibaba.version>
 
-        <mybatis-plus-boot-starter.version>3.5.0</mybatis-plus-boot-starter.version>
+        <mybatis-plus-boot-starter.version>3.5.6</mybatis-plus-boot-starter.version>
         <mybatis-plus-bom.version>3.5.12</mybatis-plus-bom.version>
         <mybatis-plus-spring-boot3-starter.version>3.5.12</mybatis-plus-spring-boot3-starter.version>
         <mybatis-plus-generator.version>3.5.1</mybatis-plus-generator.version>
@@ -55,6 +56,16 @@
     <!--全局定义部分依赖的相关的版本，在子module中就无需指定版本号 -->
     <dependencyManagement>
         <dependencies>
+            <!--gateway-->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-gateway</artifactId>
+            </dependency>
+            <!--服务注册发现consul discovery,网关也要注册进服务注册中心统一管控-->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-consul-discovery</artifactId>
+            </dependency>
             <!--定义 SpringCloud相关的版本 springboot 3.5.0-->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
@@ -78,6 +89,13 @@
                 <version>${spring.cloud.alibaba.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- MyBatis-Plus starter -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <version>${mybatis-plus-boot-starter.version}</version>
             </dependency>
 
             <!-- MyBatis-Plus Generator  你的MyBatis-Plus Generator版本-->

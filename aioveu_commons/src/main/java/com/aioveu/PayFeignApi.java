@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
  * @Description: TODO
  **/
 
-@FeignClient(value = "aioveu_cloud-consumer-openfeign-order80")
+@FeignClient(value = "aioveu-cloud-consumer-openfeign-order80")
 public interface PayFeignApi {
 
     /**
@@ -24,8 +24,8 @@ public interface PayFeignApi {
      * @param payDTO
      * @return
      */
-    @PostMapping("/pay/add")
-    public ResultData addPay(@RequestBody PayDTO payDTO);
+//    @PostMapping("/pay/add")
+//    public ResultData addPay(@RequestBody PayDTO payDTO);
 
     /**
      * 按照主键记录查询支付流水信息

@@ -19,22 +19,30 @@
 
     <dependencies>
 
-        <!-- 引入mybatis-plus -->
+        <!-- nacos -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+
+        <!-- MyBatis-Plus 启动器-->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-boot-starter</artifactId>
-            <version>3.4.0</version>
+            <version>3.5.6</version> <!-- 使用最新稳定版本 -->
+        </dependency>
+        <!-- MyBatis-Plus 扩展包-->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-extension</artifactId>
+            <version>3.5.6</version>
         </dependency>
         <!-- MyBatis-Plus Generator  你的MyBatis-Plus Generator版本-->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-generator</artifactId>
         </dependency>
-        <!-- nacos -->
-        <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-        </dependency>
+
         <!--alibaba-seata-->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
@@ -74,11 +82,6 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-        </dependency>
-        <!--mybatis和springboot整合-->
-        <dependency>
-            <groupId>org.mybatis.spring.boot</groupId>
-            <artifactId>mybatis-spring-boot-starter</artifactId>
         </dependency>
         <!--Mysql数据库驱动8 -->
         <dependency>

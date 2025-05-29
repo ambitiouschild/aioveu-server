@@ -7,18 +7,17 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 /**
  * @ClassName: $ {NAME}
  * @Author: 雒世松
- * @Date: 2025/5/29 2:49
+ * @Date: 2025/5/29 4:35
  * @Param:
  * @Return:
  * @Description: TODO
  **/
 
-@EnableDiscoveryClient
 @SpringBootApplication
-public class Main83 {
-
+@EnableDiscoveryClient //服务注册和发现
+public class GateWay9527 {
     public static void main(String[] args)
     {
-        SpringApplication.run(Main83.class,args);
+        SpringApplication.run(GateWay9527.class,args);
     }
 }
