@@ -1,6 +1,6 @@
 spring:
   application:
-    name: sport-nacos
+    name: aioveu-nacos
   profiles:
     active: dev
 

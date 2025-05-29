@@ -1,5 +1,9 @@
 package com.aioveu;
 
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
 /**
  * @ClassName: $ {NAME}
  * @Author: 雒世松
@@ -8,8 +12,12 @@ package com.aioveu;
  * @Return:
  * @Description: TODO
  **/
+
+@EnableEurekaClient
+@SpringBootApplication
+@MapperScan("com.high.sport.auth.dao")
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello, World!");
+        SpringApplication.run(AuthApplication.class, args);
     }
 }

@@ -12,7 +12,7 @@ public class FileUtil {
     /**
      * 图片前缀
      */
-    public static String IMAGE_PREFIX = "https://image.highyundong.com/";
+    public static String IMAGE_PREFIX = "https://image.aioveu.com/";
 
     /**
      * 检查图片地址，并添加前缀

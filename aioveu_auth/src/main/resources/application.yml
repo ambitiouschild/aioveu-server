@@ -8,11 +8,9 @@ server:
 
 spring:
   application:
-    name: eureka-client-sport-auth
+    name: aioveu-auth
   profiles:
     active: dev
-  redis:
-
 
   data:
     redis:

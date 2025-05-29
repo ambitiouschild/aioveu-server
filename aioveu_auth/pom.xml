@@ -49,6 +49,12 @@
             <version>1.3.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+            <version>3.2.5</version>
+        </dependency>
+
         <!-- 更新安全依赖 -->
         <dependency>
             <groupId>org.springframework.security</groupId>
@@ -120,6 +126,11 @@
             <artifactId>jakarta.validation-api</artifactId>
             <version>3.0.2</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat-annotations-api</artifactId>
+            <version>7.0.47</version>
         </dependency>
 
 
