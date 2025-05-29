@@ -1,0 +1,15 @@
+server:
+  local-ip: localhost
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8000/eureka/
+
+spring:
+  data:
+    redis:
+      database: 0
+      host: ${server.local-ip}
+      port: 6379
+      password: 775825
+      timeout: 10000

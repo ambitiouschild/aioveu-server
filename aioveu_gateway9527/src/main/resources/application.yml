@@ -4,7 +4,65 @@ server:
 spring:
   application:
     name: aioveu-gateway9527 #以微服务注册进consul或nacos服务列表内
+  main:
+      allow-bean-definition-overriding: true
+  profiles:
+      active: dev
   cloud:
+    # ========================gateway===================
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        # 忽略前缀aioveu
+        - id: add-prefix
+          uri: "http://127.0.0.1:9000/"
+          predicates:
+            - Path=/sp/**
+          filters:
+            - StripPrefix=1
+        - id: aioveu-auth
+          uri: lb://eureka-client-aioveu-auth
+          predicates:
+            - Path=/auth/**
+        - id: aioveu-api
+          uri: lb://eureka-client-aioveu-api
+          predicates:
+            - Path=/api/**
+        - id: aioveu-mini-app
+          uri: lb://eureka-client-mini-app
+          predicates:
+            - Path=/mini-app/**
+        - id: aioveu-ai
+          uri: lb://eureka-client-aioveu-ai
+          predicates:
+            - Path=/ai/**
+    # ========================redis===================
+    redis:
+      port: 6379
+      # 连接超时时间
+      timeout: 10000
+      jedis:
+        pool:
+          max-active: 600
+          max-idle: 300
+          max-wait: 15000
+          min-idle: 10
+
+    # ========================oauth2===================
+    oauth2:
+      cloud:
+        sys:
+          parameter:
+            ignoreUrls:
+              - /auth/oauth/token
+
+    # ========================ribbon===================
+    #网关 负载均衡的时间
+    ribbon:
+      ConnectTimeout: 60000
+      ReadTimeout: 60000
     # ========================nacos===================
     nacos:
       discovery:
@@ -20,3 +78,11 @@ spring:
       discovery:
         prefer-ip-address: true
         service-name: ${spring.application.name}
+
+    # ========================logging===================
+    logging:
+      level:
+        com.aioveu: debug
+        org.springframework.cloud.gateway: debug
+      file:
+        path: /logs/aioveu

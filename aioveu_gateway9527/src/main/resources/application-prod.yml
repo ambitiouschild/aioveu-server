@@ -1,0 +1,27 @@
+server:
+  local-ip: localhost
+    # ========================nacos===================
+  nacos:
+      discovery:
+        server-addr: localhost:8848
+    #消费者将要去访问的微服务名称(nacos微服务提供者叫什么你写什么)
+  service-url:
+      nacos-user-service: http://nacos-payment-provider
+
+spring:
+  data:
+    redis:
+      database: 0
+      host: ${server.local-ip}
+      port: 6379
+      password: 775825
+      timeout: 10000
+
+logging:
+  level:
+    com.high.sport: info
+    org.springframework.cloud.gateway: info
+    org:
+      springframework:
+        data:
+          redis=DEBUG:true

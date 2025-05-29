@@ -23,6 +23,8 @@
         <module>aioveu_cloud-consumer-feign-order80</module>
         <module>aioveu_gateway9527</module>
         <module>aioveu_nacos</module>
+        <module>aioveu-auth-common</module>
+        <module>aioveu_auth</module>
 
     </modules>
 
@@ -46,6 +48,8 @@
         <spring.boot.version>3.3.0</spring.boot.version>
         <spring.cloud.version>2023.0.1</spring.cloud.version>
         <spring.cloud.alibaba.version>2023.0.1.0</spring.cloud.alibaba.version>
+        <spring-security.version>6.3.0</spring-security.version>
+        <spring-authorization-server.version>1.3.0</spring-authorization-server.version>
 
         <mybatis-plus-boot-starter.version>3.5.6</mybatis-plus-boot-starter.version>
         <mybatis-plus-bom.version>3.5.12</mybatis-plus-bom.version>
@@ -57,11 +61,6 @@
     <!--全局定义部分依赖的相关的版本，在子module中就无需指定版本号 -->
     <dependencyManagement>
         <dependencies>
-            <!--gateway-->
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-starter-gateway</artifactId>
-            </dependency>
             <!--服务注册发现consul discovery,网关也要注册进服务注册中心统一管控-->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
@@ -104,6 +103,23 @@
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-generator</artifactId>
                 <version>${mybatis-plus-generator.version}</version>
+            </dependency>
+
+            <!-- Spring Security BOM -->
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-bom</artifactId>
+                <version>${spring-security.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- Spring Authorization Server BOM -->
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-oauth2-authorization-server</artifactId>
+                <version>${spring-authorization-server.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
             </dependency>
 
             <!--SpringBoot集成mybatis plus-->

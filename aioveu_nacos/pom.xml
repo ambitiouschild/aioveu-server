@@ -106,7 +106,7 @@
                         <imageTag>latest</imageTag>
                     </imageTags>
                     <!--指定远程docker 地址-->
-                    <!--                    <dockerHost>http://api.fanxl.cn:2375</dockerHost>-->
+                    <!--                    <dockerHost>http://api.雒世松.cn:2375</dockerHost>-->
 
                     <resources>
                         <resource>

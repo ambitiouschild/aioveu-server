@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.auth.dao.SysPermissionDao">
+
+    <!--查询权限对应的角色-->
+    <select id="getRoleMenuPermission" resultType="com.aioveu.auth.model.vo.SysRolePermissionVO">
+        SELECT a.`permission_id` AS id, b.`name`, b.`url`, b.method, GROUP_CONCAT(a.`role_code`) AS roleCodeStr
+        FROM `sport_role_menu_permission` a
+                 LEFT JOIN sport_permission b ON b.`id` = a.`permission_id`
+        WHERE a.`status` = 1
+        GROUP BY a.`permission_id`
+    </select>
+
+</mapper>

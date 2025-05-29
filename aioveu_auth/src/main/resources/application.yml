@@ -1,0 +1,32 @@
+server:
+  port: 8100
+  servlet:
+    context-path: /auth
+    # 配置session有效时间
+    session:
+      timeout: 6000
+
+spring:
+  application:
+    name: eureka-client-sport-auth
+  profiles:
+    active: dev
+  redis:
+
+
+  data:
+    redis:
+      # 连接超时时间
+      timeout: 10000
+      port: 6379
+      jedis:
+        pool:
+          max-active: 600
+          max-idle: 300
+          max-wait: 15000
+          min-idle: 10
+
+
+logging:
+  file:
+    path: /logs/sport

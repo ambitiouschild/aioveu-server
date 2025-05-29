@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aioveu.auth.dao.SysUserDao">
+
+    <!--openId查找用户-->
+    <select id="getByOpenId" resultType="com.aioveu.auth.model.po.SysUser">
+        SELECT b.id, b.`username`, b.`password`, b.`phone`, b.mail, b.gender, b.name, b.head, b.phone, b.status, b.account_expired_time, b.credentials_expired
+        FROM `sport_user_open_id` a
+            LEFT JOIN `sport_user` b ON b.id = a.`user_id`
+        WHERE a.open_id = #{openId};
+    </select>
+
+</mapper>

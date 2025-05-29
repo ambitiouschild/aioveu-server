@@ -1,0 +1,37 @@
+server:
+  local-ip: localhost  #ipconfig本地访问192.168.0.108
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${server.local-ip}:8000/eureka/
+  # docker部署的时候，会把容器id注册上去，导致使用有问题
+  instance:
+    prefer-ip-address: true
+
+spring:
+  datasource:
+    url: jdbc:mysql://${server.local-ip}:3306/h_sport?characterEncoding=utf8&characterSetResults=utf8&autoReconnect=true&serverTimezone=Asia/Shanghai
+    username: root
+    password: 775825
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 连接池
+    hikari:
+      maximum-pool-size: 8
+      minimum-idle: 4
+      idle-timeout: 30000
+      connection-timeout: 30000
+      max-lifetime: 45000
+      auto-commit: true
+      pool-name: HighUserAuthHikariCP
+  data:
+    redis:
+      database: 0
+      host: ${server.local-ip}
+      port: 6379
+      password: 775825
+      timeout: 10000
+
+logging:
+  level:
+    com.aioveu: info

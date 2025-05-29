@@ -1,0 +1,37 @@
+server:
+  local-ip: localhost
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8000/eureka/
+
+spring:
+  datasource:
+    # 数据源
+    url: jdbc:mysql://${server.local-ip}:3306/h_sport?characterEncoding=utf8&characterSetResults=utf8&autoReconnect=true&serverTimezone=Asia/Shanghai
+    username: root
+    password: 775825
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 连接池
+    hikari:
+      maximum-pool-size: 8
+      minimum-idle: 4
+      idle-timeout: 30000
+      connection-timeout: 30000
+      max-lifetime: 45000
+      auto-commit: true
+      pool-name: HighUserAuthHikariCP
+  data:
+    redis:
+      database: 0
+      host: ${server.local-ip}
+      password: 775825
+
+logging:
+  level:
+#    root: debug
+#    org.springframework.security: debug
+    com.aioveu: debug
+
+debug: false
