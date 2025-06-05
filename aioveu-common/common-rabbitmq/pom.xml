@@ -5,24 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.aioveu</groupId>
-        <artifactId>aioveu-server</artifactId>
+        <artifactId>aioveu-common</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>aioveu-common</artifactId>
-    <packaging>pom</packaging>
-    <modules>
-        <!-- apidoc -->
-        <module>common-apidoc</module>
-        <!-- 基础依赖 -->
-        <module>common-core</module>
-        <!-- Redis 公共模块 -->
-        <module>common-redis</module>
-        <!-- web 公共模块 -->
-        <module>common-web</module>
-        <!-- RabbitMQ 公共模块 -->
-        <module>common-rabbitmq</module>
-    </modules>
+    <artifactId>common-rabbitmq</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

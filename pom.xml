@@ -21,7 +21,6 @@
         <module>aioveu-pms</module>
         <module>aioveu-sms</module>
         <module>aioveu-ums</module>
-
     </modules>
 
     <properties>
