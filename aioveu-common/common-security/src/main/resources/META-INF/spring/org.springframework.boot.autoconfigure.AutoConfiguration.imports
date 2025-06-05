@@ -1,0 +1,4 @@
+com.aioveu.common.security.service.PermissionService
+com.aioveu.common.security.config.ResourceServerConfig
+com.aioveu.common.security.exception.MyAccessDeniedHandler
+com.aioveu.common.security.exception.MyAuthenticationEntryPoint
