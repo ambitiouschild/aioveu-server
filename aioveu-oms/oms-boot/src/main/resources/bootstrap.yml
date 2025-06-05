@@ -1,5 +1,5 @@
 spring:
   application:
-    name: mall-oms
+    name: aioveu-oms
   profiles:
     active: dev
