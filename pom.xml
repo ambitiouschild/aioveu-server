@@ -16,6 +16,9 @@
         <module>aioveu-system</module>
         <module>aioveu-auth</module>
 
+        <!-- 商城模块 -->
+        <module>aioveu-oms</module>
+
     </modules>
 
     <properties>
