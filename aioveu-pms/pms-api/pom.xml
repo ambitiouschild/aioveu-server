@@ -5,16 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.aioveu</groupId>
-        <artifactId>aioveu-server</artifactId>
+        <artifactId>aioveu-pms</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>aioveu-pms</artifactId>
-    <packaging>pom</packaging>
-    <modules>
-        <!-- pms Feign接口-->
-        <module>pms-api</module>
-    </modules>
+    <artifactId>pms-api</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
