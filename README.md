@@ -68,10 +68,13 @@ aioveu-server
     ├── oms-boot                    # oms 管理接口
 ├── aioveu-pms                      # 商品服务
     ├── pms-api                     # pms Feign接口
+    ├── pms-boot                    # pms 管理接口
 ├── aioveu-sms                      # 营销服务
     ├── sms-api                     # sms Feign接口
+    ├── sms-boot                    # sms 管理接口
 ├── aioveu-ums                      # 会员服务
     ├── ums-api                     # ums Feign接口
+    ├── ums-boot                    # ums 管理接口
 ├── aioveu-auth                     # 认证授权中心
 ├── aioveu-common                   # 公共模块
     ├── common-core                 # 基础依赖
