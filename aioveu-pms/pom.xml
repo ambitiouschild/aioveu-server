@@ -14,6 +14,7 @@
     <modules>
         <!-- pms Feign接口-->
         <module>pms-api</module>
+        <module>pms-boot</module>
     </modules>
 
     <properties>
