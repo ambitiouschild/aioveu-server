@@ -12,6 +12,7 @@
     <modules>
         <!-- 基础模块 -->
         <module>aioveu-common</module>
+        <module>aioveu-gateway</module>
 
     </modules>
 
