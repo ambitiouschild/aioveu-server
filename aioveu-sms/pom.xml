@@ -14,6 +14,7 @@
     <modules>
         <!-- sms Feign接口-->
         <module>sms-api</module>
+        <module>sms-boot</module>
     </modules>
 
     <properties>
