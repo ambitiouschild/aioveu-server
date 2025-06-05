@@ -1,5 +1,5 @@
 spring:
   application:
-    name: aioveu-gateway
+    name: aioveu-gateway # 确保应用名称设置，这样config的name可以省略，因为默认会使用这个名称
   profiles:
     active: dev

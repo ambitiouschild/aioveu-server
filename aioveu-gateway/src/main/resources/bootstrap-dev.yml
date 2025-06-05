@@ -1,20 +1,33 @@
 server:
-  port: 9999
+  port: 9998
 
 spring:
   main:
     allow-bean-definition-overriding: true
   cloud:
     nacos:
-      # 注册中心
+      # 注册中心配置
       discovery:
         server-addr: http://localhost:8848
-      # 配置中心
+        namespace: public
+        group: AIOVEU_GROUP  # 指定服务注册分组
+        metadata:
+          version: 1.0
+          zone: zone1
+      # 配置中心配置
       config:
         server-addr: http://localhost:8848
         file-extension: yaml
-        # 修复共享配置语法
+        # 指定应用自身配置的数据ID和分组
+        name: aioveu-gateway   # 默认情况下，应用会使用spring.application.name作为数据ID的前缀，所以这里可以不用配置，但可以显式配置
+        group: AIOVEU_GROUP    # 将应用自身配置的分组设置为AIOVEU_GROUP 指定应用自身配置的分组
         shared-configs:
-            data-id: aioveu-common.yaml
-            group: AIOVEU_GROUP
+          - data-id: aioveu-common.yaml # 公共共享配置
+            group:  AIOVEU_GROUP  # 使用相同的分组
             refresh: true
+
+
+      #这样，应用启动时将会从Nacos配置中心加载两个配置：
+      #
+      #应用自身配置：数据ID为aioveu-gateway.yaml，分组为AIOVEU_GROUP
+      #共享配置：数据ID为aioveu-common.yaml，分组为AIOVEU_GROUP
