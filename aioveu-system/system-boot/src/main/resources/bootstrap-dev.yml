@@ -12,11 +12,20 @@ spring:
       # 注册中心
       discovery:
         server-addr: http://localhost:8848
+        namespace: public
+        group: AIOVEU_GROUP  # 指定服务注册分组
+        metadata:
+          version: 1.0
+          zone: zone1
       # 配置中心
       config:
         server-addr: http://localhost:8848
         file-extension: yaml
-        shared-configs[0]:
-          data-id: aioveu-common.yaml
+        # 指定应用自身配置的数据ID和分组
+        name: aioveu-system   # 默认情况下，应用会使用spring.application.name作为数据ID的前缀，所以这里可以不用配置，但可以显式配置
+        group: AIOVEU_GROUP    # 将应用自身配置的分组设置为AIOVEU_GROUP 指定应用自身配置的分组
+        shared-configs:
+        - data-id: aioveu-common.yaml # 公共共享配置
+          group: AIOVEU_GROUP  # 使用相同的分组
           refresh: true
 
