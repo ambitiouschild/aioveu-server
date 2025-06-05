@@ -117,7 +117,7 @@ aioveu-server
 
 进入 `docs/sql` 目录 ， 根据 MySQL 版本选择对应的脚本；
 
-先执行 [database.sql](https://gitee.com/youlaitech/youlai-mall/blob/master/docs%2Fsql%2Fmysql8%2Fdatabase.sql) 完成数据库的创建；
+先执行 [aioveu_database.sql]() 完成数据库的创建；
 
 再执行 [aioveu_system.sql](https://gitee.com/youlaitech/youlai-mall/blob/master/docs%2Fsql%2Fmysql8%2Fyoulai_system.sql) 、[aioveu_oauth2_server.sql](https://gitee.com/youlaitech/youlai-mall/blob/master/docs%2Fsql%2Fmysql8%2Foauth2_server.sql)、aioveu_*.sql 完成数据表的创建和数据初始化。
 
