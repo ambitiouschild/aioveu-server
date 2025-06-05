@@ -18,6 +18,7 @@
 
         <!-- 商城模块 -->
         <module>aioveu-oms</module>
+        <module>aioveu-pms</module>
 
     </modules>
 
