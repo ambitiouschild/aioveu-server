@@ -5,16 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.aioveu</groupId>
-        <artifactId>aioveu-server</artifactId>
+        <artifactId>aioveu-ums</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>aioveu-ums</artifactId>
-    <packaging>pom</packaging>
-    <modules>
-        <!-- ums Feign接口-->
-        <module>ums-api</module>
-    </modules>
+    <artifactId>ums-api</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
