@@ -4,16 +4,25 @@ server:
 spring:
   mvc:
     path-match:
-      matching-strategy: ant_path_matcher
+      matching-strategy: ant_path_matcher  # 使用Ant路径匹配策略
   cloud:
     nacos:
-      # 注册中心
+      # 注册中心   # 服务发现配置
       discovery:
-        server-addr: http://localhost:8848
-      # 配置中心
+        server-addr: http://localhost:8848  # Nacos服务地址
+        namespace: aioveu-dev  # 开发环境命名空间
+        group: AIOVEU_GROUP  # 指定服务注册分组
+        metadata:
+          version: 1.0
+          env: prod
+          zone: zone1
+      # 配置中心   # 配置中心配置
       config:
         server-addr: http://localhost:8848
         file-extension: yaml
-        shared-configs[0]:
-          data-id: aioveu-common.yaml
-          refresh: true
+        namespace: aioveu-dev  # 开发环境命名空间
+        group: AIOVEU_GROUP  # 配置分组
+        shared-configs:
+          - data-id: aioveu-common.yaml  # 公共共享配置
+            group: AIOVEU_GROUP  # 使用相同的分组
+            refresh: true  # 启用动态刷新

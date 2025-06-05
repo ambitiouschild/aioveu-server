@@ -6,16 +6,23 @@ spring:
     allow-circular-references: true
   mvc:
     pathmatch:
-      matching-strategy: ant_path_matcher
+      matching-strategy: ant_path_matcher  # 使用Ant路径匹配策略
   cloud:
     nacos:
-      discovery:
-        server-addr: http://f.aioveu.com:8848
-        namespace: youlai-mall-prod
-      config:
+      discovery:   # 服务发现配置
+        server-addr: http://f.aioveu.com:8848  # Nacos服务地址
+        namespace: aioveu-prod  # 生产环境命名空间
+        group: AIOVEU_GROUP  # 指定服务注册分组
+        metadata:
+          version: 1.0
+          env: prod
+          zone: zone1
+      config:   # 配置中心配置
         server-addr: ${spring.cloud.nacos.discovery.server-addr}
         file-extension: yaml
-        namespace: aioveu-mall-prod
-        shared-configs[0]:
-          data-id: aioveu-common.yaml
-          refresh: true
+        namespace: aioveu-prod  # 生产环境命名空间
+        group: AIOVEU_GROUP  # 配置分组
+        shared-configs:
+          - data-id: aioveu-common.yaml  # 公共共享配置
+            group: AIOVEU_GROUP  # 使用相同的分组
+            refresh: true  # 启用动态刷新
