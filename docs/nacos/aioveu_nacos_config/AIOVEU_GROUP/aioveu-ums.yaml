@@ -36,7 +36,7 @@ seata:
   registry:
     type: nacos
     nacos:
-      application: seata-server
+      application: aioveu-seata-server
       server-addr: ${nacos.server-addr}
       namespace:
       group: SEATA_GROUP 

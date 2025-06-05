@@ -12,7 +12,6 @@ spring:
       # 注册中心
       discovery:
         server-addr: http://localhost:8848  # Nacos服务地址
-        namespace: aioveu-dev  # 开发环境命名空间
         group: AIOVEU_GROUP  # 指定服务注册分组
         metadata:
           version: 1.0
@@ -25,7 +24,6 @@ spring:
         # 极速启动
         server-addr: http://localhost:8848
         file-extension: yaml
-        namespace: aioveu-dev  # 开发环境命名空间
         group: AIOVEU_GROUP  # 配置分组
         shared-configs:
           - data-id: aioveu-common.yaml  # 公共共享配置
