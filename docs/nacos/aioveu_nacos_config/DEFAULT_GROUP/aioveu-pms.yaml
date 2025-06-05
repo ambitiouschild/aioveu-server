@@ -87,7 +87,7 @@ springdoc:
   group-configs:
     - group: 'default'
       paths-to-match: '/**'
-      packages-to-scan: com.aioveu.mall.pms.controller
+      packages-to-scan: com.aioveu.pms.controller
   # Api文档信息
   info:
     title: 商品服务

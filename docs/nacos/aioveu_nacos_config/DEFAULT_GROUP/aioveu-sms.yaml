@@ -15,7 +15,7 @@ spring:
         pool:
           min-idle: 1
 mybatis-plus:
-  type-enums-package: com.aioveu.mall.sms.common.enums
+  type-enums-package: com.aioveu.sms.common.enums
   configuration:
     # 驼峰下划线转换
     map-underscore-to-camel-case: true
@@ -48,7 +48,7 @@ springdoc:
   group-configs:
     - group: 'default'
       paths-to-match: '/**'
-      packages-to-scan: com.aioveu.mall.sms.controller
+      packages-to-scan: com.aioveu.sms.controller
   # Api文档信息
   info:
     title: 营销服务

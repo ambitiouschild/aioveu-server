@@ -69,7 +69,7 @@ springdoc:
   group-configs:
     - group: 'default'
       paths-to-match: '/**'
-      packages-to-scan: com.aioveu.mall.ums.controller
+      packages-to-scan: com.aioveu.ums.controller
   # Api文档信息
   info:
     title: 会员服务

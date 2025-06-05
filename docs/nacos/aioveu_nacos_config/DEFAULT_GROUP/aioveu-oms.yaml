@@ -76,7 +76,7 @@ springdoc:
   group-configs:
     - group: 'default'
       paths-to-match: '/**'
-      packages-to-scan: com.aioveu.mall.oms.controller
+      packages-to-scan: com.aioveu.oms.controller
   # Api文档信息
   info:
     title: 订单服务
