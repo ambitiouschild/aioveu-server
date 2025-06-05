@@ -1,0 +1,2 @@
+com.aioveu.common.sms.property.AliyunSmsProperties
+com.aioveu.common.sms.service.impl.AliyunSmsService
