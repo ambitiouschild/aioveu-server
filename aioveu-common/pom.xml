@@ -11,6 +11,7 @@
 
     <artifactId>aioveu-common</artifactId>
     <packaging>pom</packaging>
+
     <modules>
         <!-- apidoc -->
         <module>common-apidoc</module>
@@ -26,6 +27,8 @@
         <module>common-mybatis</module>
         <!-- 资源服务器安全公共模块 -->
         <module>common-security</module>
+        <!-- Seata 公共模块 -->
+        <module>common-seata</module>
     </modules>
 
     <properties>
