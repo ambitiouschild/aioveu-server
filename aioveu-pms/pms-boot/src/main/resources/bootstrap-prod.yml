@@ -11,7 +11,8 @@ spring:
     nacos:
       discovery:
         server-addr: http://f.aioveu.com:8848
-        namespace: aioveu-mall-prod
+        namespace: aioveu-prod
+        group: AIOVEU_GROUP
       config:
         server-addr: ${spring.cloud.nacos.discovery.server-addr}
         file-extension: yaml

@@ -13,6 +13,8 @@ spring:
       config:
         server-addr: http://localhost:8848
         file-extension: yaml
-        shared-configs[0]:
-          data-id: aioveu-common.yaml
-          refresh: true
+        # 修复共享配置语法
+        shared-configs:
+            data-id: aioveu-common.yaml
+            group: AIOVEU_GROUP
+            refresh: true
