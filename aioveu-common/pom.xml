@@ -29,6 +29,8 @@
         <module>common-security</module>
         <!-- Seata 公共模块 -->
         <module>common-seata</module>
+        <!-- sms 公共模块 -->
+        <module>common-sms</module>
     </modules>
 
     <properties>

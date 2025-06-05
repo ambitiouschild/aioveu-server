@@ -70,13 +70,14 @@ aioveu-server
 ├── aioveu-auth                     # 认证授权中心
 ├── aioveu-common                   # 公共模块
     ├── common-core                 # 基础依赖
-    ├── common-log                  # 日志公共模块
+    ├── common-apidoc               # 日志公共模块
     ├── common-mybatis              # Mybatis 公共模块
     ├── common-rabbitmq             # RabbitMQ 公共模块
     ├── common-redis                # Redis 公共模块
     ├── common-seata                # Seata 公共模块
     ├── common-security             # 资源服务器安全公共模块
     ├── common-web                  # Web 公共模块
+    ├── common-sms                  # sms 公共模块
 ├── aioveu-gateway                  # 网关
 ├── aioveu-system                   # 系统服务
     ├── system-api                  # 系统Feign接口
