@@ -63,10 +63,15 @@ aioveu-server
     ├── sql                         # SQL脚本
         ├── mysql5                  # MySQL5脚本
         ├── mysql8                  # MySQL8脚本
-├── aioveu-oms                        # 订单服务
-├── aioveu-pms                        # 商品服务
-├── aioveu-sms                        # 营销服务
-├── aioveu-ums                        # 会员服务
+├── aioveu-oms                      # 订单服务
+    ├── oms-api                     # oms Feign接口
+    ├── oms-boot                    # oms 管理接口
+├── aioveu-pms                      # 商品服务
+    ├── pms-api                     # pms Feign接口
+├── aioveu-sms                      # 营销服务
+    ├── sms-api                     # sms Feign接口
+├── aioveu-ums                      # 会员服务
+    ├── ums-api                     # ums Feign接口
 ├── aioveu-auth                     # 认证授权中心
 ├── aioveu-common                   # 公共模块
     ├── common-core                 # 基础依赖
