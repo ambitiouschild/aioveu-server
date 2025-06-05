@@ -23,6 +23,13 @@
         <module>aioveu-ums</module>
     </modules>
 
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.3</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
@@ -64,12 +71,19 @@
 
     </properties>
 
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.3</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>${hutool.version}</version>
+        </dependency>
+    </dependencies>
 
     <dependencyManagement>
     <dependencies>
@@ -144,6 +158,94 @@
         </dependency>
 
         <!-- 个人 工具包 -->
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-mybatis</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-rabbitmq</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-redis</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-web</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-security</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-seata</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-apidoc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-sms</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>system-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- oms Feign接口-->
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>oms-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- pms Feign接口-->
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>pms-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- ums Feign接口-->
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>ums-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- sms Feign接口-->
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>sms-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
 
 
         <!-- aliyun 工具包 -->
@@ -166,6 +268,7 @@
         </dependency>
 
 
+        
 
         <!-- mapstruct 依赖 -->
         <dependency>
@@ -187,9 +290,7 @@
             <version>${aliyun-sdk-oss.version}</version>
         </dependency>
 
-
-
-
+        
 
     </dependencies>
     </dependencyManagement>

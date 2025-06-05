@@ -13,7 +13,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <!-- apidoc -->
+        <!-- apidoc 日志公共模块-->
         <module>common-apidoc</module>
         <!-- 基础依赖 -->
         <module>common-core</module>
