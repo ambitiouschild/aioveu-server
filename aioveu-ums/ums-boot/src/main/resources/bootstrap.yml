@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: aioveu-ums
+  profiles:
+    active: dev
