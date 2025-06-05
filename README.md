@@ -109,10 +109,10 @@ aioveu-server
 
 | Windows  | Linux                                                        | 是否必装                                                     |              |
 | -------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------ |
-| Nacos    | [Windows 安装 Nacos 2.2](https://gitee.com/link?target=https%3A%2F%2Fyoulai.blog.csdn.net%2Farticle%2Fdetails%2F130864925) | [Linux 安装 Nacos 2.3](https://gitee.com/link?target=https%3A%2F%2Fyoulai.blog.csdn.net%2Farticle%2Fdetails%2F132592040) | 是           |
-| MySQL    | [Windows 安装 MySQL 8](https://gitee.com/link?target=https%3A%2F%2Fyoulai.blog.csdn.net%2Farticle%2Fdetails%2F133272887) | [Linux 安装 MySQL8](https://gitee.com/link?target=https%3A%2F%2Fyoulai.blog.csdn.net%2Farticle%2Fdetails%2F130398179) | 否(建议安装) |
-| Redis    | [Windows 安装 Redis](https://gitee.com/link?target=https%3A%2F%2Fyoulai.blog.csdn.net%2Farticle%2Fdetails%2F133410293) | [Linux 安装 Redis](https://gitee.com/link?target=https%3A%2F%2Fyoulai.blog.csdn.net%2Farticle%2Fdetails%2F130439335) | 否(建议安装) |
-| Seata    | [Windows 安装 Seata 1.6](https://gitee.com/link?target=https%3A%2F%2Fyoulai.blog.csdn.net%2Farticle%2Fdetails%2F133295970) | [Linux 安装 Seata 1.7](https://gitee.com/link?target=https%3A%2F%2Fyoulai.blog.csdn.net%2Farticle%2Fdetails%2F133376131) | 否           |
+| Nacos    | [Windows 安装 Nacos 2.2](https://gitee.com/link?target=https%3A%2F%2Faioveu.blog.csdn.net%2Farticle%2Fdetails%2F130864925) | [Linux 安装 Nacos 2.3](https://gitee.com/link?target=https%3A%2F%2Faioveu.blog.csdn.net%2Farticle%2Fdetails%2F132592040) | 是           |
+| MySQL    | [Windows 安装 MySQL 8](https://gitee.com/link?target=https%3A%2F%2Faioveu.blog.csdn.net%2Farticle%2Fdetails%2F133272887) | [Linux 安装 MySQL8](https://gitee.com/link?target=https%3A%2F%2Faioveu.blog.csdn.net%2Farticle%2Fdetails%2F130398179) | 否(建议安装) |
+| Redis    | [Windows 安装 Redis](https://gitee.com/link?target=https%3A%2F%2Faioveu.blog.csdn.net%2Farticle%2Fdetails%2F133410293) | [Linux 安装 Redis](https://gitee.com/link?target=https%3A%2F%2Faioveu.blog.csdn.net%2Farticle%2Fdetails%2F130439335) | 否(建议安装) |
+| Seata    | [Windows 安装 Seata 1.6](https://gitee.com/link?target=https%3A%2F%2Faioveu.blog.csdn.net%2Farticle%2Fdetails%2F133295970) | [Linux 安装 Seata 1.7](https://gitee.com/link?target=https%3A%2F%2Faioveu.blog.csdn.net%2Farticle%2Fdetails%2F133376131) | 否           |
 | RabbitMQ | /                                                            | [Linux 安装 RabbitMQ](https://gitee.com/link?target=https%3A%2F%2Fblog.csdn.net%2Fu013737132%2Farticle%2Fdetails%2F130439122) | 否           |
 
 💡默认中间件使用aioveu线上的环境，其中线上 MySQL 数据是只读的，如果需要进行修改或删除操作，建议自己安装 MySQL。
@@ -125,7 +125,7 @@ aioveu-server
 
 先执行 [aioveu_database.sql]() 完成数据库的创建；
 
-再执行 [aioveu_system.sql](https://gitee.com/youlaitech/youlai-mall/blob/master/docs%2Fsql%2Fmysql8%2Fyoulai_system.sql) 、[aioveu_oauth2_server.sql](https://gitee.com/youlaitech/youlai-mall/blob/master/docs%2Fsql%2Fmysql8%2Foauth2_server.sql)、aioveu_*.sql 完成数据表的创建和数据初始化。
+再执行 [aioveu_system.sql](https://gitee.com/aioveutech/aioveu-mall/blob/master/docs%2Fsql%2Fmysql8%2Faioveu_system.sql) 、[aioveu_oauth2_server.sql](https://gitee.com/aioveutech/aioveu-mall/blob/master/docs%2Fsql%2Fmysql8%2Foauth2_server.sql)、aioveu_*.sql 完成数据表的创建和数据初始化。
 
 
 
@@ -165,8 +165,8 @@ aioveu-server
 
 
 
-- [Spring Authorization Server 扩展 OAuth2 密码模式](https://gitee.com/link?target=https%3A%2F%2Fyoulai.blog.csdn.net%2Farticle%2Fdetails%2F134024381)
-- [Spring Cloud Gateway + Knife4j 网关聚合和 OAuth2 密码模式测试](https://gitee.com/link?target=https%3A%2F%2Fyoulai.blog.csdn.net%2Farticle%2Fdetails%2F134081509)
+- [Spring Authorization Server 扩展 OAuth2 密码模式](https://gitee.com/link?target=https%3A%2F%2Faioveu.blog.csdn.net%2Farticle%2Fdetails%2F134024381)
+- [Spring Cloud Gateway + Knife4j 网关聚合和 OAuth2 密码模式测试](https://gitee.com/link?target=https%3A%2F%2Faioveu.blog.csdn.net%2Farticle%2Fdetails%2F134081509)
 
 ##  💖加交流群
 

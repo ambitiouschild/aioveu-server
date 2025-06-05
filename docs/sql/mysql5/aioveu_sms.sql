@@ -30,9 +30,9 @@ CREATE TABLE `sms_advert`  (
 -- ----------------------------
 -- Records of sms_advert
 -- ----------------------------
-INSERT INTO `sms_advert` VALUES (35, 'banner3', 'https://oss.youlai.tech/default/14d9b8fb471a43429334080124a9c65d.png', '2022-07-04 00:00:00', '2022-10-07 00:00:00', 1, 3, NULL, NULL, '2022-07-04 00:08:10', '2022-07-04 00:08:10');
-INSERT INTO `sms_advert` VALUES (36, 'banner2', 'https://oss.youlai.tech/default/2022/07/17/34f2b48e346a4726bbe5352a18d493fc.jpg', '2022-07-04 00:00:00', '2022-10-07 00:00:00', 1, 2, NULL, NULL, '2022-07-04 00:08:10', '2022-07-04 00:08:10');
-INSERT INTO `sms_advert` VALUES (47, 'banner1', 'https://oss.youlai.tech/default/2022/07/17/91765310d3d845999a8a55600ad9ccb3.png', '2022-07-04 00:00:00', '2022-10-07 00:00:00', 1, 1, NULL, NULL, '2022-07-04 00:08:10', '2022-07-04 00:08:10');
+INSERT INTO `sms_advert` VALUES (35, 'banner3', 'https://oss.aioveu.tech/default/14d9b8fb471a43429334080124a9c65d.png', '2022-07-04 00:00:00', '2022-10-07 00:00:00', 1, 3, NULL, NULL, '2022-07-04 00:08:10', '2022-07-04 00:08:10');
+INSERT INTO `sms_advert` VALUES (36, 'banner2', 'https://oss.aioveu.tech/default/2022/07/17/34f2b48e346a4726bbe5352a18d493fc.jpg', '2022-07-04 00:00:00', '2022-10-07 00:00:00', 1, 2, NULL, NULL, '2022-07-04 00:08:10', '2022-07-04 00:08:10');
+INSERT INTO `sms_advert` VALUES (47, 'banner1', 'https://oss.aioveu.tech/default/2022/07/17/91765310d3d845999a8a55600ad9ccb3.png', '2022-07-04 00:00:00', '2022-10-07 00:00:00', 1, 1, NULL, NULL, '2022-07-04 00:08:10', '2022-07-04 00:08:10');
 
 -- ----------------------------
 -- Table structure for sms_coupon

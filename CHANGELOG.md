@@ -61,7 +61,7 @@
 
 
 ### 🍎 fix
-- 用户名唯一索引，未校验是否存在，导致新增用户失败。 [#9cc6b34](https://gitee.com/youlaitech/youlai-mall/commit/9cc6b340a6761edc01b7917e0b2030636a4b5d52)
+- 用户名唯一索引，未校验是否存在，导致新增用户失败。 [#9cc6b34](https://gitee.com/aioveutech/aioveu-mall/commit/9cc6b340a6761edc01b7917e0b2030636a4b5d52)
 
 ### 🍑 docs
 - SQL脚本更新

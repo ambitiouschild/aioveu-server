@@ -94,7 +94,7 @@ springdoc:
     version: 3.0.0
     description: 库存、分类、品牌、规格、参数等接口
     contact:
-      name: youlai
+      name: aioveu
       url: https://www.aioveu.com
       email: ambitiouschild@qq.com
     license:

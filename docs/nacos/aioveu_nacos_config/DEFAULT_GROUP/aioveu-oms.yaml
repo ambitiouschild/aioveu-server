@@ -83,7 +83,7 @@ springdoc:
     version: 3.0.0
     description: 订单、购物车等接口
     contact:
-      name: youlai
+      name: aioveu
       url: https://www.aioveu.com
       email: ambitiouschild@qq.com
     license:

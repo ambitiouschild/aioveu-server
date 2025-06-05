@@ -64,9 +64,9 @@ springdoc:
     version: 3.0.0
     description: 认证、登出、验证码接口
     contact:
-      name: youlai
-      url: https://www.youlai.tech
-      email: youlaitech@163.com
+      name: aioveu
+      url: https://www.aioveu.tech
+      email: aioveutech@163.com
     license:
       name: Apache 2.0
       url: https://www.apache.org/licenses/LICENSE-2.0.html

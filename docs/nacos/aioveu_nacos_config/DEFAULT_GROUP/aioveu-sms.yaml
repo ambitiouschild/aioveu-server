@@ -55,7 +55,7 @@ springdoc:
     version: 3.0.0
     description: 广告、优惠券等接口
     contact:
-      name: youlai
+      name: aioveu
       url: https://www.aioveu.com
       email: ambitiouschild@qq.com
     license:

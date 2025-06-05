@@ -76,7 +76,7 @@ springdoc:
     version: 3.0.0
     description: 会员、地址等接口
     contact:
-      name: youlai
+      name: aioveu
       url: https://www.aioveu.com
       email: ambitiouschild@qq.com
     license:
