@@ -13,8 +13,8 @@ mysql:
 rabbitmq:
   host: localhost
   port: 5672
-  username: admin
-  password: admin
+  username: adminlss
+  password: adminlss
 
 
 # 验签公钥地址
