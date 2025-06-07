@@ -1,12 +1,12 @@
-
-
+# 创建一个名为 "aioveu-server" 的桥接网络，在同一个网络中的容器可以通过容器名互相访问
 version: '3'
 
 # 创建一个名为 "mall" 的桥接网络
 networks:
-  mall:
+  aioveu-server:
     driver: bridge
 
+# 镜像image7个 1.mysql 2.nacos 3.seata 4.redis 5.minio 6.rabbitmq 7.xxl-job-admin
 services:
   mysql:
     image: mysql:8.0.29
@@ -15,15 +15,15 @@ services:
     environment:
       - TZ=Asia/Shanghai
       - LANG= en_US.UTF-8
-      - MYSQL_ROOT_PASSWORD=123456 #设置 root 用户的密码
+      - MYSQL_ROOT_PASSWORD=775825 #设置 root 用户的密码
     volumes:
       - ./mysql/conf/my.cnf:/etc/my.cnf # 挂载 my.cnf 文件到容器的指定路径
       - ./mysql/data:/var/lib/mysql # 持久化 MySQL 数据
       - ../sql/mysql8:/docker-entrypoint-initdb.d # 初始化 SQL 脚本目录
     ports:
-      - 3306:3306 # 暴露 3306 端口
+      - 3307:3306 # 暴露 3306 端口
     networks:
-      - mall # 加入 "mall" 网络
+      - aioveu-server # 加入 "mall" 网络
 
   nacos:
     image: nacos/nacos-server:v2.2.3 # 使用 Nacos 2.2.3 镜像
@@ -36,14 +36,14 @@ services:
       - MYSQL_SERVICE_PORT=3306
       - MYSQL_SERVICE_DB_NAME=nacos_config
       - MYSQL_SERVICE_USER=root
-      - MYSQL_SERVICE_PASSWORD=123456
+      - MYSQL_SERVICE_PASSWORD=775825
     volumes:
       - ./logs:/home/nacos/logs
     ports:
       - 8848:8848
       - 9848:9848
     networks:
-      - mall # 加入 "mall" 网络
+      - aioveu-server # 加入 "mall" 网络
     depends_on:
       - mysql # 保证 MySQL 服务先启动
 
@@ -63,7 +63,7 @@ services:
       - 8091:8091
       - 7091:7091
     networks:
-      - mall
+      - aioveu-server
     depends_on:
       - nacos
 
@@ -71,7 +71,7 @@ services:
     image: redis:7.2.3
     container_name: redis
     restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
-    command: redis-server /etc/redis/redis.conf --requirepass 123456 --appendonly no # 启动 Redis 服务并添加密码为：123456，默认不开启 Redis AOF 方式持久化配置
+    command: redis-server /etc/redis/redis.conf --requirepass 775825 --appendonly no # 启动 Redis 服务并添加密码为：123456，默认不开启 Redis AOF 方式持久化配置
     environment:
       - TZ=Asia/Shanghai
     volumes:
@@ -80,7 +80,7 @@ services:
     ports:
       - 6379:6379
     networks:
-      - mall
+      - aioveu-server
 
   minio:
     image: minio/minio:latest
@@ -93,13 +93,13 @@ services:
     environment:
       - TZ=Asia/Shanghai
       - LANG=en_US.UTF-8
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin
+      - MINIO_ROOT_USER=minioadminlss
+      - MINIO_ROOT_PASSWORD=minioadminlss
     volumes:
       - ./minio/data:/data
       - ./minio/config:/root/.minio
     networks:
-      - mall
+      - aioveu-server
 
   rabbitmq:
     image: rabbitmq:management
@@ -107,13 +107,13 @@ services:
     restart: unless-stopped
     environment:
       - TZ=Asia/Shanghai
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=admin
+      - RABBITMQ_DEFAULT_USER=adminlss
+      - RABBITMQ_DEFAULT_PASS=adminlss
     ports:
       - 5672:5672
       - 15672:15672
     networks:
-      - mall # 加入 "mall" 网络
+      - aioveu-server # 加入 "mall" 网络
 
   xxl-job-admin:
     image: xuxueli/xxl-job-admin:2.4.0   # https://hub.docker.com/r/xuxueli/xxl-job-admin/tags
@@ -126,4 +126,4 @@ services:
     ports:
       - 8181:8080
     networks:
-      - mall
+      - aioveu-server
