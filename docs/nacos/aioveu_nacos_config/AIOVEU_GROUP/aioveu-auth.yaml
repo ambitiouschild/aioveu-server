@@ -65,8 +65,8 @@ springdoc:
     description: 认证、登出、验证码接口
     contact:
       name: aioveu
-      url: https://www.aioveu.tech
-      email: aioveutech@163.com
+      url: https://www.aioveu.com
+      email: ambitiouschild@qq.com
     license:
       name: Apache 2.0
       url: https://www.apache.org/licenses/LICENSE-2.0.html

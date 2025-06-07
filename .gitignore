@@ -12,6 +12,9 @@ target/
 *.iml
 *.ipr
 
+**/logs/
+docs/docker/seata/logs/*.log
+
 ### Eclipse ###
 .apt_generated
 .classpath

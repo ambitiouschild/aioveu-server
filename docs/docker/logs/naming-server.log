@@ -1,0 +1,104 @@
+2025-06-08 00:06:21,109 INFO Client connection 1749312381102_172.18.0.1_46010 connect
+
+2025-06-08 00:06:21,232 INFO Client change for service Service{namespace='public', group='AIOVEU_GROUP', name='aioveu-gateway', ephemeral=true, revision=0}, 1749312381102_172.18.0.1_46010
+
+2025-06-08 00:06:38,660 INFO Client connection 1749312398654_172.18.0.1_43158 connect
+
+2025-06-08 00:06:38,767 INFO Client change for service Service{namespace='public', group='AIOVEU_GROUP', name='aioveu-auth', ephemeral=true, revision=0}, 1749312398654_172.18.0.1_43158
+
+2025-06-08 00:06:53,767 INFO Client connection 1749312413761_172.18.0.1_42966 connect
+
+2025-06-08 00:06:53,872 INFO Client change for service Service{namespace='public', group='AIOVEU_GROUP', name='aioveu-system', ephemeral=true, revision=0}, 1749312413761_172.18.0.1_42966
+
+2025-06-08 00:07:09,691 INFO Client connection 1749312429686_172.18.0.1_43658 connect
+
+2025-06-08 00:07:15,233 INFO Client connection 1749312435227_172.18.0.1_42142 connect
+
+2025-06-08 00:07:15,336 INFO Client change for service Service{namespace='public', group='AIOVEU_GROUP', name='aioveu-oms', ephemeral=true, revision=0}, 1749312435227_172.18.0.1_42142
+
+2025-06-08 00:07:23,264 INFO Client connection 1749312443258_172.18.0.1_52086 connect
+
+2025-06-08 00:07:28,019 INFO Client connection 1749312448014_172.18.0.1_52096 connect
+
+2025-06-08 00:07:28,134 INFO Client change for service Service{namespace='public', group='AIOVEU_GROUP', name='aioveu-pms', ephemeral=true, revision=0}, 1749312448014_172.18.0.1_52096
+
+2025-06-08 00:07:47,851 INFO Client connection 1749312467847_172.18.0.1_49756 connect
+
+2025-06-08 00:07:47,959 INFO Client change for service Service{namespace='public', group='AIOVEU_GROUP', name='aioveu-sms', ephemeral=true, revision=0}, 1749312467847_172.18.0.1_49756
+
+2025-06-08 00:08:21,076 INFO Client connection 1749312501071_172.18.0.1_55302 connect
+
+2025-06-08 00:08:25,523 INFO Client connection 1749312505519_172.18.0.1_59666 connect
+
+2025-06-08 00:08:25,627 INFO Client change for service Service{namespace='public', group='AIOVEU_GROUP', name='aioveu-ums', ephemeral=true, revision=0}, 1749312505519_172.18.0.1_59666
+
+2025-06-08 00:15:05,220 INFO Client remove for service Service{namespace='public', group='AIOVEU_GROUP', name='aioveu-auth', ephemeral=true, revision=1}, 1749312398654_172.18.0.1_43158
+
+2025-06-08 00:15:05,231 INFO Client connection 1749312398654_172.18.0.1_43158 disconnect, remove instances and subscribers
+
+2025-06-08 00:15:05,237 INFO Client remove for service Service{namespace='public', group='AIOVEU_GROUP', name='aioveu-ums', ephemeral=true, revision=1}, 1749312505519_172.18.0.1_59666
+
+2025-06-08 00:15:05,249 INFO Client connection 1749312505519_172.18.0.1_59666 disconnect, remove instances and subscribers
+
+2025-06-08 00:15:05,275 INFO Client remove for service Service{namespace='public', group='AIOVEU_GROUP', name='aioveu-system', ephemeral=true, revision=1}, 1749312413761_172.18.0.1_42966
+
+2025-06-08 00:15:05,278 INFO Client remove for service Service{namespace='public', group='AIOVEU_GROUP', name='aioveu-sms', ephemeral=true, revision=1}, 1749312467847_172.18.0.1_49756
+
+2025-06-08 00:15:05,284 INFO Client connection 1749312413761_172.18.0.1_42966 disconnect, remove instances and subscribers
+
+2025-06-08 00:15:05,286 INFO Client connection 1749312467847_172.18.0.1_49756 disconnect, remove instances and subscribers
+
+2025-06-08 00:15:05,571 INFO Client remove for service Service{namespace='public', group='AIOVEU_GROUP', name='aioveu-pms', ephemeral=true, revision=1}, 1749312448014_172.18.0.1_52096
+
+2025-06-08 00:15:05,578 INFO Client connection 1749312448014_172.18.0.1_52096 disconnect, remove instances and subscribers
+
+2025-06-08 00:15:05,825 INFO Client connection 1749312390026_172.18.0.1_39442 disconnect, remove instances and subscribers
+
+2025-06-08 00:15:05,826 INFO Client connection 1749312462565_172.18.0.1_49744 disconnect, remove instances and subscribers
+
+2025-06-08 00:15:05,827 INFO Client connection 1749312406276_172.18.0.1_48982 disconnect, remove instances and subscribers
+
+2025-06-08 00:15:05,855 INFO Client connection 1749312501071_172.18.0.1_55302 disconnect, remove instances and subscribers
+
+2025-06-08 00:15:05,856 INFO Client connection 1749312499647_172.18.0.1_55292 disconnect, remove instances and subscribers
+
+2025-06-08 00:15:05,909 INFO Client remove for service Service{namespace='public', group='AIOVEU_GROUP', name='aioveu-oms', ephemeral=true, revision=1}, 1749312435227_172.18.0.1_42142
+
+2025-06-08 00:15:05,916 INFO Client connection 1749312435227_172.18.0.1_42142 disconnect, remove instances and subscribers
+
+2025-06-08 00:15:06,121 INFO Client connection 1749312441635_172.18.0.1_42154 disconnect, remove instances and subscribers
+
+2025-06-08 00:15:06,121 INFO Client connection 1749312443258_172.18.0.1_52086 disconnect, remove instances and subscribers
+
+2025-06-08 00:15:06,446 INFO Client connection 1749312427946_172.18.0.1_43642 disconnect, remove instances and subscribers
+
+2025-06-08 00:15:06,447 INFO Client connection 1749312429686_172.18.0.1_43658 disconnect, remove instances and subscribers
+
+2025-06-08 00:15:07,284 INFO Client remove for service Service{namespace='public', group='AIOVEU_GROUP', name='aioveu-gateway', ephemeral=true, revision=1}, 1749312381102_172.18.0.1_46010
+
+2025-06-08 00:15:07,294 INFO Client connection 1749312381102_172.18.0.1_46010 disconnect, remove instances and subscribers
+
+2025-06-08 00:15:07,830 INFO Client connection 1749312376271_172.18.0.1_45996 disconnect, remove instances and subscribers
+
+2025-06-08 00:16:12,055 WARN namespace : public, [AIOVEU_GROUP@@aioveu-sms] services are automatically cleaned
+
+2025-06-08 00:16:12,055 WARN namespace : public, [AIOVEU_GROUP@@aioveu-ums] services are automatically cleaned
+
+2025-06-08 00:16:12,055 WARN namespace : public, [AIOVEU_GROUP@@aioveu-pms] services are automatically cleaned
+
+2025-06-08 00:16:12,055 WARN namespace : public, [AIOVEU_GROUP@@aioveu-oms] services are automatically cleaned
+
+2025-06-08 00:16:12,055 WARN namespace : public, [AIOVEU_GROUP@@aioveu-system] services are automatically cleaned
+
+2025-06-08 00:16:12,055 WARN namespace : public, [AIOVEU_GROUP@@aioveu-gateway] services are automatically cleaned
+
+2025-06-08 00:16:12,055 WARN namespace : public, [AIOVEU_GROUP@@aioveu-auth] services are automatically cleaned
+
+2025-06-08 00:18:23,333 INFO Client connection 1749313103329_172.18.0.1_39656 connect
+
+2025-06-08 00:18:23,453 INFO Client change for service Service{namespace='public', group='AIOVEU_GROUP', name='aioveu-gateway', ephemeral=true, revision=0}, 1749313103329_172.18.0.1_39656
+
+2025-06-08 00:18:37,598 INFO Client connection 1749313117594_172.18.0.1_47246 connect
+
+2025-06-08 00:18:37,718 INFO Client change for service Service{namespace='public', group='AIOVEU_GROUP', name='aioveu-auth', ephemeral=true, revision=0}, 1749313117594_172.18.0.1_47246
+

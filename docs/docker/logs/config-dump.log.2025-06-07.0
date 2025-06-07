@@ -1,0 +1,58 @@
+2025-06-07 20:52:29,025 INFO [dump-task] add task. groupKey=nacos-config-client-dev.yaml+DEFAULT_GROUP, taskKey=nacos-config-client-dev.yaml+DEFAULT_GROUP++false+null
+
+2025-06-07 20:52:29,025 INFO [dump-task] add task. groupKey=nacos-config-client-prod.yaml+PROD_GROUP, taskKey=nacos-config-client-prod.yaml+PROD_GROUP++false+null
+
+2025-06-07 20:52:29,025 INFO [dump-task] add task. groupKey=cloudalibaba-sentinel-service+DEFAULT_GROUP, taskKey=cloudalibaba-sentinel-service+DEFAULT_GROUP++false+null
+
+2025-06-07 20:52:29,041 INFO [dump-task] add task. groupKey=nacos-config-client-test.yaml+DEFAULT_GROUP, taskKey=nacos-config-client-test.yaml+DEFAULT_GROUP++false+null
+
+2025-06-07 20:52:29,041 INFO [dump-task] add task. groupKey=youlai-auth.yaml+DEFAULT_GROUP, taskKey=youlai-auth.yaml+DEFAULT_GROUP++false+null
+
+2025-06-07 20:52:29,041 INFO [dump-task] add task. groupKey=youlai-common.yaml+DEFAULT_GROUP, taskKey=youlai-common.yaml+DEFAULT_GROUP++false+null
+
+2025-06-07 20:52:29,041 INFO [dump-task] add task. groupKey=youlai-gateway.yaml+DEFAULT_GROUP, taskKey=youlai-gateway.yaml+DEFAULT_GROUP++false+null
+
+2025-06-07 20:52:29,042 INFO [dump-task] add task. groupKey=youlai-system.yaml+DEFAULT_GROUP, taskKey=youlai-system.yaml+DEFAULT_GROUP++false+null
+
+2025-06-07 20:52:29,042 INFO [dump-task] add task. groupKey=mall-oms.yaml+DEFAULT_GROUP, taskKey=mall-oms.yaml+DEFAULT_GROUP++false+null
+
+2025-06-07 20:52:29,042 INFO [dump-task] add task. groupKey=mall-pms.yaml+DEFAULT_GROUP, taskKey=mall-pms.yaml+DEFAULT_GROUP++false+null
+
+2025-06-07 20:52:34,943 INFO [dump-task] add task. groupKey=nacos-config-client-dev.yaml+DEFAULT_GROUP, taskKey=nacos-config-client-dev.yaml+DEFAULT_GROUP++false+null
+
+2025-06-07 20:52:38,690 INFO [dump-task] add task. groupKey=nacos-config-client-prod.yaml+PROD_GROUP, taskKey=nacos-config-client-prod.yaml+PROD_GROUP++false+null
+
+2025-06-07 20:52:41,672 INFO [dump-task] add task. groupKey=cloudalibaba-sentinel-service+DEFAULT_GROUP, taskKey=cloudalibaba-sentinel-service+DEFAULT_GROUP++false+null
+
+2025-06-07 20:52:44,724 INFO [dump-task] add task. groupKey=nacos-config-client-test.yaml+DEFAULT_GROUP, taskKey=nacos-config-client-test.yaml+DEFAULT_GROUP++false+null
+
+2025-06-07 20:53:01,597 INFO [dump-task] add task. groupKey=youlai-auth.yaml+DEFAULT_GROUP, taskKey=youlai-auth.yaml+DEFAULT_GROUP++false+null
+
+2025-06-07 20:53:04,489 INFO [dump-task] add task. groupKey=youlai-common.yaml+DEFAULT_GROUP, taskKey=youlai-common.yaml+DEFAULT_GROUP++false+null
+
+2025-06-07 20:53:07,589 INFO [dump-task] add task. groupKey=youlai-gateway.yaml+DEFAULT_GROUP, taskKey=youlai-gateway.yaml+DEFAULT_GROUP++false+null
+
+2025-06-07 20:53:10,253 INFO [dump-task] add task. groupKey=youlai-system.yaml+DEFAULT_GROUP, taskKey=youlai-system.yaml+DEFAULT_GROUP++false+null
+
+2025-06-07 20:53:12,782 INFO [dump-task] add task. groupKey=mall-oms.yaml+DEFAULT_GROUP, taskKey=mall-oms.yaml+DEFAULT_GROUP++false+null
+
+2025-06-07 20:53:15,489 INFO [dump-task] add task. groupKey=mall-pms.yaml+DEFAULT_GROUP, taskKey=mall-pms.yaml+DEFAULT_GROUP++false+null
+
+2025-06-07 21:01:48,369 INFO [dump-task] add task. groupKey=aioveu-auth.yaml+AIOVEU_GROUP, taskKey=aioveu-auth.yaml+AIOVEU_GROUP++false+null
+
+2025-06-07 21:01:48,370 INFO [dump-task] add task. groupKey=aioveu-common.yaml+AIOVEU_GROUP, taskKey=aioveu-common.yaml+AIOVEU_GROUP++false+null
+
+2025-06-07 21:01:48,371 INFO [dump-task] add task. groupKey=aioveu-gateway.yaml+AIOVEU_GROUP, taskKey=aioveu-gateway.yaml+AIOVEU_GROUP++false+null
+
+2025-06-07 21:01:48,371 INFO [dump-task] add task. groupKey=aioveu-oms.yaml+AIOVEU_GROUP, taskKey=aioveu-oms.yaml+AIOVEU_GROUP++false+null
+
+2025-06-07 21:01:48,371 INFO [dump-task] add task. groupKey=aioveu-pms.yaml+AIOVEU_GROUP, taskKey=aioveu-pms.yaml+AIOVEU_GROUP++false+null
+
+2025-06-07 21:01:48,371 INFO [dump-task] add task. groupKey=aioveu-sms.yaml+AIOVEU_GROUP, taskKey=aioveu-sms.yaml+AIOVEU_GROUP++false+null
+
+2025-06-07 21:01:48,371 INFO [dump-task] add task. groupKey=aioveu-system.yaml+AIOVEU_GROUP, taskKey=aioveu-system.yaml+AIOVEU_GROUP++false+null
+
+2025-06-07 21:01:48,372 INFO [dump-task] add task. groupKey=aioveu-ums.yaml+AIOVEU_GROUP, taskKey=aioveu-ums.yaml+AIOVEU_GROUP++false+null
+
+2025-06-07 21:01:48,372 INFO [dump-task] add task. groupKey=seataServer.properties+SEATA_GROUP, taskKey=seataServer.properties+SEATA_GROUP++false+null
+
