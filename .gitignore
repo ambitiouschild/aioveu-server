@@ -13,7 +13,9 @@ target/
 *.ipr
 
 **/logs/
-docs/docker/seata/logs/*.log
+docs/docker/seata/logs
+docs/docker/logs
+
 
 ### Eclipse ###
 .apt_generated
