@@ -144,7 +144,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - aioveu-server
 
   rabbitmq:
-    image: rabbitmq:management
+    image: rabbitmq:3.12-management-alpine #rabbitmq:management
     container_name: aioveu-rabbitmq
     restart: unless-stopped
     environment:
@@ -163,12 +163,15 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
     restart: unless-stopped #  指定了容器的重启策略，除了手动停止容器，其他情况都自动重启容器
     environment:
       # 数据库配置
+      - spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
       - spring.datasource.url=jdbc:mysql://mysql:3306/aioveu_xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai
       - spring.datasource.username=root
       - spring.datasource.password=775825
-      - spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
 
     volumes:
+      #MySQL 8.x 需要特定驱动
+      - ./xxljob/lib/mysql-connector-j-8.0.33.jar:/usr/local/tomcat/lib/mysql-connector-java.jar
       - ./xxljob/logs:/data/applogs
     ports:
       - 8181:8080
