@@ -4,11 +4,10 @@ networks:
     driver: bridge
 
 # 镜像image7个 1.mysql 2.nacos 3.seata 4.redis 5.minio 6.rabbitmq 7.xxl-job-admin
-services:
-  mysql:
+services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket: '/var/lib/mysql/mysql.sock'  port: 3306  MySQL Community Server - GPL.
+  mysql:    #等一等不要着急，创建密码和数据持久化需要时间，直到创数据库完成
     image: mysql:8.0.29
     container_name: aioveu-mysql  # 容器名称，在同一个Docker网络中，其他容器可以通过这个名称访问
-#    container_name: aioveu-server-mysql  #会自动省略网络名
     restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
     environment:
       - TZ=Asia/Shanghai
@@ -22,6 +21,11 @@ services:
       - 3308:3306 # 暴露 3306 端口
     networks:
       - aioveu-server # 加入 "aioveu-server" 网络
+    healthcheck: # 可以添加健康检查
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p775825" ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
 
   nacos:  #docker exec -it aioveu-server-nacos-server ping mysql
     image: nacos/nacos-server:v2.2.3 # 使用 Nacos 2.2.3 镜像
@@ -30,27 +34,16 @@ services:
     environment:
       # 数据库连接配置  使用内置数据库配置方式
       - MODE=standalone
-      - SPRING_DATASOURCE_PLATFORM=mysql # 使用服务名而非容器名  (保持所有服务使用相同命名)
-      - MYSQL_SERVICE_HOST=mysql # 使用服务名而非容器名  (保持所有服务使用相同命名)
-      - MYSQL_SERVICE_PORT=3306
-      - MYSQL_SERVICE_DB_NAME=aioveu_nacos_config
-      - MYSQL_SERVICE_USER=root
-      - MYSQL_SERVICE_PASSWORD=775825
        # 添加关键环境变量
       - DB_NUM=1  # 解决 db.num is null # 错误：值被引号包裹，会导致值变成字符串 ""1""
       - JVM_XMS=2g  #-Xms 2g 中空格导致 JVM 无法识别
       - JVM_XMX=2g #JVM 内存参数格式应为 -Xms2g（无空格）
-    #根据Nacos的官方文档，在2.x版本中，配置数据库连接的方式有所变化，特别是不再支持通过 SPRING_DATASOURCE_PLATFORM
-    #等环境变量来配置外部数据库。
-    #在Nacos 2.x版本中，配置外部数据库的正确方式是使用配置文件 application.properties。
-    #因此，我们需要挂载一个自定义的 application.properties 文件到容器中，而不是通过环境变量来配置数据库。
-    #1.移除通过环境变量配置数据库的方式（即移除 SPRING_DATASOURCE_PLATFORM, MYSQL_SERVICE_* 等环境变量）。
-    #2.通过挂载配置文件 application.properties 来配置数据库连接。
+
     volumes: # 挂载关键配置文件
-#      - ./nacos/init.d:/home/nacos/init.d  #在 init.d 目录添加 SQL 文件初始化数据库
-      - ./nacos/conf/jdbc.properties:/home/nacos/conf/jdbc.properties
+      - ./nacos/datadir:/home/nacos/data
+      - ./nacos/conf:/home/nacos/conf
       - ./nacos/logs:/home/nacos/logs
-      - ./nacos/conf/application.properties:/home/nacos/conf/application.properties
+      - ./nacos/wait-for-mysql.sh:/wait-for-mysql.sh  # 挂载等待脚本
     ports:
       - 8849:8848
       - 9849:9848  # 必须暴露9848端口
@@ -58,59 +51,66 @@ services:
       - aioveu-server # 加入 "aioveu-server" 网络
     depends_on:
       - mysql # 保证 MySQL 服务先启动
+    command: sh -c "sh /wait-for-mysql.sh && bash /home/nacos/bin/startup.sh -m standalone"
 
-  # https://seata.apache.org/zh-cn/docs/ops/deploy-by-docker-compose#nacos%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83db%E5%AD%98%E5%82%A8
+
   seata:
     image: seataio/seata-server:1.7.1
     container_name: aioveu-seata-server
     restart: unless-stopped #  指定了容器的重启策略，除了手动停止容器，其他情况都自动重启容器
     environment:
-      - STORE_MODE=db           # 使用数据库存储事务信息   # 设置Seata服务器的IP（在容器网络中）
-      - SEATA_IP=aioveu-seata-server   #如果是在宿主机上运行，使用宿主机的IP；如果在容器内通信，建议使用服务名或容器IP
-      - SEATA_PORT=8091
+      # Nacos 注册中心配置
+      SEATA_REGISTRY_TYPE: nacos   # 注意这里改为SEATA_REGISTRY_TYPE（注册类型）
+      SEATA_REGISTRY_NACOS_APPLICATION: aioveu-seata-server
+      SEATA_REGISTRY_NACOS_SERVER_ADDR: nacos:8848
+      SEATA_REGISTRY_NACOS_GROUP: SEATA_GROUP
+      SEATA_REGISTRY_NACOS_CLUSTER: default
+      SEATA_REGISTRY_NACOS_USERNAME: admin
+      SEATA_REGISTRY_NACOS_PASSWORD: 775825
 
-      # 数据库配置 通过环境变量覆盖配置（可选） (指向 MySQL 容器)
-      - DB_URL=jdbc:mysql://mysql:3306/aioveu_seata?useUnicode=true&rewriteBatchedStatements=true
-      - DB_USER=root
-      - DB_PASSWORD=775825
-      # 注册中心配置
-      - SEATA_CONFIG_REGISTRY_TYPE=nacos
-      - SEATA_CONFIG_REGISTRY_NACOS_SERVERADDR=aioveu-nacos:8848
-      - SEATA_CONFIG_REGISTRY_NACOS_GROUP=SEATA_GROUP
-      # 配置中心配置
-      - SEATA_CONFIG_CONFIG_TYPE=nacos
-      - SEATA_CONFIG_CONFIG_NACOS_SERVERADDR=aioveu-nacos:8848
-      - SEATA_CONFIG_CONFIG_NACOS_GROUP=SEATA_GROUP
-      - SEATA_CONFIG_CONFIG_NACOS_DATAID=seataServer.properties
+      # Nacos 配置中心配置
+      SEATA_CONFIG_TYPE: nacos     # 配置中心类型
+      SEATA_CONFIG_NACOS_SERVER_ADDR: nacos:8848
+      SEATA_CONFIG_NACOS_GROUP: SEATA_GROUP
+      SEATA_CONFIG_NACOS_DATA_ID: seataServer.properties
+      SEATA_CONFIG_NACOS_USERNAME: admin
+      SEATA_CONFIG_NACOS_PASSWORD: 775825
+
+      # 数据库驱动类路径设置
+      JAVA_OPTS: >-
+        -Dloader.path=/seata-server/lib
+        -Dlog.home=/root/logs/seata
+        -Xmx512m -Xms256m
+
+      # 等待依赖服务
+      WAIT_FOR_SERVICES: "mysql:3306 nacos:8848"
+      WAIT_TIMEOUT: 180
 
     volumes:
-      - ./seata/config:/seata-server/resources  # 挂载自定义配置文件
+      # 挂载registry.conf，这样Seata会使用这个配置连接Nacos
+      - ./seata/config/registry.conf:/seata-server/resources/registry.conf
+#      - ./seata/config:/seata-server/resources  # 挂载自定义配置文件  # 挂载配置文件，其中包含registry.conf和file.conf
+      # 挂载MySQL驱动
+      - ./lib/mysql-connector-j-8.0.33.jar:/seata-server/lib/mysql-connector-java.jar
+      # 挂载日志目录
       - ./seata/logs:/root/logs/seata
     ports:
-      - 8092:8091   # Seata服务端口
+      - 8092:8091   # Seata服务端口  # 将宿主机的8092映射到容器的8091
       - 7092:7091  # Seata控制台端口（1.7.1版本开始有控制台）
     networks:
       - aioveu-server
     depends_on:
-      - mysql
-      - nacos
-
-    #如果表不存在，可能是数据库初始化问题。如果表存在，但没有lock_value字段，可能是字段名称发生了变化（注意大小写，字段名可能是lock_value或lockValue）。
-    #
-    #步骤2：确认Seata版本对应的表结构
-    #根据Seata官方文档，不同版本的表结构可能不同。请参考以下链接确认表结构：
-    #在Seata 1.7.1版本中，锁表结构如下（mysql.sql）：
-    #`row_key`        VARCHAR(128) NOT NULL,
-    #在这个版本中，并没有lock_value字段，而是使用了row_key字段。
-    #统一Seata版本
-    #建议升级到Seata 1.7.1，并使用对应的表结构。同时，检查您的业务代码中是否引用了正确的Seata版本。
+      mysql:
+        condition: service_healthy
+      nacos:
+        condition: service_started
 
 
   redis:
     image: redis:7.2.3
     container_name: aioveu-redis
     restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
-    command: redis-server /etc/redis/redis.conf  --appendonly no # 启动 Redis 服务并添加密码为--requirepass 775825，默认不开启 Redis AOF 方式持久化配置
+    command: redis-server /etc/redis/redis.conf  --pidfile /data/redis.pid # 启动 Redis 服务并添加密码为--requirepass 775825，默认不开启 Redis AOF 方式持久化配置
     environment:
       - TZ=Asia/Shanghai
     volumes:
@@ -162,14 +162,14 @@ services:
     container_name: aioveu-xxl-job-admin
     restart: unless-stopped #  指定了容器的重启策略，除了手动停止容器，其他情况都自动重启容器
     environment:
-      PARAMS: '--spring.datasource.url=jdbc:mysql://mysql:3306/xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai --spring.datasource.username=root --spring.datasource.password=123456 --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver'
+      PARAMS: '--spring.datasource.url=jdbc:mysql://mysql:3306/aioveu_xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai --spring.datasource.username=root --spring.datasource.password=123456 --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver'
     volumes:
       - ./xxljob/logs:/data/applogs
     ports:
       - 8181:8080
     networks:
       - aioveu-server
-
+#
   gateway:
     image: aioveu-gateway:latest
     container_name: aioveu-gateway
@@ -183,10 +183,25 @@ services:
     depends_on:
       - mysql
       - nacos
-
+#
   auth:
-    image: aioveu-auth:v0.0.2
+    image: aioveu-auth:v0.0.3
     container_name: aioveu-auth
+    #    build:
+    #      context: .
+    #      dockerfile: Dockerfile
+    ports:
+      - "9003:9003"
+    networks:
+      - aioveu-server
+    depends_on:
+      - mysql
+      - nacos
+      - gateway
+
+  system:
+    image: aioveu-system:v0.0.3
+    container_name: aioveu-system
     #    build:
     #      context: .
     #      dockerfile: Dockerfile
@@ -198,18 +213,54 @@ services:
       - mysql
       - nacos
       - gateway
+      - auth
 
-#  system:
-#    image: aioveu-system:v0.0.2
-#    container_name: aioveu-system
-#    #    build:
-#    #      context: .
-#    #      dockerfile: Dockerfile
-#    ports:
-#      - "9001:9000"
-#    networks:
-#      - aioveu-server
-#    depends_on:
-#      - mysql
-#      - nacos
-#      - auth
+  oms:
+    image: aioveu-oms:v0.0.3
+    container_name: aioveu-oms
+    ports:
+      - "8813:8803"
+    networks:
+      - aioveu-server
+    depends_on:
+      - mysql
+      - nacos
+      - gateway
+      - auth
+
+  pms:
+    image: aioveu-pms:v0.0.3
+    container_name: aioveu-pms
+    ports:
+      - "8812:8802"
+    networks:
+      - aioveu-server
+    depends_on:
+      - mysql
+      - nacos
+      - gateway
+      - auth
+  sms:
+    image: aioveu-sms:v0.0.3
+    container_name: aioveu-sms
+    ports:
+      - "8814:8804"
+    networks:
+      - aioveu-server
+    depends_on:
+      - mysql
+      - nacos
+      - gateway
+      - auth
+  ums:
+    image: aioveu-ums:v0.0.3
+    container_name: aioveu-ums
+    ports:
+      - "8811:8801"
+    networks:
+      - aioveu-server
+    depends_on:
+      - mysql
+      - nacos
+      - gateway
+      - auth

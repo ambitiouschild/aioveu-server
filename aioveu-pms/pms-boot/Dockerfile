@@ -2,7 +2,7 @@
 FROM openjdk:17-jdk-alpine
 
 # 维护者信息
-MAINTAINER aioveu <aioveutech@163.com>
+MAINTAINER aioveu <ambitiouschild@qq.com>
 
 RUN echo "https://mirrors.ustc.edu.cn/alpine/v3.7/main/" > /etc/apk/repositories && \
     apk --no-cache add tzdata && \
