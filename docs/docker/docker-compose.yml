@@ -65,16 +65,16 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       SEATA_REGISTRY_NACOS_SERVER_ADDR: nacos:8848
       SEATA_REGISTRY_NACOS_GROUP: SEATA_GROUP
       SEATA_REGISTRY_NACOS_CLUSTER: default
-      SEATA_REGISTRY_NACOS_USERNAME: admin
-      SEATA_REGISTRY_NACOS_PASSWORD: 775825
+      SEATA_REGISTRY_NACOS_USERNAME: nacos
+      SEATA_REGISTRY_NACOS_PASSWORD: nacos
 
       # Nacos 配置中心配置
       SEATA_CONFIG_TYPE: nacos     # 配置中心类型
       SEATA_CONFIG_NACOS_SERVER_ADDR: nacos:8848
       SEATA_CONFIG_NACOS_GROUP: SEATA_GROUP
       SEATA_CONFIG_NACOS_DATA_ID: seataServer.properties
-      SEATA_CONFIG_NACOS_USERNAME: admin
-      SEATA_CONFIG_NACOS_PASSWORD: 775825
+      SEATA_CONFIG_NACOS_USERNAME: nacos
+      SEATA_CONFIG_NACOS_PASSWORD: nacos
 
       # 数据库驱动类路径设置
       JAVA_OPTS: >-
@@ -162,7 +162,12 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
     container_name: aioveu-xxl-job-admin
     restart: unless-stopped #  指定了容器的重启策略，除了手动停止容器，其他情况都自动重启容器
     environment:
-      PARAMS: '--spring.datasource.url=jdbc:mysql://mysql:3306/aioveu_xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai --spring.datasource.username=root --spring.datasource.password=123456 --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver'
+      # 数据库配置
+      - spring.datasource.url=jdbc:mysql://mysql:3306/aioveu_xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai
+      - spring.datasource.username=root
+      - spring.datasource.password=775825
+      - spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
     volumes:
       - ./xxljob/logs:/data/applogs
     ports:
