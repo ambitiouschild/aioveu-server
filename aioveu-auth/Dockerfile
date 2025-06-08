@@ -1,5 +1,5 @@
 FROM openjdk:17-jdk-alpine
-MAINTAINER aioveu aioveutech@163.com
+MAINTAINER aioveu ambitiouschild@qq.com
 
 # 设置国内镜像源(中国科技大学镜像源)，修改容器时区(alpine镜像需安装tzdata来设置时区)，安装字体库(验证码)
 RUN echo "https://mirrors.ustc.edu.cn/alpine/v3.7/main/" > /etc/apk/repositories && \
@@ -18,6 +18,10 @@ ADD target/aioveu-auth.jar app.jar
 
 # 指定容器启动时执行的命令
 CMD java \
+    --add-opens java.base/java.io=ALL-UNNAMED \
+    --add-opens java.base/java.util.concurrent.locks=ALL-UNNAMED \
+    --add-opens java.base/java.lang=ALL-UNNAMED \
+    --add-opens java.base/java.util=ALL-UNNAMED \
     -Xms128m \
     -Xmx128m \
     -Djava.security.egd=file:/dev/./urandom \

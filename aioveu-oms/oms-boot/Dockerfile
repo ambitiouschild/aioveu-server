@@ -1,4 +1,4 @@
-# 基础镜像
+# 基础镜像 指定具体 Alpine 版本
 FROM openjdk:17-jdk-alpine
 
 # 维护者信息

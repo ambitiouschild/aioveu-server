@@ -7,7 +7,8 @@ networks:
 services:
   mysql:
     image: mysql:8.0.29
-    container_name: aioveu-server-mysql
+    container_name: aioveu-mysql  # 容器名称，在同一个Docker网络中，其他容器可以通过这个名称访问
+#    container_name: aioveu-server-mysql  #会自动省略网络名
     restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
     environment:
       - TZ=Asia/Shanghai
@@ -24,21 +25,35 @@ services:
 
   nacos:  #docker exec -it aioveu-server-nacos-server ping mysql
     image: nacos/nacos-server:v2.2.3 # 使用 Nacos 2.2.3 镜像
-    container_name: aioveu-server-nacos-server
+    container_name: aioveu-nacos-server
     restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
     environment:
+      # 数据库连接配置  使用内置数据库配置方式
       - MODE=standalone
-      - SPRING_DATASOURCE_PLATFORM=mysql
-      - MYSQL_SERVICE_HOST=mysql
+      - SPRING_DATASOURCE_PLATFORM=mysql # 使用服务名而非容器名  (保持所有服务使用相同命名)
+      - MYSQL_SERVICE_HOST=mysql # 使用服务名而非容器名  (保持所有服务使用相同命名)
       - MYSQL_SERVICE_PORT=3306
       - MYSQL_SERVICE_DB_NAME=aioveu_nacos_config
       - MYSQL_SERVICE_USER=root
       - MYSQL_SERVICE_PASSWORD=775825
-    volumes:
+       # 添加关键环境变量
+      - DB_NUM=1  # 解决 db.num is null # 错误：值被引号包裹，会导致值变成字符串 ""1""
+      - JVM_XMS=2g  #-Xms 2g 中空格导致 JVM 无法识别
+      - JVM_XMX=2g #JVM 内存参数格式应为 -Xms2g（无空格）
+    #根据Nacos的官方文档，在2.x版本中，配置数据库连接的方式有所变化，特别是不再支持通过 SPRING_DATASOURCE_PLATFORM
+    #等环境变量来配置外部数据库。
+    #在Nacos 2.x版本中，配置外部数据库的正确方式是使用配置文件 application.properties。
+    #因此，我们需要挂载一个自定义的 application.properties 文件到容器中，而不是通过环境变量来配置数据库。
+    #1.移除通过环境变量配置数据库的方式（即移除 SPRING_DATASOURCE_PLATFORM, MYSQL_SERVICE_* 等环境变量）。
+    #2.通过挂载配置文件 application.properties 来配置数据库连接。
+    volumes: # 挂载关键配置文件
+#      - ./nacos/init.d:/home/nacos/init.d  #在 init.d 目录添加 SQL 文件初始化数据库
+      - ./nacos/conf/jdbc.properties:/home/nacos/conf/jdbc.properties
       - ./nacos/logs:/home/nacos/logs
+      - ./nacos/conf/application.properties:/home/nacos/conf/application.properties
     ports:
-      - 8848:8848
-      - 9848:9848
+      - 8849:8848
+      - 9849:9848  # 必须暴露9848端口
     networks:
       - aioveu-server # 加入 "aioveu-server" 网络
     depends_on:
@@ -47,26 +62,53 @@ services:
   # https://seata.apache.org/zh-cn/docs/ops/deploy-by-docker-compose#nacos%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83db%E5%AD%98%E5%82%A8
   seata:
     image: seataio/seata-server:1.7.1
-    container_name: aioveu-server-seata-server
+    container_name: aioveu-seata-server
     restart: unless-stopped #  指定了容器的重启策略，除了手动停止容器，其他情况都自动重启容器
     environment:
-      - STORE_MODE=db           # 使用数据库存储事务信息
-      - SEATA_IP=aioveu-server-seata-server  #如果是在宿主机上运行，使用宿主机的IP；如果在容器内通信，建议使用服务名或容器IP
+      - STORE_MODE=db           # 使用数据库存储事务信息   # 设置Seata服务器的IP（在容器网络中）
+      - SEATA_IP=aioveu-seata-server   #如果是在宿主机上运行，使用宿主机的IP；如果在容器内通信，建议使用服务名或容器IP
       - SEATA_PORT=8091
+
+      # 数据库配置 通过环境变量覆盖配置（可选） (指向 MySQL 容器)
+      - DB_URL=jdbc:mysql://mysql:3306/aioveu_seata?useUnicode=true&rewriteBatchedStatements=true
+      - DB_USER=root
+      - DB_PASSWORD=775825
+      # 注册中心配置
+      - SEATA_CONFIG_REGISTRY_TYPE=nacos
+      - SEATA_CONFIG_REGISTRY_NACOS_SERVERADDR=aioveu-nacos:8848
+      - SEATA_CONFIG_REGISTRY_NACOS_GROUP=SEATA_GROUP
+      # 配置中心配置
+      - SEATA_CONFIG_CONFIG_TYPE=nacos
+      - SEATA_CONFIG_CONFIG_NACOS_SERVERADDR=aioveu-nacos:8848
+      - SEATA_CONFIG_CONFIG_NACOS_GROUP=SEATA_GROUP
+      - SEATA_CONFIG_CONFIG_NACOS_DATAID=seataServer.properties
+
     volumes:
-      - ./seata/config:/seata-server/resources
+      - ./seata/config:/seata-server/resources  # 挂载自定义配置文件
       - ./seata/logs:/root/logs/seata
     ports:
-      - 8091:8091   # Seata服务端口
-      - 7091:7091  # Seata控制台端口（1.7.1版本开始有控制台）
+      - 8092:8091   # Seata服务端口
+      - 7092:7091  # Seata控制台端口（1.7.1版本开始有控制台）
     networks:
       - aioveu-server
     depends_on:
+      - mysql
       - nacos
+
+    #如果表不存在，可能是数据库初始化问题。如果表存在，但没有lock_value字段，可能是字段名称发生了变化（注意大小写，字段名可能是lock_value或lockValue）。
+    #
+    #步骤2：确认Seata版本对应的表结构
+    #根据Seata官方文档，不同版本的表结构可能不同。请参考以下链接确认表结构：
+    #在Seata 1.7.1版本中，锁表结构如下（mysql.sql）：
+    #`row_key`        VARCHAR(128) NOT NULL,
+    #在这个版本中，并没有lock_value字段，而是使用了row_key字段。
+    #统一Seata版本
+    #建议升级到Seata 1.7.1，并使用对应的表结构。同时，检查您的业务代码中是否引用了正确的Seata版本。
+
 
   redis:
     image: redis:7.2.3
-    container_name: aioveu-server-redis
+    container_name: aioveu-redis
     restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
     command: redis-server /etc/redis/redis.conf  --appendonly no # 启动 Redis 服务并添加密码为--requirepass 775825，默认不开启 Redis AOF 方式持久化配置
     environment:
@@ -84,12 +126,12 @@ services:
 
   minio:
     image: minio/minio:latest
-    container_name: aioveu-server-minio
+    container_name: aioveu-minio
     restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
     command: server /data --console-address ":9090"
     ports:
       - 9001:9000
-      - 9090:9090
+      - 9091:9090
     environment:
       - TZ=Asia/Shanghai
       - LANG=en_US.UTF-8
@@ -103,21 +145,21 @@ services:
 
   rabbitmq:
     image: rabbitmq:management
-    container_name: aioveu-server-rabbitmq
+    container_name: aioveu-rabbitmq
     restart: unless-stopped
     environment:
       - TZ=Asia/Shanghai
       - RABBITMQ_DEFAULT_USER=adminlss
       - RABBITMQ_DEFAULT_PASS=adminlss
     ports:
-      - 5672:5672
-      - 15672:15672
+      - 5673:5672
+      - 15673:15672
     networks:
       - aioveu-server # 加入 "mall" 网络
 
   xxl-job-admin:
     image: xuxueli/xxl-job-admin:2.4.0   # https://hub.docker.com/r/xuxueli/xxl-job-admin/tags
-    container_name: aioveu-server-xxl-job-admin
+    container_name: aioveu-xxl-job-admin
     restart: unless-stopped #  指定了容器的重启策略，除了手动停止容器，其他情况都自动重启容器
     environment:
       PARAMS: '--spring.datasource.url=jdbc:mysql://mysql:3306/xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai --spring.datasource.username=root --spring.datasource.password=123456 --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver'
@@ -127,3 +169,47 @@ services:
       - 8181:8080
     networks:
       - aioveu-server
+
+  gateway:
+    image: aioveu-gateway:latest
+    container_name: aioveu-gateway
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+    ports:
+      - "9999:9999"
+    networks:
+      - aioveu-server
+    depends_on:
+      - mysql
+      - nacos
+
+  auth:
+    image: aioveu-auth:v0.0.2
+    container_name: aioveu-auth
+    #    build:
+    #      context: .
+    #      dockerfile: Dockerfile
+    ports:
+      - "8801:8800"
+    networks:
+      - aioveu-server
+    depends_on:
+      - mysql
+      - nacos
+      - gateway
+
+#  system:
+#    image: aioveu-system:v0.0.2
+#    container_name: aioveu-system
+#    #    build:
+#    #      context: .
+#    #      dockerfile: Dockerfile
+#    ports:
+#      - "9001:9000"
+#    networks:
+#      - aioveu-server
+#    depends_on:
+#      - mysql
+#      - nacos
+#      - auth
