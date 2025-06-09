@@ -3,6 +3,9 @@ FROM openjdk:17-jdk-alpine
 # 维护者信息
 MAINTAINER aioveu ambitiouschild@qq.com
 
+## 安装curl
+#RUN apt-get update && apt-get install -y curl
+
 # 设置国内镜像源(中国科技大学镜像源)，修改容器时区(alpine镜像需安装tzdata来设置时区)
 RUN echo "https://mirrors.ustc.edu.cn/alpine/v3.7/main/" > /etc/apk/repositories && \
     apk --no-cache add tzdata && \

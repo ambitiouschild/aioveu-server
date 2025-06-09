@@ -1,5 +1,5 @@
 server:
-  port: 9998
+  port: 9999
 
 spring:
   main:
@@ -8,9 +8,8 @@ spring:
     nacos:
       # 注册中心配置
       discovery:
-#        server-addr: http://localhost:8848
-        server-addr: nacos:8848  # 使用服务名
-        namespace: public
+        server-addr: http://localhost:8848
+#        server-addr: nacos:8848  # 使用服务名
         group: AIOVEU_GROUP  # 指定服务注册分组
         metadata:
           version: 1.0
