@@ -30,3 +30,9 @@ spring:
           - data-id: aioveu-common.yaml  # 公共共享配置
             group: AIOVEU_GROUP  # 使用相同的分组
             refresh: true  # 启用动态刷新
+
+
+    #注意在SMS服务中，如果没有使用@GlobalTransactional开启事务，那么不会注册TM（事务管理者），但是只要数据源被代理，就应该注册RM。
+
+    #请根据上述步骤检查和调整SMS服务，确保它能够正确注册到Seata服务器。
+    #日志中出现redis和rabbitmq组件初始化，但无Seata组件初始化日志
