@@ -11,6 +11,12 @@
 
 
 
+Spring Security OAuth已停更，进化版Spring Authorization Server来了！支持OAuth 2.1和OpenID Connect 1.0，功能更强
+
+Spring Authorization Server是Spring Security OAuth的进化版本，已引入对OAuth 2.1和OpenID Connect 1.0规范的支持，并提供了更多功能和改进。它基于Spring Security构建，旨在为构建OpenID Connect 1.0身份提供者和OAuth2授权服务器提供安全、轻量级和可定制的基础。
+
+
+
 ##  🚀项目简介
 
 
