@@ -214,7 +214,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - ./redis/data:/data
       - ./redis/config/redis.conf:/etc/redis/redis.conf
     ports:
-      - 6379:6379
+      - 6380:6379
     networks:
       - aioveu-server
         #NOAUTH Authentication required 应用程序未使用密码
