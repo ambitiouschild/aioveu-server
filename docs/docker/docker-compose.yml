@@ -287,7 +287,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
         condition: service_healthy
 #
   gateway:
-    image: aioveu-gateway:latest
+    image: aioveu-gateway:v0.0.1
     container_name: aioveu-gateway
 #    build:
 #      context: .
@@ -301,13 +301,13 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - nacos
 #
   auth:
-    image: aioveu-auth:v0.0.3
+    image: aioveu-auth:v0.0.1
     container_name: aioveu-auth
     #    build:
     #      context: .
     #      dockerfile: Dockerfile
     ports:
-      - "9003:9003"
+      - "9004:9003"
     networks:
       - aioveu-server
     depends_on:
@@ -316,7 +316,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - gateway
 
   system:
-    image: aioveu-system:v0.0.3
+    image: aioveu-system:v0.0.1
     container_name: aioveu-system
     #    build:
     #      context: .
@@ -332,7 +332,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - auth
 
   oms:
-    image: aioveu-oms:v0.0.3
+    image: aioveu-oms:v0.0.1
     container_name: aioveu-oms
     ports:
       - "8813:8803"
@@ -345,7 +345,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - auth
 
   pms:
-    image: aioveu-pms:v0.0.3
+    image: aioveu-pms:v0.0.1
     container_name: aioveu-pms
     ports:
       - "8812:8802"
@@ -357,7 +357,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - gateway
       - auth
   sms:
-    image: aioveu-sms:v0.0.3
+    image: aioveu-sms:v0.0.1
     container_name: aioveu-sms
     ports:
       - "8814:8804"
@@ -369,7 +369,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - gateway
       - auth
   ums:
-    image: aioveu-ums:v0.0.3
+    image: aioveu-ums:v0.0.1
     container_name: aioveu-ums
     ports:
       - "8811:8801"
