@@ -11,7 +11,7 @@ spring:
     nacos:
       # 注册中心
       discovery:
-        server-addr: http://nacos:8848  # Nacos服务地址
+        server-addr: http://localhost:8848  # Nacos服务地址
 #        server-addr: nacos:8848  # Nacos服务地址
         group: AIOVEU_GROUP  # 指定服务注册分组
         metadata:

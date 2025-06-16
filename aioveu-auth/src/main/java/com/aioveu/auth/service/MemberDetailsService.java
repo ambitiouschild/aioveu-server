@@ -63,24 +63,38 @@ public class MemberDetailsService {
      */
     public UserDetails loadUserByOpenid(String openid) {
         // 根据 openid 获取微信用户认证信息
-        Result<MemberAuthDTO> getMemberAuthInfoResult = memberFeignClient.loadUserByOpenId(openid);
+        // 调用会员服务API，查询微信openid对应用户
+        // 首先尝试获取用户
+        MemberAuthDTO memberAuthInfo = memberFeignClient.loadUserByOpenId(openid).getData();
 
-        MemberAuthDTO memberAuthInfo = null;
 
         // 会员不存在，注册成为新会员
-        if (ResultCode.USER_NOT_EXIST.getCode().equals(getMemberAuthInfoResult.getCode())) {
+        if (memberAuthInfo==null) {
+
             MemberRegisterDto memberRegisterInfo = new MemberRegisterDto();
             memberRegisterInfo.setOpenid(openid);
             memberRegisterInfo.setNickName("微信用户");
             // 注册会员
+            //通过Feign客户端调用会员服务的注册接口，将注册信息发送到会员服务，并接收注册结果。
             Result<Long> registerMemberResult = memberFeignClient.registerMember(memberRegisterInfo);
+
+
+            //   注册失败处理----------------------
+            if (!Result.isSuccess(registerMemberResult)) {
+                throw new UsernameNotFoundException("会员注册失败: " + registerMemberResult.getMsg());
+            }
+
+
+            //注册成功后，不要立即使用openid去查询，而是使用注册接口返回的会员ID，再调用根据会员ID获取认证信息的接口。这样避免因为主从同步延迟等问题导致查不到用户。
             // 注册成功将会员信息赋值给会员认证信息
+            //提供通过会员ID查询的接口（这样在注册后我们可以立即用注册返回的会员ID去查询，避免使用openid查询可能存在的延迟）
+
+            //避免使用OpenID立即查询可能的数据延迟问题
+            //通过会员ID查询是直接的主键查询，没有同步延迟问题
             Long memberId;
             if (Result.isSuccess(registerMemberResult) && (memberId = registerMemberResult.getData()) != null) {
                 memberAuthInfo = new MemberAuthDTO(memberId, openid, StatusEnum.ENABLE.getValue());
             }
-        } else {
-            Assert.isTrue((memberAuthInfo = getMemberAuthInfoResult.getData()) != null, "会员认证信息失败");
         }
 
         // 用户不存在

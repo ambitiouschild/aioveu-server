@@ -18,7 +18,7 @@ import java.util.List;
  * @return:
  **/
 
-@FeignClient(name = "mall-ums", contextId = "member")
+@FeignClient(name = "aioveu-ums", contextId = "member")
 public interface MemberFeignClient {
 
     /**

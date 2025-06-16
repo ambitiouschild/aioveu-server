@@ -90,7 +90,7 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
         );
         
         if (entity == null) {
-            throw new BizException(ResultCode.USER_NOT_EXIST);
+           return null;
         }
         return memberConvert.entity2OpenidAuthDTO(entity);
     }

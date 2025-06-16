@@ -70,6 +70,9 @@ public class MinioOssService implements OssService {
                 .endpoint(endpoint)
                 .credentials(accessKey, secretKey)
                 .build();
+
+        //// 依赖注入完成之后执行创建存储桶
+        createBucketIfAbsent(bucketName);
     }
 
 
