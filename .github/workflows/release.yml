@@ -1,0 +1,60 @@
+name: Build and Release
+ 
+on:
+  push:
+    tags:
+      - 'v*' # 触发条件是推送的标签以v开头
+ 
+jobs:
+  build:
+    runs-on: windows-latest # 使用Windows的最新版本运行
+ 
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+ 
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.0.3
+ 
+    - name: Build Project
+      run: msbuild YourProject.sln /p:Configuration=Release
+ 
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: aioveu-server
+        path: aioveu-server\YourApp.exe # 修改为你的应用程序路径和名称
+ 
+  release:
+    needs: build # 依赖于build job的完成
+    runs-on: ubuntu-latest # 使用Ubuntu的最新版本运行（因为我们需要上传到GitHub Releases）
+    steps:
+    - name: Download Artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: aioveu-server
+        path: aioveu-server # 修改为你的应用程序路径，这将用于上传到GitHub Releases
+ 
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 使用默认的GitHub token，确保它在仓库的Settings -> Secrets中已设置好
+      with:
+        tag_name: ${{ github.ref }} # 使用当前标签作为版本号
+        release_name: Release ${{ github.ref }} # 发布名称为版本号
+        draft: false # 是否为草稿发布，false为正式发布
+        prerelease: false # 是否为预发布，false为正式版本发布
+        body_path: 'aioveu-server/ReleaseNotes.md' # 修改为你的发布说明文件路径，可选
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 使用默认的GitHub token，确保它在仓库的Settings -> Secrets中已设置好
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # 上传地址来源于创建发布的步骤输出
+        asset_path: aioveu-server/aioveu-server.exe # 修改为你的应用程序路径和名称
+        asset_name: aioveu-server.exe # 上传文件的名称，保持与下载路径一致即可，这里仅为示例，实际应根据路径调整文件名以匹配下载的文件名。例如，如果你的应用名称为AppName，
+        #则应为AppName.exe。如果文件名包含版本号等信息，请确保它与标签匹配。例如，如果你的标签是v1.0.0，则文件名应为AppName_v1.0.0.exe等。
+        #如果文件名不包含版本号等信息，则只需保持与下载路径一致即可。例如，如果你的应用名称为AppName且不包含版本号等信息，则应为AppName.exe。
+        #在这种情况下，你可以
