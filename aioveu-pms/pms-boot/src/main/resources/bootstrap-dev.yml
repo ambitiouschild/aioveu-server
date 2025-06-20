@@ -14,10 +14,10 @@ spring:
         server-addr: http://localhost:8848  # Nacos服务地址
 #        server-addr: nacos:8848  # Nacos服务地址
         group: AIOVEU_GROUP  # 指定服务注册分组
-        metadata:
-          version: 1.0
-          env: prod
-          zone: zone1
+#        metadata:
+#          version: 1.0
+#          env: prod
+#          zone: zone1
       # 配置中心
       config:
         # 本地启动
