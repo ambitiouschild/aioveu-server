@@ -3,6 +3,8 @@ package com.aioveu.pms.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.json.JSONUtil;
+import com.aioveu.pms.model.entity.PmsSpu;
+import com.aioveu.pms.service.SpuService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -15,11 +17,13 @@ import com.aioveu.pms.model.entity.PmsSku;
 import com.aioveu.pms.service.SkuService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.*;
 
 /**
  * @Description: TODO 商品库存业务实现类
@@ -37,6 +41,9 @@ public class SkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> implements
     private final RedisTemplate redisTemplate;
     private final SkuConverter skuConverter;
 
+    @Lazy
+    @Autowired
+    private SpuService spuService;
 
     /**
      * 获取商品库存信息
@@ -58,7 +65,49 @@ public class SkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> implements
     @Override
     public List<SkuInfoDTO> listSkuInfos(List<Long> skuIds) {
         List<PmsSku> list = this.list(new LambdaQueryWrapper<PmsSku>().in(PmsSku::getId, skuIds));
-        return skuConverter.entity2SkuInfoDto(list);
+        if(list != null && list.size() > 0){
+            List<Long> list1 = list.stream().map(PmsSku::getSpuId).distinct().toList();
+            List<PmsSpu> pmsSpus = spuService.listByIds(list1);
+            Map<Long,String> map = new HashMap<Long,String>();
+            for (PmsSpu spus : pmsSpus) {
+                map.put(spus.getId(),spus.getName());
+            }
+
+            List<SkuInfoDTO> temp = entity2SkuInfoDto(list,map);
+            return temp;
+        }
+        return Collections.EMPTY_LIST;
+    }
+
+    private SkuInfoDTO entity2SkuInfoDto(PmsSku entity,Map<Long,String> map) {
+        if ( entity == null ) {
+            return null;
+        }
+
+        SkuInfoDTO skuInfoDTO = new SkuInfoDTO();
+
+        skuInfoDTO.setId( entity.getId() );
+        skuInfoDTO.setSkuSn( entity.getSkuSn() );
+        skuInfoDTO.setSkuName( entity.getName() );
+        skuInfoDTO.setPicUrl( entity.getPicUrl() );
+        skuInfoDTO.setPrice( entity.getPrice() );
+        skuInfoDTO.setStock( entity.getStock() );
+        skuInfoDTO.setSpuName(map.get(entity.getSpuId()));
+
+        return skuInfoDTO;
+    }
+
+    private List<SkuInfoDTO> entity2SkuInfoDto(List<PmsSku> list,Map<Long,String> map) {
+        if ( list == null ) {
+            return null;
+        }
+
+        List<SkuInfoDTO> list1 = new ArrayList<SkuInfoDTO>( list.size() );
+        for ( PmsSku pmsSku : list ) {
+            list1.add( entity2SkuInfoDto( pmsSku ,map) );
+        }
+
+        return list1;
     }
 
     /**

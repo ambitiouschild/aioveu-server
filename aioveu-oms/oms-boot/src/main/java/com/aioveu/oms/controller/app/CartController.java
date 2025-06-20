@@ -3,6 +3,7 @@ package com.aioveu.oms.controller.app;
 import com.aioveu.common.result.Result;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.oms.model.dto.CartItemDto;
+import com.aioveu.oms.model.vo.CartItemVo;
 import com.aioveu.oms.service.app.CartService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -32,7 +33,7 @@ public class CartController {
     @Operation(summary = "查询购物车")
     @GetMapping
     public <T> Result<T> getCart() {
-        List<CartItemDto> result = cartService.listCartItems(SecurityUtils.getMemberId());
+        List<CartItemVo> result = cartService.listCartItemsVo(SecurityUtils.getMemberId());
         return Result.success((T) result);
     }
 

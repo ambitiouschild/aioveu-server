@@ -3,6 +3,8 @@ package com.aioveu.oms.model.dto;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+
 /**
  * @Description: TODO 购物车商品项
  * @Author: 雒世松
@@ -28,5 +30,6 @@ public class CartItemDto implements Serializable {
      * 是否选中
      */
     private Boolean checked;
+
 
 }

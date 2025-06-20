@@ -1,4 +1,4 @@
-package com.aioveu.oms.model.dto;
+package com.aioveu.oms.model.vo;
 
 import lombok.Data;
 
@@ -27,9 +27,9 @@ public class CartItemVo implements Serializable {
     private String spuName;
 
     /**
-     * 规格集合
+     * 规格名称
      */
-    private Set<String> specs;
+    private String skuName;
 
     /**
      * 商品图片

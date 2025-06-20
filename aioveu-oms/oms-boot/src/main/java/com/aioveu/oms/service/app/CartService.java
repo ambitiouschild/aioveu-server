@@ -1,6 +1,7 @@
 package com.aioveu.oms.service.app;
 
 import com.aioveu.oms.model.dto.CartItemDto;
+import com.aioveu.oms.model.vo.CartItemVo;
 
 import java.util.List;
 
@@ -13,6 +14,8 @@ import java.util.List;
  **/
 
 public interface CartService {
+
+    List<CartItemVo> listCartItemsVo(Long memberId);
 
     List<CartItemDto> listCartItems(Long memberId);
 

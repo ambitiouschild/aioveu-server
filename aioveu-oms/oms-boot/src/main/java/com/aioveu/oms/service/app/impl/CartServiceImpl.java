@@ -6,6 +6,7 @@ import com.aioveu.common.web.exception.BizException;
 import com.aioveu.oms.constant.OrderConstants;
 import com.aioveu.oms.converter.CartConverter;
 import com.aioveu.oms.model.dto.CartItemDto;
+import com.aioveu.oms.model.vo.CartItemVo;
 import com.aioveu.oms.service.app.CartService;
 import com.aioveu.pms.api.SkuFeignClient;
 import com.aioveu.pms.model.dto.SkuInfoDTO;
@@ -15,8 +16,7 @@ import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -38,11 +38,69 @@ public class CartServiceImpl implements CartService {
     private final SkuFeignClient skuFeignService;
     private final CartConverter cartConverter;
 
+    /**
+     * @Description: 获取会员的购物车信息
+     * @Author: 雒世松
+     * @Date: 2025/6/20 22:59
+     * @param memberId 会员id
+     * @return:
+     **/
+    @Override
+    public List<CartItemVo> listCartItemsVo(Long memberId) {
+        if (memberId != null) {
+            BoundHashOperations cartHashOperations = getCartHashOperations(memberId);
+            //把购物车里的购物车所有对象全部取出
+            List<CartItemDto> cartItems = cartHashOperations.values();
+            if(cartItems == null || cartItems.size() <= 0){
+                return Collections.emptyList();
+            }
+            // 取出购物车里所有的商品id
+            List<Long> skuIds = cartItems.stream().map(CartItemDto::getSkuId).distinct().toList();
+            //把这些商品信息全部查询出来，为了获取到最新的商品名称也好，商品价格也好 反正我现在是要获取到购物车里的所有商品的最新信息
+            List<SkuInfoDTO> skuInfoList = skuFeignService.getSkuInfoList(skuIds);
+            //把skuInfoList转为Map。key是id value是SkuInfoDTO
+            Map<Long,SkuInfoDTO> temp = new HashMap<Long,SkuInfoDTO>();
+            for (SkuInfoDTO skuInfoDTO : skuInfoList) {
+                temp.put(skuInfoDTO.getId(),skuInfoDTO);
+            }
+            //构建改方法需要的返回值，
+            List<CartItemVo> cartItemVoList = new ArrayList<>(cartItems.size());
+            for (CartItemDto cartItem : cartItems) {
+                CartItemVo vo = new CartItemVo();
+                vo.setSkuId(cartItem.getSkuId());
+//                for (SkuInfoDTO skuInfoDTO : skuInfoList) {
+//                    if(Objects.equals(skuInfoDTO.getId(), cartItem.getSkuId())){
+//                        //TODO  需要组合一个完整的CartItemVo
+//                        vo.setSpuName(skuInfoDTO.getSkuName());
+//                        vo.setImageUrl(skuInfoDTO.getPicUrl());
+//                        vo.setPrice(skuInfoDTO.getPrice());
+//                        break;
+//                    }
+//                }
+                //LeetCode 第一题
+                SkuInfoDTO skuInfoDTO = temp.get(cartItem.getSkuId());
+                //TODO  skuInfoDTO  NPE 的问题
+                vo.setSkuName(skuInfoDTO.getSkuName());
+                vo.setSpuName(skuInfoDTO.getSpuName());
+                vo.setImageUrl(skuInfoDTO.getPicUrl());
+                vo.setPrice(skuInfoDTO.getPrice());
+                vo.setCount(cartItem.getCount());
+                vo.setChecked(cartItem.getChecked());
+                cartItemVoList.add(vo);
+            }
+            return cartItemVoList;
+        }
+        return Collections.EMPTY_LIST;
+    }
+
+
     @Override
     public List<CartItemDto> listCartItems(Long memberId) {
         if (memberId != null) {
             BoundHashOperations cartHashOperations = getCartHashOperations(memberId);
+            //把购物车里的购物车所有对象全部取出
             List<CartItemDto> cartItems = cartHashOperations.values();
+
             return cartItems;
         }
         return Collections.EMPTY_LIST;

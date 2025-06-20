@@ -19,7 +19,7 @@ import org.mapstruct.Mappings;
 public interface CartConverter {
 
     @Mappings({
-            @Mapping(target = "skuId", source = "id"),
+            @Mapping(target = "skuId", source = "id")
     })
     CartItemDto sku2CartItem(SkuInfoDTO skuInfo);
 
