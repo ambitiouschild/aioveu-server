@@ -343,6 +343,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - nacos
       - gateway
       - auth
+      - system
 
   pms:
     image: aioveu-pms:v0.0.1
@@ -356,6 +357,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - nacos
       - gateway
       - auth
+      - system
   sms:
     image: aioveu-sms:v0.0.1
     container_name: aioveu-sms
@@ -368,8 +370,10 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - nacos
       - gateway
       - auth
+      - system
+
   ums:
-    image: aioveu-ums:v0.0.1
+    image: aioveu-ums:v0.0.2
     container_name: aioveu-ums
     ports:
       - "8811:8801"
@@ -380,3 +384,4 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - nacos
       - gateway
       - auth
+      - system

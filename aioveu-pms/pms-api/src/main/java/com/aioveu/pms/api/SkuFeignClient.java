@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 
-@FeignClient(value = "mall-pms", contextId = "sku", configuration = {FeignDecoderConfig.class})
+@FeignClient(value = "aioveu-pms", contextId = "sku", configuration = {FeignDecoderConfig.class})
 public interface SkuFeignClient {
 
     /**
