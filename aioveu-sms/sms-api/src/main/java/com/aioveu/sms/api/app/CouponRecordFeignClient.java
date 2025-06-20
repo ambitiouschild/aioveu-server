@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * @return:
  **/
 
-@FeignClient(value = "mall-sms")
+@FeignClient(value = "aioveu-sms")
 public interface CouponRecordFeignClient {
 
     @GetMapping("/api.app/v1/coupon_record/list")
