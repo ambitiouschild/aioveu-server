@@ -8,7 +8,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
   mysql:    #等一等不要着急，创建密码和数据持久化需要时间，直到创数据库完成
     image: mysql:8.0.29
     container_name: aioveu-mysql  # 容器名称，在同一个Docker网络中，其他容器可以通过这个名称访问
-    restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
+#    restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
     environment:
       - TZ=Asia/Shanghai
       - LANG= en_US.UTF-8
@@ -39,7 +39,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
   nacos:  #docker exec -it aioveu-server-nacos-server ping mysql
     image: nacos/nacos-server:v2.2.3 # 使用 Nacos 2.2.3 镜像  #等一等不要着急，连接容器数据库需要时间，直到连接数据库完成
     container_name: aioveu-nacos-server
-    restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
+#    restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
     environment:
       # 数据库连接配置  使用内置数据库配置方式
       MODE: standalone  #虽然设置了 MODE=standalone，但未配置 MySQL 连接信息
@@ -117,11 +117,13 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
   seata:
     image: seataio/seata-server:1.7.1
     container_name: aioveu-seata-server
-    restart: unless-stopped #  指定了容器的重启策略，除了手动停止容器，其他情况都自动重启容器
+#    restart: unless-stopped #  指定了容器的重启策略，除了手动停止容器，其他情况都自动重启容器
     environment:
       # 使用宿主机网络模式
+      #这是一个混合部署网络连接问题。你的Seata Server在Docker容器内，但微服务在宿主机上运行，导致网络不通。
       # 确保使用宿主机可访问的IP  当Seata注册到Nacos时，注册的IP地址决定微服务的连接方式  #强制指定注册IP
-      SEATA_IP: 192.168.0.107   # 替换为你的宿主机IP  ,注意顺序，要先把id改为宿主机，顺序很重要  宿主机公网IP或内网可达IP   直接连接宿主机IP
+      # 关键1：注册到Nacos的IP（微服务可访问的地址）
+      SEATA_IP: 192.168.1.8  # 替换为你的宿主机IP  ,注意顺序，要先把id改为宿主机，顺序很重要  宿主机公网IP或内网可达IP   直接连接宿主机IP
       SEATA_PORT: 8091
       SEATA_REGISTRY_NACOS_NAMESPACE: public  # 确保命名空间匹配
 
@@ -155,7 +157,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       # Nacos 注册中心配置
       SEATA_REGISTRY_TYPE: nacos   # 注意这里改为SEATA_REGISTRY_TYPE（注册类型）
       SEATA_REGISTRY_NACOS_APPLICATION: aioveu-seata-server
-      SEATA_REGISTRY_NACOS_SERVER_ADDR: nacos:8848   # Seata连接Nacos的地址 注册到Nacos的IP
+      SEATA_REGISTRY_NACOS_SERVER_ADDR: nacos:8848   # Seata连接Nacos的地址 注册到Nacos的IP  # 容器内通信
       SEATA_REGISTRY_NACOS_GROUP: SEATA_GROUP
       SEATA_REGISTRY_NACOS_CLUSTER: default
       SEATA_REGISTRY_NACOS_USERNAME: nacos
@@ -163,7 +165,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
 
       # Nacos 配置中心配置
       SEATA_CONFIG_TYPE: nacos     # 配置中心类型
-      SEATA_CONFIG_NACOS_SERVER_ADDR: nacos:8848   #注册到Nacos的IP
+      SEATA_CONFIG_NACOS_SERVER_ADDR: nacos:8848   #注册到Nacos的IP  # 容器内通信
       SEATA_CONFIG_NACOS_GROUP: SEATA_GROUP
       SEATA_CONFIG_NACOS_DATA_ID: seataServer.properties
 #      SEATA_CONFIG_NACOS_USERNAME: nacos
@@ -230,7 +232,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
   redis:
     image: redis:7.2.3
     container_name: aioveu-redis
-    restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
+#    restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
     command: redis-server /etc/redis/redis.conf  --pidfile /data/redis.pid # 启动 Redis 服务并添加密码为--requirepass 775825，默认不开启 Redis AOF 方式持久化配置
     environment:
       - TZ=Asia/Shanghai
@@ -251,8 +253,8 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
     restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
     command: server /data --console-address ":9090"
     ports:
-      - 9001:9000
-      - 9091:9090
+      - 9002:9000
+      - 9092:9090
     environment:
       - TZ=Asia/Shanghai
       - LANG=en_US.UTF-8
@@ -267,7 +269,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
   rabbitmq:
     image: rabbitmq:3.12-management-alpine #rabbitmq:management
     container_name: aioveu-rabbitmq
-    restart: unless-stopped
+#    restart: unless-stopped
     environment:
       - TZ=Asia/Shanghai
       - RABBITMQ_DEFAULT_USER=adminlss
@@ -280,132 +282,132 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
 
   #XXL-JOB Admin是一款基于Java的分布式任务调度平台，它提供了丰富的功能，如实时监控、任务调度、报警通知和日志管理等。
   #通过XXL-JOB Admin，我们可以轻松管理和调度各类任务，实现高效的任务执行和监控。
-  xxl-job-admin:
-    image: xuxueli/xxl-job-admin:2.4.0   # https://hub.docker.com/r/xuxueli/xxl-job-admin/tags
-    container_name: aioveu-xxl-job-admin
-    restart: unless-stopped #  指定了容器的重启策略，除了手动停止容器，其他情况都自动重启容器
-    environment:
-      # 登录账号
-      XXL_JOB_ADMIN_USERNAME: admin
-      XXL_JOB_ADMIN_PASSWORD: 775825
-
-      # 数据库配置
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/aioveu_xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 775825
-
-      #打开浏览器访问：http://localhost:8181/xxl-job-admin
-
-
-
-    volumes:
-      #MySQL 8.x 需要特定驱动
-      - ./xxljob/lib/mysql-connector-j-8.0.33.jar:/usr/local/tomcat/lib/mysql-connector-java.jar
-      - ./xxljob/logs:/data/applogs
-    ports:
-      - 8181:8080
-    networks:
-      - aioveu-server
-    depends_on:
-      mysql:
-        condition: service_healthy
+#  xxl-job-admin:
+#    image: xuxueli/xxl-job-admin:2.4.0   # https://hub.docker.com/r/xuxueli/xxl-job-admin/tags
+#    container_name: aioveu-xxl-job-admin
+#    restart: unless-stopped #  指定了容器的重启策略，除了手动停止容器，其他情况都自动重启容器
+#    environment:
+#      # 登录账号
+#      XXL_JOB_ADMIN_USERNAME: admin
+#      XXL_JOB_ADMIN_PASSWORD: 775825
 #
-  gateway:
-    image: aioveu-gateway:v0.0.1
-    container_name: aioveu-gateway
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-    ports:
-      - "9999:9999"
-    networks:
-      - aioveu-server
-    depends_on:
-      - mysql
-      - nacos
+#      # 数据库配置
+#      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/aioveu_xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai
+#      SPRING_DATASOURCE_USERNAME: root
+#      SPRING_DATASOURCE_PASSWORD: 775825
 #
-  auth:
-    image: aioveu-auth:v0.0.1
-    container_name: aioveu-auth
-    #    build:
-    #      context: .
-    #      dockerfile: Dockerfile
-    ports:
-      - "9000:9000"
-    networks:
-      - aioveu-server
-    depends_on:
-      - mysql
-      - nacos
-      - gateway
-
-  system:
-    image: aioveu-system:v0.0.1
-    container_name: aioveu-system
-    #    build:
-    #      context: .
-    #      dockerfile: Dockerfile
-    ports:
-      - "8801:8800"
-    networks:
-      - aioveu-server
-    depends_on:
-      - mysql
-      - nacos
-      - gateway
-      - auth
-
-  oms:
-    image: aioveu-oms:v0.0.1
-    container_name: aioveu-oms
-    ports:
-      - "8813:8803"
-    networks:
-      - aioveu-server
-    depends_on:
-      - mysql
-      - nacos
-      - gateway
-      - auth
-      - system
-
-  pms:
-    image: aioveu-pms:v0.0.1
-    container_name: aioveu-pms
-    ports:
-      - "8812:8802"
-    networks:
-      - aioveu-server
-    depends_on:
-      - mysql
-      - nacos
-      - gateway
-      - auth
-      - system
-  sms:
-    image: aioveu-sms:v0.0.1
-    container_name: aioveu-sms
-    ports:
-      - "8814:8804"
-    networks:
-      - aioveu-server
-    depends_on:
-      - mysql
-      - nacos
-      - gateway
-      - auth
-      - system
-
-  ums:
-    image: aioveu-ums:v0.0.2
-    container_name: aioveu-ums
-    ports:
-      - "8811:8801"
-    networks:
-      - aioveu-server
-    depends_on:
-      - mysql
-      - nacos
-      - gateway
-      - auth
-      - system
+#      #打开浏览器访问：http://localhost:8181/xxl-job-admin
+#
+#
+#
+#    volumes:
+#      #MySQL 8.x 需要特定驱动
+#      - ./xxljob/lib/mysql-connector-j-8.0.33.jar:/usr/local/tomcat/lib/mysql-connector-java.jar
+#      - ./xxljob/logs:/data/applogs
+#    ports:
+#      - 8181:8080
+#    networks:
+#      - aioveu-server
+#    depends_on:
+#      mysql:
+#        condition: service_healthy
+##
+#  gateway:
+#    image: aioveu-gateway:v0.0.1
+#    container_name: aioveu-gateway
+##    build:
+##      context: .
+##      dockerfile: Dockerfile
+#    ports:
+#      - "9999:9999"
+#    networks:
+#      - aioveu-server
+#    depends_on:
+#      - mysql
+#      - nacos
+##
+#  auth:
+#    image: aioveu-auth:v0.0.1
+#    container_name: aioveu-auth
+#    #    build:
+#    #      context: .
+#    #      dockerfile: Dockerfile
+#    ports:
+#      - "9000:9000"
+#    networks:
+#      - aioveu-server
+#    depends_on:
+#      - mysql
+#      - nacos
+#      - gateway
+#
+#  system:
+#    image: aioveu-system:v0.0.1
+#    container_name: aioveu-system
+#    #    build:
+#    #      context: .
+#    #      dockerfile: Dockerfile
+#    ports:
+#      - "8801:8800"
+#    networks:
+#      - aioveu-server
+#    depends_on:
+#      - mysql
+#      - nacos
+#      - gateway
+#      - auth
+#
+#  oms:
+#    image: aioveu-oms:v0.0.1
+#    container_name: aioveu-oms
+#    ports:
+#      - "8813:8803"
+#    networks:
+#      - aioveu-server
+#    depends_on:
+#      - mysql
+#      - nacos
+#      - gateway
+#      - auth
+#      - system
+#
+#  pms:
+#    image: aioveu-pms:v0.0.1
+#    container_name: aioveu-pms
+#    ports:
+#      - "8812:8802"
+#    networks:
+#      - aioveu-server
+#    depends_on:
+#      - mysql
+#      - nacos
+#      - gateway
+#      - auth
+#      - system
+#  sms:
+#    image: aioveu-sms:v0.0.1
+#    container_name: aioveu-sms
+#    ports:
+#      - "8814:8804"
+#    networks:
+#      - aioveu-server
+#    depends_on:
+#      - mysql
+#      - nacos
+#      - gateway
+#      - auth
+#      - system
+#
+#  ums:
+#    image: aioveu-ums:v0.0.2
+#    container_name: aioveu-ums
+#    ports:
+#      - "8811:8801"
+#    networks:
+#      - aioveu-server
+#    depends_on:
+#      - mysql
+#      - nacos
+#      - gateway
+#      - auth
+#      - system

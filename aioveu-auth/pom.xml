@@ -96,6 +96,11 @@
 
         <dependency>
             <groupId>com.aioveu</groupId>
+            <artifactId>common-security</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
             <artifactId>common-sms</artifactId>
         </dependency>
 

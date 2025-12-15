@@ -1,5 +1,5 @@
 spring:
   application:
-    name: aioveu-ums
+    name: aioveu-ums   # 会员服务
   profiles:
     active: dev

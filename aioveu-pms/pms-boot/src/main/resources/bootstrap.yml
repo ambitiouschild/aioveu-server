@@ -1,5 +1,5 @@
 spring:
   application:
-    name: aioveu-pms
+    name: aioveu-pms     # 商品服务
   profiles:
     active: dev

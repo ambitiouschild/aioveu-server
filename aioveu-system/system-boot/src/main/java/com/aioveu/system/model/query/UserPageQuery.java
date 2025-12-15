@@ -1,8 +1,14 @@
 package com.aioveu.system.model.query;
 
+import cn.hutool.db.sql.Direction;
+import com.aioveu.common.annotation.ValidField;
 import com.aioveu.common.base.BasePageQuery;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import java.util.List;
 
 /**
  * @Description: TODO 用户分页查询对象
@@ -12,8 +18,9 @@ import lombok.Data;
  * @return:
  **/
 
-@Schema 
 @Data
+@EqualsAndHashCode(callSuper = false)
+@Schema(description = "用户分页查询对象")
 public class UserPageQuery extends BasePageQuery {
 
     @Schema(description="关键字(用户名/昵称/手机号)")
@@ -24,5 +31,25 @@ public class UserPageQuery extends BasePageQuery {
 
     @Schema(description="部门ID")
     private Long deptId;
+
+    @Schema(description = "角色ID")
+    private List<Long> roleIds;
+
+    @Schema(description = "创建时间范围")
+    private List<String> createTime;
+
+    @Schema(description = "排序的字段")
+    @ValidField(allowedValues = {"create_time", "update_time"})
+    private String field;
+
+    @Schema(description = "排序方式（正序:ASC；反序:DESC）")
+    private Direction direction;
+
+    /**
+     * 是否超级管理员
+     */
+    @JsonIgnore
+    @Schema(hidden = true)
+    private Boolean isRoot;
 
 }

@@ -1,5 +1,6 @@
 package com.aioveu.system.service;
 
+import com.aioveu.system.model.vo.DictItemOptionVO;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.aioveu.common.web.model.Option;
@@ -26,6 +27,16 @@ public interface SysDictService extends IService<SysDict> {
      * @return
      */
     Page<DictPageVO> getDictPage(DictPageQuery queryParams);
+
+
+    /**
+     * 获取字典项列表
+     *
+     * @param dictCode 字典编码
+     * @return 字典项列表
+     */
+    List<DictItemOptionVO> getDictItems(String dictCode);
+
 
     /**
      * 字典数据项表单

@@ -48,4 +48,10 @@ public class AliyunSmsProperties {
      * 模板编码
      */
     private Map<String, String> templateCodes;
+
+
+    /**
+     * 短信模板集合
+     */
+    private Map<String, String> templates;
 }

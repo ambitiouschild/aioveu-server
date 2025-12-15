@@ -3,17 +3,22 @@ package com.aioveu.system.model.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.aioveu.common.base.BaseEntity;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * @Description: TODO 用户表
+ * @Description: TODO 用户表 用户实体
  * @Author: 雒世松
  * @Date: 2025/6/5 17:22
  * @param
  * @return:
  **/
-
+@TableName("sys_user")
 @Data
+@Getter
+@Setter
 public class SysUser extends BaseEntity {
     /**
      * 
@@ -67,8 +72,25 @@ public class SysUser extends BaseEntity {
     private String email;
 
     /**
+     * 创建人 ID
+     */
+    private Long createBy;
+
+    /**
+     * 更新人 ID
+     */
+    private Long updateBy;
+
+
+    /**
      * 逻辑删除标识(0:未删除;1:已删除)
      */
     private Integer deleted;
+
+    /**
+     * 微信 OpenID
+     */
+    private String openid;
+
 
 }

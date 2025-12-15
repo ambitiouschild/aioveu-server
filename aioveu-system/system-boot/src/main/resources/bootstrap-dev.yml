@@ -29,3 +29,15 @@ spring:
           group: AIOVEU_GROUP  # 使用相同的分组
           refresh: true
 
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ambitiouschild@gmail.com
+    password: 7758258
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true

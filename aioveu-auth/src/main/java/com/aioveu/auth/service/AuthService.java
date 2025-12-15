@@ -1,93 +1,92 @@
 package com.aioveu.auth.service;
 
-import cn.hutool.captcha.AbstractCaptcha;
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.RandomUtil;
-import cn.hutool.json.JSONUtil;
-import com.aioveu.auth.config.CaptchaProperties;
-import com.aioveu.auth.model.CaptchaResult;
-import com.aioveu.common.constant.RedisConstants;
-import com.aioveu.common.sms.property.AliyunSmsProperties;
-import com.aioveu.common.sms.service.SmsService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Service;
-
-import java.util.Collections;
-import java.util.concurrent.TimeUnit;
+import com.aioveu.auth.model.CaptchaInfo;
+import com.aioveu.auth.model.WxMiniAppCodeLoginDTO;
+import com.aioveu.auth.model.WxMiniAppPhoneLoginDTO;
+import com.aioveu.common.security.model.AuthenticationToken;
 
 /**
- * @Description: TODO 认证服务
- * @Author: 雒世松
- * @Date: 2025/6/5 17:52
- * @param
- * @return:
+ * @ClassName: AuthService
+ * @Description TODO  认证服务接口
+ * @Author 可我不敌可爱
+ * @Author 雒世松
+ * @Date 2025/12/14 14:23
+ * @Version 1.0
  **/
-
-@Service
-@RequiredArgsConstructor
-public class AuthService {
-
-    private final CaptchaProperties captchaProperties;
-    private final CaptchaService captchaService;
-
-    private final AliyunSmsProperties aliyunSmsProperties;
-    private final SmsService smsService;
-
-    private final StringRedisTemplate redisTemplate;
-
+public interface AuthService {
 
     /**
-     * 获取图形验证码
+     * 登录
      *
-     * @return Result<CaptchaResult>
+     * @param username 用户名
+     * @param password 密码
+     * @return 登录结果
      */
-    public CaptchaResult getCaptcha() {
+    AuthenticationToken login(String username, String password);
 
-        AbstractCaptcha captcha = captchaService.generate();
-
-        // 验证码文本缓存至Redis，用于登录校验
-        String captchaId = IdUtil.fastSimpleUUID();
-        redisTemplate.opsForValue().set(
-                RedisConstants.CAPTCHA_CODE_PREFIX + captchaId,
-                captcha.getCode(),
-                captchaProperties.getExpireSeconds(),
-                TimeUnit.SECONDS
-        );
-
-        CaptchaResult captchaResult = CaptchaResult.builder()
-                .captchaId(captchaId)
-                .captchaBase64(captcha.getImageBase64Data())
-                .build();
-
-        return captchaResult;
-    }
 
     /**
-     * 发送登录短信验证码
+     * 登出
+     */
+    void logout();
+
+    /**
+     * 获取验证码
+     *
+     * @return 验证码
+     */
+    CaptchaInfo getCaptcha();
+
+
+    /**
+     * 刷新令牌
+     *
+     * @param refreshToken 刷新令牌
+     * @return 登录结果
+     */
+    AuthenticationToken refreshToken(String refreshToken);
+
+    /**
+     * 微信小程序登录
+     *
+     * @param code 微信登录code
+     * @return 登录结果
+     */
+    AuthenticationToken loginByWechat(String code);
+
+    /**
+     * 微信小程序Code登录
+     *
+     * @param loginDTO 登录参数
+     * @return 访问令牌
+     */
+    AuthenticationToken loginByWxMiniAppCode(WxMiniAppCodeLoginDTO loginDTO);
+
+
+    /**
+     * 微信小程序手机号登录
+     *
+     * @param loginDTO 登录参数
+     * @return 访问令牌
+     */
+    AuthenticationToken loginByWxMiniAppPhone(WxMiniAppPhoneLoginDTO loginDTO);
+
+
+    /**
+     * 发送短信验证码
      *
      * @param mobile 手机号
-     * @return true|false 是否发送成功
      */
-    public boolean sendLoginSmsCode(String mobile) {
-        // 获取短信模板代码
-        String templateCode = aliyunSmsProperties.getTemplateCodes().get("login");
+    void sendSmsLoginCode(String mobile);
 
-        // 生成随机4位数验证码
-        String code = RandomUtil.randomNumbers(4);
 
-        // 短信模板: 您的验证码：${code}，该验证码5分钟内有效，请勿泄漏于他人。
-        // 其中 ${code} 是模板参数，使用时需要替换为实际值。
-        String templateParams = JSONUtil.toJsonStr(Collections.singletonMap("code", code));
-
-        boolean result = smsService.sendSms(mobile, templateCode, templateParams);
-        if (result) {
-            // 将验证码存入redis，有效期5分钟
-            redisTemplate.opsForValue().set(RedisConstants.REGISTER_SMS_CODE_PREFIX + mobile, code, 5, TimeUnit.MINUTES);
-
-            // TODO 考虑记录每次发送短信的详情，如发送时间、手机号和短信内容等，以便后续审核或分析短信发送效果。
-        }
-        return result;
-    }
+    /**
+     * 短信验证码登录
+     *
+     * @param mobile 手机号
+     * @param code   验证码
+     * @return 登录结果
+     */
+    AuthenticationToken loginBySms(String mobile, String code);
 
 }

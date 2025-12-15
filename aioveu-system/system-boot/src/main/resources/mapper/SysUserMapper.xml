@@ -94,6 +94,24 @@
         </collection>
     </resultMap>
 
+    <!-- 根据用户名获取用户的认证信息 -->
+    <select id="getAuthCredentialsByUsername" resultMap="AuthCredentialsMap">
+        SELECT
+            t1.id userId,
+            t1.username,
+            t1.nickname,
+            t1.PASSWORD,
+            t1.STATUS,
+            t1.dept_id ,
+            t3.CODE
+        FROM
+            sys_user t1
+                LEFT JOIN sys_user_role t2 ON t2.user_id = t1.id
+                LEFT JOIN sys_role t3 ON t3.id = t2.role_id
+        WHERE
+            t1.username = #{username} AND t1.is_deleted = 0
+    </select>
+
     <!-- 根据用户名获取认证信息 -->
     <select id="getUserAuthInfo" resultMap="UserAuthMap">
         SELECT
@@ -114,6 +132,42 @@
         WHERE
             t1.username = #{username}
             AND t1.deleted=0
+    </select>
+
+    <!-- 根据微信openid获取用户的认证信息  -->
+    <select id="getAuthCredentialsByOpenId" resultMap="AuthCredentialsMap">
+        SELECT
+            t1.id userId,
+            t1.username,
+            t1.nickname,
+            t1.PASSWORD,
+            t1.STATUS,
+            t1.dept_id ,
+            t3.CODE
+        FROM
+            sys_user t1
+                LEFT JOIN sys_user_role t2 ON t2.user_id = t1.id
+                LEFT JOIN sys_role t3 ON t3.id = t2.role_id
+        WHERE
+            t1.openid = #{openid} AND t1.is_deleted = 0
+    </select>
+
+
+    <!-- 根据手机号获取用户的认证信息 -->
+    <select id="getAuthCredentialsByMobile" resultMap="AuthCredentialsMap">
+        SELECT
+            t1.id userId,
+            t1.username,
+            t1.nickname,
+            t1.STATUS,
+            t1.dept_id ,
+            t3.CODE
+        FROM
+            sys_user t1
+                LEFT JOIN sys_user_role t2 ON t2.user_id = t1.id
+                LEFT JOIN sys_role t3 ON t3.id = t2.role_id
+        WHERE
+            t1.mobile = #{mobile} AND t1.is_deleted = 0
     </select>
 
     <!-- 获取用户导出列表 -->
