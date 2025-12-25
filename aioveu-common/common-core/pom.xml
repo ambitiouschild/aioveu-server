@@ -44,6 +44,23 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+
+<!--        RedisTemplate是 Spring Data Redis 的核心依赖-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+
+        <!--        EasyExcel 是阿里巴巴开源的 Excel 操作库，基于 Apache POI 但更加节省内存-->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>easyexcel</artifactId>
+            <version>3.3.2</version>
+        </dependency>
+
+
+
     </dependencies>
 
 </project>

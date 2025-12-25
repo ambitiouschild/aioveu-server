@@ -1,6 +1,6 @@
 package com.aioveu.auth.oauth2.oidc;
 
-import com.aioveu.system.api.UserFeignClient;
+import com.aioveu.system.api.SystemFeignClient;
 import com.aioveu.system.dto.UserAuthInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,16 +19,16 @@ import java.util.Map;
 @Slf4j
 public class CustomOidcUserInfoService {
 
-    private final UserFeignClient userFeignClient;
+    private final SystemFeignClient systemFeignClient;
 
-    public CustomOidcUserInfoService(UserFeignClient userFeignClient) {
-        this.userFeignClient = userFeignClient;
+    public CustomOidcUserInfoService(SystemFeignClient systemFeignClient) {
+        this.systemFeignClient = systemFeignClient;
     }
 
     public CustomOidcUserInfo loadUserByUsername(String username) {
         UserAuthInfo userAuthInfo = null;
         try {
-            userAuthInfo = userFeignClient.getUserAuthInfo(username);
+            userAuthInfo = systemFeignClient.getUserAuthInfo(username);
             if (userAuthInfo == null) {
                 return null;
             }

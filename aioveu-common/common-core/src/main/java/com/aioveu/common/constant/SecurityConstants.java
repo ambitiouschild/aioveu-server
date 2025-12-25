@@ -10,11 +10,17 @@ package com.aioveu.common.constant;
  **/
 public interface SecurityConstants {
 
-
+// ========== HTTP 认证头常量 ==========
     /**
      * 登录路径
      */
     String LOGIN_PATH = "/api/v1/auth/login";
+
+
+    /**
+     * 认证请求头名称
+     */
+    String AUTH_HEADER = "Authorization";
 
     /**
      * JWT Token 前缀

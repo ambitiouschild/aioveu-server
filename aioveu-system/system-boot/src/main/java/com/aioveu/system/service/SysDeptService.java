@@ -1,11 +1,11 @@
 package com.aioveu.system.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.aioveu.common.web.model.Option;
 import com.aioveu.system.model.entity.SysDept;
 import com.aioveu.system.model.form.DeptForm;
 import com.aioveu.system.model.query.DeptQuery;
 import com.aioveu.system.model.vo.DeptVO;
+import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;
 

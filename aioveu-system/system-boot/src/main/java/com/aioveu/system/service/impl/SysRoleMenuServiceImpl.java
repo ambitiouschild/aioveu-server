@@ -1,12 +1,12 @@
 package com.aioveu.system.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.aioveu.common.constant.RedisConstants;
 import com.aioveu.system.mapper.SysRoleMenuMapper;
 import com.aioveu.system.model.bo.RolePermsBO;
 import com.aioveu.system.model.entity.SysRoleMenu;
 import com.aioveu.system.service.SysRoleMenuService;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;

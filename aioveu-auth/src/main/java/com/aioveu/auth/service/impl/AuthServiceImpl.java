@@ -1,352 +1,133 @@
 package com.aioveu.auth.service.impl;
 
 import cn.hutool.captcha.AbstractCaptcha;
-import cn.hutool.captcha.CaptchaUtil;
-import cn.hutool.captcha.generator.CodeGenerator;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.aioveu.auth.config.CaptchaProperties;
-import com.aioveu.auth.enums.CaptchaTypeEnum;
-import com.aioveu.auth.model.CaptchaInfo;
 import com.aioveu.auth.model.CaptchaResult;
-import com.aioveu.auth.model.WxMiniAppCodeLoginDTO;
-import com.aioveu.auth.model.WxMiniAppPhoneLoginDTO;
-import com.aioveu.auth.service.AuthService;
-import com.aioveu.auth.service.CaptchaService;
 import com.aioveu.common.constant.RedisConstants;
-import com.aioveu.common.exception.BusinessException;
-import com.aioveu.common.result.ResultCode;
-import com.aioveu.common.security.extension.sms.SmsAuthenticationToken;
-import com.aioveu.common.security.extension.wx.WxMiniAppCodeAuthenticationToken;
-import com.aioveu.common.security.extension.wx.WxMiniAppPhoneAuthenticationToken;
-import com.aioveu.common.security.model.AuthenticationToken;
-import com.aioveu.common.security.token.TokenManager;
-import com.aioveu.common.security.util.SecurityUtils;
-import com.aioveu.common.sms.enmus.SmsTypeEnum;
 import com.aioveu.common.sms.property.AliyunSmsProperties;
 import com.aioveu.common.sms.service.SmsService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import com.aioveu.common.constant.SecurityConstants;
-
-import java.awt.*;
+import com.aioveu.auth.service.CaptchaService;
+import com.aioveu.auth.service.AuthService;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @Description: TODO 认证服务  认证服务实现类
+ * @Description: TODO 认证服务   - 处理用户认证相关的业务逻辑，包括验证码生成、短信发送等
  * @Author: 雒世松
  * @Date: 2025/6/5 17:52
  * @param
  * @return:
  **/
 
-@Service
-@RequiredArgsConstructor
-@Slf4j
+@Service   // 标识为Spring服务层组件，由Spring容器管理，处理业务逻辑
+@RequiredArgsConstructor   // Lombok注解，自动生成包含所有final字段的构造函数，实现依赖注入
 public class AuthServiceImpl implements AuthService {
 
 
-    private final AuthenticationManager authenticationManager;
-    private final TokenManager tokenManager;
-
-
+    // 验证码配置属性，从配置文件中读取验证码相关设置（如过期时间、宽度、高度等）
     private final CaptchaProperties captchaProperties;
-    private final CodeGenerator codeGenerator;
-    private final Font captchaFont;
+
+    // 验证码服务，负责生成具体的验证码图片（图形验证码、算术验证码等）
     private final CaptchaService captchaService;
 
+    // 阿里云短信配置属性，包含accessKey、secretKey、模板代码等配置信息
     private final AliyunSmsProperties aliyunSmsProperties;
+
+    // 短信发送服务，封装了短信发送的具体实现
     private final SmsService smsService;
 
+    // Redis模板，用于操作Redis数据库，存储验证码和短信验证码等临时数据
     private final StringRedisTemplate redisTemplate;
 
 
     /**
-     * 用户名密码登录
+     * 生成图形验证码并缓存到Redis
+     * 流程：生成验证码图片 → 生成唯一ID → 缓存验证码文本 → 返回给前端
      *
-     * @param username 用户名
-     * @param password 密码
-     * @return 访问令牌
+     * @return CaptchaResult 包含验证码ID和Base64编码的图片数据
+     *
+     * 使用场景：用户登录、注册、敏感操作时的安全验证
+     * 安全机制：验证码文本存储在Redis，有效期内只能使用一次
      */
     @Override
-    public AuthenticationToken login(String username, String password) {
-        // 1. 创建用于密码认证的令牌（未认证）
-        UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(username.trim(), password);
+    public CaptchaResult getCaptcha() {
 
-        // 2. 执行认证（认证中）
-        Authentication authentication = authenticationManager.authenticate(authenticationToken);
-
-        // 3. 认证成功后生成 JWT 令牌，并存入 Security 上下文，供登录日志 AOP 使用（已认证）
-        AuthenticationToken authenticationTokenResponse =
-                tokenManager.generateToken(authentication);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        return authenticationTokenResponse;
-    }
-
-    /**
-     * 微信一键授权登录
-     *
-     * @param code 微信登录code
-     * @return 访问令牌
-     */
-    @Override
-    public AuthenticationToken loginByWechat(String code) {
-        // 1. 创建用户微信认证的令牌（未认证）
-        WxMiniAppCodeAuthenticationToken authenticationToken = new WxMiniAppCodeAuthenticationToken(code);
-
-        // 2. 执行认证（认证中）
-        Authentication authentication = authenticationManager.authenticate(authenticationToken);
-
-        // 3. 认证成功后生成 JWT 令牌，并存入 Security 上下文，供登录日志 AOP 使用（已认证）
-        AuthenticationToken token = tokenManager.generateToken(authentication);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        return token;
-    }
-
-    /**
-     * 发送登录短信验证码
-     *
-     * @param mobile 手机号
-     */
-    @Override
-    public void sendSmsLoginCode(String mobile) {
-
-        // 随机生成4位验证码
-        // String code = String.valueOf((int) ((Math.random() * 9 + 1) * 1000));
-        // TODO 为了方便测试，验证码固定为 1234，实际开发中在配置了厂商短信服务后，可以使用上面的随机验证码
-        String code = "1234";
-
-        // 发送短信验证码
-        Map<String, String> templateParams = new HashMap<>();
-        templateParams.put("code", code);
-        try {
-            smsService.sendSms(mobile, SmsTypeEnum.LOGIN, templateParams);
-        } catch (Exception e) {
-            log.error("发送短信验证码失败", e);
-        }
-        // 缓存验证码至Redis，用于登录校验
-        redisTemplate.opsForValue().set(StrUtil.format(RedisConstants.Captcha.SMS_LOGIN_CODE, mobile), code, 5, TimeUnit.MINUTES);
-    }
-
-    /**
-     * 发送登录短信验证码
-     *
-     * @param mobile 手机号
-     * @return true|false 是否发送成功
-     */
-    public boolean sendLoginSmsCode(String mobile) {
-        // 获取短信模板代码
-        String templateCode = aliyunSmsProperties.getTemplateCodes().get("login");
-
-        // 生成随机4位数验证码
-        String code = RandomUtil.randomNumbers(4);
-
-        // 短信模板: 您的验证码：${code}，该验证码5分钟内有效，请勿泄漏于他人。
-        // 其中 ${code} 是模板参数，使用时需要替换为实际值。
-        String templateParams = JSONUtil.toJsonStr(Collections.singletonMap("code", code));
-
-        boolean result = smsService.sendSmsOld(mobile, templateCode, templateParams);
-        if (result) {
-            // 将验证码存入redis，有效期5分钟
-            redisTemplate.opsForValue().set(RedisConstants.REGISTER_SMS_CODE_PREFIX + mobile, code, 5, TimeUnit.MINUTES);
-
-            // TODO 考虑记录每次发送短信的详情，如发送时间、手机号和短信内容等，以便后续审核或分析短信发送效果。
-        }
-        return result;
-    }
-
-    /**
-     * 短信验证码登录
-     *
-     * @param mobile 手机号
-     * @param code   验证码
-     * @return 访问令牌
-     */
-    @Override
-    public AuthenticationToken loginBySms(String mobile, String code) {
-        // 1. 创建用户短信验证码认证的令牌（未认证）
-        SmsAuthenticationToken smsAuthenticationToken = new SmsAuthenticationToken(mobile, code);
-
-        // 2. 执行认证（认证中）
-        Authentication authentication = authenticationManager.authenticate(smsAuthenticationToken);
-
-        // 3. 认证成功后生成 JWT 令牌，并存入 Security 上下文，供登录日志 AOP 使用（已认证）
-        AuthenticationToken authenticationToken = tokenManager.generateToken(authentication);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        return authenticationToken;
-    }
-
-
-    /**
-     * 注销登录
-     */
-    @Override
-    public void logout() {
-        String token = SecurityUtils.getTokenFromRequest();
-        if (StrUtil.isNotBlank(token) && token.startsWith(SecurityConstants.BEARER_TOKEN_PREFIX )) {
-            token = token.substring(SecurityConstants.BEARER_TOKEN_PREFIX .length());
-            // 将JWT令牌加入黑名单
-            tokenManager.invalidateToken(token);
-            // 清除Security上下文
-            SecurityContextHolder.clearContext();
-        }
-    }
-
-
-    /**
-     * 获取验证码
-     *
-     * @return 验证码
-     */
-    @Override
-    public CaptchaInfo getCaptcha() {
-
-        String captchaType = captchaProperties.getType();
-        int width = captchaProperties.getWidth();
-        int height = captchaProperties.getHeight();
-        int interfereCount = captchaProperties.getInterfereCount();
-        int codeLength = captchaProperties.getCode().getLength();
-
-        AbstractCaptcha captcha;
-        if (CaptchaTypeEnum.CIRCLE.name().equalsIgnoreCase(captchaType)) {
-            captcha = CaptchaUtil.createCircleCaptcha(width, height, codeLength, interfereCount);
-        } else if (CaptchaTypeEnum.GIF.name().equalsIgnoreCase(captchaType)) {
-            captcha = CaptchaUtil.createGifCaptcha(width, height, codeLength);
-        } else if (CaptchaTypeEnum.LINE.name().equalsIgnoreCase(captchaType)) {
-            captcha = CaptchaUtil.createLineCaptcha(width, height, codeLength, interfereCount);
-        } else if (CaptchaTypeEnum.SHEAR.name().equalsIgnoreCase(captchaType)) {
-            captcha = CaptchaUtil.createShearCaptcha(width, height, codeLength, interfereCount);
-        } else {
-            throw new IllegalArgumentException("Invalid captcha type: " + captchaType);
-        }
-        captcha.setGenerator(codeGenerator);
-        captcha.setTextAlpha(captchaProperties.getTextAlpha());
-        captcha.setFont(captchaFont);
-
-        String captchaCode = captcha.getCode();
-        String imageBase64Data = captcha.getImageBase64Data();
-
-        // 验证码文本缓存至Redis，用于登录校验
-        String captchaKey = IdUtil.fastSimpleUUID();
-        redisTemplate.opsForValue().set(
-                StrUtil.format(RedisConstants.Captcha.IMAGE_CODE, captchaKey),
-                captchaCode,
-                captchaProperties.getExpireSeconds(),
-                TimeUnit.SECONDS
-        );
-
-        return CaptchaInfo.builder()
-                .captchaKey(captchaKey)
-                .captchaBase64(imageBase64Data)
-                .build();
-    }
-
-    /**
-     * 获取图形验证码
-     *
-     * @return Result<CaptchaResult>
-     */
-    public CaptchaResult getCaptcha2() {
-
+        // 调用验证码服务生成验证码图片（包含图片和验证码文本）
         AbstractCaptcha captcha = captchaService.generate();
 
         // 验证码文本缓存至Redis，用于登录校验
+        // 生成唯一的验证码ID，用于后续验证时从Redis中查找对应的验证码文本
         String captchaId = IdUtil.fastSimpleUUID();
+
+        // 将验证码文本存储到Redis，设置过期时间（防止验证码被长期滥用）
         redisTemplate.opsForValue().set(
-                RedisConstants.CAPTCHA_CODE_PREFIX + captchaId,
-                captcha.getCode(),
-                captchaProperties.getExpireSeconds(),
-                TimeUnit.SECONDS
+                RedisConstants.CAPTCHA_CODE_PREFIX + captchaId,  // Redis键：captcha:code:{captchaId}
+                captcha.getCode(),   // 验证码实际文本（如"AB12"）
+                captchaProperties.getExpireSeconds(),   // 从配置读取过期时间（通常60-300秒）
+                TimeUnit.SECONDS  // 时间单位：秒
         );
 
+
+        // 构建返回结果对象，包含验证码ID和Base64编码的图片数据
         CaptchaResult captchaResult = CaptchaResult.builder()
-                .captchaId(captchaId)
-                .captchaBase64(captcha.getImageBase64Data())
+                .captchaId(captchaId)  // 前端需要保存此ID，验证时随验证码文本一起提交
+                .captchaBase64(captcha.getImageBase64Data())    // Base64图片数据，可直接在img标签中显示
                 .build();
 
         return captchaResult;
     }
 
     /**
-     * 刷新token
+     * 发送登录短信验证码
+     * 流程：生成随机验证码 → 调用短信服务发送 → 缓存验证码到Redis → 返回发送结果
+     * @param mobile 手机号 需要验证格式：11位数字）
+     * @return true|false 是否发送成功
      *
-     * @param refreshToken 刷新令牌
-     * @return 新的访问令牌
+     *      * 安全考虑：
+     *      * 1. 需要防止短信轰炸（应在调用前检查发送频率）
+     *      * 2. 验证码有效期较短（通常5分钟）
+     *      * 3. 验证码使用后立即失效
+     *      *
+     *      * 业务场景：手机号登录、手机号绑定、重要操作验证
      */
     @Override
-    public AuthenticationToken refreshToken(String refreshToken) {
-        // 验证刷新令牌
-        boolean isValidate = tokenManager.validateRefreshToken(refreshToken);
+    public boolean sendLoginSmsCode(String mobile) {
+        // 获取短信模板代码  // 从配置中获取登录相关的短信模板代码（不同业务场景使用不同模板）
+        String templateCode = aliyunSmsProperties.getTemplateCodes().get("login");
 
-        if (!isValidate) {
-            throw new BusinessException(ResultCode.REFRESH_TOKEN_INVALID);
+        // 生成随机4位数验证码 // 生成4位随机数字验证码（如："1234"）
+        String code = RandomUtil.randomNumbers(4);
+
+        // 短信模板: 您的验证码：${code}，该验证码5分钟内有效，请勿泄漏于他人。
+        // 其中 ${code} 是模板参数，使用时需要替换为实际值。
+        // 示例模板内容："您的验证码：${code}，该验证码5分钟内有效，请勿泄漏于他人。"
+        String templateParams = JSONUtil.toJsonStr(Collections.singletonMap("code", code));
+
+
+        // 调用短信服务发送验证码短信
+        boolean result = smsService.sendSms(mobile, templateCode, templateParams);
+
+        if (result) {
+            // 将验证码存入redis，有效期5分钟
+            // 将验证码存储到Redis，key格式：register:sms:code:{手机号}
+            redisTemplate.opsForValue().set(
+                    RedisConstants.REGISTER_SMS_CODE_PREFIX + mobile,  // Redis键前缀+手机号
+                    code,   // 4位数字验证码
+                    5,    // 有效期5分钟（防止验证码被长期使用）
+                    TimeUnit.MINUTES);   // 时间单位：分钟
+
+            // TODO 考虑记录每次发送短信的详情，如发送时间、手机号和短信内容等，以便后续审核或分析短信发送效果。
+            // TODO 待完善功能：记录短信发送日志，用于后续审计和分析
+            // 可记录：发送时间、手机号、IP地址、发送结果、短信内容等
+            // 便于监控短信发送情况、防止滥用、分析发送效果
         }
-        // 刷新令牌有效，生成新的访问令牌
-        return tokenManager.refreshToken(refreshToken);
+        return result;
     }
-
-    /**
-     * 微信小程序Code登录
-     *
-     * @param loginDTO 登录参数
-     * @return 访问令牌
-     */
-    @Override
-    public AuthenticationToken loginByWxMiniAppCode(WxMiniAppCodeLoginDTO loginDTO) {
-        // 1. 创建微信小程序认证令牌（未认证）
-        WxMiniAppCodeAuthenticationToken authenticationToken = new WxMiniAppCodeAuthenticationToken(loginDTO.getCode());
-
-        // 2. 执行认证（认证中）
-        Authentication authentication = authenticationManager.authenticate(authenticationToken);
-
-        // 3. 认证成功后生成 JWT 令牌，并存入 Security 上下文，供登录日志 AOP 使用（已认证）
-        AuthenticationToken token = tokenManager.generateToken(authentication);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        return token;
-    }
-
-    /**
-     * 微信小程序手机号登录
-     *
-     * @param loginDTO 登录参数
-     * @return 访问令牌
-     */
-    @Override
-    public AuthenticationToken loginByWxMiniAppPhone(WxMiniAppPhoneLoginDTO loginDTO) {
-        // 创建微信小程序手机号认证Token
-        WxMiniAppPhoneAuthenticationToken authenticationToken = new WxMiniAppPhoneAuthenticationToken(
-                loginDTO.getCode(),
-                loginDTO.getEncryptedData(),
-                loginDTO.getIv()
-        );
-
-        // 执行认证
-        Authentication authentication = authenticationManager.authenticate(authenticationToken);
-
-        // 认证成功后生成JWT令牌，并存入Security上下文
-        AuthenticationToken token = tokenManager.generateToken(authentication);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        return token;
-    }
-
-
-
-
 
 }

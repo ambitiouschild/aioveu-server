@@ -1,12 +1,12 @@
 package com.aioveu.system.handler;
 
+import com.aioveu.common.result.Result;
+import com.aioveu.common.result.ResultCode;
 import com.alibaba.csp.sentinel.adapter.spring.webmvc.callback.BlockExceptionHandler;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.aioveu.common.result.Result;
-import com.aioveu.common.result.ResultCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jodd.net.HttpStatus;

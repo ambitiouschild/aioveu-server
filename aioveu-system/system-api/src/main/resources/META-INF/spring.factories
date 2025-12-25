@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  com.aioveu.system.api.fallback.UserFeignFallbackClient
+  com.aioveu.system.user.api.fallback.UserFeignFallbackClient

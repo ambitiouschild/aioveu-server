@@ -81,6 +81,14 @@
             <artifactId>common-core</artifactId>
         </dependency>
 
+        <!--        添加 ip2region 依赖，这是一个高效的IP地址定位库-->
+        <dependency>
+            <groupId>org.lionsoul</groupId>
+            <artifactId>ip2region</artifactId>
+            <version>2.7.0</version>
+        </dependency>
+
+
     </dependencies>
 
 </project>

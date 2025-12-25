@@ -1,7 +1,7 @@
 package com.aioveu.system.model.vo;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.aioveu.system.enums.MenuTypeEnum;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

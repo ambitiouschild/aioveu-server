@@ -23,7 +23,8 @@ public interface SmsService {
      *
      * @return  boolean 是否发送成功
      */
-    boolean sendSmsOld(String mobile, String templateCode, String templateParam);
+    boolean sendSms(String mobile, String templateCode, String templateParam);
+
 
     /**
      * 发送短信
@@ -33,7 +34,6 @@ public interface SmsService {
      * @param templateParams 模板参数 [{"code":"123456"}] ，用于替换短信模板中的变量
      * @return boolean 是否发送成功
      */
-    boolean sendSms(String mobile, SmsTypeEnum smsType, Map<String, String> templateParams);
-
+    boolean sendSms2(String mobile, SmsTypeEnum smsType, Map<String, String> templateParams);
 
 }

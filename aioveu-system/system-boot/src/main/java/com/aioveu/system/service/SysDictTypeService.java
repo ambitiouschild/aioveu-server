@@ -1,12 +1,12 @@
 package com.aioveu.system.service;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.aioveu.common.web.model.Option;
 import com.aioveu.system.model.entity.SysDictType;
 import com.aioveu.system.model.form.DictTypeForm;
 import com.aioveu.system.model.query.DictTypePageQuery;
 import com.aioveu.system.model.vo.DictTypePageVO;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;
 

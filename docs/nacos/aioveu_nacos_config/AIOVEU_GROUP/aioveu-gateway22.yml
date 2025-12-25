@@ -1,0 +1,131 @@
+spring:
+  data:
+    redis:
+      # Redis 超时时间，PT30S 表示 30 秒
+      timeout: PT30S
+      # Redis 数据库编号，从环境变量读取
+      database: ${redis.database}
+      # Redis 主机地址
+      host: ${redis.host}
+      # Redis 端口
+      port: ${redis.port}
+      # Redis 密码
+      password: ${redis.password}
+      lettuce:
+        pool:
+          # 连接池最小空闲连接数
+          min-idle: 1
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true # 启用服务发现
+          lower-case-service-id: true    # 服务名转小写
+
+      # ========== 重要修改：移除 TokenRelay，这是 OAuth2 的 ==========
+      # default-filters:
+      #   - TokenRelay=  # 移除这行，JWT 不需要 TokenRelay
+
+      routes:
+
+        # 静态路由配置
+        # ========== Auth 服务路由 ==========
+        # 处理 /aioveu-auth/ 开头的请求
+        - id: auth-service          # 路由ID
+          uri: lb://aioveu-auth    # 目标服务，lb:// 表示负载均衡
+          predicates:
+            # 重要修改：使用新的路径格式
+            - Path=/aioveu-auth/**  # ❌ 只匹配 /aioveu-auth/ 开头的路径
+          filters:
+            - StripPrefix=1  # 直接去掉前缀，让请求保持原样    # 移除路径前缀（移除 /aioveu-auth/）
+
+
+        - id: 系统服务
+          uri: lb://aioveu-system
+          #直接访问 system 服务（不使用 /aioveu-system/ 前缀）
+          predicates:
+            - Path=/aioveu-system/**
+          filters:
+            - StripPrefix=1
+
+          # ✅ 重要：添加API文档路由# ✅ 重要：添加Knife4j静态资源路由
+        - id: api-docs knife4j-static
+          uri: lb://aioveu-auth  # 可以是任意服务
+          predicates:
+            - Path=/doc.html,/webjars/**,/favicon.ico,/v3/api-docs/swagger-config
+          filters:
+            - StripPrefix=0
+
+      globalcors:
+        corsConfigurations:
+          '[/**]': # 对所有路由应用CORS配置
+            # 允许所有域名的请求
+            allowedOriginPatterns: "*"
+            # 允许所有请求方法，如GET、POST、PUT、DELETE等
+            allowedMethods: "*"
+            # 允许所有请求头
+            allowedHeaders: "*"
+            # 允许凭证，如Cookies和HTTP认证
+            allowCredentials: true
+            maxAge: 3600
+# Feign 配置
+feign:
+  httpclient:
+    enabled: true
+  okhttp:
+    enabled: false
+  sentinel:  # 开启feign对sentinel的支持
+    enabled: false
+
+
+# 安全配置
+security:
+  # 访问黑名单
+  blacklist-paths:
+    # 获取用户认证信息
+    - /aioveu-system/api/v1/users/{username}/authInfo
+
+# knife4j 网关聚合
+# https://doc.xiaominfo.com/docs/middleware-sources/spring-cloud-gateway/spring-gateway-introduction
+knife4j:
+  gateway:
+    enabled: true
+    # 指定服务发现的模式聚合微服务文档，并且是默认`default`分组
+    strategy: discover
+    discover:
+      enabled: true
+      # 聚合所有子服务(swagger2规范)，子服务是3规范则替换为openapi3
+      version: openapi3
+      # 需要排除的微服务(eg:网关服务)
+      excluded-services:
+        - aioveu-gateway
+
+      # Knife4j 的网关聚合配置仍然在自动添加路径前缀
+      # discover策略会自动从 Nacos 获取服务信息，并添加服务名前缀。
+      # Knife4j 生成的请求路径是/aioveu-auth/api/v1/auth/v3/api-docs/default
+
+      # knife4j:
+      #   gateway:
+      #     enabled: true
+      #     # 改为手动配置，不要用 discover
+      #     strategy: manual
+      #     routes:
+      #       - name: 认证服务
+      #       # 使用正确的路径
+      #         url: /aioveu-auth/v3/api-docs
+      #         order: 1
+      #         service-name: aioveu-auth
+      #         # ❌ 删除这行，让 Knife4j 使用 SpringDoc 的基础路径
+      #         # context-path: /api/v1/auth
+      #         add-group-to-path: false
+      #         # 设置分组显示名称
+      #         display-name: 认证服务
+
+#       - name: 系统服务
+#         url: /aioveu-system/v3/api-docs
+#         order: 2
+#         service-name: aioveu-system
+#         # ❌ 删除这行，让 Knife4j 使用 SpringDoc 的基础路径
+#         # context-path: /api/v1/system
+#         add-group-to-path: false
+#         display-name: 系统服务

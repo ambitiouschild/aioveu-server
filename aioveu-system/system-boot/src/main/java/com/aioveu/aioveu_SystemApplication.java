@@ -4,6 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
+
+import java.util.Arrays;
+
 /**
  * @ClassName: $ {NAME}
  * @Author: 雒世松
@@ -13,8 +16,10 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  * @Description: TODO
  **/
 
+
 @SpringBootApplication
 @EnableDiscoveryClient
+
 public class aioveu_SystemApplication {
     public static void main(String[] args) {
 

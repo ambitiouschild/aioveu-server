@@ -42,7 +42,7 @@ public class AliyunSmsService implements SmsService {
      * @return  boolean 是否发送成功
      */
     @Override
-    public boolean sendSmsOld(String mobile,String templateCode,String templateParam) {
+    public boolean sendSms(String mobile,String templateCode,String templateParam) {
 
         DefaultProfile profile = DefaultProfile.getProfile(aliyunSmsProperties.getRegionId(),
                 aliyunSmsProperties.getAccessKeyId(), aliyunSmsProperties.getAccessKeySecret());
@@ -90,7 +90,7 @@ public class AliyunSmsService implements SmsService {
      * @return boolean 是否发送成功
      */
     @Override
-    public boolean sendSms(String mobile, SmsTypeEnum smsType, Map<String, String> templateParams) {
+    public boolean sendSms2(String mobile, SmsTypeEnum smsType, Map<String, String> templateParams) {
 
         String templateCode = aliyunSmsProperties.getTemplates().get(smsType.getValue());
 
@@ -127,6 +127,5 @@ public class AliyunSmsService implements SmsService {
         }
         return false;
     }
-
 
 }

@@ -31,6 +31,8 @@
         <module>common-seata</module>
         <!-- sms 公共模块 -->
         <module>common-sms</module>
+        <!-- mail 公共模块 -->
+        <module>common-mail</module>
     </modules>
 
     <properties>

@@ -1,11 +1,11 @@
 package com.aioveu.system.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.aioveu.system.mapper.SysUserRoleMapper;
 import com.aioveu.system.model.entity.SysUserRole;
 import com.aioveu.system.service.SysUserRoleService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

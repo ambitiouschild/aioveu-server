@@ -1,8 +1,8 @@
 package com.aioveu.system.model.entity;
 
+import com.aioveu.common.base.BaseEntity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.aioveu.common.base.BaseEntity;
 import lombok.Data;
 
 /**

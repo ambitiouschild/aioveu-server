@@ -45,7 +45,8 @@
         <mybatis-plus.version>3.5.5</mybatis-plus.version>
 
         <!-- 接口文档工具 -->
-        <knife4j.version>4.3.0</knife4j.version>
+<!--        Knife4j v4.3.0的设计问题 - Authorize区域设置的Token不会自动应用到具体接口的请求头中。-->
+        <knife4j.version>4.5.0</knife4j.version>
         <swagger.version>2.1.0</swagger.version>
 
         <!-- 工具 -->
@@ -209,6 +210,12 @@
         <dependency>
             <groupId>com.aioveu</groupId>
             <artifactId>common-sms</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-mail</artifactId>
             <version>${project.version}</version>
         </dependency>
 

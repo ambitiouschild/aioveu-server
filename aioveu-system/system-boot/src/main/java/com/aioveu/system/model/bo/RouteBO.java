@@ -1,8 +1,8 @@
 package com.aioveu.system.model.bo;
 
+import com.aioveu.system.enums.MenuTypeEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.aioveu.system.enums.MenuTypeEnum;
 import lombok.Data;
 
 import java.util.List;

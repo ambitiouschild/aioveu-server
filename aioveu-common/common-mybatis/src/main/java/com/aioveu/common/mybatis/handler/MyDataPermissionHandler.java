@@ -1,13 +1,13 @@
 package com.aioveu.common.mybatis.handler;
 
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.common.security.util.SecurityUtils;
 import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.extension.plugins.handler.DataPermissionHandler;
 import com.aioveu.common.base.IBaseEnum;
 import com.aioveu.common.mybatis.annotation.DataPermission;
 import com.aioveu.common.mybatis.enums.DataScopeEnum;
-import com.aioveu.common.security.util.SecurityUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;

@@ -1,5 +1,6 @@
 package com.aioveu.auth.oauth2.jackson;
 
+import com.aioveu.auth.model.SysUserDetails;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -7,7 +8,6 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.MissingNode;
-import com.aioveu.auth.model.SysUserDetails;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -57,6 +57,10 @@ class SysUserDeserializer extends JsonDeserializer<SysUserDetails> {
         boolean accountNonLocked = readJsonNode(jsonNode, "accountNonLocked").asBoolean();
         SysUserDetails result = new SysUserDetails(userId, username, password, dataScope, deptId, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked,
                 authorities);
+
+        /**
+         * 清除凭证（密码）
+         */
         if (passwordNode.asText(null) == null) {
             result.eraseCredentials();
         }

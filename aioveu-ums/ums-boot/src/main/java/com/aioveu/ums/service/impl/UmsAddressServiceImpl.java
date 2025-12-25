@@ -1,11 +1,11 @@
 package com.aioveu.ums.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.aioveu.common.security.util.SecurityUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.aioveu.common.constant.GlobalConstants;
-import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.ums.dto.MemberAddressDTO;
 import com.aioveu.ums.mapper.UmsAddressMapper;
 import com.aioveu.ums.model.entity.UmsAddress;
@@ -20,7 +20,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * @Description: TODO 会员地址业务实现类
+ * @Description: TODO 会员地址业务实现类   实现会员地址的增删改查等业务逻辑，包含地址的新增、修改、查询列表等功能
  * @Author: 雒世松
  * @Date: 2025/6/5 18:59
  * @param

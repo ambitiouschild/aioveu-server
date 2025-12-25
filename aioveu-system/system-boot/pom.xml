@@ -113,12 +113,18 @@
             <artifactId>common-sms</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-mail</artifactId>
+        </dependency>
+
         <!-- 单元测试 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
 
     </dependencies>
 

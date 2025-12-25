@@ -1,9 +1,9 @@
 package com.aioveu.system.converter;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.aioveu.system.model.entity.SysDictType;
 import com.aioveu.system.model.form.DictTypeForm;
 import com.aioveu.system.model.vo.DictTypePageVO;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.mapstruct.Mapper;
 
 /**

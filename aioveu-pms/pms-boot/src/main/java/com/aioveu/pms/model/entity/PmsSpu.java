@@ -21,8 +21,8 @@ import java.util.List;
 @Accessors(chain = true)
 public class PmsSpu extends BaseEntity {
 
-    @TableId(type = IdType.AUTO)
-    private Long id;
+//    @TableId(type = IdType.AUTO)
+//    private Long id;
 
     private String name;
 

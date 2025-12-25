@@ -2,8 +2,6 @@ package com.aioveu.system.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.aioveu.common.constant.SystemConstants;
 import com.aioveu.common.enums.StatusEnum;
 import com.aioveu.common.web.model.Option;
@@ -14,6 +12,8 @@ import com.aioveu.system.model.form.DeptForm;
 import com.aioveu.system.model.query.DeptQuery;
 import com.aioveu.system.model.vo.DeptVO;
 import com.aioveu.system.service.SysDeptService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

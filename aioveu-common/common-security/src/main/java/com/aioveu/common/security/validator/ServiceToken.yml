@@ -1,0 +1,11 @@
+
+
+# 服务认证配置
+service:
+  auth:
+    enabled: true
+    valid-tokens:
+      - "aioveu-internal-token-2025"
+      - "aioveu-auth-service-token"
+      - "aioveu-system-service-token"
+    expiry-seconds: 3600

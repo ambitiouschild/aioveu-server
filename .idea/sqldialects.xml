@@ -2,6 +2,8 @@
 <project version="4">
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/docs/sql/mysql5/aioveu_database.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/01.add_system_20251220.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/02.add_sys_config_20251221.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/docs/sql/mysql8/aioveu_database.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/docs/sql/mysql8/aioveu_nacos_config.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/docs/sql/mysql8/aioveu_oauth2_server.sql" dialect="MySQL" />

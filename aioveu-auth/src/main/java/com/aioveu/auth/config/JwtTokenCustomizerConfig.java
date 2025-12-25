@@ -1,8 +1,8 @@
 package com.aioveu.auth.config;
 
 import com.aioveu.auth.model.MemberDetails;
-import com.aioveu.auth.model.SysUserDetails;
 import com.aioveu.common.constant.JwtClaimConstants;
+import com.aioveu.auth.model.SysUserDetails;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

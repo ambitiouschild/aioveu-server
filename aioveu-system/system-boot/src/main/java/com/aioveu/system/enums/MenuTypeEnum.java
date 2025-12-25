@@ -1,7 +1,7 @@
 package com.aioveu.system.enums;
 
-import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.aioveu.common.base.IBaseEnum;
+import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.Getter;
 
 /**

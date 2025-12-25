@@ -1,9 +1,5 @@
 package com.aioveu.system.converter;
 
-import com.aioveu.common.model.Option;
-import com.aioveu.system.model.dto.CurrentUserDTO;
-import com.aioveu.system.model.form.UserProfileForm;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.aioveu.system.model.bo.UserBO;
 import com.aioveu.system.model.bo.UserFormBO;
 import com.aioveu.system.model.bo.UserProfileBO;
@@ -13,12 +9,11 @@ import com.aioveu.system.model.vo.UserImportVO;
 import com.aioveu.system.model.vo.UserInfoVO;
 import com.aioveu.system.model.vo.UserPageVO;
 import com.aioveu.system.model.vo.UserProfileVO;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
-
-import java.util.List;
 
 /**
  * @Description: TODO 用户对象转换器
@@ -56,15 +51,4 @@ public interface UserConverter {
             @Mapping(target = "genderLabel", expression = "java(com.aioveu.common.base.IBaseEnum.getLabelByValue(bo.getGender(), com.aioveu.common.enums.GenderEnum.class))")
     })
     UserProfileVO userProfileBo2Vo(UserProfileBO bo);
-
-    @Mappings({
-            @Mapping(target = "userId", source = "id")
-    })
-    CurrentUserDTO toCurrentUserDto(SysUser entity);
-
-    SysUser toEntity(UserProfileForm formData);
-
-
-    List<Option<String>> toOptions(List<SysUser> list);
-
 }

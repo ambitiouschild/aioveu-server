@@ -86,7 +86,9 @@ public enum ResultCode implements IResultCode, Serializable {
     ACCESS_TOKEN_INVALID("A0230", "访问令牌无效或已过期"),
     REFRESH_TOKEN_INVALID("A0231", "刷新令牌无效或已过期"),
     TOKEN_ACCESS_FORBIDDEN("A0231", "token已被禁止访问"),
-
+    TOKEN_GENERATE_ERROR("A0232","生成JWT令牌失败"),
+    JWK_KEY_NOT_FOUND("A0233","从Redis获取私钥失败:私钥未发现"),
+    JWK_GENERATE_ERROR("A0234","生成RSA密钥对失败"),
 
     // 验证码错误
     USER_VERIFICATION_CODE_ERROR("A0240", "验证码错误"),
@@ -312,6 +314,7 @@ public enum ResultCode implements IResultCode, Serializable {
     SMS_REMINDER_SERVICE_FAILED("C0501", "短信提醒服务失败"),
     VOICE_REMINDER_SERVICE_FAILED("C0502", "语音提醒服务失败"),
     EMAIL_REMINDER_SERVICE_FAILED("C0503", "邮件提醒服务失败");
+
 
 
     @Override

@@ -1,14 +1,15 @@
 server:
-  port: 9999
+  port: 9999  # 网关端口，和你的配置一致
 
 spring:
   main:
     allow-bean-definition-overriding: true
   cloud:
+    # Nacos 服务发现配置
     nacos:
       # 注册中心配置
       discovery:
-        server-addr: http://localhost:8848
+        server-addr: http://localhost:8848  # Nacos 地址
 #        server-addr: nacos:8848  # 使用服务名
         group: AIOVEU_GROUP  # 指定服务注册分组
         metadata:

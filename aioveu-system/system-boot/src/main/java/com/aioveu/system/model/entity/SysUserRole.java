@@ -1,7 +1,6 @@
 package com.aioveu.system.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +12,7 @@ import lombok.NoArgsConstructor;
  * @param
  * @return:
  **/
-@TableName("sys_user_role")
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
