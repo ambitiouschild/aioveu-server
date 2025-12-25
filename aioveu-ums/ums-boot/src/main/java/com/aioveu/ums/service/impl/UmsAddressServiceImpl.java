@@ -22,6 +22,32 @@ import java.util.stream.Collectors;
 
 /**
  * @Description: TODO 会员地址业务实现类   实现会员地址的增删改查等业务逻辑，包含地址的新增、修改、查询列表等功能
+ *                      代码详细说明
+ *                          1. 类级别注释
+ *                              继承关系：继承ServiceImpl获得MyBatis-Plus的通用CRUD功能
+ *                              服务标识：@Service注解标识为Spring服务组件
+ *                              泛型说明：UmsAddressMapper为数据访问层，UmsAddress为实体类
+ *                          2. 关键方法说明
+ *                              addAddress方法：
+ *                                  事务管理：@Transactional确保地址新增和默认地址更新的原子性
+ *                                  业务逻辑：新增地址时，如果设置为默认地址，需要更新其他地址为非默认
+ *                                  安全控制：通过SecurityUtils获取当前登录用户，确保数据隔离
+ *                              updateAddress方法：
+ *                                  更新策略：基于主键ID更新，确保操作精确性
+ *                                  默认地址处理：与新增方法类似的默认地址逻辑，保证数据一致性
+ *                              listCurrentMemberAddresses方法：
+ *                                  查询优化：使用Lambda表达式构建类型安全的查询条件
+ *                                  排序策略：默认地址优先显示，提升用户体验
+ *                                  空值安全：使用Optional避免NPE，增强代码健壮性
+ *                          3. 技术特点
+ *                              BeanUtil拷贝：简化对象属性拷贝，提高开发效率
+ *                              Lambda表达式：类型安全的条件构建，避免硬编码
+ *                              Stream API：函数式编程处理集合数据，代码更简洁
+ *                              防御式编程：充分处理边界情况和空值问题
+ *                          4. 业务规则
+ *                              一个会员只能有一个默认地址
+ *                              默认地址在列表中优先显示
+ *                              所有地址操作都基于当前登录会员，确保数据安全
  * @Author: 雒世松
  * @Date: 2025/6/5 18:59
  * @param
