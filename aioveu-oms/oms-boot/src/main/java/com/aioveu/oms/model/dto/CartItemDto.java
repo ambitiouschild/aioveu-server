@@ -22,6 +22,11 @@ public class CartItemDto implements Serializable {
     private Long skuId;
 
     /**
+     * 商品名称
+     */
+    private String skuName;
+
+    /**
      * 商品数量
      */
     private Integer count;
