@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: aioveu-lss
+  profiles:
+    active: dev

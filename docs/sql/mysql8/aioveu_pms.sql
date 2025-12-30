@@ -93,6 +93,8 @@ CREATE TABLE `pms_category_brand`  (
 
 -- ----------------------------
 -- Table structure for pms_sku
+
+-- 商品库存业务
 -- ----------------------------
 DROP TABLE IF EXISTS `pms_sku`;
 CREATE TABLE `pms_sku`  (
