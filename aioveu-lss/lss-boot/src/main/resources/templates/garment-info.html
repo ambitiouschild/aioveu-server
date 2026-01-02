@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>衣物信息 - [[${garmentInfo.garmentCode}]]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .garment-card {
+            max-width: 600px;
+            margin: 2rem auto;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .garment-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card garment-card">
+        <div class="card-header garment-header">
+            <h4 class="card-title text-center">衣物信息</h4>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>衣物编码:</strong>
+                    <span th:text="${garmentInfo.garmentCode}"></span>
+                </div>
+                <div class="col-md-6">
+                    <strong>当前状态:</strong>
+                    <span th:text="${garmentInfo.currentStatus}"></span>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>衣物类型:</strong>
+                    <span th:text="${garmentInfo.garmentType}"></span>
+                </div>
+                <div class="col-md-6">
+                    <strong>洗涤价格:</strong>
+                    <span th:text="${garmentInfo.basePrice}"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <strong>特殊说明:</strong>
+                <p th:text="${garmentInfo.problemDesc}"></p>
+            </div>
+
+            <div class="mb-3">
+                <strong>订单信息:</strong>
+                <p>订单号: <span th:text="${garmentInfo.orderNo}"></span></p>
+<!--                #dates.format方法只支持 java.util.Date类型-->
+<!--                <p>下单时间: <span th:text="${#dates.format(garmentInfo.orderTime, 'yyyy-MM-dd HH:mm')}"></span></p>-->
+                <span th:text="${#temporals.format(garmentInfo.orderTime, 'yyyy-MM-dd HH:mm')}"></span>
+            </div>
+
+            <div class="mb-3">
+                <strong>客户信息:</strong>
+                <p>卡号: <span th:text="${garmentInfo.memberNo}"></span></p>
+                <p>姓名: <span th:text="${garmentInfo.name}"></span></p>
+                <p>电话: <span th:text="${garmentInfo.phone}"></span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

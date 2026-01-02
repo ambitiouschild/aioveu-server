@@ -1,11 +1,16 @@
 package com.aioveu.common.security.util;
 
 import cn.hutool.core.convert.Convert;
+import com.aioveu.common.constant.SecurityConstants;
 import com.aioveu.common.constant.SystemConstants;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Collections;
 import java.util.Map;
@@ -40,6 +45,7 @@ import java.util.stream.Collectors;
  * @return:
  **/
 
+@Slf4j
 public class SecurityUtils {
 
     /**
@@ -62,6 +68,8 @@ public class SecurityUtils {
      * @注意: 需要在Spring Security认证上下文中调用，如Controller、Service层
      */
     public static Long getUserId() {
+
+        log.info("获取JWT令牌的所有声明属性（Claims）");
         Map<String, Object> tokenAttributes = getTokenAttributes();
         if (tokenAttributes != null) {
             return Convert.toLong(tokenAttributes.get("userId"));
@@ -86,6 +94,8 @@ public class SecurityUtils {
     public static String getUsername() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
+
+            log.info("获取当前认证用户的用户名:直接从Authentication对象的getName()方法获取");
             return authentication.getName();
         }
         return null;
@@ -113,8 +123,11 @@ public class SecurityUtils {
      * @安全注意: 声明信息来自可信的认证服务器，客户端不可篡改
      */
     public static Map<String, Object> getTokenAttributes() {
+
+        log.info("获取当前的安全上下文（SecurityContext）中的认证信息（Authentication）");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         // 检查是否为JWT认证令牌
+
         if (authentication instanceof JwtAuthenticationToken jwtAuthenticationToken) {
             return jwtAuthenticationToken.getTokenAttributes();
         }
@@ -336,6 +349,102 @@ public class SecurityUtils {
      *   - 访问原始认证细节
      */
     public static Authentication getAuthentication() {
+
         return SecurityContextHolder.getContext().getAuthentication();
     }
+//--------------------------------------------------------------------------
+
+    /**
+     * 从Authentication对象中获取原始Token（如果可用）
+     *
+     * @原理说明:
+     *   - 某些Spring Security配置会将原始Token存储在details中
+     *   - 作为从请求头获取的备选方案
+     *
+     * @返回值:
+     *   - String 原始Token，不可用时返回null
+     */
+    public static String getTokenFromAuthentication() {
+
+        log.info("获取当前的安全上下文（SecurityContext）中的认证信息（Authentication）");
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof JwtAuthenticationToken jwtAuthenticationToken) {
+            // 尝试从details中获取
+            Object details = authentication.getDetails();
+            if (details instanceof Map) {
+                Object tokenValue = ((Map<?, ?>) details).get("tokenValue");
+                if (tokenValue instanceof String) {
+                    return (String) tokenValue;
+                }
+            }
+
+            // 或者从credentials中获取（如果是字符串形式）
+            Object credentials = authentication.getCredentials();
+            if (credentials instanceof String) {
+                return (String) credentials;
+            }
+        }
+        return null;
+    }
+
+
+
+
+    //--------------------------------------------------------------------------
+
+    /**
+     * 从当前HTTP请求中获取JWT Token
+     *
+     * @原理说明:
+     *   - 从HttpServletRequest的Authorization头中提取Token
+     *   - 支持Bearer Token格式: "Bearer {token}"
+     *   - 自动去除Bearer前缀，返回纯Token字符串
+     *
+     * @返回值:
+     *   - String JWT Token字符串，未找到返回null
+     *
+     * @获取位置:
+     *   - Authorization请求头
+     *   - 格式: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+     *
+     * @使用场景:
+     *   - 需要原始Token进行验证、注销等操作
+     *   - 记录操作日志时保存Token信息
+     *   - 自定义Token处理逻辑
+     *
+     * @注意: 需要在Web请求上下文中调用（Controller、Interceptor等）
+     */
+
+    public static String getToken() {
+        try {
+            ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (requestAttributes == null) {
+                log.debug("无法获取请求上下文，可能不在Web环境中");
+                return null;
+            }
+
+            HttpServletRequest request = requestAttributes.getRequest();
+
+            /**
+             * 请求头中认证信息的key
+             */
+            String authorizationHeader = request.getHeader(SecurityConstants.AUTH_HEADER);
+
+            if (authorizationHeader != null && authorizationHeader.startsWith(SecurityConstants.BEARER_TOKEN_PREFIX)) {
+                String token = authorizationHeader.substring(SecurityConstants.BEARER_TOKEN_PREFIX.length()).trim();
+                log.debug("成功从请求头中提取Token");
+                return token;
+            } else {
+                log.debug("请求头中未找到有效的Bearer Token");
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("获取Token时发生异常: {}", e.getMessage());
+            return null;
+        }
+    }
+
+
+
 }

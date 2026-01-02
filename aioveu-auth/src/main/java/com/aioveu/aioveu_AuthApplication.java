@@ -1,6 +1,7 @@
 package com.aioveu;
 
 
+import com.aioveu.lss.api.LssFeignClient;
 import com.aioveu.system.api.SystemFeignClient;
 import com.aioveu.ums.api.MemberFeignClient;
 import org.springframework.boot.SpringApplication;
@@ -18,14 +19,15 @@ import org.springframework.context.annotation.ComponentScan;
  * @Description: TODO
  **/
 
-@EnableFeignClients(basePackageClasses = {SystemFeignClient.class,
+@EnableFeignClients(basePackageClasses = {
+        SystemFeignClient.class,
+        LssFeignClient.class,
         MemberFeignClient.class})
 @SpringBootApplication
 @EnableDiscoveryClient
 @ComponentScan(basePackages = {
         "com.aioveu.auth",           // 当前模块
-        "com.aioveu.common.security.token",          // 显式扫描 common 模块
-        "com.aioveu.common.security.config"  // 扫描 common 的配置类
+        "com.aioveu.common",          // 显式扫描 common 模块
 })
 // 2. 在主应用类中启用配置属性
 public class aioveu_AuthApplication {

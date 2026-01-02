@@ -1,0 +1,99 @@
+# 使用 Ubuntu 官方最小化镜像作为基础
+#FROM ubuntu:22.04
+
+
+FROM openjdk:17-jdk-slim
+
+
+# Alternative (≈15MB smaller)
+#FROM ubuntu:22.04@sha256:5bd28d4bede2f79312ffd7c4f8de2e5245c3483d73878d9d5c4c0ee055ac209e
+
+LABEL maintainer="ambitiouschild@qq.com"
+
+
+#--no-install-recommends # 只安装必需依赖
+#openjdk-17-jre-headless # 最小化JRE
+#ca-certificates          # TLS证书
+#tzdata                   # 时区数据
+#fontconfig               # 字体支持
+
+# 自动下载依赖并构建
+#RUN mvn clean package -DskipTests
+
+# 安装最小化 OpenJDK 17 和必要的依赖
+#RUN apt-get update && \
+#    apt-get install -y --no-install-recommends \
+#        openjdk-17-jre-headless \
+#        ca-certificates \
+#        tzdata \
+#        fontconfig && \
+#    # 设置时区
+#    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
+#    echo $TZ > /etc/timezone && \
+#    # 清理缓存减少镜像大小
+#    apt-get clean autoclean && \
+#    apt-get autoremove -y && \
+#    rm -rf \
+#        /var/lib/apt/lists/* \
+#        /tmp/* \
+#        /var/tmp/* \
+#        /usr/share/doc/* \
+#        /usr/share/man/*
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends tzdata fonts-dejavu fontconfig \
+    && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo "Asia/Shanghai" > /etc/timezone \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+
+
+ # 添加应用程序
+COPY target/*.jar /app.jar
+
+
+
+#当您的应用程序在运行过程中突然被终止并显示 "Killed" 消息时，这通常是由于内存不足导致的
+CMD java \
+    -Xms128m \
+    -Xmx1024m \
+    -Djava.security.egd=file:/dev/./urandom \
+    -Djdk.internal.platform.disable=true  \
+    -jar /app.jar
+
+# 优化启动命令
+#CMD java \
+#    -XX:+UseContainerSupport \
+#    -XX:MaxRAMPercentage=75.0 \
+#    -XX:InitialRAMPercentage=25.0 \
+#    -XX:+UseG1GC \
+#    -XX:MaxGCPauseMillis=200 \
+#    -XX:+HeapDumpOnOutOfMemoryError \
+#    -XX:HeapDumpPath=/home/appuser/dumps/heapdump.hprof \
+#    -XX:+DisableExplicitGC \
+#    -XX:ParallelGCThreads=1 \
+#    -XX:ConcGCThreads=1 \
+#    -XshowSettings:vm \
+#    -Djava.security.egd=file:/dev/./urandom \
+#    -Djdk.internal.platform.disable=true \
+#    -jar /app.jar
+
+#内存限制策略：
+#-XX:MaxRAMPercentage=75.0   # 使用容器内存的75%作为JVM最大堆
+#-XX:InitialRAMPercentage=25.0 # 初始分配25%
+#
+#
+#垃圾回收优化：
+#-XX:+UseG1GC               # 使用G1垃圾回收器
+#-XX:MaxGCPauseMillis=200    # 设置GC暂停时间目标
+#-XX:ParallelGCThreads=1    # 减少GC线程数
+#-XX:ConcGCThreads=1         # 减少并发GC线程数
+
+
+#    -XX:+UseContainerSupport \             # 容器内存感知
+#    -XX:MaxRAMPercentage=75.0 \           # 使用 75% 可用内存
+#    -XX:+UseG1GC \                        # 高效垃圾回收
+#    -XX:MaxGCPauseMillis=200 \            # GC 停顿时间目标
+#    -XX:ParallelGCThreads=1 \             # 减少 GC 线程
+#    -XX:ConcGCThreads=1 \                 # 减少并发 GC 线程

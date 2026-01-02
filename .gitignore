@@ -41,3 +41,8 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+docs/docker
+docs/sql
+docs/ReadMe
+docs/nacos
