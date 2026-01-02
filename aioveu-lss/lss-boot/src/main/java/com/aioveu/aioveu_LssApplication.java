@@ -1,0 +1,19 @@
+package com.aioveu;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+
+
+@SpringBootApplication
+@EnableDiscoveryClient
+public class aioveu_LssApplication {
+    public static void main(String[] args) {
+
+
+        System.out.println("Hello, World!");
+        SpringApplication.run(aioveu_LssApplication.class, args);
+
+
+    }
+}
