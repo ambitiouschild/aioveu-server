@@ -271,4 +271,11 @@ public class UserController {
         List<Option<String>> list = userService.listUserOptions();
         return Result.success(list);
     }
+
+    @Operation(summary = "注销登出")
+    @DeleteMapping("/logout")
+    public Result logout() {
+        boolean result = userService.logout();
+        return Result.judge(result);
+    }
 }

@@ -206,4 +206,13 @@ public interface UserService extends IService<User> {
      * @return 是否成功
      */
     boolean bindUserOpenId(Long userId, String openId);
+
+
+    /**
+     * 注销登出
+     *
+     * @return {@link Boolean}
+     */
+    boolean logout();
+
 }

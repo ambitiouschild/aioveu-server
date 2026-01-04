@@ -688,6 +688,33 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return userConverter.toOptions(list);
     }
 
+    /**
+     * 注销登出
+     *
+     * @return true|false
+     */
+    @Override
+    public boolean logout() {
+        String jti = SecurityUtils.getJti();
+        Optional<Long> expireTimeOpt = Optional.ofNullable(SecurityUtils.getExp()); // 使用Optional处理可能的null值
+
+        long currentTimeInSeconds = System.currentTimeMillis() / 1000; // 当前时间（单位：秒）
+
+        expireTimeOpt.ifPresent(expireTime -> {
+            if (expireTime > currentTimeInSeconds) {
+                // token未过期，添加至缓存作为黑名单，缓存时间为token剩余的有效时间
+                long remainingTimeInSeconds = expireTime - currentTimeInSeconds;
+                redisTemplate.opsForValue().set(RedisConstants.TOKEN_BLACKLIST_PREFIX + jti, "", remainingTimeInSeconds, TimeUnit.SECONDS);
+            }
+        });
+
+        if (expireTimeOpt.isEmpty()) {
+            // token 永不过期则永久加入黑名单
+            redisTemplate.opsForValue().set(RedisConstants.TOKEN_BLACKLIST_PREFIX + jti, "");
+        }
+
+        return true;
+    }
 
 
 
