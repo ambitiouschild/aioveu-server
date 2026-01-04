@@ -1,6 +1,7 @@
 package com.aioveu.common.security.util;
 
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.constant.SecurityConstants;
 import com.aioveu.common.constant.SystemConstants;
 import jakarta.servlet.http.HttpServletRequest;
@@ -159,10 +160,16 @@ public class SecurityUtils {
         if (authentication != null) {
             return AuthorityUtils.authorityListToSet(authentication.getAuthorities())
                     .stream()
+
+                    // 筛选角色权限，使用 Hutool 工具类（推荐）
+                    .filter(authority -> StrUtil.startWith(authority, SecurityConstants.ROLE_PREFIX))
+                    // 移除 ROLE_ 前缀
+                    .map(authority -> StrUtil.removePrefix(authority, SecurityConstants.ROLE_PREFIX))
+
                     // 转换为不可修改集合，确保线程安全
                     .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
         }
-        return null;
+        return Collections.emptySet();  // 返回空集合而不是 null，避免空指针
     }
 
     /**
