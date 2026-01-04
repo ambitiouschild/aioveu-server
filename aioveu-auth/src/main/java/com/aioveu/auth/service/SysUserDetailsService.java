@@ -124,15 +124,15 @@ public class SysUserDetailsService implements UserDetailsService {
 
         // 通过Feign客户端调用远程用户服务，根据用户名获取用户认证信息
         // 注意：这里可能会抛出Feign异常（如服务不可用、网络超时等）
-        log.info("调用systemFeignClient微服务查询用户名和加密密码");
-        UserAuthInfo userAuthInfo = systemFeignClient.getUserAuthInfo(username);
+//        log.info("调用systemFeignClient微服务查询用户名和加密密码");
+//        UserAuthInfo userAuthInfo = systemFeignClient.getUserAuthInfo(username);
 
         // 调用您的方法获取用户信息
         log.info("调用lssFeignClient微服务查询用户名和加密密码");
         UserAuthCredentials userAuthCredentials = lssFeignClient.getAuthCredentialsByUsername(username);
 
 //         使用断言验证用户是否存在，如果为null则抛出异常并提示"用户不存在"
-        Assert.isTrue(userAuthInfo != null, "system用户不存在");
+//        Assert.isTrue(userAuthInfo != null, "system用户不存在");
 
         // 使用断言验证用户是否存在，如果为null则抛出异常并提示"用户不存在"
         Assert.isTrue(userAuthCredentials != null, "lss用户不存在");
@@ -149,9 +149,9 @@ public class SysUserDetailsService implements UserDetailsService {
 
         // 构建Spring Security所需的UserDetails实现对象
         // SysUserDetails包含：用户ID、用户名、密码、部门ID、数据权限、角色权限列表等
-        log.info("调用systemFeignClient微服务构建Spring Security所需的UserDetails实现对象");
-        SysUserDetails  sysUserDetails1 = new SysUserDetails(userAuthInfo);
-        log.info("sysUserDetails1:{}", sysUserDetails1);
+//        log.info("调用systemFeignClient微服务构建Spring Security所需的UserDetails实现对象");
+//        SysUserDetails  sysUserDetails1 = new SysUserDetails(userAuthInfo);
+//        log.info("sysUserDetails1:{}", sysUserDetails1);
 
         log.info("调用lssFeignClient微服务构建Spring Security所需的UserDetails实现对象");
         SysUserDetails  sysUserDetails2  = new SysUserDetails(userAuthCredentials);
