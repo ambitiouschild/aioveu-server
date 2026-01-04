@@ -241,7 +241,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
 
         log.info("从安全上下文中获取当前用户角色");
         Set<String> roleCodes = SecurityUtils.getRoles();
-
+        log.info("从安全上下文中获取当前用户角色：{}",roleCodes);
 
         log.info("无角色权限返回空列表");
         if (CollectionUtil.isEmpty(roleCodes)) {
