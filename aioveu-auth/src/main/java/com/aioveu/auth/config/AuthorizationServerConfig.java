@@ -239,9 +239,11 @@ public class AuthorizationServerConfig {
                 .exceptionHandling((exceptions) -> exceptions
                         .defaultAuthenticationEntryPointFor(
                                 // 对于HTML请求，重定向到登录页面
-                                new LoginUrlAuthenticationEntryPoint("/login"),
+                                new LoginUrlAuthenticationEntryPoint("/login"),  // 👈 这里就是重定向的配置
+                                //这个配置的意思是当请求的Accept头包含text/html（即浏览器请求）,并且认证失败时,会重定向到/login页面
                                 new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
                         )
+
                 )
                 // 配置OAuth2资源服务器（JWT验证）
                 .oauth2ResourceServer(oauth2ResourceServer ->
