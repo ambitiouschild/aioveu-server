@@ -1,4 +1,4 @@
-package com.aioveu.system.enums;
+package com.aioveu.system.aioveu04Menu.enums;
 
 import com.aioveu.common.base.IBaseEnum;
 import com.baomidou.mybatisplus.annotation.EnumValue;

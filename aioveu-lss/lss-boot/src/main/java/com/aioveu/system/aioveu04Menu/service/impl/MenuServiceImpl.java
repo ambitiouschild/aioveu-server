@@ -20,7 +20,7 @@ import com.aioveu.system.aioveu04Menu.model.vo.MenuVO;
 import com.aioveu.system.aioveu04Menu.model.vo.RouteVO;
 import com.aioveu.system.aioveu04Menu.service.MenuService;
 import com.aioveu.system.aioveu11Codegen.model.entity.GenConfig;
-import com.aioveu.system.enums.MenuTypeEnum;
+import com.aioveu.system.aioveu04Menu.enums.MenuTypeEnum;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
