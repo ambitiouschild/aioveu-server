@@ -89,9 +89,17 @@ public class TokenValidationGlobalFilter implements GlobalFilter, Ordered {
         log.info("步骤1: 从请求头中获取Authorization认证头");
         String authorization = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
+        // 调试：打印Authorization头
+        log.debug("调试：打印Authorization头，Authorization Header: {}", authorization);
+        if (authorization != null) {
+            log.debug("Authorization Header length: {}", authorization.length());
+        }
+
+
         // 检查认证头是否存在且格式正确（以Bearer开头）
         if (StrUtil.isBlank(authorization) || !StrUtil.startWithIgnoreCase(authorization, BEARER_PREFIX)) {
             // 如果没有Bearer Token，直接放行（可能是公开接口或其他认证方式）
+            log.info("没有Bearer Token或格式不正确，直接放行");
             return chain.filter(exchange);
         }
 
@@ -103,6 +111,27 @@ public class TokenValidationGlobalFilter implements GlobalFilter, Ordered {
             log.info("去除\"Bearer \"前缀，获取纯JWT令牌字符串");
             String token = authorization.substring(BEARER_PREFIX.length());
 
+            // 添加详细的令牌信息日志
+            log.info("原始令牌: {}", token);
+            log.info("令牌长度: {}", token.length());
+            log.info("令牌是否包含点: {}", token.contains("."));
+            if (token.contains(".")) {
+                int dotCount = token.length() - token.replace(".", "").length();
+                log.info("令牌中点分隔符数量: {}", dotCount);
+                String[] parts = token.split("\\.");
+                log.info("令牌分割后部分数量: {}", parts.length);
+                for (int i = 0; i < parts.length; i++) {
+                    log.info("令牌第{}部分长度: {}", i+1, parts[i].length());
+                }
+            }
+
+            // 先验证令牌格式
+            if (!isValidJwtFormat(token)) {
+                log.error("JWT令牌格式无效");
+                return WebFluxUtils.writeErrorResponse(response, ResultCode.TOKEN_INVALID);
+            }
+
+
             // 使用nimbus-jose-jwt库解析JWT令牌（不验证签名，只解析结构）
             log.info("使用nimbus-jose-jwt库解析JWT令牌（不验证签名，只解析结构）");
             JWSObject jwsObject = JWSObject.parse(token);
@@ -110,10 +139,13 @@ public class TokenValidationGlobalFilter implements GlobalFilter, Ordered {
             // 从JWT负载(payload)中获取令牌唯一标识(jti - JWT ID)
             log.info("从JWT负载(payload)中获取令牌唯一标识(jti - JWT ID)");
             String jti = (String) jwsObject.getPayload().toJSONObject().get(JWTPayload.JWT_ID);
+            log.info("获取到的令牌唯一标识jti: {}", jti);
+
 
             // 步骤3: 检查令牌是否在黑名单中
             // 构建Redis键：token:blacklist:{jti}
             log.info("步骤3: 检查令牌是否在黑名单中");
+            log.info("Redis查询key: {}", RedisConstants.TOKEN_BLACKLIST_PREFIX + jti);
             Boolean isBlackToken = redisTemplate.hasKey(RedisConstants.TOKEN_BLACKLIST_PREFIX + jti);
 
             // 如果令牌在黑名单中，返回访问禁止错误
@@ -129,11 +161,40 @@ public class TokenValidationGlobalFilter implements GlobalFilter, Ordered {
             log.error("TokenValidationGlobalFilter中解析令牌失败", e);
             log.error("Parsing token failed in TokenValidationGlobalFilter", e);
             return WebFluxUtils.writeErrorResponse(response, ResultCode.TOKEN_INVALID);
+        }catch (Exception e) {
+            // 捕获其他异常
+            log.error("TokenValidationGlobalFilter中发生未知异常", e);
+            return WebFluxUtils.writeErrorResponse(response, ResultCode.SYSTEM_EXECUTION_ERROR);
         }
 
         // 步骤4: 令牌不在黑名单中，继续执行过滤器链
         log.info("步骤4: 令牌不在黑名单中，继续执行过滤器链");
         return chain.filter(exchange);
+    }
+
+    // 添加JWT格式验证方法
+    private boolean isValidJwtFormat(String token) {
+        if (StrUtil.isBlank(token)) {
+            log.error("令牌为空");
+            return false;
+        }
+
+        // 检查是否包含两个点分隔符
+        String[] parts = token.split("\\.");
+        if (parts.length != 3) {
+            log.error("JWT令牌格式错误: 应有3部分，实际有{}部分", parts.length);
+            return false;
+        }
+
+        // 检查各部分是否为空
+        for (int i = 0; i < parts.length; i++) {
+            if (StrUtil.isBlank(parts[i])) {
+                log.error("JWT令牌第{}部分为空", i + 1);
+                return false;
+            }
+        }
+
+        return true;
     }
 
 
