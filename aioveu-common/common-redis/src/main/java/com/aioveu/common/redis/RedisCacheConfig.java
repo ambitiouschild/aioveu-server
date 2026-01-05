@@ -1,6 +1,7 @@
 package com.aioveu.common.redis;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.cache.CacheProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -32,8 +33,13 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 @EnableCaching   // 启用 Spring 的缓存注解功能，允许在方法上使用 @Cacheable、@CacheEvict 等注解
 @EnableConfigurationProperties(CacheProperties.class) // 启用缓存配置属性，使得 application.yml 中的 spring.cache.* 配置生效
 @Configuration  // 标记此类为 Spring 配置类
-@ConditionalOnProperty(name = "spring.cache.enabled") // 条件装配：只有当配置文件中 spring.cache.enabled=true 时，此配置类才会生效
+//@ConditionalOnProperty(name = "spring.cache.enabled") // 条件装配：只有当配置文件中 spring.cache.enabled=true 时，此配置类才会生效
 public class RedisCacheConfig {
+
+
+    @Value("${spring.application.name:unknown-app}")
+    //为每个微服务添加命名空间（推荐）
+    private String appName;
 
 
     /**
@@ -56,6 +62,9 @@ public class RedisCacheConfig {
             RedisConnectionFactory redisConnectionFactory,
             CacheProperties cacheProperties){
 
+        log.info("构建 为每个微服务添加命名空间（推荐）");
+        RedisCacheConfiguration defaultConfig = redisCacheConfiguration(cacheProperties);
+
         log.info("构建 RedisCacheManager");
         return RedisCacheManager.builder(
 
@@ -67,8 +76,8 @@ public class RedisCacheConfig {
                 RedisCacheWriter.nonLockingRedisCacheWriter(redisConnectionFactory)
                 )
                 // 设置默认的缓存配置
-                .cacheDefaults(redisCacheConfiguration(cacheProperties))
-
+//                .cacheDefaults(redisCacheConfiguration(cacheProperties))
+                .cacheDefaults(defaultConfig)
                 // 可选的额外配置（示例）：
                 // .withInitialCacheConfigurations(customConfigs)  // 为特定缓存名设置不同配置
                 // .transactionAware()  // 启用事务支持
@@ -139,7 +148,14 @@ public class RedisCacheConfig {
         log.info("自定义键前缀生成策略");
         log.info("默认格式是 \"缓存名::键名\"，这里修改为 \"缓存名:键名\"");
         log.info(" computePrefixWith 会覆盖默认的 CacheKeyPrefix.prefixed() 实现");
+
+
         config = config.computePrefixWith(name -> name + ":");//覆盖默认key双冒号  CacheKeyPrefix#prefixed
+
+        log.info("关键：为每个微服务添加应用名前缀");
+//        config = config.computePrefixWith(cacheName ->
+//                appName + ":" + cacheName + ":"
+//        );
         return config;
     }
 
