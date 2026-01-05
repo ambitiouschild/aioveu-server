@@ -3,3 +3,5 @@ spring:
     name: aioveu-lss
   profiles:
     active: dev
+  config:  #导入codegen配置
+    import: classpath:codegen.yml
