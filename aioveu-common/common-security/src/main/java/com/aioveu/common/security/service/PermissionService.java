@@ -96,7 +96,7 @@ public class PermissionService {
     public Set<String> getRolePermsFormCache(Set<String> roleCodes) {
         // 检查输入是否为空
 
-        log.info("步骤1：参数验证");
+        log.info("从缓存中获取角色权限列表，步骤1：参数验证");
         log.info("检查角色编码集合是否为空");
         log.info("如果为空，返回空的不可修改集合，避免后续空指针异常");
 
@@ -109,7 +109,7 @@ public class PermissionService {
         }
 
 
-        log.info("步骤2：准备返回结果");
+        log.info("从缓存中获取角色权限列表，步骤2：准备返回结果");
         // 使用HashSet存储合并后的权限，因为：
         // 1. HashSet自动去重，避免同一权限在不同角色中重复
         // 2. 查找效率O(1)，适合后续的权限检查
@@ -117,7 +117,7 @@ public class PermissionService {
         Set<String> perms = new HashSet<>();
 
 
-        log.info("步骤3：数据类型转换");
+        log.info("从缓存中获取角色权限列表，步骤3：数据类型转换");
         // 将Set<String>转换为Collection<Object>，因为：
         // 1. RedisTemplate.opsForHash().multiGet()要求Collection<Object>类型
         // 2. 需要支持不同类型的序列化器
@@ -126,7 +126,7 @@ public class PermissionService {
         Collection<Object> roleCodesAsObjects = new ArrayList<>(roleCodes);
 
 
-        log.info("步骤4：批量从Redis获取权限");
+        log.info("从缓存中获取角色权限列表，步骤4：批量从Redis获取权限");
         // 使用multiGet一次性获取所有角色的权限，优势：
         // 1. 减少网络往返次数，从O(n)降到O(1)
         // 2. 原子性操作，确保数据一致性
@@ -137,12 +137,16 @@ public class PermissionService {
         //
         // 返回值rolePermsList的顺序与roleCodesAsObjects的顺序一致
         // 但这里我们不需要顺序，只需要合并所有权限
+//        List<Object> rolePermsList = redisTemplate.opsForHash().multiGet(
+//                RedisConstants.ROLE_PERMS_PREFIX,   // Redis Hash的key
+//                roleCodesAsObjects);    // 要获取的字段列表
+
         List<Object> rolePermsList = redisTemplate.opsForHash().multiGet(
-                RedisConstants.ROLE_PERMS_PREFIX,   // Redis Hash的key
+                RedisConstants.System.ROLE_PERMS,   // Redis Hash的key
                 roleCodesAsObjects);    // 要获取的字段列表
 
 
-        log.info("步骤5：处理返回结果");
+        log.info("从缓存中获取角色权限列表，步骤5：处理返回结果");
         // 遍历获取到的每个角色的权限集合
         for (Object rolePermsObj : rolePermsList) {
 
@@ -168,7 +172,7 @@ public class PermissionService {
         }
 
 
-        log.info("步骤6：返回结果");
+        log.info("从缓存中获取角色权限列表，步骤6：返回结果：{}", perms);
         // 返回合并后的权限集合
         // 注意：返回的是可修改的HashSet
         // 如果调用方需要不可修改的视图，可以返回Collections.unmodifiableSet(perms)
