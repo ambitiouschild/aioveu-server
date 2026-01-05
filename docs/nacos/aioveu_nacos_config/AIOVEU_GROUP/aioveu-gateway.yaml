@@ -60,6 +60,7 @@ security:
   blacklist-paths:
       # 获取用户认证信息
       - /aioveu-system/api/v1/users/{username}/authInfo
+      - /aioveu-lss/api/v1/users/{username}/UserAuthCredentials
 
 # knife4j 网关聚合  
 # https://doc.xiaominfo.com/docs/middleware-sources/spring-cloud-gateway/spring-gateway-introduction
