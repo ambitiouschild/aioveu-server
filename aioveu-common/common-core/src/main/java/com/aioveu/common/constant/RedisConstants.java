@@ -1,5 +1,14 @@
 package com.aioveu.common.constant;
 
+/*
+ * @Author 可我不敌可爱
+ * @Author 雒世松
+ * @Description //TODO   Redis 常量
+ * @Date  2026/1/5 18:04
+ * @Param
+ * @return
+ **/
+
 public interface RedisConstants {
 
     /**
