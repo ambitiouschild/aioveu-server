@@ -55,6 +55,10 @@ public class RoleMenuServiceImpl extends ServiceImpl<RoleMenuMapper, RoleMenu> i
                 String roleCode = item.getRoleCode();
                 Set<String> perms = item.getPerms();
                 if (CollectionUtil.isNotEmpty(perms)) {
+
+                    log.info("缓存键配置方式:直接硬编码的键（不通过Spring Cache）");
+                    log.info("缓存键配置方式:在代码中直接使用 redisTemplate.opsForHash().put(\"RedisConstants.System.ROLE_PERMS\", ...)");
+                    log.info("缓存键配置方式:直接使用 \"system:role:perms\" 作为键");
                     redisTemplate.opsForHash().put(RedisConstants.System.ROLE_PERMS, roleCode, perms);
                 }
             });

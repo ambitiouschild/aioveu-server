@@ -9,6 +9,7 @@ import com.aioveu.system.service.SysRoleMenuService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,7 @@ import java.util.Set;
  * @return:
  **/
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SysRoleMenuServiceImpl extends ServiceImpl<SysRoleMenuMapper, SysRoleMenu> implements SysRoleMenuService {
@@ -51,6 +53,10 @@ public class SysRoleMenuServiceImpl extends ServiceImpl<SysRoleMenuMapper, SysRo
             list.forEach(item -> {
                 String roleCode = item.getRoleCode();
                 Set<String> perms = item.getPerms();
+
+                log.info("缓存键配置方式:直接硬编码的键（不通过Spring Cache）");
+                log.info("缓存键配置方式:在代码中直接使用 redisTemplate.opsForHash().put(\"RedisConstants.ROLE_PERMS_PREFIX\", ...)");
+                log.info("缓存键配置方式:示例：直接使用 \"role_perms\" 作为键");
                 redisTemplate.opsForHash().put(RedisConstants.ROLE_PERMS_PREFIX, roleCode, perms);
             });
         }
