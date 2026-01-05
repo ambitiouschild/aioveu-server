@@ -150,6 +150,8 @@ public class RedisCacheConfig {
         log.info(" computePrefixWith 会覆盖默认的 CacheKeyPrefix.prefixed() 实现");
 
 
+        log.info("通过 computePrefixWith生成的键（Spring Cache方式）");
+        log.info("示例：如果缓存名是 \"role\"，会生成 \"role:xxx\"");
         config = config.computePrefixWith(name -> name + ":");//覆盖默认key双冒号  CacheKeyPrefix#prefixed
 
         log.info("关键：为每个微服务添加应用名前缀");
