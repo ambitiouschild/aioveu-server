@@ -25,7 +25,16 @@ public enum LogModuleEnum {
     MENU("菜单"),
     DICT("字典"),
     SETTING("系统配置"),
-    OTHER("其他");
+    OTHER("其他"),
+
+    OMS("订单服务"),
+    PMS("商品服务"),
+    SMS("营销服务"),
+    UMS("会员服务");
+
+
+
+
 
     @JsonValue
     private final String moduleName;
