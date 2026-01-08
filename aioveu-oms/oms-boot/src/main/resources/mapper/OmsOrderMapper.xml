@@ -2,12 +2,12 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.aioveu.oms.mapper.OrderMapper">
+<mapper namespace="com.aioveu.oms.aioveu01Order.mapper.OrderMapper">
 
-    <resultMap id="OrderMap" type="com.aioveu.oms.model.bo.OrderBO">
+    <resultMap id="OrderMap" type="com.aioveu.oms.aioveu01Order.model.vo.OrderBO">
         <collection property="orderItems"
                     column="{orderId=id}"
-                    select="com.aioveu.oms.mapper.OrderItemMapper.getOrderItemsByOrderId">
+                    select="com.aioveu.oms.aioveu02OrderItem.mapper.OrderItemMapper.getOrderItemsByOrderId">
         </collection>
     </resultMap>
 

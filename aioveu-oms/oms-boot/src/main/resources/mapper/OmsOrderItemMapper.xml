@@ -2,10 +2,10 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.aioveu.oms.mapper.OrderItemMapper">
+<mapper namespace="com.aioveu.oms.aioveu02OrderItem.mapper.OrderItemMapper">
 
     <!-- 根据订单ID获取订单商品列表 -->
-    <select id="getOrderItemsByOrderId" resultType="com.aioveu.oms.model.bo.OrderBO$OrderItem">
+    <select id="getOrderItemsByOrderId" resultType="com.aioveu.oms.aioveu01Order.model.vo.OrderBO$OrderItem">
         SELECT
             id,
             order_id,
