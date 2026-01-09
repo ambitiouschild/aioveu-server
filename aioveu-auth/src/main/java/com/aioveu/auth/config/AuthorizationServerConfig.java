@@ -4,6 +4,7 @@ package com.aioveu.auth.config;
 import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.hutool.captcha.generator.CodeGenerator;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.auth.filter.CaptchaValidationFilter;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -37,6 +38,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -67,8 +69,10 @@ import org.springframework.security.oauth2.server.authorization.settings.Authori
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.*;
+import org.springframework.security.oauth2.server.authorization.web.OAuth2TokenEndpointFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 import java.security.KeyPair;
@@ -153,6 +157,17 @@ public class AuthorizationServerConfig {
 
 
     /**
+     * 创建验证码过滤器Bean
+     * 通过@Bean方式创建，Spring会自动管理
+     */
+    @Bean
+    public CaptchaValidationFilter captchaValidationFilter() {
+        log.info("创建验证码过滤器Bean");
+        return new CaptchaValidationFilter(redisTemplate, codeGenerator);
+    }
+
+
+    /**
      * 授权服务器端点配置
      *
      *      * 这是授权服务器的核心配置，定义令牌端点、认证流程等
@@ -171,11 +186,28 @@ public class AuthorizationServerConfig {
 
     ) throws Exception {
 
-        // 应用OAuth2授权服务器的默认安全配置
-        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
-
 
         log.info("认证服务（auth）中的登录入口");
+
+        log.info("配置授权服务器安全过滤器链");
+
+        // 方案A：在令牌端点过滤器之前添加验证码过滤器
+        // 这是最理想的位置，可以拦截所有令牌端点请求
+        log.info("在应用默认安全配置前添加验证码过滤器");
+
+        log.info("先添加过滤器，再应用默认配置");
+        log.info("❌ 错误：OAuth2TokenEndpointFilter 还没有注册,添加到 BasicAuthenticationFilter 之前");
+        log.info("这个过滤器是 Spring Security 内置的，在 OAuth2TokenEndpointFilter 之前执行");
+        http.addFilterBefore(
+                captchaValidationFilter(),  //调用Bean方法获取过滤器
+                BasicAuthenticationFilter.class   // 放在基本认证过滤器之前
+        );
+
+
+        // 应用OAuth2授权服务器的默认安全配置
+        log.info("应用OAuth2授权服务器的默认安全配置");
+        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+
 
         //TODO  认证服务（auth）中的登录入口
         // 自定义授权服务器配置

@@ -91,9 +91,11 @@ public enum ResultCode implements IResultCode, Serializable {
     JWK_GENERATE_ERROR("A0234","生成RSA密钥对失败"),
 
     // 验证码错误
-    USER_VERIFICATION_CODE_ERROR("A0240", "验证码错误"),
+    USER_VERIFICATION_CODE_ERROR("A0240", "验证码错误，哈哈哈哈哈哈"),
     USER_VERIFICATION_CODE_ATTEMPT_LIMIT_EXCEEDED("A0241", "用户验证码尝试次数超限"),
     USER_VERIFICATION_CODE_EXPIRED("A0242", "用户验证码过期"),
+    USER_VERIFICATION_CODE_REQUIRED("A0242", "用户验证码为空"),
+    USER_VERIFICATION_KEY_REQUIRED("A0242", "用户验证码Key为空"),
 
     /** 二级宏观错误码  */
     AUTHORIZED_ERROR("A0300", "访问权限异常"),

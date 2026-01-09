@@ -14,7 +14,9 @@ public interface SecurityConstants {
     /**
      * 登录路径
      */
-    String LOGIN_PATH = "/api/v1/auth/login";
+//    String LOGIN_PATH = "/api/v1/auth/login";
+
+    String LOGIN_PATH = "/oauth2/token";
 
 
     /**

@@ -3,6 +3,7 @@ package com.aioveu.auth.service.impl;
 import cn.hutool.captcha.AbstractCaptcha;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.aioveu.auth.config.CaptchaProperties;
 import com.aioveu.auth.model.CaptchaResult;
@@ -10,6 +11,7 @@ import com.aioveu.common.constant.RedisConstants;
 import com.aioveu.common.sms.property.AliyunSmsProperties;
 import com.aioveu.common.sms.service.SmsService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import com.aioveu.auth.service.CaptchaService;
@@ -25,6 +27,7 @@ import java.util.concurrent.TimeUnit;
  * @return:
  **/
 
+@Slf4j
 @Service   // 标识为Spring服务层组件，由Spring容器管理，处理业务逻辑
 @RequiredArgsConstructor   // Lombok注解，自动生成包含所有final字段的构造函数，实现依赖注入
 public class AuthServiceImpl implements AuthService {
@@ -65,14 +68,21 @@ public class AuthServiceImpl implements AuthService {
         // 生成唯一的验证码ID，用于后续验证时从Redis中查找对应的验证码文本
         String captchaId = IdUtil.fastSimpleUUID();
 
+        // ✅ 修改：使用 StrUtil.format 构建Key，与验证时保持一致
+        String redisKey = StrUtil.format(RedisConstants.Captcha.IMAGE_CODE, captchaId);
+
         // 将验证码文本存储到Redis，设置过期时间（防止验证码被长期滥用）
         redisTemplate.opsForValue().set(
-                RedisConstants.CAPTCHA_CODE_PREFIX + captchaId,  // Redis键：captcha:code:{captchaId}
+//                RedisConstants.CAPTCHA_CODE_PREFIX + captchaId,  // Redis键：captcha:code:{captchaId}
+                redisKey,  // 使用统一的Key格式
                 captcha.getCode(),   // 验证码实际文本（如"AB12"）
                 captchaProperties.getExpireSeconds(),   // 从配置读取过期时间（通常60-300秒）
                 TimeUnit.SECONDS  // 时间单位：秒
         );
 
+        // 添加调试日志
+        log.info("验证码生成 - captchaId: {}, redisKey: {}, code: {}, expire: {}秒",
+                captchaId, redisKey, captcha.getCode(), captchaProperties.getExpireSeconds());
 
         // 构建返回结果对象，包含验证码ID和Base64编码的图片数据
         CaptchaResult captchaResult = CaptchaResult.builder()
