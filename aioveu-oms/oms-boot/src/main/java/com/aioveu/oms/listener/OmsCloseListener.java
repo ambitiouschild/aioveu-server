@@ -2,7 +2,7 @@ package com.aioveu.oms.listener;
 
 
 import com.rabbitmq.client.Channel;
-import com.aioveu.oms.aioveu01Order.service.OrderService;
+import com.aioveu.oms.aioveu01Order.service.app.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;

@@ -3,22 +3,27 @@ package com.aioveu.oms.aioveu03OrderDelivery.model.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.aioveu.common.base.BaseEntity;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Builder;
 import lombok.Data;
 
 import java.util.Date;
 
 /**
- * @Description: TODO 订单物流记录表
+ * @Description: TODO 订单物流记录表  订单物流记录实体对象
  * @Author: 雒世松
- * @Date: 2025/6/5 18:11
+ * @Date: 2026-01-08 20:10
  * @param
  * @return:
  **/
 
 @Data
 @Builder
+@TableName("oms_order_delivery")
 public class OmsOrderDelivery extends BaseEntity {
+
+
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * id

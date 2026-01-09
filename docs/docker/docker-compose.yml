@@ -123,7 +123,8 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       #这是一个混合部署网络连接问题。你的Seata Server在Docker容器内，但微服务在宿主机上运行，导致网络不通。
       # 确保使用宿主机可访问的IP  当Seata注册到Nacos时，注册的IP地址决定微服务的连接方式  #强制指定注册IP
       # 关键1：注册到Nacos的IP（微服务可访问的地址）
-      SEATA_IP: 192.168.1.8  # 替换为你的宿主机IP  ,注意顺序，要先把id改为宿主机，顺序很重要  宿主机公网IP或内网可达IP   直接连接宿主机IP
+      #更改seata注册配置顺序
+      SEATA_IP: 192.168.1.2  # 替换为你的宿主机IP  ,注意顺序，要先把id改为宿主机，顺序很重要  宿主机公网IP或内网可达IP   直接连接宿主机IP
       SEATA_PORT: 8091
       SEATA_REGISTRY_NACOS_NAMESPACE: public  # 确保命名空间匹配
 
@@ -163,19 +164,19 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       SEATA_REGISTRY_NACOS_USERNAME: nacos
       SEATA_REGISTRY_NACOS_PASSWORD: nacos
 
-      # Nacos 配置中心配置
+#       Nacos 配置中心配置
       SEATA_CONFIG_TYPE: nacos     # 配置中心类型
       SEATA_CONFIG_NACOS_SERVER_ADDR: nacos:8848   #注册到Nacos的IP  # 容器内通信
       SEATA_CONFIG_NACOS_GROUP: SEATA_GROUP
       SEATA_CONFIG_NACOS_DATA_ID: seataServer.properties
-#      SEATA_CONFIG_NACOS_USERNAME: nacos
-#      SEATA_CONFIG_NACOS_PASSWORD: nacos
+      SEATA_CONFIG_NACOS_USERNAME: nacos
+      SEATA_CONFIG_NACOS_PASSWORD: nacos
 
       #使用注册中心  不配置grouplist，配置registry.conf
       #重要提醒：在容器化部署时，确保服务端暴露的端口（8091）与客户端配置一致，且容器间网络互通。
 
       # 添加宿主机IP映射
-      EXTRA_HOSTS: "host.docker.internal:host-gateway"
+#      EXTRA_HOSTS: "host.docker.internal:host-gateway"
 
       #OMS服务尝试直接连接Docker内部IP 172.19.0.4:8091，而OMS在宿主机运行，无法访问Docker网络。
 #      SEATA_IP : host.docker.internal  # 关键设置
@@ -185,8 +186,8 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
         -Dloader.path=/seata-server/lib
         -Dlog.home=/root/logs/seata
         -Xmx512m -Xms256m
-
-      # 等待依赖服务
+#
+#      # 等待依赖服务
       WAIT_FOR_SERVICES: "mysql:3306 nacos:8848"
       WAIT_TIMEOUT: 180
 

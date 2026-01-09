@@ -8,7 +8,7 @@ import com.aioveu.oms.aioveu05OrderPay.model.form.OrderSubmitForm;
 import com.aioveu.oms.aioveu01Order.model.query.OrderPageQuery;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderConfirmVO;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderPageVO;
-import com.aioveu.oms.aioveu01Order.service.OrderService;
+import com.aioveu.oms.aioveu01Order.service.app.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

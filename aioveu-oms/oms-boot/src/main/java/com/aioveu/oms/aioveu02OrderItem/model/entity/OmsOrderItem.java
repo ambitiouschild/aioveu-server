@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * @Description: TODO 订单商品明细
+ * @Description: TODO 订单商品明细  订单商品信息实体对象
  * @Author: 雒世松
  * @Date: 2025/6/5 18:11
  * @param
@@ -17,6 +17,8 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class OmsOrderItem extends BaseEntity {
+
+    private static final long serialVersionUID = 1L;
 
     @TableId(type = IdType.AUTO)
     private Long id;
