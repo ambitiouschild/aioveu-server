@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.oms.aioveu04OrderLog.mapper.OmsOrderLogMapper">
+
+    <!-- 获取订单操作历史记录分页列表 -->
+    <select id="getOmsOrderLogPage" resultType="com.aioveu.oms.aioveu04OrderLog.model.vo.OmsOrderLogVO">
+        SELECT
+                id,
+                order_id,
+                user,
+                detail,
+                order_status,
+                remark,
+                deleted,
+                create_time,
+                update_time
+        FROM
+            oms_order_log
+        <where>
+            <if test="queryParams.orderId != null">
+                AND order_id LIKE CONCAT(#{queryParams.orderId}, '%')
+            </if>
+            <if test="queryParams.user != null and queryParams.user != ''">
+                AND user LIKE CONCAT(#{queryParams.user}, '%')
+            </if>
+            <if test="queryParams.orderStatus != null">
+                AND order_status LIKE CONCAT(#{queryParams.orderStatus}, '%')
+            </if>
+            <if test="queryParams.deleted != null">
+                AND deleted LIKE CONCAT(#{queryParams.deleted}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
