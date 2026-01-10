@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.aioveu.pms.mapper.PmsSpuMapper">
+<mapper namespace="com.aioveu.pms.aioveu06Spu.mapper.PmsSpuMapper">
 
-    <resultMap id="BaseResultMap" type="com.aioveu.pms.model.vo.PmsSpuPageVO">
+    <resultMap id="BaseResultMap" type="com.aioveu.pms.aioveu06Spu.model.vo.PmsSpuPageVO">
         <id property="id" column="id" jdbcType="BIGINT"/>
         <result property="name" column="name" jdbcType="VARCHAR"/>
         <result property="categoryId" column="category_id" jdbcType="BIGINT"/>
@@ -20,7 +20,7 @@
         <result property="status" column="status" jdbcType="TINYINT"/>
         <result property="categoryName" column="categoryName" jdbcType="VARCHAR"/>
         <result property="brandName" column="brandName" jdbcType="VARCHAR"/>
-        <collection property="skuList" column="id" select="com.aioveu.pms.mapper.PmsSkuMapper.getSkuListBySpuId">
+        <collection property="skuList" column="id" select="com.aioveu.pms.aioveu05Sku.mapper.PmsSkuMapper.getSkuListBySpuId">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>
             <result property="skuSn" column="sku_sn" jdbcType="VARCHAR"/>
@@ -65,7 +65,7 @@
 
 
     <!--「应用端」商品分页列表-->
-    <select id="listPagedSpuForApp" resultType="com.aioveu.pms.model.vo.SpuPageVO">
+    <select id="listPagedSpuForApp" resultType="com.aioveu.pms.aioveu06Spu.model.vo.SpuPageVO">
         SELECT
             id,
             NAME,

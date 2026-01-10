@@ -1,7 +1,7 @@
 package com.aioveu.pms.listener;
 
 import com.rabbitmq.client.Channel;
-import com.aioveu.pms.service.SkuService;
+import com.aioveu.pms.aioveu05Sku.service.SkuService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
