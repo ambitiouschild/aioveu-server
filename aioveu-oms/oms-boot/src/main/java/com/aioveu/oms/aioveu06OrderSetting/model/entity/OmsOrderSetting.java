@@ -3,18 +3,22 @@ package com.aioveu.oms.aioveu06OrderSetting.model.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.aioveu.common.base.BaseEntity;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 /**
- * @Description: TODO 订单配置信息
- * @Author: 雒世松
- * @Date: 2025/6/5 18:11
+ * @Description: TODO 订单配置信息实体对象
+ * @Date: 2026-01-10 17:10
  * @param
  * @return:
  **/
 
 @Data
+@TableName("oms_order_setting")
 public class OmsOrderSetting extends BaseEntity {
+
+
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * id

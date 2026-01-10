@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.oms.aioveu06OrderSetting.mapper.OmsOrderSettingMapper">
+
+    <!-- 获取订单配置信息分页列表 -->
+    <select id="getOmsOrderSettingPage" resultType="com.aioveu.oms.aioveu06OrderSetting.model.vo.OmsOrderSettingVO">
+        SELECT
+                id,
+                flash_order_overtime,
+                normal_order_overtime,
+                confirm_overtime,
+                finish_overtime,
+                comment_overtime,
+                member_level,
+                deleted,
+                create_time,
+                update_time
+        FROM
+            oms_order_setting
+        <where>
+            <if test="queryParams.flashOrderOvertime != null">
+                AND flash_order_overtime LIKE CONCAT(#{queryParams.flashOrderOvertime}, '%')
+            </if>
+            <if test="queryParams.normalOrderOvertime != null">
+                AND normal_order_overtime LIKE CONCAT(#{queryParams.normalOrderOvertime}, '%')
+            </if>
+            <if test="queryParams.finishOvertime != null">
+                AND finish_overtime LIKE CONCAT(#{queryParams.finishOvertime}, '%')
+            </if>
+            <if test="queryParams.commentOvertime != null">
+                AND comment_overtime LIKE CONCAT(#{queryParams.commentOvertime}, '%')
+            </if>
+            <if test="queryParams.memberLevel != null">
+                AND member_level LIKE CONCAT(#{queryParams.memberLevel}, '%')
+            </if>
+            <if test="queryParams.deleted != null">
+                AND deleted LIKE CONCAT(#{queryParams.deleted}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

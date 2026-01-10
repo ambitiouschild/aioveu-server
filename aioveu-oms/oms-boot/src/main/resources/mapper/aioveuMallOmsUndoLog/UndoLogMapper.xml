@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.oms.aioveu07UndoLog.mapper.UndoLogMapper">
+
+    <!-- 获取AT transaction mode undo table分页列表 -->
+    <select id="getUndoLogPage" resultType="com.aioveu.oms.aioveu07UndoLog.model.vo.UndoLogVO">
+        SELECT
+                branch_id,
+                xid,
+                context,
+                rollback_info,
+                log_status,
+                log_created,
+                log_modified
+        FROM
+            undo_log
+        <where>
+            <if test="queryParams.branchId != null">
+                AND branch_id LIKE CONCAT(#{queryParams.branchId}, '%')
+            </if>
+            <if test="queryParams.xid != null and queryParams.xid != ''">
+                AND xid LIKE CONCAT(#{queryParams.xid}, '%')
+            </if>
+            <if test="queryParams.context != null and queryParams.context != ''">
+                AND context LIKE CONCAT(#{queryParams.context}, '%')
+            </if>
+            <if test="queryParams.rollbackInfo != null">
+                AND rollback_info LIKE CONCAT(#{queryParams.rollbackInfo}, '%')
+            </if>
+            <if test="queryParams.logStatus != null">
+                AND log_status LIKE CONCAT(#{queryParams.logStatus}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
