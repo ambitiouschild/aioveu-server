@@ -37,7 +37,7 @@ public class OmsOrderItemController {
 
     @Operation(summary = "订单商品信息分页列表")
     @GetMapping("/page")
-    @PreAuthorize("@ss.hasPerm('aioveuOmsOrderItem:oms-order-item:query')")
+    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrderItem:oms-order-item:query')")
     @Log( value = "订单商品信息分页列表",module = LogModuleEnum.OMS)
     public PageResult<OmsOrderItemVO> getOmsOrderItemPage(OmsOrderItemQuery queryParams ) {
         IPage<OmsOrderItemVO> result = omsOrderItemService.getOmsOrderItemPage(queryParams);
@@ -46,7 +46,7 @@ public class OmsOrderItemController {
 
     @Operation(summary = "新增订单商品信息")
     @PostMapping
-    @PreAuthorize("@ss.hasPerm('aioveuOmsOrderItem:oms-order-item:add')")
+    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrderItem:oms-order-item:add')")
     @Log( value = "新增订单商品信息",module = LogModuleEnum.OMS)
     public Result<Void> saveOmsOrderItem(@RequestBody @Valid OmsOrderItemForm formData ) {
         boolean result = omsOrderItemService.saveOmsOrderItem(formData);
@@ -55,7 +55,7 @@ public class OmsOrderItemController {
 
     @Operation(summary = "获取订单商品信息表单数据")
     @GetMapping("/{id}/form")
-    @PreAuthorize("@ss.hasPerm('aioveuOmsOrderItem:oms-order-item:edit')")
+    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrderItem:oms-order-item:edit')")
     @Log( value = "获取订单商品信息表单数据",module = LogModuleEnum.OMS)
     public Result<OmsOrderItemForm> getOmsOrderItemForm(
             @Parameter(description = "订单商品信息ID") @PathVariable Long id
@@ -66,7 +66,7 @@ public class OmsOrderItemController {
 
     @Operation(summary = "修改订单商品信息")
     @PutMapping(value = "/{id}")
-    @PreAuthorize("@ss.hasPerm('aioveuOmsOrderItem:oms-order-item:edit')")
+    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrderItem:oms-order-item:edit')")
     @Log( value = "修改订单商品信息",module = LogModuleEnum.OMS)
     public Result<Void> updateOmsOrderItem(
             @Parameter(description = "订单商品信息ID") @PathVariable Long id,
@@ -78,7 +78,7 @@ public class OmsOrderItemController {
 
     @Operation(summary = "删除订单商品信息")
     @DeleteMapping("/{ids}")
-    @PreAuthorize("@ss.hasPerm('aioveuOmsOrderItem:oms-order-item:delete')")
+    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrderItem:oms-order-item:delete')")
     @Log( value = "删除订单商品信息",module = LogModuleEnum.OMS)
     public Result<Void> deleteOmsOrderItems(
             @Parameter(description = "订单商品信息ID，多个以英文逗号(,)分割") @PathVariable String ids
