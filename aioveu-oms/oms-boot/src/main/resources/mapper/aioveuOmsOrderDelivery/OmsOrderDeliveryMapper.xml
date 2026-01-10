@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.oms.aioveu03OrderDelivery.mapper.OmsOrderDeliveryMapper">
+
+    <!-- 获取订单物流记录分页列表 -->
+    <select id="getOmsOrderDeliveryPage" resultType="com.aioveu.oms.aioveu03OrderDelivery.model.vo.OmsOrderDeliveryVO">
+        SELECT
+                id,
+                order_id,
+                delivery_company,
+                delivery_sn,
+                receiver_name,
+                receiver_phone,
+                receiver_post_code,
+                receiver_province,
+                receiver_city,
+                receiver_region,
+                receiver_detail_address,
+                remark,
+                delivery_status,
+                delivery_time,
+                receive_time,
+                deleted,
+                create_time,
+                update_time
+        FROM
+            oms_order_delivery
+        <where>
+            <if test="queryParams.orderId != null">
+                AND order_id LIKE CONCAT(#{queryParams.orderId}, '%')
+            </if>
+            <if test="queryParams.deliveryCompany != null and queryParams.deliveryCompany != ''">
+                AND delivery_company LIKE CONCAT(#{queryParams.deliveryCompany}, '%')
+            </if>
+            <if test="queryParams.deliverySn != null and queryParams.deliverySn != ''">
+                AND delivery_sn LIKE CONCAT(#{queryParams.deliverySn}, '%')
+            </if>
+            <if test="queryParams.receiverName != null and queryParams.receiverName != ''">
+                AND receiver_name LIKE CONCAT(#{queryParams.receiverName}, '%')
+            </if>
+            <if test="queryParams.receiverPhone != null and queryParams.receiverPhone != ''">
+                AND receiver_phone LIKE CONCAT(#{queryParams.receiverPhone}, '%')
+            </if>
+            <if test="queryParams.deliveryStatus != null">
+                AND delivery_status LIKE CONCAT(#{queryParams.deliveryStatus}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
