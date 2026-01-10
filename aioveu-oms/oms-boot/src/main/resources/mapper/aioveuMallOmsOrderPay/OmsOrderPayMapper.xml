@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.oms.aioveu05OrderPay.mapper.OmsOrderPayMapper">
+
+    <!-- 获取支付信息分页列表 -->
+    <select id="getOmsOrderPayPage" resultType="com.aioveu.oms.aioveu05OrderPay.model.vo.OmsOrderPayVO">
+        SELECT
+                id,
+                order_id,
+                pay_sn,
+                pay_amount,
+                pay_time,
+                pay_type,
+                pay_status,
+                confirm_time,
+                callback_content,
+                callback_time,
+                pay_subject,
+                deleted,
+                create_time,
+                update_time
+        FROM
+            oms_order_pay
+        <where>
+            <if test="queryParams.orderId != null">
+                AND order_id LIKE CONCAT(#{queryParams.orderId}, '%')
+            </if>
+            <if test="queryParams.paySn != null and queryParams.paySn != ''">
+                AND pay_sn LIKE CONCAT(#{queryParams.paySn}, '%')
+            </if>
+            <if test="queryParams.payAmount != null">
+                AND pay_amount LIKE CONCAT(#{queryParams.payAmount}, '%')
+            </if>
+            <if test="queryParams.payType != null">
+                AND pay_type LIKE CONCAT(#{queryParams.payType}, '%')
+            </if>
+            <if test="queryParams.payStatus != null">
+                AND pay_status LIKE CONCAT(#{queryParams.payStatus}, '%')
+            </if>
+            <if test="queryParams.callbackTime != null">
+                <if test="queryParams.callbackTime[0] != null and queryParams.callbackTime[0] != ''">
+                    <bind name="startDate" value="queryParams.callbackTime[0].length() == 10 ? queryParams.callbackTime[0] + ' 00:00:00' : queryParams.callbackTime[0]"/>
+                    AND callback_time &gt;= #{startDate}
+                </if>
+                <if test="queryParams.callbackTime[1] != null and queryParams.callbackTime[1] != ''">
+                    <bind name="endDate" value="queryParams.callbackTime[1].length() == 10 ? queryParams.callbackTime[1] + ' 23:59:59' : queryParams.callbackTime[1]"/>
+                    AND callback_time &lt;= #{endDate}
+                </if>
+            </if>
+            <if test="queryParams.deleted != null">
+                AND deleted LIKE CONCAT(#{queryParams.deleted}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
