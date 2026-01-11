@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.pms.aioveu03CategoryAttribute.mapper.PmsCategoryAttributeMapper">
+
+    <!-- 获取商品类型（规格，属性）分页列表 -->
+    <select id="getPmsCategoryAttributePage" resultType="com.aioveu.pms.aioveu03CategoryAttribute.model.vo.PmsCategoryAttributeVO">
+        SELECT
+                id,
+                category_id,
+                name,
+                type,
+                create_time,
+                update_time
+        FROM
+            pms_category_attribute
+        <where>
+            <if test="queryParams.categoryId != null">
+                AND category_id LIKE CONCAT(#{queryParams.categoryId}, '%')
+            </if>
+            <if test="queryParams.name != null and queryParams.name != ''">
+                AND name LIKE CONCAT(#{queryParams.name}, '%')
+            </if>
+            <if test="queryParams.type != null">
+                AND type LIKE CONCAT(#{queryParams.type}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
