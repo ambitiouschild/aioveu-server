@@ -13,7 +13,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.aioveu.pms.aioveu06Spu.constant.ProductConstants;
 import com.aioveu.pms.aioveu07SpuAttribute.converter.SpuAttributeConverter;
-import com.aioveu.pms.aioveu06Spu.converter.SpuConverter;
+import com.aioveu.pms.aioveu06Spu.converter.PmsSpuConverter;
 import com.aioveu.pms.aioveu06Spu.enums.AttributeTypeEnum;
 import com.aioveu.pms.aioveu06Spu.mapper.PmsSpuMapper;
 import com.aioveu.pms.aioveu05Sku.model.entity.PmsSku;
@@ -21,11 +21,11 @@ import com.aioveu.pms.aioveu06Spu.model.entity.PmsSpu;
 import com.aioveu.pms.aioveu07SpuAttribute.model.entity.PmsSpuAttribute;
 import com.aioveu.pms.aioveu07SpuAttribute.model.form.PmsSpuAttributeForm;
 import com.aioveu.pms.aioveu06Spu.model.form.PmsSpuForm;
-import com.aioveu.pms.aioveu06Spu.model.query.SpuPageQuery;
+import com.aioveu.pms.aioveu06Spu.model.query.PmsSpuQuery;
 import com.aioveu.pms.model.vo.*;
 import com.aioveu.pms.aioveu05Sku.service.PmsSkuService;
 import com.aioveu.pms.aioveu07SpuAttribute.service.SpuAttributeService;
-import com.aioveu.pms.aioveu06Spu.service.SpuService;
+import com.aioveu.pms.aioveu06Spu.service.PmsSpuService;
 import com.aioveu.ums.api.MemberFeignClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -94,7 +94,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor    // Lombok注解：自动注入final修饰的依赖
-public class SpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> implements SpuService {
+public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> implements PmsSpuService {
 
 
     // 依赖注入：SKU服务，用于管理商品库存单元
@@ -107,7 +107,7 @@ public class SpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> implements
     private final MemberFeignClient memberFeignClient;
 
     // 依赖注入：商品转换器，用于实体和表单之间的转换
-    private final SpuConverter spuConverter;
+    private final PmsSpuConverter pmsSpuConverter;
 
     // 依赖注入：商品属性转换器，用于属性实体和表单之间的转换
     private final SpuAttributeConverter spuAttributeConverter;
@@ -120,13 +120,13 @@ public class SpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> implements
      * @return IPage<PmsSpuPageVO> 分页结果，包含商品列表和分页信息
      */
     @Override
-    public IPage<PmsSpuPageVO> listPagedSpu(SpuPageQuery queryParams) {
+    public IPage<PmsSpuVO> listPagedSpu(PmsSpuQuery queryParams) {
 
         log.info("创建分页对象，设置当前页和每页大小");
-        Page<PmsSpuPageVO> page = new Page<>(queryParams.getPageNum(), queryParams.getPageSize());
+        Page<PmsSpuVO> page = new Page<>(queryParams.getPageNum(), queryParams.getPageSize());
 
         log.info("调用Mapper层自定义方法获取分页数据");
-        List<PmsSpuPageVO> list = this.baseMapper.listPagedSpu(page, queryParams);
+        List<PmsSpuVO> list = this.baseMapper.listPagedSpu(page, queryParams);
 
         log.info("将查询结果设置到分页对象中");
         page.setRecords(list);
@@ -141,7 +141,7 @@ public class SpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> implements
      * @return IPage<SpuPageVO> 适配APP端的分页结果
      */
     @Override
-    public IPage<SpuPageVO> listPagedSpuForApp(SpuPageQuery queryParams) {
+    public IPage<SpuPageVO> listPagedSpuForApp(PmsSpuQuery queryParams) {
 
         log.info("创建分页对象");
         Page<SpuPageVO> page = new Page<>(queryParams.getPageNum(), queryParams.getPageSize());
@@ -331,7 +331,7 @@ public class SpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> implements
     public boolean addSpu(PmsSpuForm formData) {
 
         log.info("1. 转换表单数据为实体并保存商品基本信息");
-        PmsSpu entity = spuConverter.form2Entity(formData);
+        PmsSpu entity = pmsSpuConverter.form2Entity(formData);
 
         boolean result = this.save(entity);
 
@@ -374,7 +374,7 @@ public class SpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> implements
     public boolean updateSpuById(Long spuId, PmsSpuForm formData) {
 
         log.info("1. 转换并更新商品基本信息");
-        PmsSpu entity = spuConverter.form2Entity(formData);
+        PmsSpu entity = pmsSpuConverter.form2Entity(formData);
 
         boolean result = this.updateById(entity);
 
@@ -449,7 +449,7 @@ public class SpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> implements
         );
 
         log.info("转换为秒杀专用VO对象");
-        return spuConverter.entity2SeckillingVO(entities);
+        return pmsSpuConverter.entity2SeckillingVO(entities);
     }
 
 
@@ -645,4 +645,74 @@ public class SpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> implements
         }
         return tempWithNewSpecIdMap;
     }
+
+    /**
+     * 获取商品分页列表
+     *
+     * @param queryParams 查询参数
+     * @return {@link IPage<PmsSpuVO>} 商品分页列表
+     */
+    @Override
+    public IPage<PmsSpuVO> getPmsSpuPage(PmsSpuQuery queryParams) {
+        Page<PmsSpuVO> pageVO = this.baseMapper.getPmsSpuPage(
+                new Page<>(queryParams.getPageNum(), queryParams.getPageSize()),
+                queryParams
+        );
+        return pageVO;
+    }
+
+    /**
+     * 获取商品表单数据
+     *
+     * @param id 商品ID
+     * @return 商品表单数据
+     */
+    @Override
+    public PmsSpuForm getPmsSpuFormData(Long id) {
+        PmsSpu entity = this.getById(id);
+        return pmsSpuConverter.toForm(entity);
+    }
+
+    /**
+     * 新增商品
+     *
+     * @param formData 商品表单对象
+     * @return 是否新增成功
+     */
+    @Override
+    public boolean savePmsSpu(PmsSpuForm formData) {
+        PmsSpu entity = pmsSpuConverter.toEntity(formData);
+        return this.save(entity);
+    }
+
+    /**
+     * 更新商品
+     *
+     * @param id   商品ID
+     * @param formData 商品表单对象
+     * @return 是否修改成功
+     */
+    @Override
+    public boolean updatePmsSpu(Long id,PmsSpuForm formData) {
+        PmsSpu entity = pmsSpuConverter.toEntity(formData);
+        return this.updateById(entity);
+    }
+
+    /**
+     * 删除商品
+     *
+     * @param ids 商品ID，多个以英文逗号(,)分割
+     * @return 是否删除成功
+     */
+    @Override
+    public boolean deletePmsSpus(String ids) {
+        Assert.isTrue(StrUtil.isNotBlank(ids), "删除的商品数据为空");
+        // 逻辑删除
+        List<Long> idList = Arrays.stream(ids.split(","))
+                .map(Long::parseLong)
+                .toList();
+        return this.removeByIds(idList);
+    }
+
+
 }

@@ -3,11 +3,11 @@ package com.aioveu.pms.aioveu06Spu.controller.app;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.Result;
-import com.aioveu.pms.aioveu06Spu.model.query.SpuPageQuery;
+import com.aioveu.pms.aioveu06Spu.model.query.PmsSpuQuery;
 import com.aioveu.pms.aioveu06Spu.model.vo.SeckillingSpuVO;
 import com.aioveu.pms.aioveu06Spu.model.vo.SpuDetailVO;
 import com.aioveu.pms.aioveu06Spu.model.vo.SpuPageVO;
-import com.aioveu.pms.aioveu06Spu.service.SpuService;
+import com.aioveu.pms.aioveu06Spu.service.PmsSpuService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,12 +25,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SpuController {
 
-    private final SpuService spuService;
+    private final PmsSpuService pmsSpuService;
 
     @Operation(summary = "商品分页列表")
     @GetMapping("/pages")
-    public PageResult<SpuPageVO> listPagedSpuForApp(SpuPageQuery queryParams) {
-        IPage<SpuPageVO> result = spuService.listPagedSpuForApp(queryParams);
+    public PageResult<SpuPageVO> listPagedSpuForApp(PmsSpuQuery queryParams) {
+        IPage<SpuPageVO> result = pmsSpuService.listPagedSpuForApp(queryParams);
         return PageResult.success(result);
     }
 
@@ -39,14 +39,14 @@ public class SpuController {
     public Result<SpuDetailVO> getSpuDetail(
             @Parameter(name ="商品ID") @PathVariable Long spuId
     ) {
-        SpuDetailVO spuDetailVO = spuService.getSpuDetailForApp(spuId);
+        SpuDetailVO spuDetailVO = pmsSpuService.getSpuDetailForApp(spuId);
         return Result.success(spuDetailVO);
     }
 
     @Operation(summary = "获取秒杀商品列表")
     @GetMapping("/seckilling")
     public Result<List<SeckillingSpuVO>> listSeckillingSpu() {
-        List<SeckillingSpuVO> list = spuService.listSeckillingSpu();
+        List<SeckillingSpuVO> list = pmsSpuService.listSeckillingSpu();
         return Result.success(list);
     }
 

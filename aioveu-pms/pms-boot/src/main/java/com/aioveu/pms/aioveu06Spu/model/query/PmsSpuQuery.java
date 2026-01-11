@@ -15,13 +15,25 @@ import lombok.Data;
 
 @Schema(description = "商品分页查询对象")
 @Data
-public class SpuPageQuery extends BasePageQuery {
+public class PmsSpuQuery extends BasePageQuery {
 
     @Schema(description="关键字")
     private String keywords;
 
+    @Schema(description = "商品名称")
+    private String name;
+
     @Schema(description="商品分类ID")
     private Long categoryId;
+
+    @Schema(description = "商品品牌ID")
+    private Long brandId;
+
+    @Schema(description = "商品简介")
+    private String description;
+
+    @Schema(description = "商品状态(0:下架 1:上架)")
+    private Integer status;
 
     @Schema(description="排序字段名")
     private String sortField;

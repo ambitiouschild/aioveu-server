@@ -19,7 +19,7 @@ import java.util.List;
  **/
 
 @Mapper(componentModel = "spring")
-public interface SpuConverter {
+public interface PmsSpuConverter {
 
     @Mappings({
             @Mapping(target = "album", source = "subPicUrls")
@@ -32,5 +32,9 @@ public interface SpuConverter {
     SeckillingSpuVO entity2SeckillingVO(PmsSpu entity);
 
     List<SeckillingSpuVO> entity2SeckillingVO(List<PmsSpu> entities);
+
+    PmsSpuForm toForm(PmsSpu entity);
+
+    PmsSpu toEntity(PmsSpuForm formData);
 
 }

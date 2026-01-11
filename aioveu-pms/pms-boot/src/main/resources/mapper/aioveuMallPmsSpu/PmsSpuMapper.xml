@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.aioveu.pms.aioveu06Spu.mapper.PmsSpuMapper">
 
-    <resultMap id="BaseResultMap" type="com.aioveu.pms.aioveu06Spu.model.vo.PmsSpuPageVO">
+    <resultMap id="BaseResultMap" type="com.aioveu.pms.aioveu06Spu.model.vo.PmsSpuVO">
         <id property="id" column="id" jdbcType="BIGINT"/>
         <result property="name" column="name" jdbcType="VARCHAR"/>
         <result property="categoryId" column="category_id" jdbcType="BIGINT"/>
@@ -88,4 +88,47 @@
         </if>
         create_time desc
     </select>
+
+
+    <!-- 获取商品分页列表 -->
+    <select id="getPmsSpuPage" resultType="com.aioveu.pms.aioveu06Spu.model.vo.PmsSpuVO">
+        SELECT
+        id,
+        name,
+        category_id,
+        brand_id,
+        origin_price,
+        price,
+        sales,
+        pic_url,
+        album,
+        unit,
+        description,
+        detail,
+        status,
+        create_time,
+        update_time
+        FROM
+        pms_spu
+        <where>
+            <if test="queryParams.name != null and queryParams.name != ''">
+                AND name LIKE CONCAT(#{queryParams.name}, '%')
+            </if>
+            <if test="queryParams.categoryId != null">
+                AND category_id LIKE CONCAT(#{queryParams.categoryId}, '%')
+            </if>
+            <if test="queryParams.brandId != null">
+                AND brand_id LIKE CONCAT(#{queryParams.brandId}, '%')
+            </if>
+            <if test="queryParams.description != null and queryParams.description != ''">
+                AND description LIKE CONCAT(#{queryParams.description}, '%')
+            </if>
+            <if test="queryParams.status != null">
+                AND status LIKE CONCAT(#{queryParams.status}, '%')
+            </if>
+        </where>
+    </select>
+
+
+
 </mapper>

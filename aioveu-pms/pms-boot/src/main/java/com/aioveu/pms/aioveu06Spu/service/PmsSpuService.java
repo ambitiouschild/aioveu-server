@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.aioveu.pms.aioveu06Spu.model.entity.PmsSpu;
 import com.aioveu.pms.aioveu06Spu.model.form.PmsSpuForm;
-import com.aioveu.pms.aioveu06Spu.model.query.SpuPageQuery;
+import com.aioveu.pms.aioveu06Spu.model.query.PmsSpuQuery;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ import java.util.List;
  * @return:
  **/
 
-public interface SpuService extends IService<PmsSpu> {
+public interface PmsSpuService extends IService<PmsSpu> {
 
 
     /**
@@ -26,7 +26,7 @@ public interface SpuService extends IService<PmsSpu> {
      * @param queryParams
      * @return
      */
-    IPage<PmsSpuPageVO> listPagedSpu(SpuPageQuery queryParams);
+    IPage<PmsSpuVO> listPagedSpu(PmsSpuQuery queryParams);
 
     /**
      * 「应用端」商品分页列表
@@ -34,7 +34,7 @@ public interface SpuService extends IService<PmsSpu> {
      * @param queryParams
      * @return
      */
-    IPage<SpuPageVO> listPagedSpuForApp(SpuPageQuery queryParams);
+    IPage<SpuPageVO> listPagedSpuForApp(PmsSpuQuery queryParams);
 
 
     /**
@@ -86,4 +86,44 @@ public interface SpuService extends IService<PmsSpu> {
      * @return
      */
     List<SeckillingSpuVO> listSeckillingSpu();
+
+    /**
+     *商品分页列表
+     *
+     * @return {@link IPage<PmsSpuVO>} 商品分页列表
+     */
+    IPage<PmsSpuVO> getPmsSpuPage(PmsSpuQuery queryParams);
+
+    /**
+     * 获取商品表单数据
+     *
+     * @param id 商品ID
+     * @return 商品表单数据
+     */
+    PmsSpuForm getPmsSpuFormData(Long id);
+
+    /**
+     * 新增商品
+     *
+     * @param formData 商品表单对象
+     * @return 是否新增成功
+     */
+    boolean savePmsSpu(PmsSpuForm formData);
+
+    /**
+     * 修改商品
+     *
+     * @param id   商品ID
+     * @param formData 商品表单对象
+     * @return 是否修改成功
+     */
+    boolean updatePmsSpu(Long id, PmsSpuForm formData);
+
+    /**
+     * 删除商品
+     *
+     * @param ids 商品ID，多个以英文逗号(,)分割
+     * @return 是否删除成功
+     */
+    boolean deletePmsSpus(String ids);
 }

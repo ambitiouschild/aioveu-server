@@ -9,7 +9,7 @@ import com.aioveu.pms.aioveu05Sku.model.form.PmsSkuForm;
 import com.aioveu.pms.aioveu05Sku.model.query.PmsSkuQuery;
 import com.aioveu.pms.aioveu05Sku.model.vo.PmsSkuVO;
 import com.aioveu.pms.aioveu06Spu.model.entity.PmsSpu;
-import com.aioveu.pms.aioveu06Spu.service.SpuService;
+import com.aioveu.pms.aioveu06Spu.service.PmsSpuService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -119,7 +119,7 @@ public class PmsSkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> impleme
 
     @Lazy
     @Autowired
-    private SpuService spuService;
+    private PmsSpuService pmsSpuService;
 
     /**
      *   TODO               获取单个商品SKU的详细信息
@@ -163,7 +163,7 @@ public class PmsSkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> impleme
 
             log.info("4. 批量查询对应的SPU信息（商品基本信息）");
             log.info("根据SPU ID列表查询所有相关的商品基本信息");
-            List<PmsSpu> pmsSpus = spuService.listByIds(spuIds);
+            List<PmsSpu> pmsSpus = pmsSpuService.listByIds(spuIds);
 
             log.info("5. 构建SPU ID到SPU名称的映射Map，便于后续快速查找");
             log.info("创建HashMap，key为SPU ID，value为SPU名称");
