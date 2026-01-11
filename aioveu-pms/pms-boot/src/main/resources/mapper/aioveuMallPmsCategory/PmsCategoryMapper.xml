@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.pms.aioveu02Category.mapper.PmsCategoryMapper">
+
+    <!-- 获取商品分类分页列表 -->
+    <select id="getPmsCategoryPage" resultType="com.aioveu.pms.aioveu02Category.model.vo.PmsCategoryVO">
+        SELECT
+                id,
+                name,
+                parent_id,
+                level,
+                icon_url,
+                sort,
+                visible,
+                create_time,
+                update_time
+        FROM
+            pms_category
+        <where>
+            <if test="queryParams.name != null and queryParams.name != ''">
+                AND name LIKE CONCAT(#{queryParams.name}, '%')
+            </if>
+            <if test="queryParams.parentId != null">
+                AND parent_id LIKE CONCAT(#{queryParams.parentId}, '%')
+            </if>
+            <if test="queryParams.iconUrl != null and queryParams.iconUrl != ''">
+                AND icon_url LIKE CONCAT(#{queryParams.iconUrl}, '%')
+            </if>
+            <if test="queryParams.sort != null">
+                AND sort LIKE CONCAT(#{queryParams.sort}, '%')
+            </if>
+            <if test="queryParams.visible != null">
+                AND visible LIKE CONCAT(#{queryParams.visible}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

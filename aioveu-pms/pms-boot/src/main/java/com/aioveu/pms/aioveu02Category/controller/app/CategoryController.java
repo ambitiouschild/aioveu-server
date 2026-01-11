@@ -2,7 +2,7 @@ package com.aioveu.pms.aioveu02Category.controller.app;
 
 import com.aioveu.common.result.Result;
 import com.aioveu.pms.model.vo.CategoryVO;
-import com.aioveu.pms.aioveu02Category.service.CategoryService;
+import com.aioveu.pms.aioveu02Category.service.PmsCategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,12 +27,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryController {
 
-    private final CategoryService categoryService;
+    private final PmsCategoryService pmsCategoryService;
 
     @Operation(summary = "分类列表")
     @GetMapping
     public Result list(@Parameter(name = "上级分类ID") Long parentId) {
-        List<CategoryVO> list = categoryService.getCategoryList(parentId);
+        List<CategoryVO> list = pmsCategoryService.getCategoryList(parentId);
         return Result.success(list);
     }
 }

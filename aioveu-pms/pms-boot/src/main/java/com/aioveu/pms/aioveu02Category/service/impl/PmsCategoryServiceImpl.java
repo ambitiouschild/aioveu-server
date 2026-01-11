@@ -1,19 +1,29 @@
 package com.aioveu.pms.aioveu02Category.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.StrUtil;
+import com.aioveu.pms.aioveu02Category.converter.PmsCategoryConverter;
+import com.aioveu.pms.aioveu02Category.model.form.PmsCategoryForm;
+import com.aioveu.pms.aioveu02Category.model.query.PmsCategoryQuery;
+import com.aioveu.pms.aioveu02Category.model.vo.PmsCategoryVO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.aioveu.common.constant.GlobalConstants;
 import com.aioveu.common.web.model.Option;
 import com.aioveu.pms.aioveu02Category.mapper.PmsCategoryMapper;
 import com.aioveu.pms.aioveu02Category.model.entity.PmsCategory;
 import com.aioveu.pms.model.vo.CategoryVO;
-import com.aioveu.pms.aioveu02Category.service.CategoryService;
+import com.aioveu.pms.aioveu02Category.service.PmsCategoryService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,8 +66,11 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-public class CategoryServiceImpl extends ServiceImpl<PmsCategoryMapper, PmsCategory> implements CategoryService {
+@RequiredArgsConstructor
+public class PmsCategoryServiceImpl extends ServiceImpl<PmsCategoryMapper, PmsCategory> implements PmsCategoryService {
 
+
+    private final PmsCategoryConverter pmsCategoryConverter;
 
     /**
      *     TODO             获取分类列表（树形结构）
@@ -201,5 +214,73 @@ public class CategoryServiceImpl extends ServiceImpl<PmsCategoryMapper, PmsCateg
 
         log.info("返回保存后的分类ID（新增时返回生成的ID，更新时返回原有ID）");
         return category.getId();
+    }
+
+    /**
+     * 获取商品分类分页列表
+     *
+     * @param queryParams 查询参数
+     * @return {@link IPage<PmsCategoryVO>} 商品分类分页列表
+     */
+    @Override
+    public IPage<PmsCategoryVO> getPmsCategoryPage(PmsCategoryQuery queryParams) {
+        Page<PmsCategoryVO> pageVO = this.baseMapper.getPmsCategoryPage(
+                new Page<>(queryParams.getPageNum(), queryParams.getPageSize()),
+                queryParams
+        );
+        return pageVO;
+    }
+
+    /**
+     * 获取商品分类表单数据
+     *
+     * @param id 商品分类ID
+     * @return 商品分类表单数据
+     */
+    @Override
+    public PmsCategoryForm getPmsCategoryFormData(Long id) {
+        PmsCategory entity = this.getById(id);
+        return pmsCategoryConverter.toForm(entity);
+    }
+
+    /**
+     * 新增商品分类
+     *
+     * @param formData 商品分类表单对象
+     * @return 是否新增成功
+     */
+    @Override
+    public boolean savePmsCategory(PmsCategoryForm formData) {
+        PmsCategory entity = pmsCategoryConverter.toEntity(formData);
+        return this.save(entity);
+    }
+
+    /**
+     * 更新商品分类
+     *
+     * @param id   商品分类ID
+     * @param formData 商品分类表单对象
+     * @return 是否修改成功
+     */
+    @Override
+    public boolean updatePmsCategory(Long id, PmsCategoryForm formData) {
+        PmsCategory entity = pmsCategoryConverter.toEntity(formData);
+        return this.updateById(entity);
+    }
+
+    /**
+     * 删除商品分类
+     *
+     * @param ids 商品分类ID，多个以英文逗号(,)分割
+     * @return 是否删除成功
+     */
+    @Override
+    public boolean deletePmsCategorys(String ids) {
+        Assert.isTrue(StrUtil.isNotBlank(ids), "删除的商品分类数据为空");
+        // 逻辑删除
+        List<Long> idList = Arrays.stream(ids.split(","))
+                .map(Long::parseLong)
+                .toList();
+        return this.removeByIds(idList);
     }
 }
