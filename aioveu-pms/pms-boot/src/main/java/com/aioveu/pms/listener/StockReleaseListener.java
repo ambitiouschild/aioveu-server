@@ -1,7 +1,7 @@
 package com.aioveu.pms.listener;
 
 import com.rabbitmq.client.Channel;
-import com.aioveu.pms.aioveu05Sku.service.SkuService;
+import com.aioveu.pms.aioveu05Sku.service.PmsSkuService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -24,7 +24,7 @@ import java.io.IOException;
 @Slf4j
 public class StockReleaseListener {
 
-    private final SkuService skuService;
+    private final PmsSkuService pmsSkuService;
 
     private static final String STOCK_RELEASE_QUEUE = "stock.release.queue";
     private static final String STOCK_EXCHANGE = "stock.exchange";
@@ -43,7 +43,7 @@ public class StockReleaseListener {
         log.info("订单【{}】取消释放库存消息监听", orderSn);
         long deliveryTag = message.getMessageProperties().getDeliveryTag(); // 消息序号
         try {
-            skuService.unlockStock(orderSn);
+            pmsSkuService.unlockStock(orderSn);
             channel.basicAck(deliveryTag, false);
         } catch (Exception e) {
             channel.basicReject(deliveryTag, true);

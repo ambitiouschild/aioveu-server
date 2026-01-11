@@ -2,19 +2,25 @@ package com.aioveu.pms.aioveu05Sku.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.aioveu.pms.aioveu05Sku.converter.PmsSkuConverter;
+import com.aioveu.pms.aioveu05Sku.model.form.PmsSkuForm;
+import com.aioveu.pms.aioveu05Sku.model.query.PmsSkuQuery;
+import com.aioveu.pms.aioveu05Sku.model.vo.PmsSkuVO;
 import com.aioveu.pms.aioveu06Spu.model.entity.PmsSpu;
 import com.aioveu.pms.aioveu06Spu.service.SpuService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.aioveu.pms.aioveu06Spu.constant.ProductConstants;
-import com.aioveu.pms.aioveu05Sku.converter.SkuConverter;
 import com.aioveu.pms.aioveu05Sku.mapper.PmsSkuMapper;
 import com.aioveu.pms.model.dto.LockSkuDTO;
 import com.aioveu.pms.model.dto.SkuInfoDTO;
 import com.aioveu.pms.aioveu05Sku.model.entity.PmsSku;
-import com.aioveu.pms.aioveu05Sku.service.SkuService;
+import com.aioveu.pms.aioveu05Sku.service.PmsSkuService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,14 +108,14 @@ import java.util.*;
 @Service
 @Slf4j
 @RequiredArgsConstructor   // Lombok注解：为所有final字段生成构造函数，实现依赖注入
-public class SkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> implements SkuService {
+public class PmsSkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> implements PmsSkuService {
 
 
     // Redis操作模板，用于缓存锁定库存信息
     private final RedisTemplate redisTemplate;
 
     // SKU对象转换器，用于实体与DTO之间的转换
-    private final SkuConverter skuConverter;
+    private final PmsSkuConverter pmsSkuConverter;
 
     @Lazy
     @Autowired
@@ -383,5 +389,73 @@ public class SkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> implements
         log.info("扣减成功后，清除Redis中的锁定记录");
         redisTemplate.delete(ProductConstants.LOCKED_SKUS_PREFIX + orderSn);
         return true;
+    }
+
+    /**
+     * 获取商品库存分页列表
+     *
+     * @param queryParams 查询参数
+     * @return {@link IPage<PmsSkuVO>} 商品库存分页列表
+     */
+    @Override
+    public IPage<PmsSkuVO> getPmsSkuPage(PmsSkuQuery queryParams) {
+        Page<PmsSkuVO> pageVO = this.baseMapper.getPmsSkuPage(
+                new Page<>(queryParams.getPageNum(), queryParams.getPageSize()),
+                queryParams
+        );
+        return pageVO;
+    }
+
+    /**
+     * 获取商品库存表单数据
+     *
+     * @param id 商品库存ID
+     * @return 商品库存表单数据
+     */
+    @Override
+    public PmsSkuForm getPmsSkuFormData(Long id) {
+        PmsSku entity = this.getById(id);
+        return pmsSkuConverter.toForm(entity);
+    }
+
+    /**
+     * 新增商品库存
+     *
+     * @param formData 商品库存表单对象
+     * @return 是否新增成功
+     */
+    @Override
+    public boolean savePmsSku(PmsSkuForm formData) {
+        PmsSku entity = pmsSkuConverter.toEntity(formData);
+        return this.save(entity);
+    }
+
+    /**
+     * 更新商品库存
+     *
+     * @param id   商品库存ID
+     * @param formData 商品库存表单对象
+     * @return 是否修改成功
+     */
+    @Override
+    public boolean updatePmsSku(Long id,PmsSkuForm formData) {
+        PmsSku entity = pmsSkuConverter.toEntity(formData);
+        return this.updateById(entity);
+    }
+
+    /**
+     * 删除商品库存
+     *
+     * @param ids 商品库存ID，多个以英文逗号(,)分割
+     * @return 是否删除成功
+     */
+    @Override
+    public boolean deletePmsSkus(String ids) {
+        Assert.isTrue(StrUtil.isNotBlank(ids), "删除的商品库存数据为空");
+        // 逻辑删除
+        List<Long> idList = Arrays.stream(ids.split(","))
+                .map(Long::parseLong)
+                .toList();
+        return this.removeByIds(idList);
     }
 }

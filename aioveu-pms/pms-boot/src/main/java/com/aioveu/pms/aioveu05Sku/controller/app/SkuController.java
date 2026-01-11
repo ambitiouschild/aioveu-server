@@ -3,7 +3,7 @@ package com.aioveu.pms.aioveu05Sku.controller.app;
 import com.aioveu.common.result.Result;
 import com.aioveu.pms.model.dto.LockSkuDTO;
 import com.aioveu.pms.model.dto.SkuInfoDTO;
-import com.aioveu.pms.aioveu05Sku.service.SkuService;
+import com.aioveu.pms.aioveu05Sku.service.PmsSkuService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,14 +26,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SkuController {
 
-    private final SkuService skuService;
+    private final PmsSkuService pmsSkuService;
 
     @Operation(summary = "获取商品库存信息")
     @GetMapping("/{skuId}")
     public Result<SkuInfoDTO> getSkuInfo(
             @Parameter(name ="商品ID") @PathVariable Long skuId
     ) {
-        SkuInfoDTO skuInfo = skuService.getSkuInfo(skuId);
+        SkuInfoDTO skuInfo = pmsSkuService.getSkuInfo(skuId);
         return Result.success(skuInfo);
     }
 
@@ -42,7 +42,7 @@ public class SkuController {
     public Result<List<SkuInfoDTO>> getSkuInfoList(
             @Parameter(name ="SKU ID 列表") @RequestParam List<Long> skuIds
     ) {
-        List<SkuInfoDTO> skuInfos = skuService.listSkuInfos(skuIds);
+        List<SkuInfoDTO> skuInfos = pmsSkuService.listSkuInfos(skuIds);
         return Result.success(skuInfos);
     }
 
@@ -52,21 +52,21 @@ public class SkuController {
             @RequestParam String orderToken,
             @RequestBody List<LockSkuDTO> lockSkuList
     ) {
-        boolean lockStockResult = skuService.lockStock(orderToken,lockSkuList);
+        boolean lockStockResult = pmsSkuService.lockStock(orderToken,lockSkuList);
         return Result.success(lockStockResult);
     }
 
     @Operation(summary = "解锁库存")
     @PutMapping("/unlock")
     public Result<?> unlockStock(String orderToken) {
-        boolean result = skuService.unlockStock(orderToken);
+        boolean result = pmsSkuService.unlockStock(orderToken);
         return Result.judge(result);
     }
 
     @Operation(summary = "扣减库存")
     @PutMapping("/deduct")
     public Result<?> deductStock(String orderSn) {
-        boolean result = skuService.deductStock(orderSn);
+        boolean result = pmsSkuService.deductStock(orderSn);
         return Result.judge(result);
     }
 }

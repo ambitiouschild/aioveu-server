@@ -36,4 +36,37 @@
         WHERE
             t1.id = #{id}
     </select>
+
+    <!-- 获取商品库存分页列表 -->
+    <select id="getPmsSkuPage" resultType="com.aioveu.pms.aioveu05Sku.model.vo.PmsSkuVO">
+        SELECT
+        id,
+        sku_sn,
+        spu_id,
+        name,
+        spec_ids,
+        price,
+        stock,
+        locked_stock,
+        pic_url,
+        create_time,
+        update_time
+        FROM
+        pms_sku
+        <where>
+            <if test="queryParams.skuSn != null and queryParams.skuSn != ''">
+                AND sku_sn LIKE CONCAT(#{queryParams.skuSn}, '%')
+            </if>
+            <if test="queryParams.spuId != null">
+                AND spu_id LIKE CONCAT(#{queryParams.spuId}, '%')
+            </if>
+            <if test="queryParams.name != null and queryParams.name != ''">
+                AND name LIKE CONCAT(#{queryParams.name}, '%')
+            </if>
+            <if test="queryParams.specIds != null and queryParams.specIds != ''">
+                AND spec_ids LIKE CONCAT(#{queryParams.specIds}, '%')
+            </if>
+        </where>
+    </select>
+
 </mapper>

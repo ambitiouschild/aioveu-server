@@ -23,7 +23,7 @@ import com.aioveu.pms.aioveu07SpuAttribute.model.form.PmsSpuAttributeForm;
 import com.aioveu.pms.aioveu06Spu.model.form.PmsSpuForm;
 import com.aioveu.pms.aioveu06Spu.model.query.SpuPageQuery;
 import com.aioveu.pms.model.vo.*;
-import com.aioveu.pms.aioveu05Sku.service.SkuService;
+import com.aioveu.pms.aioveu05Sku.service.PmsSkuService;
 import com.aioveu.pms.aioveu07SpuAttribute.service.SpuAttributeService;
 import com.aioveu.pms.aioveu06Spu.service.SpuService;
 import com.aioveu.ums.api.MemberFeignClient;
@@ -98,7 +98,7 @@ public class SpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> implements
 
 
     // 依赖注入：SKU服务，用于管理商品库存单元
-    private final SkuService skuService;
+    private final PmsSkuService pmsSkuService;
 
     // 依赖注入：商品属性服务，用于管理商品属性和规格
     private final SpuAttributeService spuAttributeService;
@@ -250,7 +250,7 @@ public class SpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> implements
 
         // 商品SKU列表
         log.info("5. 设置商品SKU列表");
-        List<PmsSku> skuSourceList = skuService.list(new LambdaQueryWrapper<PmsSku>().eq(PmsSku::getSpuId, spuId));
+        List<PmsSku> skuSourceList = pmsSkuService.list(new LambdaQueryWrapper<PmsSku>().eq(PmsSku::getSpuId, spuId));
         if (CollectionUtil.isNotEmpty(skuSourceList)) {
             List<SpuDetailVO.Sku> skuList = skuSourceList.stream().map(item -> {
                 SpuDetailVO.Sku sku = new SpuDetailVO.Sku();
@@ -311,7 +311,7 @@ public class SpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> implements
 
         // 商品SKU列表
         log.info("查询商品SKU列表");
-        List<PmsSku> skuList = skuService.list(new LambdaQueryWrapper<PmsSku>().eq(PmsSku::getSpuId, spuId));
+        List<PmsSku> skuList = pmsSkuService.list(new LambdaQueryWrapper<PmsSku>().eq(PmsSku::getSpuId, spuId));
         pmsSpuDetailVO.setSkuList(skuList);
         return pmsSpuDetailVO;
 
@@ -418,7 +418,7 @@ public class SpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> implements
         for (String spuId : spuIds) {
 
             log.info("1. 删除关联的SKU信息");
-            skuService.remove(new LambdaQueryWrapper<PmsSku>().eq(PmsSku::getSpuId, spuId));
+            pmsSkuService.remove(new LambdaQueryWrapper<PmsSku>().eq(PmsSku::getSpuId, spuId));
             // 规格
             log.info("2. 删除商品规格");
             spuAttributeService.remove(new LambdaQueryWrapper<PmsSpuAttribute>().eq(PmsSpuAttribute::getSpuId, spuId));
@@ -470,7 +470,7 @@ public class SpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> implements
         List<Long> formSkuIds = skuList.stream().map(PmsSku::getId).toList();
 
         log.info("获取数据库中现有的SKU ID列表");
-        List<Long> dbSkuIds = skuService.list(new LambdaQueryWrapper<PmsSku>().eq(PmsSku::getSpuId, spuId)
+        List<Long> dbSkuIds = pmsSkuService.list(new LambdaQueryWrapper<PmsSku>().eq(PmsSku::getSpuId, spuId)
                         .select(PmsSku::getId)).stream().map(PmsSku::getId)
                 .toList();
 
@@ -481,7 +481,7 @@ public class SpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> implements
 
         log.info("执行删除操作");
         if (CollectionUtil.isNotEmpty(removeSkuIds)) {
-            skuService.removeByIds(removeSkuIds);
+            pmsSkuService.removeByIds(removeSkuIds);
         }
 
         // 新增/修改SKU
@@ -499,7 +499,7 @@ public class SpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> implements
         }).collect(Collectors.toList());
 
         log.info("批量保存或更新SKU");
-        return skuService.saveOrUpdateBatch(pmsSkuList);
+        return pmsSkuService.saveOrUpdateBatch(pmsSkuList);
     }
 
 
