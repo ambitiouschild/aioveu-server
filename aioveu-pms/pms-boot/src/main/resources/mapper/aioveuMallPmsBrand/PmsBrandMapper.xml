@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.pms.aioveu01Brand.mapper.PmsBrandMapper">
+
+    <!-- 获取商品品牌分页列表 -->
+    <select id="getPmsBrandPage" resultType="com.aioveu.pms.aioveu01Brand.model.vo.PmsBrandVO">
+        SELECT
+                id,
+                name,
+                logo_url,
+                sort,
+                create_time,
+                update_time
+        FROM
+            pms_brand
+        <where>
+            <if test="queryParams.name != null and queryParams.name != ''">
+                AND name LIKE CONCAT(#{queryParams.name}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
