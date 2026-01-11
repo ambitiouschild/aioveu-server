@@ -12,7 +12,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.aioveu.pms.aioveu06Spu.constant.ProductConstants;
-import com.aioveu.pms.aioveu07SpuAttribute.converter.SpuAttributeConverter;
+import com.aioveu.pms.aioveu07SpuAttribute.converter.PmsSpuAttributeConverter;
 import com.aioveu.pms.aioveu06Spu.converter.PmsSpuConverter;
 import com.aioveu.pms.aioveu06Spu.enums.AttributeTypeEnum;
 import com.aioveu.pms.aioveu06Spu.mapper.PmsSpuMapper;
@@ -24,7 +24,7 @@ import com.aioveu.pms.aioveu06Spu.model.form.PmsSpuForm;
 import com.aioveu.pms.aioveu06Spu.model.query.PmsSpuQuery;
 import com.aioveu.pms.model.vo.*;
 import com.aioveu.pms.aioveu05Sku.service.PmsSkuService;
-import com.aioveu.pms.aioveu07SpuAttribute.service.SpuAttributeService;
+import com.aioveu.pms.aioveu07SpuAttribute.service.PmsSpuAttributeService;
 import com.aioveu.pms.aioveu06Spu.service.PmsSpuService;
 import com.aioveu.ums.api.MemberFeignClient;
 import lombok.RequiredArgsConstructor;
@@ -101,7 +101,7 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
     private final PmsSkuService pmsSkuService;
 
     // 依赖注入：商品属性服务，用于管理商品属性和规格
-    private final SpuAttributeService spuAttributeService;
+    private final PmsSpuAttributeService pmsSpuAttributeService;
 
     // 依赖注入：会员Feign客户端，用于调用会员服务的远程接口
     private final MemberFeignClient memberFeignClient;
@@ -110,7 +110,7 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
     private final PmsSpuConverter pmsSpuConverter;
 
     // 依赖注入：商品属性转换器，用于属性实体和表单之间的转换
-    private final SpuAttributeConverter spuAttributeConverter;
+    private final PmsSpuAttributeConverter pmsSpuAttributeConverter;
 
     /**
      *          TODO            Admin后台-商品分页列表
@@ -197,7 +197,7 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
 
         // 商品属性列表
         log.info("3. 设置商品属性列表（参数属性）");
-        List<SpuDetailVO.Attribute> attributeList = spuAttributeService.list(new LambdaQueryWrapper<PmsSpuAttribute>()
+        List<SpuDetailVO.Attribute> attributeList = pmsSpuAttributeService.list(new LambdaQueryWrapper<PmsSpuAttribute>()
                         .eq(PmsSpuAttribute::getType, AttributeTypeEnum.ATTR.getValue())  // 查询属性类型
                         .eq(PmsSpuAttribute::getSpuId, spuId)  // 匹配商品ID
                         .select(PmsSpuAttribute::getId, PmsSpuAttribute::getName, PmsSpuAttribute::getValue))  // 只选择需要的字段
@@ -213,7 +213,7 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
 
         // 商品规格列表
         log.info("3. 设置商品属性列表（参数属性）");
-        List<PmsSpuAttribute> specSourceList = spuAttributeService.list(new LambdaQueryWrapper<PmsSpuAttribute>()
+        List<PmsSpuAttribute> specSourceList = pmsSpuAttributeService.list(new LambdaQueryWrapper<PmsSpuAttribute>()
                 .eq(PmsSpuAttribute::getType, AttributeTypeEnum.SPEC.getValue())    // 查询规格类型
                 .eq(PmsSpuAttribute::getSpuId, spuId)
                 .select(PmsSpuAttribute::getId, PmsSpuAttribute::getName, PmsSpuAttribute::getValue));
@@ -297,14 +297,14 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
 
         // 商品属性列表
         log.info("查询商品属性列表");
-        List<PmsSpuAttribute> attrList = spuAttributeService.list(new LambdaQueryWrapper<PmsSpuAttribute>()
+        List<PmsSpuAttribute> attrList = pmsSpuAttributeService.list(new LambdaQueryWrapper<PmsSpuAttribute>()
                 .eq(PmsSpuAttribute::getSpuId, spuId)
                 .eq(PmsSpuAttribute::getType, AttributeTypeEnum.ATTR.getValue()));
         pmsSpuDetailVO.setAttrList(attrList);
 
         // 商品规格列表
         log.info("查询商品规格列表");
-        List<PmsSpuAttribute> specList = spuAttributeService.list(new LambdaQueryWrapper<PmsSpuAttribute>()
+        List<PmsSpuAttribute> specList = pmsSpuAttributeService.list(new LambdaQueryWrapper<PmsSpuAttribute>()
                 .eq(PmsSpuAttribute::getSpuId, spuId)
                 .eq(PmsSpuAttribute::getType, AttributeTypeEnum.SPEC.getValue()));
         pmsSpuDetailVO.setSpecList(specList);
@@ -421,10 +421,10 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
             pmsSkuService.remove(new LambdaQueryWrapper<PmsSku>().eq(PmsSku::getSpuId, spuId));
             // 规格
             log.info("2. 删除商品规格");
-            spuAttributeService.remove(new LambdaQueryWrapper<PmsSpuAttribute>().eq(PmsSpuAttribute::getSpuId, spuId));
+            pmsSpuAttributeService.remove(new LambdaQueryWrapper<PmsSpuAttribute>().eq(PmsSpuAttribute::getSpuId, spuId));
             // 属性
             log.info("3. 删除商品属性");
-            spuAttributeService.remove(new LambdaQueryWrapper<PmsSpuAttribute>().eq(PmsSpuAttribute::getSpuId, spuId));
+            pmsSpuAttributeService.remove(new LambdaQueryWrapper<PmsSpuAttribute>().eq(PmsSpuAttribute::getSpuId, spuId));
             // SPU
             log.info("4. 删除商品基本信息");
             this.removeById(spuId);
@@ -524,7 +524,7 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
 
         // 1.2 获取原商品属性ID集合
         log.info("获取数据库中原有的属性ID");
-        List<Long> originAttrIds = spuAttributeService.list(new LambdaQueryWrapper<PmsSpuAttribute>()
+        List<Long> originAttrIds = pmsSpuAttributeService.list(new LambdaQueryWrapper<PmsSpuAttribute>()
                         .eq(PmsSpuAttribute::getSpuId, spuId).eq(PmsSpuAttribute::getType, AttributeTypeEnum.ATTR.getValue())
                         .select(PmsSpuAttribute::getId))
                 .stream()
@@ -539,13 +539,13 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
 
         log.info("执行删除操作");
         if (CollectionUtil.isNotEmpty(removeAttrValIds)) {
-            spuAttributeService.removeByIds(removeAttrValIds);
+            pmsSpuAttributeService.removeByIds(removeAttrValIds);
         }
 
         // 新增或修改商品属性
         log.info("2. 新增或修改商品属性");
         List<PmsSpuAttribute> entities = attrList.stream().map(item -> {
-            PmsSpuAttribute entity = spuAttributeConverter.form2Entity(item);
+            PmsSpuAttribute entity = pmsSpuAttributeConverter.form2Entity(item);
             entity.setId(Convert.toLong(item.getId()));   // 设置ID，新增时为null
             entity.setSpuId(spuId);
             entity.setType(AttributeTypeEnum.ATTR.getValue());   // 设置为属性类型
@@ -554,7 +554,7 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
 
         log.info("批量保存或更新");
         if (CollectionUtil.isNotEmpty(entities)) {
-            return spuAttributeService.saveOrUpdateBatch(entities);
+            return pmsSpuAttributeService.saveOrUpdateBatch(entities);
         }
         return true;
     }
@@ -581,7 +581,7 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
 
         // 1.2 原商品规格
         log.info("获取数据库中原有的规格ID");
-        List<Long> originSpuSpecIds = spuAttributeService.list(new LambdaQueryWrapper<PmsSpuAttribute>()
+        List<Long> originSpuSpecIds = pmsSpuAttributeService.list(new LambdaQueryWrapper<PmsSpuAttribute>()
                         .eq(PmsSpuAttribute::getSpuId, spuId)
                         .eq(PmsSpuAttribute::getType, AttributeTypeEnum.SPEC.getValue())
                         .select(PmsSpuAttribute::getId))
@@ -599,7 +599,7 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
         log.info("执行删除操作");
         if (CollectionUtil.isNotEmpty(removeSpuSpecIds)) {
             // 删除商品的规格
-            spuAttributeService.removeByIds(removeSpuSpecIds);
+            pmsSpuAttributeService.removeByIds(removeSpuSpecIds);
         }
 
         // 2. 【新增】此次提交的新加的商品规格
@@ -616,10 +616,10 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
 
         if (CollectionUtil.isNotEmpty(newSpecList)) {
             newSpecList.forEach(item -> {
-                PmsSpuAttribute entity = spuAttributeConverter.form2Entity(item);
+                PmsSpuAttribute entity = pmsSpuAttributeConverter.form2Entity(item);
                 entity.setSpuId(spuId);
                 entity.setType(AttributeTypeEnum.SPEC.getValue());   // 设置为规格类型
-                spuAttributeService.save(entity);
+                pmsSpuAttributeService.save(entity);
                 // 记录临时ID到数据库ID的映射
                 log.info("前端生成的临时ID格式：temp_123");
                 log.info("保存时转换为数据库ID并建立映射,临时ID -> 数据库ID");
@@ -632,7 +632,7 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
         List<PmsSpuAttribute> pmsSpuAttributeList = specList.stream()
                 .filter(item -> !item.getId().startsWith(ProductConstants.SPEC_TEMP_ID_PREFIX))
                 .map(item -> {
-                    PmsSpuAttribute entity = spuAttributeConverter.form2Entity(item);
+                    PmsSpuAttribute entity = pmsSpuAttributeConverter.form2Entity(item);
                     entity.setId(Convert.toLong(item.getId()));
                     entity.setSpuId(spuId);
                     entity.setType(AttributeTypeEnum.SPEC.getValue());
@@ -641,7 +641,7 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
 
 
         if (CollectionUtil.isNotEmpty(pmsSpuAttributeList)) {
-            spuAttributeService.updateBatchById(pmsSpuAttributeList);
+            pmsSpuAttributeService.updateBatchById(pmsSpuAttributeList);
         }
         return tempWithNewSpecIdMap;
     }

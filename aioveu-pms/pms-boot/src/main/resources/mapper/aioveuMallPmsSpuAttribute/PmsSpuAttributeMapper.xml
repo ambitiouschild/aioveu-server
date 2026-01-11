@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.pms.aioveu07SpuAttribute.mapper.PmsSpuAttributeMapper">
+
+    <!-- 获取商品类型（属性/规格）分页列表 -->
+    <select id="getPmsSpuAttributePage" resultType="com.aioveu.pms.aioveu07SpuAttribute.model.vo.PmsSpuAttributeVO">
+        SELECT
+                id,
+                spu_id,
+                attribute_id,
+                name,
+                value,
+                type,
+                pic_url,
+                create_time,
+                update_time
+        FROM
+            pms_spu_attribute
+        <where>
+            <if test="queryParams.spuId != null">
+                AND spu_id LIKE CONCAT(#{queryParams.spuId}, '%')
+            </if>
+            <if test="queryParams.attributeId != null">
+                AND attribute_id LIKE CONCAT(#{queryParams.attributeId}, '%')
+            </if>
+            <if test="queryParams.name != null and queryParams.name != ''">
+                AND name LIKE CONCAT(#{queryParams.name}, '%')
+            </if>
+            <if test="queryParams.type != null">
+                AND type LIKE CONCAT(#{queryParams.type}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

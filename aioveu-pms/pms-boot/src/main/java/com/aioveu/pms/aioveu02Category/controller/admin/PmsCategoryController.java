@@ -1,18 +1,14 @@
 package com.aioveu.pms.aioveu02Category.controller.admin;
 
-import cn.hutool.core.collection.CollectionUtil;
 import com.aioveu.common.result.PageResult;
 import com.aioveu.pms.aioveu02Category.model.form.PmsCategoryForm;
 import com.aioveu.pms.aioveu02Category.model.query.PmsCategoryQuery;
 import com.aioveu.pms.aioveu02Category.model.vo.PmsCategoryVO;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.aioveu.common.result.Result;
 import com.aioveu.common.web.model.Option;
 import com.aioveu.pms.aioveu02Category.model.entity.PmsCategory;
-import com.aioveu.pms.aioveu03CategoryAttribute.model.entity.PmsCategoryAttribute;
 import com.aioveu.pms.model.vo.CategoryVO;
-import com.aioveu.pms.aioveu07SpuAttribute.service.AttributeService;
 import com.aioveu.pms.aioveu02Category.service.PmsCategoryService;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,12 +16,10 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.List;
 
 
@@ -45,7 +39,6 @@ import java.util.List;
 public class PmsCategoryController {
 
     private final PmsCategoryService pmsCategoryService;
-    private final AttributeService attributeService;
 
     @Operation(summary = "商品分类列表")
     @GetMapping("/categories")
@@ -134,7 +127,7 @@ public class PmsCategoryController {
 //    @CacheEvict(value = "pms", key = "'categoryList'")
 //    public Result delete(@PathVariable String ids) {
 //        List<String> categoryIds = Arrays.asList(ids.split(","));
-//        attributeService.remove(new LambdaQueryWrapper<PmsCategoryAttribute>().in(CollectionUtil.isNotEmpty(categoryIds),
+//        pmsCategoryService.remove(new LambdaQueryWrapper<PmsCategoryAttribute>().in(CollectionUtil.isNotEmpty(categoryIds),
 //                PmsCategoryAttribute::getCategoryId, categoryIds));
 //        boolean result = pmsCategoryService.removeByIds(categoryIds);
 //        return Result.judge(result);

@@ -3,10 +3,11 @@ package com.aioveu.pms.aioveu07SpuAttribute.model.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.aioveu.common.base.BaseEntity;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 /**
- * @Description: TODO 商品规格/属性实体
+ * @Description: TODO 商品类型（属性/规格）实体对象
  * @Author: 雒世松
  * @Date: 2025/6/5 18:31
  * @param
@@ -14,7 +15,11 @@ import lombok.Data;
  **/
 
 @Data
+@TableName("pms_spu_attribute")
 public class PmsSpuAttribute extends BaseEntity {
+
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * 主键ID

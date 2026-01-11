@@ -7,7 +7,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 
 /**
- * @Description: TODO 商品属性对象转换器
+ * @Description: TODO 商品类型（属性/规格）对象转换器
  * @Author: 雒世松
  * @Date: 2025/6/5 18:29
  * @param
@@ -15,11 +15,15 @@ import org.mapstruct.Mappings;
  **/
 
 @Mapper(componentModel = "spring")
-public interface SpuAttributeConverter {
+public interface PmsSpuAttributeConverter {
 
     @Mappings({
             @Mapping(target = "id",ignore = true)
     })
     PmsSpuAttribute form2Entity(PmsSpuAttributeForm form);
+
+    PmsSpuAttributeForm toForm(PmsSpuAttribute entity);
+
+    PmsSpuAttribute toEntity(PmsSpuAttributeForm formData);
 
 }

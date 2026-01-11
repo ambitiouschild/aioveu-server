@@ -56,4 +56,12 @@ public interface PmsCategoryAttributeService extends IService<PmsCategoryAttribu
      * @return 是否删除成功
      */
     boolean deletePmsCategoryAttributes(String ids);
+
+    /**
+     * 批量保存商品属性
+     *
+     * @param formData 属性表单数据
+     * @return
+     */
+    boolean saveBatch(PmsCategoryAttributeForm formData);
 }
