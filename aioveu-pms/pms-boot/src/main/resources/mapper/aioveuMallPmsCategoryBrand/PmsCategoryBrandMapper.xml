@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.pms.aioveu04CategoryBrand.mapper.PmsCategoryBrandMapper">
+
+    <!-- 获取商品分类与品牌关联表分页列表 -->
+    <select id="getPmsCategoryBrandPage" resultType="com.aioveu.pms.aioveu04CategoryBrand.model.vo.PmsCategoryBrandVO">
+        SELECT
+                category_id,
+                brand_id
+        FROM
+            pms_category_brand
+        <where>
+            <if test="queryParams.categoryId != null">
+                AND category_id LIKE CONCAT(#{queryParams.categoryId}, '%')
+            </if>
+            <if test="queryParams.brandId != null">
+                AND brand_id LIKE CONCAT(#{queryParams.brandId}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
