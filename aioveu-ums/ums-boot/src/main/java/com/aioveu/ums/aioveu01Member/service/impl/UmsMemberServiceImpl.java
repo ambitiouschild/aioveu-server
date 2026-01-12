@@ -2,7 +2,11 @@ package com.aioveu.ums.aioveu01Member.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.security.util.SecurityUtils;
+import com.aioveu.ums.aioveu01Member.converter.UmsMemberConverter;
+import com.aioveu.ums.aioveu01Member.model.form.UmsMemberForm;
+import com.aioveu.ums.aioveu01Member.model.query.UmsMemberQuery;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -12,14 +16,13 @@ import com.aioveu.common.result.ResultCode;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.pms.model.vo.ProductHistoryVO;
 import com.aioveu.ums.aioveu02MemberAddress.converter.AddressConvert;
-import com.aioveu.ums.aioveu01Member.converter.MemberConvert;
 import com.aioveu.ums.dto.MemberAddressDTO;
 import com.aioveu.ums.dto.MemberAuthDTO;
 import com.aioveu.ums.dto.MemberRegisterDto;
 import com.aioveu.ums.aioveu01Member.mapper.UmsMemberMapper;
 import com.aioveu.ums.aioveu02MemberAddress.model.entity.UmsAddress;
 import com.aioveu.ums.aioveu01Member.model.entity.UmsMember;
-import com.aioveu.ums.aioveu01Member.model.vo.MemberVO;
+import com.aioveu.ums.aioveu01Member.model.vo.UmsMemberVO;
 import com.aioveu.ums.aioveu02MemberAddress.service.UmsAddressService;
 import com.aioveu.ums.aioveu01Member.service.UmsMemberService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -65,7 +69,7 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
 
     // 依赖注入开始
     private final RedisTemplate redisTemplate;  // Redis操作模板，用于缓存操作
-    private final MemberConvert memberConvert; // 会员对象转换器，用于DTO/Entity/VO之间的转换
+    private final UmsMemberConverter umsMemberConverter; // 会员对象转换器，用于DTO/Entity/VO之间的转换
 
     private final AddressConvert addressConvert;  // 地址对象转换器
     private final UmsAddressService addressService;  // 会员地址服务
@@ -164,7 +168,7 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
         }
 
         log.info("使用转换器将Entity转换为认证DTO");
-        return memberConvert.entity2OpenidAuthDTO(entity);
+        return umsMemberConverter.entity2OpenidAuthDTO(entity);
     }
 
     /**
@@ -190,7 +194,7 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
         if (entity == null) {
             throw new BizException(ResultCode.USER_NOT_EXIST);
         }
-        return memberConvert.entity2MobileAuthDTO(entity);
+        return umsMemberConverter.entity2MobileAuthDTO(entity);
     }
 
     /**
@@ -204,7 +208,7 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
     public Long addMember(MemberRegisterDto memberRegisterDTO) {
 
         log.info("DTO转换为Entity");
-        UmsMember umsMember = memberConvert.dto2Entity(memberRegisterDTO);
+        UmsMember umsMember = umsMemberConverter.dto2Entity(memberRegisterDTO);
 
         log.info("保存到数据库");
         boolean result = this.save(umsMember);
@@ -223,7 +227,7 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
      * @return 会员信息VO对象，包含前端展示所需字段
      */
     @Override
-    public MemberVO getCurrMemberInfo() {
+    public UmsMemberVO getCurrMemberInfo() {
 
         log.info("从安全工具类获取当前登录会员ID");
         Long memberId = SecurityUtils.getMemberId();
@@ -240,9 +244,9 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
         );
 
         log.info("创建VO对象并复制属性");
-        MemberVO memberVO = new MemberVO();
-        BeanUtil.copyProperties(umsMember, memberVO);
-        return memberVO;
+        UmsMemberVO umsMemberVO = new UmsMemberVO();
+        BeanUtil.copyProperties(umsMember, umsMemberVO);
+        return umsMemberVO;
     }
 
     /**
@@ -264,5 +268,74 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
         log.info("将地址Entity列表转换为DTO列表");
         List<MemberAddressDTO> list = addressConvert.entity2Dto(entities);
         return list;
+    }
+
+
+    /**
+     * 获取会员分页列表
+     *
+     * @param queryParams 查询参数
+     * @return {@link IPage<UmsMemberVO>} 会员分页列表
+     */
+    @Override
+    public IPage<UmsMemberVO> getUmsMemberPage(UmsMemberQuery queryParams) {
+        Page<UmsMemberVO> pageVO = this.baseMapper.getUmsMemberPage(
+                new Page<>(queryParams.getPageNum(), queryParams.getPageSize()),
+                queryParams
+        );
+        return pageVO;
+    }
+
+    /**
+     * 获取会员表单数据
+     *
+     * @param id 会员ID
+     * @return 会员表单数据
+     */
+    @Override
+    public UmsMemberForm getUmsMemberFormData(Long id) {
+        UmsMember entity = this.getById(id);
+        return umsMemberConverter.toForm(entity);
+    }
+
+    /**
+     * 新增会员
+     *
+     * @param formData 会员表单对象
+     * @return 是否新增成功
+     */
+    @Override
+    public boolean saveUmsMember(UmsMemberForm formData) {
+        UmsMember entity = umsMemberConverter.toEntity(formData);
+        return this.save(entity);
+    }
+
+    /**
+     * 更新会员
+     *
+     * @param id   会员ID
+     * @param formData 会员表单对象
+     * @return 是否修改成功
+     */
+    @Override
+    public boolean updateUmsMember(Long id,UmsMemberForm formData) {
+        UmsMember entity = umsMemberConverter.toEntity(formData);
+        return this.updateById(entity);
+    }
+
+    /**
+     * 删除会员
+     *
+     * @param ids 会员ID，多个以英文逗号(,)分割
+     * @return 是否删除成功
+     */
+    @Override
+    public boolean deleteUmsMembers(String ids) {
+        Assert.isTrue(StrUtil.isNotBlank(ids), "删除的会员数据为空");
+        // 逻辑删除
+        List<Long> idList = Arrays.stream(ids.split(","))
+                .map(Long::parseLong)
+                .toList();
+        return this.removeByIds(idList);
     }
 }

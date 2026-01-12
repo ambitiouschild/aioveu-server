@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.ums.aioveu01Member.mapper.UmsMemberMapper">
+
+    <!-- 获取会员分页列表 -->
+    <select id="getUmsMemberPage" resultType="com.aioveu.ums.aioveu01Member.model.vo.UmsMemberVO">
+        SELECT
+                id,
+                nick_name,
+                mobile,
+                avatar_url,
+                gender,
+                birthday,
+                point,
+                balance,
+                status,
+                deleted,
+                openid,
+                session_key,
+                country,
+                province,
+                city,
+                language,
+                create_time,
+                update_time
+        FROM
+            ums_member
+        <where>
+            <if test="queryParams.nickName != null and queryParams.nickName != ''">
+                AND nick_name LIKE CONCAT(#{queryParams.nickName}, '%')
+            </if>
+            <if test="queryParams.mobile != null and queryParams.mobile != ''">
+                AND mobile LIKE CONCAT(#{queryParams.mobile}, '%')
+            </if>
+            <if test="queryParams.gender != null">
+                AND gender LIKE CONCAT(#{queryParams.gender}, '%')
+            </if>
+            <if test="queryParams.birthday != null">
+                <if test="queryParams.birthday[0] != null and queryParams.birthday[0] != ''">
+                    <bind name="startDate" value="queryParams.birthday[0].length() == 10 ? queryParams.birthday[0] + ' 00:00:00' : queryParams.birthday[0]"/>
+                    AND birthday &gt;= #{startDate}
+                </if>
+                <if test="queryParams.birthday[1] != null and queryParams.birthday[1] != ''">
+                    <bind name="endDate" value="queryParams.birthday[1].length() == 10 ? queryParams.birthday[1] + ' 23:59:59' : queryParams.birthday[1]"/>
+                    AND birthday &lt;= #{endDate}
+                </if>
+            </if>
+            <if test="queryParams.status != null">
+                AND status LIKE CONCAT(#{queryParams.status}, '%')
+            </if>
+            <if test="queryParams.openid != null and queryParams.openid != ''">
+                AND openid LIKE CONCAT(#{queryParams.openid}, '%')
+            </if>
+            <if test="queryParams.country != null and queryParams.country != ''">
+                AND country LIKE CONCAT(#{queryParams.country}, '%')
+            </if>
+            <if test="queryParams.province != null and queryParams.province != ''">
+                AND province LIKE CONCAT(#{queryParams.province}, '%')
+            </if>
+            <if test="queryParams.city != null and queryParams.city != ''">
+                AND city LIKE CONCAT(#{queryParams.city}, '%')
+            </if>
+            <if test="queryParams.language != null and queryParams.language != ''">
+                AND language LIKE CONCAT(#{queryParams.language}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

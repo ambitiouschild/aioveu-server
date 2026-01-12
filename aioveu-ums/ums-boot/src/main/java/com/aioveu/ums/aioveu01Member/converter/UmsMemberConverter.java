@@ -1,5 +1,6 @@
 package com.aioveu.ums.aioveu01Member.converter;
 
+import com.aioveu.ums.aioveu01Member.model.form.UmsMemberForm;
 import com.aioveu.ums.dto.MemberAuthDTO;
 import com.aioveu.ums.dto.MemberInfoDTO;
 import com.aioveu.ums.dto.MemberRegisterDto;
@@ -17,7 +18,7 @@ import org.mapstruct.Mappings;
  **/
 
 @Mapper(componentModel = "spring")
-public interface MemberConvert {
+public interface UmsMemberConverter {
     @Mappings({
             @Mapping(target = "username", source = "openid")
     })
@@ -31,4 +32,9 @@ public interface MemberConvert {
     MemberInfoDTO entity2MemberInfoDTO(UmsMember entity);
 
     UmsMember dto2Entity(MemberRegisterDto memberRegisterDTO);
+
+    UmsMemberForm toForm(UmsMember entity);
+
+    UmsMember toEntity(UmsMemberForm formData);
+
 }

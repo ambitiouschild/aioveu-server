@@ -9,7 +9,7 @@ import com.aioveu.ums.dto.MemberAddressDTO;
 import com.aioveu.ums.dto.MemberAuthDTO;
 import com.aioveu.ums.dto.MemberRegisterDto;
 import com.aioveu.ums.aioveu01Member.model.entity.UmsMember;
-import com.aioveu.ums.aioveu01Member.model.vo.MemberVO;
+import com.aioveu.ums.aioveu01Member.model.vo.UmsMemberVO;
 import com.aioveu.ums.aioveu01Member.service.UmsMemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -46,9 +46,9 @@ public class MemberController {
 
     @Operation(summary= "获取登录会员信息")
     @GetMapping("/me")
-    public Result<MemberVO> getCurrMemberInfo() {
-        MemberVO memberVO = memberService.getCurrMemberInfo();
-        return Result.success(memberVO);
+    public Result<UmsMemberVO> getCurrMemberInfo() {
+        UmsMemberVO umsMemberVO = memberService.getCurrMemberInfo();
+        return Result.success(umsMemberVO);
     }
 
     @Operation(summary= "扣减会员余额")
