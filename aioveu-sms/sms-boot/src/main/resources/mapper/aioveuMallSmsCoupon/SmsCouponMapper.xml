@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.sms.aioveu02Coupon.mapper.SmsCouponMapper">
+
+    <!-- 优惠券分页列表 -->
+    <select id="getCouponPage" resultType="com.aioveu.sms.aioveu02Coupon.model.entity.SmsCoupon">
+        SELECT
+            *
+        FROM
+            sms_coupon
+    </select>
+
+    <!-- 获取优惠券分页列表 -->
+    <select id="getSmsCouponPage" resultType="com.aioveu.sms.aioveu02Coupon.model.vo.SmsCouponVO">
+        SELECT
+        id,
+        name,
+        type,
+        code,
+        platform,
+        face_value_type,
+        face_value,
+        discount,
+        min_point,
+        per_limit,
+        validity_period_type,
+        validity_days,
+        validity_begin_time,
+        validity_end_time,
+        application_scope,
+        circulation,
+        received_count,
+        used_count,
+        remark,
+        update_time,
+        create_time,
+        deleted
+        FROM
+        sms_coupon
+        <where>
+            <if test="queryParams.name != null and queryParams.name != ''">
+                AND name LIKE CONCAT(#{queryParams.name}, '%')
+            </if>
+            <if test="queryParams.type != null">
+                AND type LIKE CONCAT(#{queryParams.type}, '%')
+            </if>
+            <if test="queryParams.code != null and queryParams.code != ''">
+                AND code LIKE CONCAT(#{queryParams.code}, '%')
+            </if>
+            <if test="queryParams.platform != null">
+                AND platform LIKE CONCAT(#{queryParams.platform}, '%')
+            </if>
+            <if test="queryParams.faceValueType != null">
+                AND face_value_type LIKE CONCAT(#{queryParams.faceValueType}, '%')
+            </if>
+            <if test="queryParams.minPoint != null">
+                AND min_point LIKE CONCAT(#{queryParams.minPoint}, '%')
+            </if>
+            <if test="queryParams.perLimit != null">
+                AND per_limit LIKE CONCAT(#{queryParams.perLimit}, '%')
+            </if>
+            <if test="queryParams.validityPeriodType != null">
+                AND validity_period_type LIKE CONCAT(#{queryParams.validityPeriodType}, '%')
+            </if>
+            <if test="queryParams.validityDays != null">
+                AND validity_days LIKE CONCAT(#{queryParams.validityDays}, '%')
+            </if>
+            <if test="queryParams.applicationScope != null">
+                AND application_scope LIKE CONCAT(#{queryParams.applicationScope}, '%')
+            </if>
+            <if test="queryParams.receivedCount != null">
+                AND received_count LIKE CONCAT(#{queryParams.receivedCount}, '%')
+            </if>
+            <if test="queryParams.deleted != null">
+                AND deleted LIKE CONCAT(#{queryParams.deleted}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

@@ -2,8 +2,8 @@ package com.aioveu.sms.aioveu02Coupon.converter;
 
 
 import com.aioveu.sms.aioveu02Coupon.model.entity.SmsCoupon;
-import com.aioveu.sms.aioveu02Coupon.model.form.CouponForm;
-import com.aioveu.sms.aioveu02Coupon.model.vo.CouponPageVO;
+import com.aioveu.sms.aioveu02Coupon.model.form.SmsCouponForm;
+import com.aioveu.sms.aioveu02Coupon.model.vo.SmsCouponVO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
@@ -19,7 +19,7 @@ import java.util.List;
  **/
 
 @Mapper(componentModel = "spring")
-public interface CouponConverter {
+public interface SmsCouponConverter {
 
     @Mappings({
             @Mapping(target = "platformLabel", expression = "java(com.aioveu.common.base.IBaseEnum.getLabelByValue(entity.getPlatform(), com.aioveu.sms.aioveu02Coupon.enums.PlatformEnum.class))"),
@@ -31,20 +31,26 @@ public interface CouponConverter {
             ),
             @Mapping(target = "minPointLabel", expression = "java(cn.hutool.core.util.NumberUtil.toStr(cn.hutool.core.util.NumberUtil.div(entity.getMinPoint(),new java.math.BigDecimal(100)).setScale(2)))"),
     })
-    CouponPageVO entity2PageVO(SmsCoupon entity);
+    SmsCouponVO entity2PageVO(SmsCoupon entity);
 
 
-    List<CouponPageVO> entity2PageVO(List<SmsCoupon> entities);
+    List<SmsCouponVO> entity2PageVO(List<SmsCoupon> entities);
 
 
     @Mappings({
             @Mapping(target = "discount",expression = "java(cn.hutool.core.util.NumberUtil.div(form.getDiscount(),10L))"),
     })
-    SmsCoupon form2Entity(CouponForm form);
+    SmsCoupon form2Entity(SmsCouponForm form);
 
 
     @Mappings({
             @Mapping(target = "discount",expression = "java(cn.hutool.core.util.NumberUtil.mul(entity.getDiscount(),10L))"),
     })
-    CouponForm entity2Form(SmsCoupon entity);
+    SmsCouponForm entity2Form(SmsCoupon entity);
+
+
+    SmsCouponForm toForm(SmsCoupon entity);
+
+    SmsCoupon toEntity(SmsCouponForm formData);
+
 }

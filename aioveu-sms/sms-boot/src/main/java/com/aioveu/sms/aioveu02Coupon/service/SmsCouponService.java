@@ -1,11 +1,12 @@
 package com.aioveu.sms.aioveu02Coupon.service;
 
+import com.aioveu.sms.aioveu02Coupon.model.form.SmsCouponForm;
+import com.aioveu.sms.aioveu02Coupon.model.vo.SmsCouponVO;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.aioveu.sms.aioveu02Coupon.model.entity.SmsCoupon;
-import com.aioveu.sms.aioveu02Coupon.model.form.CouponForm;
-import com.aioveu.sms.aioveu02Coupon.model.query.CouponPageQuery;
-import com.aioveu.sms.aioveu02Coupon.model.vo.CouponPageVO;
+import com.aioveu.sms.aioveu02Coupon.model.query.SmsCouponQuery;
 
 /**
  * @Description: TODO 优惠券业务接口
@@ -21,40 +22,42 @@ public interface SmsCouponService extends IService<SmsCoupon> {
      * 优惠券分页列表
      *
      * @param queryParams
-     * @return
+     * @return {@link IPage<SmsCouponVO>} 优惠券分页列表
      */
-    Page<CouponPageVO> getCouponPage(CouponPageQuery queryParams);
+    IPage<SmsCouponVO> getSmsCouponPage(SmsCouponQuery queryParams);
+
+    /**
+     * 获取优惠券表单数据
+     *
+     * @param id 优惠券ID
+     * @return 优惠券表单数据
+     */
+    SmsCouponForm getSmsCouponFormData(Long id);
 
     /**
      * 新增优惠券
      *
-     * @param couponForm
-     * @return
+     * @param formData 优惠券表单对象
+     * @return 是否新增成功
      */
-    boolean saveCoupon(CouponForm couponForm);
+    boolean saveSmsCoupon(SmsCouponForm formData);
 
     /**
      * 修改优惠券
      *
-     * @param couponId 优惠券ID
-     * @param couponForm 优惠券表单
-     * @return
+     * @param id   优惠券ID
+     * @param formData 优惠券表单对象
+     * @return 是否修改成功
      */
-    boolean updateCoupon(Long couponId, CouponForm couponForm);
+    boolean updateSmsCoupon(Long id, SmsCouponForm formData);
 
     /**
      * 删除优惠券
      *
      * @param ids 优惠券ID，多个以英文逗号(,)分割
-     * @return
+     * @return 是否删除成功
      */
-    boolean deleteCoupons(String ids);
+    boolean deleteSmsCoupons(String ids);
 
-    /**
-     * 优惠券表单数据
-     * 
-     * @param couponId
-     * @return
-     */
-    CouponForm getCouponFormData(Long couponId);
+
 }

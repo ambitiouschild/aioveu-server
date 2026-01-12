@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * @Description: TODO 优惠券表
+ * @Description: TODO 优惠券实体对象
  * @TableName sms_coupon
  * @Author: 雒世松
  * @Date: 2025/6/5 18:46
@@ -22,6 +22,10 @@ import java.util.Date;
 @TableName(value ="sms_coupon")
 @Data
 public class SmsCoupon extends BaseEntity {
+
+
+    private static final long serialVersionUID = 1L;
+
     /**
      * ID
      */
@@ -29,14 +33,17 @@ public class SmsCoupon extends BaseEntity {
     private Long id;
 
     /**
+     * 优惠券名称
+     */
+    private String name;
+
+
+    /**
      * 优惠券类型(1:满减券;2:直减券;3:折扣券)
      */
     private Integer type;
 
-    /**
-     * 优惠券名称
-     */
-    private String name;
+
 
     /**
      * 优惠券码
@@ -94,7 +101,7 @@ public class SmsCoupon extends BaseEntity {
     private Date validityEndTime;
 
     /**
-     * 使用类型(0-全场通用;1-指定商品分类;2-指定商品)
+     * 应用范围(0-全场通用;1-指定商品分类;2-指定商品)
      */
     private Integer applicationScope;
 
