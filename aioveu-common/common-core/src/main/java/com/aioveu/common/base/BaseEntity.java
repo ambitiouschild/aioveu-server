@@ -14,6 +14,13 @@ import java.time.LocalDateTime;
 
 /**
  * @Description: TODO 基础实体类
+ *                      强烈建议在数据库层面设置自动更新时间，原因如下：
+ *                      1.数据安全性：防止应用层BUG导致时间错误
+ *                      2.审计合规：满足法律和审计要求
+ *                      3.多客户端一致：无论什么客户端操作，时间都正确
+ *                      4.维护便利：DBA排查问题时时间线清晰
+ *                      5.性能可靠：数据库层面时间更新性能稳定
+ *                      最佳实践是：数据库默认值 + 应用层自动填充 双重保障，这样既保证了灵活性，又确保了数据完整性。
  * @Author: 雒世松
  * @Date: 2025/6/5 15:35
  * @param
@@ -69,6 +76,10 @@ public class BaseEntity implements Serializable {
      * 更新时间
      */
     @TableField(fill = FieldFill.INSERT_UPDATE)
+    //数据库+应用层双重保障（推荐）
+    //  -- 数据库自动维护
+    //  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    //  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     @JsonInclude(value = JsonInclude.Include.NON_NULL)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
