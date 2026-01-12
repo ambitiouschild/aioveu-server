@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.sms.aioveu03CouponHistory.mapper.SmsCouponHistoryMapper">
+
+    <resultMap id="BaseResultMap" type="com.aioveu.sms.aioveu03CouponHistory.model.entity.SmsCouponHistory">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="couponId" column="coupon_id" jdbcType="BIGINT"/>
+            <result property="memberId" column="member_id" jdbcType="BIGINT"/>
+            <result property="memberNickname" column="member_nickname" jdbcType="VARCHAR"/>
+            <result property="couponCode" column="coupon_code" jdbcType="VARCHAR"/>
+            <result property="getType" column="get_type" jdbcType="TINYINT"/>
+            <result property="status" column="status" jdbcType="TINYINT"/>
+            <result property="useTime" column="use_time" jdbcType="TIMESTAMP"/>
+            <result property="orderId" column="order_id" jdbcType="BIGINT"/>
+            <result property="orderSn" column="order_sn" jdbcType="VARCHAR"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,coupon_id,member_id,
+        member_nickname,coupon_code,get_type,
+        status,use_time,order_id,
+        order_sn,create_time,update_time
+    </sql>
+
+    <!-- 获取优惠券领取/使用记录分页列表 -->
+    <select id="getSmsCouponHistoryPage" resultType="com.aioveu.sms.aioveu03CouponHistory.model.vo.SmsCouponHistoryVO">
+        SELECT
+        id,
+        coupon_id,
+        member_id,
+        member_nickname,
+        coupon_code,
+        get_type,
+        status,
+        use_time,
+        order_id,
+        order_sn,
+        create_time,
+        update_time
+        FROM
+        sms_coupon_history
+        <where>
+            <if test="queryParams.couponId != null">
+                AND coupon_id LIKE CONCAT(#{queryParams.couponId}, '%')
+            </if>
+            <if test="queryParams.memberId != null">
+                AND member_id LIKE CONCAT(#{queryParams.memberId}, '%')
+            </if>
+            <if test="queryParams.memberNickname != null and queryParams.memberNickname != ''">
+                AND member_nickname LIKE CONCAT(#{queryParams.memberNickname}, '%')
+            </if>
+            <if test="queryParams.couponCode != null and queryParams.couponCode != ''">
+                AND coupon_code LIKE CONCAT(#{queryParams.couponCode}, '%')
+            </if>
+            <if test="queryParams.getType != null">
+                AND get_type LIKE CONCAT(#{queryParams.getType}, '%')
+            </if>
+            <if test="queryParams.status != null">
+                AND status LIKE CONCAT(#{queryParams.status}, '%')
+            </if>
+            <if test="queryParams.orderId != null">
+                AND order_id LIKE CONCAT(#{queryParams.orderId}, '%')
+            </if>
+            <if test="queryParams.orderSn != null and queryParams.orderSn != ''">
+                AND order_sn LIKE CONCAT(#{queryParams.orderSn}, '%')
+            </if>
+        </where>
+    </select>
+
+
+</mapper>
