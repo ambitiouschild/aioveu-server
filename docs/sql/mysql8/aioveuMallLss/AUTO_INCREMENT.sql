@@ -1,0 +1,4 @@
+
+
+-- 将自增ID重置为1
+ALTER TABLE 表名 AUTO_INCREMENT = 1;
