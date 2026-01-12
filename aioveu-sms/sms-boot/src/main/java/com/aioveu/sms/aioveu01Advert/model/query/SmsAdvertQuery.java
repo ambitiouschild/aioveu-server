@@ -14,9 +14,14 @@ import lombok.Data;
 
 @Schema(description = "广告分页查询对象")
 @Data
-public class AdvertPageQuery extends BasePageQuery {
+public class SmsAdvertQuery extends BasePageQuery {
 
     @Schema(description="关键字")
     private String keywords;
+
+    @Schema(description = "广告标题")
+    private String title;
+    @Schema(description = "状态(1:开启；0:关闭)")
+    private Integer status;
 
 }

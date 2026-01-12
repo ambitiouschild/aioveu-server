@@ -1,47 +1,63 @@
 package com.aioveu.sms.aioveu01Advert.controller.admin;
 
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.sms.aioveu01Advert.model.form.SmsAdvertForm;
+import com.aioveu.sms.aioveu01Advert.model.vo.SmsAdvertVO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.Result;
 import com.aioveu.sms.aioveu01Advert.model.entity.SmsAdvert;
-import com.aioveu.sms.aioveu01Advert.model.query.AdvertPageQuery;
+import com.aioveu.sms.aioveu01Advert.model.query.SmsAdvertQuery;
 import com.aioveu.sms.aioveu01Advert.service.SmsAdvertService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 
 @Tag(name = "Admin-营销广告")
 @RestController
-@RequestMapping("/api/v1/adverts")
+//@RequestMapping("/api/v1/adverts")
+@RequestMapping("/api/v1/sms-advert")
 @RequiredArgsConstructor
 public class SmsAdvertController {
 
     private final SmsAdvertService smsAdvertService;
 
-    @Operation(summary= "广告分页列表")
+//    @Operation(summary= "广告分页列表")
+//    @GetMapping("/page")
+//    public PageResult<SmsAdvert> getAdvertPage(SmsAdvertQuery queryParams) {
+//
+//        // 查询参数
+//        int pageNum = queryParams.getPageNum();
+//        int pageSize = queryParams.getPageSize();
+//        String keywords = queryParams.getKeywords();
+//
+//        // 分页查询
+//        Page<SmsAdvert> result = smsAdvertService.page(
+//                new Page<>(pageNum, pageSize),
+//                new LambdaQueryWrapper<SmsAdvert>()
+//                        .like(StrUtil.isNotBlank(keywords), SmsAdvert::getTitle, keywords)
+//                        .orderByAsc(SmsAdvert::getSort)
+//        );
+//        return PageResult.success(result);
+//    }
+
+    @Operation(summary = "广告分页列表")
     @GetMapping("/page")
-    public PageResult<SmsAdvert> getAdvertPage(AdvertPageQuery queryParams) {
-
-        // 查询参数
-        int pageNum = queryParams.getPageNum();
-        int pageSize = queryParams.getPageSize();
-        String keywords = queryParams.getKeywords();
-
-        // 分页查询
-        Page<SmsAdvert> result = smsAdvertService.page(
-                new Page<>(pageNum, pageSize),
-                new LambdaQueryWrapper<SmsAdvert>()
-                        .like(StrUtil.isNotBlank(keywords), SmsAdvert::getTitle, keywords)
-                        .orderByAsc(SmsAdvert::getSort)
-        );
+    @PreAuthorize("@ss.hasPerm('aioveuMallSmsAdvert:sms-advert:query')")
+    public PageResult<SmsAdvertVO> getSmsAdvertPage(SmsAdvertQuery queryParams ) {
+        IPage<SmsAdvertVO> result = smsAdvertService.getSmsAdvertPage(queryParams);
         return PageResult.success(result);
     }
+
 
     @Operation(summary= "广告详情")
     @GetMapping("/{id}")
@@ -52,29 +68,66 @@ public class SmsAdvertController {
         return Result.success(advert);
     }
 
-    @Operation(summary= "新增广告")
+//    @Operation(summary= "新增广告")
+//    @PostMapping
+//    public Result addAvert(@RequestBody SmsAdvert advert) {
+//        boolean status = smsAdvertService.save(advert);
+//        return Result.judge(status);
+//    }
+
+    @Operation(summary = "新增广告")
     @PostMapping
-    public Result addAvert(@RequestBody SmsAdvert advert) {
-        boolean status = smsAdvertService.save(advert);
-        return Result.judge(status);
+    @PreAuthorize("@ss.hasPerm('aioveuMallSmsAdvert:sms-advert:add')")
+    public Result<Void> saveSmsAdvert(@RequestBody @Valid SmsAdvertForm formData ) {
+        boolean result = smsAdvertService.saveSmsAdvert(formData);
+        return Result.judge(result);
     }
 
-    @Operation(summary= "修改广告")
+    @Operation(summary = "获取广告表单数据")
+    @GetMapping("/{id}/form")
+    @PreAuthorize("@ss.hasPerm('aioveuMallSmsAdvert:sms-advert:edit')")
+    public Result<SmsAdvertForm> getSmsAdvertForm(
+            @Parameter(description = "广告ID") @PathVariable Long id
+    ) {
+        SmsAdvertForm formData = smsAdvertService.getSmsAdvertFormData(id);
+        return Result.success(formData);
+    }
+
+//    @Operation(summary= "修改广告")
+//    @PutMapping(value = "/{id}")
+//    public Result updateAdvert(
+//            @Parameter(name = "广告ID") @PathVariable Long id,
+//            @RequestBody SmsAdvert advert) {
+//        boolean status = smsAdvertService.updateById(advert);
+//        return Result.judge(status);
+//    }
+
+    @Operation(summary = "修改广告")
     @PutMapping(value = "/{id}")
-    public Result updateAdvert(
-            @Parameter(name = "广告ID") @PathVariable Long id,
-            @RequestBody SmsAdvert advert) {
-        boolean status = smsAdvertService.updateById(advert);
-        return Result.judge(status);
+    @PreAuthorize("@ss.hasPerm('aioveuMallSmsAdvert:sms-advert:edit')")
+    public Result<Void> updateSmsAdvert(
+            @Parameter(description = "广告ID") @PathVariable Long id,
+            @RequestBody @Validated SmsAdvertForm formData
+    ) {
+        boolean result = smsAdvertService.updateSmsAdvert(id, formData);
+        return Result.judge(result);
     }
 
-    @Operation(summary= "删除广告")
+//    @Operation(summary= "删除广告")
+//    @DeleteMapping("/{ids}")
+//    public Result deleteAdverts(@Parameter(name = "广告ID，多个以英文逗号(,)分割") @PathVariable("ids") String ids) {
+//        boolean status = smsAdvertService.removeByIds(Arrays.asList(ids.split(",")));
+//        return Result.judge(status);
+//    }
+
+    @Operation(summary = "删除广告")
     @DeleteMapping("/{ids}")
-    public Result deleteAdverts(@Parameter(name = "广告ID，多个以英文逗号(,)分割") @PathVariable("ids") String ids) {
-        boolean status = smsAdvertService.removeByIds(Arrays.asList(ids.split(",")));
-        return Result.judge(status);
-
-
+    @PreAuthorize("@ss.hasPerm('aioveuMallSmsAdvert:sms-advert:delete')")
+    public Result<Void> deleteSmsAdverts(
+            @Parameter(description = "广告ID，多个以英文逗号(,)分割") @PathVariable String ids
+    ) {
+        boolean result = smsAdvertService.deleteSmsAdverts(ids);
+        return Result.judge(result);
     }
 
 }

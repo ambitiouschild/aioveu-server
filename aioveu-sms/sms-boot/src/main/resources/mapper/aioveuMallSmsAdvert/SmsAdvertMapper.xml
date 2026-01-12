@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.sms.aioveu01Advert.mapper.SmsAdvertMapper">
+
+    <!-- 广告分页列表 -->
+    <select id="getAdvertPage" resultType="com.aioveu.sms.aioveu01Advert.model.entity.SmsAdvert">
+        SELECT
+            *
+        FROM
+            `sms_advert`
+        <where>
+            <if test='queryParams.title!=null and queryParams.title.trim() neq ""'>
+                AND title like concat('%',#{queryParams.title},'%')
+            </if>
+        </where>
+        ORDER BY
+           update_time desc
+    </select>
+
+    <!-- 获取广告分页列表 -->
+    <select id="getSmsAdvertPage" resultType="com.aioveu.sms.aioveu01Advert.model.vo.SmsAdvertVO">
+        SELECT
+        id,
+        title,
+        image_url,
+        start_time,
+        end_time,
+        status,
+        sort,
+        redirect_url,
+        remark,
+        create_time,
+        update_time
+        FROM
+        sms_advert
+        <where>
+            <if test="queryParams.title != null and queryParams.title != ''">
+                AND title LIKE CONCAT(#{queryParams.title}, '%')
+            </if>
+            <if test="queryParams.status != null">
+                AND status LIKE CONCAT(#{queryParams.status}, '%')
+            </if>
+        </where>
+    </select>
+
+
+
+</mapper>

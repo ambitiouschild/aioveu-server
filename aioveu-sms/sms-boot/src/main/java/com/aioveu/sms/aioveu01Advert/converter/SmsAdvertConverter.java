@@ -1,9 +1,10 @@
 package com.aioveu.sms.aioveu01Advert.converter;
 
 
+import com.aioveu.sms.aioveu01Advert.model.form.SmsAdvertForm;
+import com.aioveu.sms.aioveu01Advert.model.vo.SmsAdvertVO;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.aioveu.sms.aioveu01Advert.model.entity.SmsAdvert;
-import com.aioveu.sms.aioveu01Advert.model.vo.AdvertPageVO;
 import com.aioveu.sms.aioveu01Advert.model.vo.BannerVO;
 import org.mapstruct.Mapper;
 
@@ -18,13 +19,17 @@ import java.util.List;
  **/
 
 @Mapper(componentModel = "spring")
-public interface AdvertConverter {
+public interface SmsAdvertConverter {
 
-    AdvertPageVO entity2PageVo(SmsAdvert entity);
+    SmsAdvertVO entity2PageVo(SmsAdvert entity);
 
-    Page<AdvertPageVO> entity2PageVo(Page<SmsAdvert> po);
+    Page<SmsAdvertVO> entity2PageVo(Page<SmsAdvert> po);
 
     BannerVO entity2BannerVo(SmsAdvert entity);
     
     List<BannerVO> entity2BannerVo(List<SmsAdvert> entities);
+
+    SmsAdvertForm toForm(SmsAdvert entity);
+
+    SmsAdvert toEntity(SmsAdvertForm formData);
 }
