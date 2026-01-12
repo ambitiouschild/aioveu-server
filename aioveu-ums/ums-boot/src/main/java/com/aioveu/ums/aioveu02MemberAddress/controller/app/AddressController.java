@@ -1,10 +1,10 @@
 package com.aioveu.ums.aioveu02MemberAddress.controller.app;
 
 import com.aioveu.common.result.Result;
+import com.aioveu.ums.aioveu02MemberAddress.model.entity.UmsMemberAddress;
 import com.aioveu.ums.dto.MemberAddressDTO;
-import com.aioveu.ums.aioveu02MemberAddress.model.entity.UmsAddress;
-import com.aioveu.ums.aioveu02MemberAddress.model.form.AddressForm;
-import com.aioveu.ums.aioveu02MemberAddress.service.UmsAddressService;
+import com.aioveu.ums.aioveu02MemberAddress.model.form.UmsMemberAddressForm;
+import com.aioveu.ums.aioveu02MemberAddress.service.UmsMemberAddressService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,7 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AddressController {
 
-    private final UmsAddressService addressService;
+    private final UmsMemberAddressService addressService;
 
     @Operation(summary= "获取当前会员地址列表")
     @GetMapping
@@ -32,19 +32,19 @@ public class AddressController {
 
     @Operation(summary= "获取地址详情")
     @GetMapping("/{addressId}")
-    public Result<UmsAddress> getAddressDetail(
+    public Result<UmsMemberAddress> getAddressDetail(
             @Parameter(name = "地址ID") @PathVariable Long addressId
     ) {
-        UmsAddress umsAddress = addressService.getById(addressId);
-        return Result.success(umsAddress);
+        UmsMemberAddress umsMemberAddress = addressService.getById(addressId);
+        return Result.success(umsMemberAddress);
     }
 
     @Operation(summary= "新增地址")
     @PostMapping
     public Result addAddress(
-            @RequestBody @Validated AddressForm addressForm
+            @RequestBody @Validated UmsMemberAddressForm umsMemberAddressForm
     ) {
-        boolean result = addressService.addAddress(addressForm);
+        boolean result = addressService.addAddress(umsMemberAddressForm);
         return Result.judge(result);
     }
 
@@ -52,9 +52,9 @@ public class AddressController {
     @PutMapping("/{addressId}")
     public Result updateAddress(
             @Parameter(name = "地址ID") @PathVariable Long addressId,
-            @RequestBody @Validated AddressForm addressForm
+            @RequestBody @Validated UmsMemberAddressForm umsMemberAddressForm
     ) {
-        boolean result = addressService.updateAddress(addressForm);
+        boolean result = addressService.updateAddress(umsMemberAddressForm);
         return Result.judge(result);
     }
 

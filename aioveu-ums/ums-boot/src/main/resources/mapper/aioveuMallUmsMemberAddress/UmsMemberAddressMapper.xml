@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.ums.aioveu02MemberAddress.mapper.UmsMemberAddressMapper">
+
+    <!-- 获取会员收货地址分页列表 -->
+    <select id="getUmsMemberAddressPage" resultType="com.aioveu.ums.aioveu02MemberAddress.model.vo.UmsMemberAddressVO">
+        SELECT
+                id,
+                member_id,
+                consignee_name,
+                consignee_mobile,
+                country,
+                province,
+                city,
+                district,
+                street,
+                detail_address,
+                postal_code,
+                defaulted,
+                address_tag,
+                longitude,
+                latitude,
+                status,
+                create_time,
+                update_time
+        FROM
+            ums_member_address
+        <where>
+            <if test="queryParams.memberId != null">
+                AND member_id LIKE CONCAT(#{queryParams.memberId}, '%')
+            </if>
+            <if test="queryParams.consigneeName != null and queryParams.consigneeName != ''">
+                AND consignee_name LIKE CONCAT(#{queryParams.consigneeName}, '%')
+            </if>
+            <if test="queryParams.consigneeMobile != null and queryParams.consigneeMobile != ''">
+                AND consignee_mobile LIKE CONCAT(#{queryParams.consigneeMobile}, '%')
+            </if>
+            <if test="queryParams.postalCode != null and queryParams.postalCode != ''">
+                AND postal_code LIKE CONCAT(#{queryParams.postalCode}, '%')
+            </if>
+            <if test="queryParams.addressTag != null and queryParams.addressTag != ''">
+                AND address_tag LIKE CONCAT(#{queryParams.addressTag}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

@@ -7,6 +7,8 @@ import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.ums.aioveu01Member.converter.UmsMemberConverter;
 import com.aioveu.ums.aioveu01Member.model.form.UmsMemberForm;
 import com.aioveu.ums.aioveu01Member.model.query.UmsMemberQuery;
+import com.aioveu.ums.aioveu02MemberAddress.converter.UmsMemberAddressConverter;
+import com.aioveu.ums.aioveu02MemberAddress.model.entity.UmsMemberAddress;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -15,15 +17,13 @@ import com.aioveu.common.constant.MemberConstants;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.pms.model.vo.ProductHistoryVO;
-import com.aioveu.ums.aioveu02MemberAddress.converter.AddressConvert;
 import com.aioveu.ums.dto.MemberAddressDTO;
 import com.aioveu.ums.dto.MemberAuthDTO;
 import com.aioveu.ums.dto.MemberRegisterDto;
 import com.aioveu.ums.aioveu01Member.mapper.UmsMemberMapper;
-import com.aioveu.ums.aioveu02MemberAddress.model.entity.UmsAddress;
 import com.aioveu.ums.aioveu01Member.model.entity.UmsMember;
 import com.aioveu.ums.aioveu01Member.model.vo.UmsMemberVO;
-import com.aioveu.ums.aioveu02MemberAddress.service.UmsAddressService;
+import com.aioveu.ums.aioveu02MemberAddress.service.UmsMemberAddressService;
 import com.aioveu.ums.aioveu01Member.service.UmsMemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -71,8 +71,8 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
     private final RedisTemplate redisTemplate;  // Redis操作模板，用于缓存操作
     private final UmsMemberConverter umsMemberConverter; // 会员对象转换器，用于DTO/Entity/VO之间的转换
 
-    private final AddressConvert addressConvert;  // 地址对象转换器
-    private final UmsAddressService addressService;  // 会员地址服务
+    private final UmsMemberAddressConverter umsMemberAddressConverter;  // 地址对象转换器
+    private final UmsMemberAddressService addressService;  // 会员地址服务
     // 依赖注入结束
 
 
@@ -260,13 +260,13 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
 
 
         log.info("查询该会员的所有地址记录");
-        List<UmsAddress> entities = addressService.list(
-                new LambdaQueryWrapper<UmsAddress>()
-                        .eq(UmsAddress::getMemberId, memberId)   // 按会员ID过滤
+        List<UmsMemberAddress> entities = addressService.list(
+                new LambdaQueryWrapper<UmsMemberAddress>()
+                        .eq(UmsMemberAddress::getMemberId, memberId)   // 按会员ID过滤
         );
 
         log.info("将地址Entity列表转换为DTO列表");
-        List<MemberAddressDTO> list = addressConvert.entity2Dto(entities);
+        List<MemberAddressDTO> list = umsMemberAddressConverter.entity2Dto(entities);
         return list;
     }
 
