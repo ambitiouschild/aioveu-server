@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.sms.aioveu04CouponSpu.mapper.SmsCouponSpuMapper">
+
+    <resultMap id="BaseResultMap" type="com.aioveu.sms.aioveu04CouponSpu.model.entity.SmsCouponSpu">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="couponId" column="coupon_id" jdbcType="BIGINT"/>
+            <result property="spuId" column="spu_id" jdbcType="BIGINT"/>
+<!--            <result property="spuName" column="spu_name" jdbcType="VARCHAR"/>-->
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,coupon_id,spu_id,
+        spu_name
+    </sql>
+
+    <!-- 获取优惠券适用的具体商品分页列表 -->
+    <select id="getSmsCouponSpuPage" resultType="com.aioveu.sms.aioveu04CouponSpu.model.vo.SmsCouponSpuVO">
+        SELECT
+        id,
+        coupon_id,
+        spu_id
+        FROM
+        sms_coupon_spu
+        <where>
+            <if test="queryParams.couponId != null">
+                AND coupon_id LIKE CONCAT(#{queryParams.couponId}, '%')
+            </if>
+            <if test="queryParams.spuId != null">
+                AND spu_id LIKE CONCAT(#{queryParams.spuId}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

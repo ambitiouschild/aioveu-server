@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.sms.aioveu05CouponSpuCategory.mapper.SmsCouponSpuCategoryMapper">
+
+    <!-- 获取优惠券适用的具体分类分页列表 -->
+    <select id="getSmsCouponSpuCategoryPage" resultType="com.aioveu.sms.aioveu05CouponSpuCategory.model.vo.SmsCouponSpuCategoryVO">
+        SELECT
+        id,
+        coupon_id,
+        category_id
+        FROM
+        sms_coupon_spu_category
+        <where>
+            <if test="queryParams.couponId != null">
+                AND coupon_id LIKE CONCAT(#{queryParams.couponId}, '%')
+            </if>
+            <if test="queryParams.categoryId != null">
+                AND category_id LIKE CONCAT(#{queryParams.categoryId}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
