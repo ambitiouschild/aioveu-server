@@ -2,10 +2,10 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.aioveu.sms.mapper.SmsAdvertMapper">
+<mapper namespace="com.aioveu.sms.aioveu01Advert.mapper.SmsAdvertMapper">
 
     <!-- 广告分页列表 -->
-    <select id="getAdvertPage" resultType="com.aioveu.sms.model.entity.SmsAdvert">
+    <select id="getAdvertPage" resultType="com.aioveu.sms.aioveu01Advert.model.entity.SmsAdvert">
         SELECT
             *
         FROM

@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.aioveu.sms.mapper.SmsCouponSpuMapper">
+<mapper namespace="com.aioveu.sms.aioveu04CouponSpu.mapper.SmsCouponSpuMapper">
 
-    <resultMap id="BaseResultMap" type="com.aioveu.sms.model.entity.SmsCouponSpu">
+    <resultMap id="BaseResultMap" type="com.aioveu.sms.aioveu04CouponSpu.model.entity.SmsCouponSpu">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="couponId" column="coupon_id" jdbcType="BIGINT"/>
             <result property="spuId" column="spu_id" jdbcType="BIGINT"/>
