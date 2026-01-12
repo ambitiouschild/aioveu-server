@@ -1,6 +1,6 @@
 package com.aioveu.ums.aioveu01Member.model.entity;
 
-import com.aioveu.ums.aioveu02Address.model.entity.UmsAddress;
+import com.aioveu.ums.aioveu02MemberAddress.model.entity.UmsAddress;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;

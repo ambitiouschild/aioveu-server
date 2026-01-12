@@ -1,4 +1,4 @@
-package com.aioveu.ums.aioveu02Address.service.impl;
+package com.aioveu.ums.aioveu02MemberAddress.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.aioveu.common.security.util.SecurityUtils;
@@ -7,10 +7,10 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.aioveu.common.constant.GlobalConstants;
 import com.aioveu.ums.dto.MemberAddressDTO;
-import com.aioveu.ums.aioveu02Address.mapper.UmsAddressMapper;
-import com.aioveu.ums.aioveu02Address.model.entity.UmsAddress;
-import com.aioveu.ums.aioveu02Address.model.form.AddressForm;
-import com.aioveu.ums.aioveu02Address.service.UmsAddressService;
+import com.aioveu.ums.aioveu02MemberAddress.mapper.UmsAddressMapper;
+import com.aioveu.ums.aioveu02MemberAddress.model.entity.UmsAddress;
+import com.aioveu.ums.aioveu02MemberAddress.model.form.AddressForm;
+import com.aioveu.ums.aioveu02MemberAddress.service.UmsAddressService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

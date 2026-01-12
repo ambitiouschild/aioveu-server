@@ -1,4 +1,4 @@
-package com.aioveu.ums.aioveu02Address.model.form;
+package com.aioveu.ums.aioveu02MemberAddress.model.form;
 
 import com.aioveu.common.web.constraint.CheckCityValid;
 import com.aioveu.common.web.constraint.CityType;

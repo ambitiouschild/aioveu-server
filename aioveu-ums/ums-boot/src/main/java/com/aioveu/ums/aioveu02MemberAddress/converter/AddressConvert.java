@@ -1,7 +1,7 @@
-package com.aioveu.ums.aioveu02Address.converter;
+package com.aioveu.ums.aioveu02MemberAddress.converter;
 
 import com.aioveu.ums.dto.MemberAddressDTO;
-import com.aioveu.ums.aioveu02Address.model.entity.UmsAddress;
+import com.aioveu.ums.aioveu02MemberAddress.model.entity.UmsAddress;
 import org.mapstruct.Mapper;
 
 import java.util.List;

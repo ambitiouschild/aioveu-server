@@ -1,10 +1,10 @@
-package com.aioveu.ums.aioveu02Address.controller.app;
+package com.aioveu.ums.aioveu02MemberAddress.controller.app;
 
 import com.aioveu.common.result.Result;
 import com.aioveu.ums.dto.MemberAddressDTO;
-import com.aioveu.ums.aioveu02Address.model.entity.UmsAddress;
-import com.aioveu.ums.aioveu02Address.model.form.AddressForm;
-import com.aioveu.ums.aioveu02Address.service.UmsAddressService;
+import com.aioveu.ums.aioveu02MemberAddress.model.entity.UmsAddress;
+import com.aioveu.ums.aioveu02MemberAddress.model.form.AddressForm;
+import com.aioveu.ums.aioveu02MemberAddress.service.UmsAddressService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

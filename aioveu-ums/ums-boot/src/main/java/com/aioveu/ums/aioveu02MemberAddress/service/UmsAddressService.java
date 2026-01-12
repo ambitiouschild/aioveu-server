@@ -1,10 +1,10 @@
-package com.aioveu.ums.aioveu02Address.service;
+package com.aioveu.ums.aioveu02MemberAddress.service;
 
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.aioveu.ums.dto.MemberAddressDTO;
-import com.aioveu.ums.aioveu02Address.model.entity.UmsAddress;
-import com.aioveu.ums.aioveu02Address.model.form.AddressForm;
+import com.aioveu.ums.aioveu02MemberAddress.model.entity.UmsAddress;
+import com.aioveu.ums.aioveu02MemberAddress.model.form.AddressForm;
 
 import java.util.List;
 

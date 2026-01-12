@@ -1,7 +1,7 @@
-package com.aioveu.ums.aioveu02Address.mapper;
+package com.aioveu.ums.aioveu02MemberAddress.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.aioveu.ums.aioveu02Address.model.entity.UmsAddress;
+import com.aioveu.ums.aioveu02MemberAddress.model.entity.UmsAddress;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
