@@ -268,15 +268,23 @@ public class AuthorizationServerConfig {
                 );
         // 配置异常处理
         http
-                .exceptionHandling((exceptions) -> exceptions
-                        .defaultAuthenticationEntryPointFor(
-                                // 对于HTML请求，重定向到登录页面
-                                new LoginUrlAuthenticationEntryPoint("/login"),  // 👈 这里就是重定向的配置
-                                //这个配置的意思是当请求的Accept头包含text/html（即浏览器请求）,并且认证失败时,会重定向到/login页面
-                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
-                        )
 
-                )
+                //核心思路是让后端对 API 请求返回 JSON 错误响应，而不是重定向到 HTML 页面。
+//                .exceptionHandling((exceptions) -> exceptions
+//                        .defaultAuthenticationEntryPointFor(
+//                                // 对于HTML请求，重定向到登录页面
+//                                //这个请求是在你调用 uni.request之后产生的，但不是由你的代码直接发起的。它可能是由以下原因之一产生的
+//                                //后端响应的重定向
+//                                new LoginUrlAuthenticationEntryPoint("/login"),  // 👈 这里就是重定向的配置
+//                                //这个配置的意思是当请求的Accept头包含text/html（即浏览器请求）,并且认证失败时,会重定向到/login页面
+//
+//
+//                                //从你的日志看，小程序发起的请求可能被解析为 HTML 请求，或者有默认的 Accept: */*头，
+//                                // 这可能导致匹配到 MediaTypeRequestMatcher(MediaType.TEXT_HTML)。
+//                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
+//                        )
+//
+//                )
                 // 配置OAuth2资源服务器（JWT验证）
                 .oauth2ResourceServer(oauth2ResourceServer ->
                         oauth2ResourceServer.jwt(Customizer.withDefaults()));  // 使用默认JWT配置
