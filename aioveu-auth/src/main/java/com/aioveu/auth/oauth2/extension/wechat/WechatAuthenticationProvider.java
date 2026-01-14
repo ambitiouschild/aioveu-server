@@ -144,6 +144,8 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
         Map<String, Object> additionalParameters = wechatAuthenticationToken.getAdditionalParameters();
 
         log.info("前端请求中的微信小程序code");
+
+        //如果 additionalParameters.get("code")返回的不是字符串，这个强制转换就会出问题。
         String code = (String) additionalParameters.get(OAuth2ParameterNames.CODE);
 
         log.info("Code验证：通过微信code2Session接口验证临时登录凭证");
@@ -158,12 +160,14 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
             throw new OAuth2AuthenticationException(e.getMessage());
         }
 
-        log.info("OpenID获取：从微信响应中提取用户唯一标识openid");
-        String openid = sessionInfo.getOpenid();
 
-        // 根据 openid 获取会员信息
-        log.info("4. 根据openid加载用户信息");
+        String openid = sessionInfo.getOpenid();
+        log.info("OpenID获取：从微信响应中提取用户唯一标识openid:{}",openid);
+
         UserDetails userDetails = memberDetailsService.loadUserByOpenid(openid);
+        // 根据 openid 获取会员信息
+        log.info("4. 根据openid加载用户信息:{}", userDetails.getUsername());
+
 
         log.info("5. 构建用户名密码认证令牌（用于后续的令牌生成）");
         Authentication usernamePasswordAuthentication = new UsernamePasswordAuthenticationToken(
@@ -191,7 +195,7 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
             throw new OAuth2AuthenticationException(error);
         }
 
-        log.info("8. 构建标准的OAuth2访问令牌");
+
         OAuth2AccessToken accessToken = new OAuth2AccessToken(
                 OAuth2AccessToken.TokenType.BEARER,  // Bearer令牌类型
                 generatedAccessToken.getTokenValue(),   // 令牌值
@@ -199,11 +203,16 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
                 generatedAccessToken.getExpiresAt(),   // 过期时间
                 tokenContext.getAuthorizedScopes());  // 授权范围
 
-        log.info("9. 构建授权信息");
+        log.info("8. 构建标准的OAuth2访问令牌:{}", accessToken);
+
+
+
         OAuth2Authorization.Builder authorizationBuilder = OAuth2Authorization.withRegisteredClient(registeredClient)
                 .principalName(userDetails.getUsername())  // 主体名称
                 .authorizationGrantType(WechatAuthenticationToken.WECHAT_MINI_APP)  // 授权类型
                 .attribute(Principal.class.getName(), usernamePasswordAuthentication);  // 主体属性
+
+        log.info("9. 构建授权信息:{}", authorizationBuilder);
 
         log.info("10. 处理令牌声明（如果令牌支持声明）");
         if (generatedAccessToken instanceof ClaimAccessor) {
@@ -213,8 +222,7 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
             authorizationBuilder.accessToken(accessToken);
         }
 
-        // 生成刷新令牌(Refresh token)
-        log.info("11. 生成刷新令牌(Refresh Token) - 条件性生成");
+
         OAuth2RefreshToken refreshToken = null;
         if (registeredClient.getAuthorizationGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN) &&
                 // Do not issue refresh token to public client
@@ -223,6 +231,9 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
 
             tokenContext = tokenContextBuilder.tokenType(OAuth2TokenType.REFRESH_TOKEN).build();
             OAuth2Token generatedRefreshToken = this.tokenGenerator.generate(tokenContext);
+
+            // 生成刷新令牌(Refresh token)
+            log.info("11. 生成刷新令牌(Refresh Token) - 条件性生成");
 
             log.info("验证生成的刷新令牌类型");
             if (!(generatedRefreshToken instanceof OAuth2RefreshToken)) {
@@ -235,9 +246,10 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
             authorizationBuilder.refreshToken(refreshToken);
         }
 
-        log.info("12. 保存授权信息到数据库");
+
         OAuth2Authorization authorization = authorizationBuilder.build();
         this.authorizationService.save(authorization);
+        log.info("12. 保存授权信息到数据库:{}", authorization);
 
         log.info("13. 返回最终的访问令牌认证结果");
         return new OAuth2AccessTokenAuthenticationToken(
