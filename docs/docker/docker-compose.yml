@@ -253,6 +253,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
     container_name: aioveu-minio
     restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
     command: server /data --console-address ":9090"
+    #API端口‌用于对象存储操作（如上传、下载文件），默认为‌9000‌；‌控制台端口‌用于访问Web管理界面，默认为‌随机端口‌，但常见配置中常设为‌9001‌。
     ports:
       - 9002:9000
       - 9092:9090
