@@ -22,7 +22,7 @@ import java.util.List;
 public interface PmsSpuConverter {
 
     @Mappings({
-            @Mapping(target = "album", source = "subPicUrls")
+            @Mapping(target = "album", source = "album")
     })
     PmsSpu form2Entity(PmsSpuForm form);
 

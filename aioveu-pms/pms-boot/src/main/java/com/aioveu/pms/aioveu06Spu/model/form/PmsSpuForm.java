@@ -55,7 +55,7 @@ public class PmsSpuForm implements Serializable {
     private String picUrl;
 
     @Schema(description = "商品图册")
-    private String[] subPicUrls;
+    private String[] album;
 
     @Schema(description = "单位")
     @Size(max=16, message="单位长度不能超过16个字符")
