@@ -53,6 +53,8 @@ public class PmsSpuVO implements Serializable {
     @Schema(description = "商品图册")
     private String[] album;
 
+    //您查询结果中出现 <<BLOB>>是因为数据库中的某些字段存储的是二进制大对象（Binary Large Object），而查询工具或客户端在显示时将其简化为 <<BLOB>>而不是实际内容
+
     @Schema(description = "单位")
     private String unit;
 
