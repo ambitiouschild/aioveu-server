@@ -41,6 +41,7 @@ public class FileController {
                     in = ParameterIn.DEFAULT,
                     schema = @Schema(name = "file", format = "binary")
             )
+            //多图上传，后端接口只认特定的字段名  // 这里的 "file" 必须和前端的字段名完全匹配
             @RequestPart(value = "file") MultipartFile file,
             HttpServletRequest request // 添加请求对象获取协议信息
     ) {
