@@ -243,9 +243,10 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
                 )
         );
 
-        log.info("创建VO对象并复制属性");
+
         UmsMemberVO umsMemberVO = new UmsMemberVO();
         BeanUtil.copyProperties(umsMember, umsMemberVO);
+        log.info("创建VO对象并复制属性:{}", umsMemberVO);
         return umsMemberVO;
     }
 
