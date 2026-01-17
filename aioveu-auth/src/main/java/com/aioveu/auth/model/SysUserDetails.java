@@ -79,7 +79,9 @@ public class SysUserDetails implements UserDetails, CredentialsContainer {
         this.setEnabled(StatusEnum.ENABLE.getValue().equals(user.getStatus()));
         if (CollectionUtil.isNotEmpty(user.getRoles())) {
             authorities = user.getRoles().stream()
-                    .map(SimpleGrantedAuthority::new)
+//                    .map(SimpleGrantedAuthority::new)   //原始不加前缀，微服务也不以前缀匹配
+                    // 角色名加上前缀 "ROLE_"，用于区分角色 (ROLE_ADMIN) 和权限 (user:add)
+                    .map(role -> new SimpleGrantedAuthority(SecurityConstants.ROLE_PREFIX + role))
                     .collect(Collectors.toSet());
         }
         this.setPerms(user.getPerms());
