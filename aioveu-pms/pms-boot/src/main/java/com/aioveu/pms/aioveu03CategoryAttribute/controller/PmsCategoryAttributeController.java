@@ -2,10 +2,12 @@ package com.aioveu.pms.aioveu03CategoryAttribute.controller;
 
 import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.Result;
+import com.aioveu.pms.aioveu03CategoryAttribute.model.entity.PmsCategoryAttribute;
 import com.aioveu.pms.aioveu03CategoryAttribute.model.form.PmsCategoryAttributeForm;
 import com.aioveu.pms.aioveu03CategoryAttribute.model.query.PmsCategoryAttributeQuery;
 import com.aioveu.pms.aioveu03CategoryAttribute.model.vo.PmsCategoryAttributeVO;
 import com.aioveu.pms.aioveu03CategoryAttribute.service.PmsCategoryAttributeService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -16,6 +18,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * @ClassName: PmsCategoryAttributeController
  * @Description TODO  商品分类类型（规格，属性）前端控制层
@@ -25,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
  * @Version 1.0
  **/
 
-@Tag(name = "商品类型（规格，属性）接口")
+@Tag(name = "商品分类类型（规格，属性）接口")
 @RestController
 @RequestMapping("/api/v1/pms-category-attribute")
 @RequiredArgsConstructor
@@ -33,12 +37,34 @@ public class PmsCategoryAttributeController {
 
     private final PmsCategoryAttributeService pmsCategoryAttributeService;
 
-    @Operation(summary = "商品类型（规格，属性）分页列表")
+    @Operation(summary = "商品分类类型（规格，属性）分页列表")
     @GetMapping("/page")
     @PreAuthorize("@ss.hasPerm('aioveuMallPmsCategoryAttribute:pms-category-attribute:query')")
     public PageResult<PmsCategoryAttributeVO> getPmsCategoryAttributePage(PmsCategoryAttributeQuery queryParams ) {
         IPage<PmsCategoryAttributeVO> result = pmsCategoryAttributeService.getPmsCategoryAttributePage(queryParams);
         return PageResult.success(result);
+    }
+
+    @Operation(summary= "商品分类类型（规格，属性）列表")
+    @GetMapping("/attributes")
+    @PreAuthorize("@ss.hasPerm('aioveuMallPmsCategoryAttribute:pms-category-attribute:query')")
+    public Result getAttributeList(
+            @Parameter(name = "商品分类ID") Long categoryId,
+            @Parameter(name = "类型（1：规格；2：属性）") Integer type
+    ) {
+        List<PmsCategoryAttribute> list = pmsCategoryAttributeService.list(new LambdaQueryWrapper<PmsCategoryAttribute>()
+                .eq(categoryId != null, PmsCategoryAttribute::getCategoryId, categoryId)
+                .eq(type != null, PmsCategoryAttribute::getType, type)
+        );
+        return Result.success(list);
+    }
+
+    @Operation(summary= "批量新增/修改")
+    @PostMapping("/batch")
+    @PreAuthorize("@ss.hasPerm('aioveuMallPmsCategoryAttribute:pms-category-attribute:add')")
+    public Result saveBatch(@RequestBody PmsCategoryAttributeForm pmsCategoryAttributeForm) {
+        boolean result = pmsCategoryAttributeService.saveBatch(pmsCategoryAttributeForm);
+        return Result.judge(result);
     }
 
     @Operation(summary = "新增商品类型（规格，属性）")

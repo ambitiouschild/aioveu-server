@@ -87,14 +87,25 @@ public class PmsCategoryServiceImpl extends ServiceImpl<PmsCategoryMapper, PmsCa
     public List<CategoryVO> getCategoryList(Long parentId) {
 
         log.info("查询所有可见的分类数据，按排序字段降序排列");
+
+        log.info("查询完整分类树，忽略parentId参数: {}", parentId);
         List<PmsCategory> categoryList = this.list(
                 new LambdaQueryWrapper<PmsCategory>()
                         .eq(PmsCategory::getVisible, GlobalConstants.STATUS_YES)   // 只查询可见的分类
+                        //您的 getCategoryList方法无论传入什么 parentId，都查询了所有可见分类，然后通过内存递归构建树。
                         .orderByDesc(PmsCategory::getSort)    // 按排序字段降序排列
         );
 
+        log.info("查询到{}条分类数据，开始构建完整树形结构", categoryList.size());
+
+
         log.info("递归构建树形结构，如果parentId为null则从根节点(0L)开始");
         List<CategoryVO> list = recursionTree(parentId != null ? parentId : 0l, categoryList);
+
+        log.info("树形结构构建完成，一级分类数量: {}", list.size());
+
+        log.info("递归构建树形结构: {}", list);
+
         return list;
     }
 
