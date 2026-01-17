@@ -84,7 +84,7 @@ public class CaptchaValidationFilter extends OncePerRequestFilter {
     public static final String CAPTCHA_CODE_PARAM_NAME = "captchaCode";  // 用户输入的验证码
     public static final String CAPTCHA_KEY_PARAM_NAME = "captchaKey";    // 验证码唯一标识Key
 
-
+    public static final String CAPTCHA_KEY_PARAM_NAME2 = "captchaId";
     /**
      *    TODO      Redis操作模板
      *          作用：用于操作Redis，存储和获取验证码  ✅ 正确：使用 StringRedisTemplate
@@ -194,8 +194,11 @@ public class CaptchaValidationFilter extends OncePerRequestFilter {
 
             log.info("步骤3：从请求参数中获取验证码Key");
             log.info("验证码Key是验证码的唯一标识，用于从Redis获取对应验证码");
-            // 缓存中的验证码
-            String verifyCodeKey = request.getParameter(CAPTCHA_KEY_PARAM_NAME);
+
+            //兼容两个系统验证码
+            String verifyCodeKey = (request.getParameter(CAPTCHA_KEY_PARAM_NAME) != null)
+                    ? request.getParameter(CAPTCHA_KEY_PARAM_NAME)
+                    : request.getParameter(CAPTCHA_KEY_PARAM_NAME2);
 
             log.info("请求参数中获取验证码verifyCodeKey:{}", verifyCodeKey);
 
