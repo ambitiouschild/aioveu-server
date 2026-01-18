@@ -223,7 +223,10 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
         log.info("按规格名称分组，构建规格Map：key=规格名，value=规格值列表）");
         // 规格Map [key:"颜色",value:[{id:1,value:"黑"},{id:2,value:"白"}]]
         log.info("规格Map [key:\"颜色\",value:[{id:1,value:\"黑\"},{id:2,value:\"白\"}]]");
-        Map<String, List<PmsSpuAttribute>> specValueMap = specSourceList.stream().collect(Collectors.groupingBy(PmsSpuAttribute::getName));
+
+        //规格采用 "名称-值" 对的方式存储
+        Map<String, List<PmsSpuAttribute>> specValueMap = specSourceList.stream().collect(
+                Collectors.groupingBy(PmsSpuAttribute::getName));
 
         log.info("遍历规格分组，构建规格树形结构");
         for (Map.Entry<String, List<PmsSpuAttribute>> entry : specValueMap.entrySet()) {
@@ -348,9 +351,11 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
 
             log.info("保存商品规格方法saveSpuSpecs");
             Map<String, Long> tempWithNewSpecIdMap = this.saveSpuSpecs(spuId, specList);
-            // 保存SKU
+            // 保存SKU  规格名保存是正确的，是保存到库存的时候，库存名应该是规格的组合
             log.info("4. 保存SKU信息，使用规格ID映射替换临时ID");
             List<PmsSku> skuList = formData.getSkuList();
+
+            log.info("包含规格组合和价格库存的SKU列表skuList:{}", skuList);
 
             log.info("保存SKU，需要替换提交表单中的临时规格ID，saveSku");
             this.saveSku(spuId, skuList, tempWithNewSpecIdMap);
@@ -389,6 +394,8 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
             // 保存商品规格值
             log.info("3. 更新商品规格，获取ID映射");
             List<PmsSpuAttributeForm> specList = formData.getSpecList();
+
+            //specTempIdIdMap.get(specId)返回的是规格ID，但SKU的 specIds应该存储规格值ID。
             Map<String, Long> specTempIdIdMap = this.saveSpuSpecs(spuId, specList);
 
             // SKU保存
@@ -464,43 +471,117 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
      */
     private boolean saveSku(Long spuId, List<PmsSku> skuList, Map<String, Long> specTempIdIdMap) {
 
+
+        log.info("========== 开始保存SKU ==========");
+
+        // 添加详细调试
+        log.info("SKU列表数量: {}", skuList.size());
+        log.info("规格值映射表大小: {}", specTempIdIdMap.size());
+        log.info("映射表内容: {}", specTempIdIdMap);
+
+
+        // 检查第一个SKU
+        if (!skuList.isEmpty()) {
+            PmsSku firstSku = skuList.get(0);
+            log.info("第一个SKU详细分析:");
+            log.info("  specIds: {}", firstSku.getSpecIds());
+
+            // 分析分隔符
+            if (firstSku.getSpecIds().contains("_")) {
+                log.info("  检测到分隔符: 下划线 '_'");
+            }
+            if (firstSku.getSpecIds().contains("|")) {
+                log.info("  检测到分隔符: 竖线 '|'");
+            }
+
+            // 尝试两种分隔符
+//            String separator = firstSku.getSpecIds().contains("|") ? "\\|" : "_";
+//            String[] ids = firstSku.getSpecIds().split(separator);
+//            log.info("  拆分结果 (使用{}):", separator.replace("\\", ""));
+//            for (String id : ids) {
+//                log.info("    ID: {}, 映射: {}", id, specTempIdIdMap.get(id));
+//            }
+
+        }
+
         // 删除SKU
         log.info("1. 删除此次提交中不存在的SKU");
-        log.info("获取表单中提交的SKU ID列表");
-        List<Long> formSkuIds = skuList.stream().map(PmsSku::getId).toList();
 
-        log.info("获取数据库中现有的SKU ID列表");
-        List<Long> dbSkuIds = pmsSkuService.list(new LambdaQueryWrapper<PmsSku>().eq(PmsSku::getSpuId, spuId)
-                        .select(PmsSku::getId)).stream().map(PmsSku::getId)
+        List<Long> formSkuIds = skuList.stream()
+                .map(PmsSku::getId)
+                .filter(id -> id != null && id > 0)  // 只过滤已存在的SKU ID
                 .toList();
+        log.info("获取表单中提交的SKU ID列表:{}",formSkuIds);
 
-        log.info("计算需要删除的SKU ID：数据库中存在但表单中不存在的");
+
+
+        List<Long> dbSkuIds = pmsSkuService.list(
+                new LambdaQueryWrapper<PmsSku>()
+                        .eq(PmsSku::getSpuId, spuId)
+                        .select(PmsSku::getId))
+                .stream()
+                .map(PmsSku::getId)
+                .collect(Collectors.toList());
+        log.info("获取数据库中现有的SKU ID列表: {}", dbSkuIds);
+
+
+
         List<Long> removeSkuIds = dbSkuIds.stream()
                 .filter(dbSkuId -> !formSkuIds.contains(dbSkuId))
                 .collect(Collectors.toList());
+        log.info("计算需要删除的SKU ID：数据库中存在但表单中不存在的: {}", removeSkuIds);
 
-        log.info("执行删除操作");
+        log.info("执行删除操作，删除数量: {}", removeSkuIds.size());
         if (CollectionUtil.isNotEmpty(removeSkuIds)) {
             pmsSkuService.removeByIds(removeSkuIds);
         }
 
+
         // 新增/修改SKU
-        log.info("新增/修改SKU");
+        log.info("2. 处理新增/修改SKU，数量: {}", skuList.size());
         List<PmsSku> pmsSkuList = skuList.stream().map(sku -> {
             // 临时规格ID转换
             // 处理规格ID：将临时ID替换为数据库ID
-            String specIds = Arrays.stream(sku.getSpecIds().split("\\|"))
+            String specIds = Arrays.stream(sku.getSpecIds().split("\\|"))  // 方案1：统一使用竖线分隔（推荐）,在分割字符串时，多了一个空格：
+                    // 但您的数据是：temp_xxx_temp_yyy，中间是下划线
                     .map(specId -> specId.startsWith(ProductConstants.SPEC_TEMP_ID_PREFIX) ?
-                            specTempIdIdMap.get(specId) + "" : specId)  // 临时ID替换，已有ID保持不变
+                            // 临时ID，从映射中获取数据库ID
+                            specTempIdIdMap.get(specId) + ""
+                            : specId)  // 临时ID替换，已有ID保持不变
                     .collect(Collectors.joining("_"));  // 重新拼接规格ID字符串
+
+            log.info("生成的产品规格ids: {}", specIds);
             sku.setSpecIds(specIds);
+            //库存规格名是规格名的组合，库存specIds是规格id的组合吧
             sku.setSpuId(spuId);
+
+            sku.setName(generateSkuName(sku, specTempIdIdMap,specIds));  // 应该添加这行
+            log.info("生成的产品规格名: {}", generateSkuName(sku, specTempIdIdMap,specIds));
+
             return sku;
         }).collect(Collectors.toList());
 
         log.info("批量保存或更新SKU");
         return pmsSkuService.saveOrUpdateBatch(pmsSkuList);
     }
+
+    // 在保存SKU时添加名称生成
+    private String generateSkuName(PmsSku sku, Map<String, Long> tempIdMap, String specIds) {
+        // 根据 specIds 查询规格值
+        String[] specValueIds = specIds.split("_");
+        List<String> specValues = new ArrayList<>();
+
+        for (String specValueId : specValueIds) {
+            PmsSpuAttribute specValue = pmsSpuAttributeService.getById(specValueId);
+            if (specValue != null) {
+                specValues.add(specValue.getValue());
+            }
+        }
+
+        return String.join("-", specValues);
+    }
+
+
 
 
     /**
@@ -576,9 +657,9 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
      *        TODO              保存商品规格（私有方法）
      *                          处理商品规格的新增、修改和删除，返回临时ID到数据库ID的映射
      *                           规格需要区分是否是临时ID
-     *                           规格有临时ID的概念：以 ProductConstants.SPEC_TEMP_ID_PREFIX开头（可能是 temp_或类似前缀）
+     *                           规格有临时ID的概念：以 ProductConstants.SPEC_TEMP_ID_PREFIX开头（可能是 tid_或类似前缀）
      *                           // 前端传的ID格式：
- *                               // 新增规格：temp_123456789_abc123
+ *                               // 新增规格：tid_123456789_abc123
  *                               // 已有规格：1001 (数据库ID)
      *                               为什么用临时ID？
      *                                  前端友好：前端可以在用户操作时立即生成ID，不需要等待后端响应
@@ -608,6 +689,7 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
                 .map(item -> Convert.toLong(item.getId()))
                 .toList();
 
+        log.info("商品规格表单列表:{}",specList);
         // 1.2 原商品规格
         log.info("获取数据库中原有的规格ID");
         List<Long> originSpuSpecIds = pmsSpuAttributeService.list(new LambdaQueryWrapper<PmsSpuAttribute>()
@@ -645,6 +727,9 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
 
         if (CollectionUtil.isNotEmpty(newSpecList)) {
             newSpecList.forEach(item -> {
+                //规格信息存储在 PmsSpuAttribute表中
+                //使用了 PmsSpuAttributeConverter.form2Entity(item)转换
+                //转换器可能将前端的 PmsSpuAttributeForm转换为 PmsSpuAttribute
                 PmsSpuAttribute entity = pmsSpuAttributeConverter.form2Entity(item);
                 entity.setSpuId(spuId);
                 entity.setType(AttributeTypeEnum.SPEC.getValue());   // 设置为规格类型

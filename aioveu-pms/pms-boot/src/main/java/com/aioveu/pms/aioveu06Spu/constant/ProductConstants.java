@@ -20,9 +20,11 @@ public interface ProductConstants {
      */
     String SKU_LOCK_PREFIX = "product:sku_lock:";
 
-    /**
-     * 临时规格ID前缀
-     */
-    String SPEC_TEMP_ID_PREFIX = "tid_";
+//    /**
+//     * 临时规格ID前缀
+//     */
+//    String SPEC_TEMP_ID_PREFIX = "tid_";
+
+    String SPEC_TEMP_ID_PREFIX = "temp_";
 
 }
