@@ -16,6 +16,7 @@ import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -68,6 +69,8 @@ public class CartServiceImpl implements CartService {
 
     // 购物车转换器，用于DTO对象转换
     private final CartConverter cartConverter;
+
+//    private final CartItemMapper cartItemMapper;  // 新增：数据库Mapper
 
     /**
      *   TODO       获取用户购物车中的所有商品列表
@@ -162,6 +165,7 @@ public class CartServiceImpl implements CartService {
                 vo.setPrice(skuInfoDTO.getPrice());     // 商品最新价格
                 vo.setCount(cartItem.getCount());       // 购物车中的商品数量（来自Redis）
                 vo.setChecked(cartItem.getChecked());     // 商品选中状态（来自Redis）
+                vo.setStock(skuInfoDTO.getStock());       // ✅ 关键：设置库存
 
                 log.info("将构建好的VO对象添加到结果列表");
                 cartItemVoList.add(vo);
@@ -224,17 +228,59 @@ public class CartServiceImpl implements CartService {
      * @throws BizException 如果商品信息获取失败会抛出异常
      */
     @Override
-    public boolean addCartItem(Long skuId) {
+    public boolean addCartItem(Long skuId , Integer count) {
 
+        log.info("添加商品到购物车，skuId: {}, 数量: {}", skuId, count);
+
+        // 1. 参数验证
+        if (skuId == null || skuId <= 0) {
+            log.error("商品SKU ID无效: {}", skuId);
+            throw new BizException("商品ID不能为空");
+        }
+
+        if (count == null || count <= 0) {
+            // 默认数量为1
+            count = 1;
+            log.info("数量为空或无效，使用默认值: 1");
+        }
+        //2. 获取当前登录用户ID
         log.info("从安全工具类获取当前登录用户ID");
         Long memberId = SecurityUtils.getMemberId();
 
+        if (memberId == null) {
+            log.error("用户未登录，无法添加购物车");
+            throw new BizException(ResultCode.TOKEN_INVALID);
+        }
+
+        // 3. 获取商品信息
+        log.info("通过商品服务获取商品详细信息");
+        SkuInfoDTO skuInfo = skuFeignService.getSkuInfo(skuId);
+        if (skuInfo == null) {
+            log.error("商品不存在，skuId: {}", skuId);
+            throw new BizException("商品不存在");
+        }
+
+        // 验证价格不为空
+        if (skuInfo.getPrice() == null) {
+            log.error("商品价格为空，skuId: {}", skuId);
+            throw new BizException("商品价格信息异常");
+        }
+
+        // 4. 验证库存
+        if (count > skuInfo.getStock()) {
+            log.error("商品库存不足，skuId: {}, 库存: {}, 请求数量: {}",
+                    skuId, skuInfo.getStock(), count);
+            throw new BizException("商品库存不足，仅剩 " + skuInfo.getStock() + " 件");
+        }
+
+        // 5. 获取购物车操作对象
         log.info("获取该用户的购物车Hash操作对象");
         BoundHashOperations<String, String, CartItemDto> cartHashOperations = getCartHashOperations(memberId);
 
         log.info("使用skuId作为Hash的字段名");
         String hKey = String.valueOf(skuId);
 
+        // 6. 尝试从购物车中获取已存在的商品
         log.info("尝试从购物车中获取已存在的商品");
         CartItemDto cartItem = cartHashOperations.get(hKey);
 
@@ -243,39 +289,99 @@ public class CartServiceImpl implements CartService {
             // 购物车已存在该商品，更新商品数量
             log.info("情况1：购物车中已存在该商品");
             log.info("商品数量+1（每次点击\"加入购物车\"数量增加1）");
-            cartItem.setCount(cartItem.getCount() + 1); // 点击一次“加入购物车”，数量+1
+            // 计算新的总数量
+            int newCount = cartItem.getCount() + count;
 
+            // 再次验证库存（考虑已存在的数量）
+            if (newCount > skuInfo.getStock()) {
+                log.error("总数量超过库存，skuId: {}, 现有: {}, 新增: {}, 库存: {}",
+                        skuId, cartItem.getCount(), count, skuInfo.getStock());
+                throw new BizException("添加后总数量超过库存，最多可再添加 " +
+                        (skuInfo.getStock() - cartItem.getCount()) + " 件");
+            }
+
+            // 更新数量和选中状态
+            cartItem.setCount(newCount);
             log.info("设置商品为选中状态");
             cartItem.setChecked(true);
-            log.debug("购物车已存在商品skuId:{}，数量增加至:{}", skuId, cartItem.getCount());
+
+            // 确保价格不为空
+            Long newPrice = skuInfo.getPrice();
+            if (newPrice == null) {
+                newPrice = cartItem.getPrice() != null ? cartItem.getPrice() : 0;
+            }
+
+            // 更新价格（保持最新价格）
+            cartItem.setPrice(newPrice);   // 确保设置价格
+            cartItem.setSkuName(skuInfo.getSkuName());
+            cartItem.setImageUrl(skuInfo.getPicUrl());
+            // ✅ 关键：更新库存信息
+            cartItem.setStock(skuInfo.getStock());
+
+            log.info("购物车已存在商品，更新数量: skuId={}, 原数量={}, 新增={}, 新总数={}",
+                    skuId, cartItem.getCount() - count, count, newCount);
 
         } else {
 
             // 购物车中不存在该商品，新增商品到购物车
             log.info("情况2：购物车中不存在该商品，需要新增");
-            log.info("通过商品服务获取商品详细信息");
-            SkuInfoDTO skuInfo = skuFeignService.getSkuInfo(skuId);
-            if (skuInfo != null) {
+
 
                 log.info("将商品信息转换为购物车商品对象");
                 cartItem = cartConverter.sku2CartItem(skuInfo);
 
-                log.info("设置初始数量为1");
-                cartItem.setCount(1);
+                log.info("设置用户选择的数量");
+                cartItem.setCount(count);
+
+
 
                 log.info("默认设置为选中状态");
                 cartItem.setChecked(true);
-                log.debug("新增商品到购物车，skuId:{}，商品名称:{}", skuId, cartItem.getSkuName());
-            }else {
-                // 商品不存在，记录错误日志（实际应该抛出异常）
-                log.error("商品不存在，skuId:{}", skuId);
-            }
+
+                // 确保价格不为空
+                if (cartItem.getPrice() == null) {
+                    Long price = skuInfo.getPrice();
+                    if (price == null) {
+                        price = 0L;  // 设置默认价格
+                        log.warn("商品价格为空，使用默认价格0，skuId: {}", skuId);
+                    }
+                    cartItem.setPrice(price);
+                }
+
+                // ✅ 关键：设置库存
+                cartItem.setStock(skuInfo.getStock());
+
+                // 设置加入时间（用于后续价格过期判断）
+                cartItem.setAddTime(LocalDateTime.now());
+
+            log.debug("新增商品到购物车: skuId={}, 商品名称={}, 数量={}, 价格={}",
+                    skuId, cartItem.getSkuName(), count, cartItem.getPrice());
+
         }
 
+        // 7. 保存到Redis购物车
         log.info("将商品信息保存到Redis购物车中");
+
+        if (cartItem.getPrice() == null) {
+            log.warn("购物车商品价格为空，设置默认价格0，skuId: {}", skuId);
+            cartItem.setPrice(0L);
+        }
+
         cartHashOperations.put(hKey, cartItem);
         log.debug("商品skuId:{}已添加到用户{}的购物车", skuId, memberId);
 
+
+        // 8. 安全地记录操作日志
+        try {
+            Long price = cartItem.getPrice() != null ? cartItem.getPrice() : 0;
+            Integer itemCount = cartItem.getCount() != null ? cartItem.getCount() : 0;
+            Long totalPrice = price.longValue() * itemCount;
+
+            log.info("商品已添加到购物车: 用户ID={}, skuId={}, 商品名称={}, 数量={}, 单价={}, 总价={}",
+                    memberId, skuId, cartItem.getSkuName(), itemCount, price, totalPrice);
+        } catch (Exception e) {
+            log.error("记录购物车日志失败: {}", e.getMessage());
+        }
 
         return true;
     }
@@ -423,11 +529,14 @@ public class CartServiceImpl implements CartService {
     /**
      *       TODO           获取第一层，即某个用户的购物车
      *                  获取指定用户的购物车Redis操作对象
+     *                   您这是纯Redis存储的购物车实现
      *
      * @param memberId 用户ID
      * @return BoundHashOperations对象，用于操作该用户的购物车Hash
      */
     private BoundHashOperations getCartHashOperations(Long memberId) {
+
+        // 所有数据都存在Redis
 
         log.info("构建购物车在Redis中的Key，格式如：cart:member:123");
         String cartKey = OrderConstants.MEMBER_CART_PREFIX + memberId;
@@ -435,5 +544,11 @@ public class CartServiceImpl implements CartService {
         log.info("获取绑定到特定Key的Hash操作对象，方便后续操作");
         BoundHashOperations operations = redisTemplate.boundHashOps(cartKey);
         return operations;
+
+        // Redis中的数据结构
+//        Key: "cart:member:123"
+//        Type: Hash
+//        Field: "785" (skuId)
+//                Value: CartItemDto JSON对象
     }
 }

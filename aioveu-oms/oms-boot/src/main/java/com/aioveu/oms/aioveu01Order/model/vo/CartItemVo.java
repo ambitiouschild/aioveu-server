@@ -53,6 +53,6 @@ public class CartItemVo implements Serializable {
     /**
      * 商品库存
      */
-    private Integer stock;
+    private Integer stock;  //前端需要显示库存
 
 }

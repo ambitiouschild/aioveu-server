@@ -21,7 +21,7 @@ public interface CartService {
 
     boolean deleteCart();
 
-    boolean addCartItem(Long skuId);
+    boolean addCartItem(Long skuId , Integer count);
 
     boolean updateCartItem(CartItemDto cartItem);
 

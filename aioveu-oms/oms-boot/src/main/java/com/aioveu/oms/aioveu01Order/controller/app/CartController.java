@@ -46,8 +46,11 @@ public class CartController {
 
     @Operation(summary = "添加购物车商品")
     @PostMapping
-    public <T> Result<T> addCartItem(@RequestParam Long skuId) {
-        cartService.addCartItem(skuId);
+    public <T> Result<T> addCartItem(@RequestBody CartItemDto cartItem) {
+
+        Long skuId = cartItem.getSkuId();
+        int count = cartItem.getCount();
+        cartService.addCartItem(skuId,count);
         return Result.success();
     }
 
