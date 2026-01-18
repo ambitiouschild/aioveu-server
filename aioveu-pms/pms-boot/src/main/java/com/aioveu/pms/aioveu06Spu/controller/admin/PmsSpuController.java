@@ -57,20 +57,21 @@ public class PmsSpuController {
         return Result.success(pmsSpuDetailVO);
     }
 
-//    @Operation(summary = "新增商品")
-//    @PostMapping
-//    public Result addSpu(@RequestBody PmsSpuForm formData) {
-//        boolean result = pmsSpuService.addSpu(formData);
-//        return Result.judge(result);
-//    }
-
     @Operation(summary = "新增商品")
     @PostMapping
     @PreAuthorize("@ss.hasPerm('aioveuMallPmsSpu:pms-spu:add')")
-    public Result<Void> savePmsSpu(@RequestBody @Valid PmsSpuForm formData ) {
-        boolean result = pmsSpuService.savePmsSpu(formData);
+    public Result addSpu(@RequestBody PmsSpuForm formData) {
+        boolean result = pmsSpuService.addSpu(formData);
         return Result.judge(result);
     }
+
+//    @Operation(summary = "新增商品")
+//    @PostMapping
+//    @PreAuthorize("@ss.hasPerm('aioveuMallPmsSpu:pms-spu:add')")
+//    public Result<Void> savePmsSpu(@RequestBody @Valid PmsSpuForm formData ) {
+//        boolean result = pmsSpuService.savePmsSpu(formData);
+//        return Result.judge(result);
+//    }
 
     @Operation(summary = "获取商品表单数据")
     @GetMapping("/{id}/form")

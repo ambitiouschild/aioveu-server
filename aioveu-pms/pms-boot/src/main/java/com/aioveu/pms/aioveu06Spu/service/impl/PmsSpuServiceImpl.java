@@ -506,6 +506,19 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
     /**
      *      TODO            保存商品属性（私有方法）
      *                  处理商品属性的新增、修改和删除
+     *                  属性（attr）只需要区分 null 和非 null
+     *                                                          // 关键逻辑：
+     *                                      // 1. 删除此次提交移除的商品规格
+     *                                      // 2. 新增此次提交的新加的商品规格
+     *                                      // 3. 修改此次提交的需要修改的商品规格
+     *                                      为什么要分开处理？
+     *
+     *                                      效率：批量操作比逐条判断更快
+     *
+     *                                      清晰：逻辑分离，便于维护和调试
+     *
+     *                                      事务：可以更好地控制事务边界
+     *
      *
      * @param spuId 商品ID
      * @param attrList 商品属性表单列表
@@ -561,7 +574,23 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
 
     /**
      *        TODO              保存商品规格（私有方法）
-     *                      处理商品规格的新增、修改和删除，返回临时ID到数据库ID的映射
+     *                          处理商品规格的新增、修改和删除，返回临时ID到数据库ID的映射
+     *                           规格需要区分是否是临时ID
+     *                           规格有临时ID的概念：以 ProductConstants.SPEC_TEMP_ID_PREFIX开头（可能是 temp_或类似前缀）
+     *                           // 前端传的ID格式：
+ *                               // 新增规格：temp_123456789_abc123
+ *                               // 已有规格：1001 (数据库ID)
+     *                               为什么用临时ID？
+     *                                  前端友好：前端可以在用户操作时立即生成ID，不需要等待后端响应
+     *                                  关联关系：SKU需要引用规格ID，前端生成时可以建立关联
+     *                                  幂等性：支持重复提交，不会产生重复数据
+     *                                  // 后端可以：
+     *                                  1. 一次性删除不在此列表中的规格
+     *                                  2. 批量新增带临时ID的规格
+     *                                  3. 批量更新已有ID的规格
+     *                                  4. 建立临时ID到数据库ID的映射
+     *
+     *
      *
      * @param spuId 商品ID
      * @param specList 商品规格表单列表
