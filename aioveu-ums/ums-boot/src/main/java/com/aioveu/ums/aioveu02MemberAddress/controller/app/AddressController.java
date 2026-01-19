@@ -51,9 +51,15 @@ public class AddressController {
     @Operation(summary= "修改地址")
     @PutMapping("/{id}")
     public Result updateAddress(
+            //@PutMapping("/{id}")定义了路径变量 {id}，但updateAddress方法没有使用这个id参数！
             @Parameter(name = "地址ID") @PathVariable Long id,
             @RequestBody @Validated UmsMemberAddressForm umsMemberAddressForm
     ) {
+
+        //你的Service方法没有使用这个id，或者form中没有id字段
+        // 关键：将路径id设置到form中
+        umsMemberAddressForm.setId(id);
+
         boolean result = addressService.updateAddress(umsMemberAddressForm);
         return Result.judge(result);
     }
