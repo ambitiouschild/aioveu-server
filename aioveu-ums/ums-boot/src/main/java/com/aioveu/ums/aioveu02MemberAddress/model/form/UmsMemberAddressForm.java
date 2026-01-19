@@ -30,6 +30,9 @@ public class UmsMemberAddressForm implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "地址ID")
+    private Long id;
+
     @Schema(description="地址关联会员ID")
     private Long memberId;
 

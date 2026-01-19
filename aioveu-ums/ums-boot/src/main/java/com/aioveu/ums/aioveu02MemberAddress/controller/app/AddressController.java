@@ -51,7 +51,7 @@ public class AddressController {
     @Operation(summary= "修改地址")
     @PutMapping("/{addressId}")
     public Result updateAddress(
-            @Parameter(name = "地址ID") @PathVariable Long addressId,
+            @Parameter(name = "地址ID") @PathVariable Long id,
             @RequestBody @Validated UmsMemberAddressForm umsMemberAddressForm
     ) {
         boolean result = addressService.updateAddress(umsMemberAddressForm);
