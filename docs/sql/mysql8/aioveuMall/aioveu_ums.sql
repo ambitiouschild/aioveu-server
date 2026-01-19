@@ -34,8 +34,12 @@ CREATE TABLE `ums_member_address`  (
 
   INDEX `idx_member_id` (`member_id`) COMMENT '会员ID索引',
   INDEX `idx_is_default` (`defaulted`) COMMENT '默认地址索引',
-  INDEX `idx_province_city` (`province`, `city`) COMMENT '省市区联合索引',
-  UNIQUE KEY `uk_member_default` (`member_id`, `defaulted`) COMMENT '会员默认地址唯一约束'
+  INDEX `idx_province_city` (`province`, `city`) COMMENT '省市区联合索引'
+
+  -- 这个索引导致每个会员只能有一个 defaulted=0和一个 defaulted=1的地址。
+    -- 不设置唯一索引，完全由后端业务逻辑控制是更灵活、更合理的做法
+    -- 只保留必要的查询索引
+#   UNIQUE KEY `uk_member_default` (`member_id`, `defaulted`) COMMENT '会员默认地址唯一约束'
 
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci
     ROW_FORMAT = DYNAMIC

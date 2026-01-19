@@ -170,6 +170,14 @@ public class UmsMemberAddressServiceImpl extends ServiceImpl<UmsMemberAddressMap
             log.info("如果保存成功，并且当前地址被设置为默认地址");
             if (GlobalConstants.STATUS_YES.equals(umsMemberAddressForm.getDefaulted())) {
 
+                //不设置唯一索引，完全由后端业务逻辑控制是更灵活、更合理的做法。
+                //更灵活：业务规则可以随时调整
+                //更好的错误处理：可以给出更友好的错误提示
+                //更容易调试：不会因为数据库约束而难以定位问题
+                //支持复杂逻辑：比如可以支持临时地址、历史地址等
+                //删除唯一索引，保留普通索引
+
+
                 log.info("更新该会员的其他默认地址为非默认状态");
                 log.info("条件：同一会员的其他地址，且是默认地址，且不是当前新增的地址");
                 this.update(new LambdaUpdateWrapper<UmsMemberAddress>()
