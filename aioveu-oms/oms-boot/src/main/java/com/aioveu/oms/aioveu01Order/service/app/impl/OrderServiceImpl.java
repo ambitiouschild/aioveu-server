@@ -12,6 +12,7 @@ import com.aioveu.oms.aioveu01Order.service.app.OrderService;
 import com.aioveu.oms.aioveu01Order.utils.OrderNoGenerator;
 import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
+import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -117,6 +118,9 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
     // 购物车服务
     private final CartService cartService;
+
+    // 订单物流服务
+    private final OmsOrderDeliveryService orderDeliveryService;
 
     // 订单项服务
     private final OmsOrderItemService orderItemService;
@@ -657,8 +661,15 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 //            order.setPaymentMethod(submitForm.getPaymentMethod());
 
 
+            // 保存订单
+            boolean saveResult = this.save(order);
+            Assert.isTrue(saveResult, "订单保存失败");
 
+            // 使用LambdaWrapper查询
+            LambdaQueryWrapper<OmsOrder> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(OmsOrder::getOrderSn, orderSn);
 
+            OmsOrder omsOrder = this.getOne(queryWrapper);
 
             // 设置订单收货地址
             // 构建订单配送实体
@@ -666,7 +677,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             OrderSubmitForm.ShippingAddress shippingAddress = submitForm.getShippingAddress();
 
             // 订单id
-            Long orderId = order.getId();
+            Long orderId = omsOrder.getId();
             log.info("【创建订单物流】2.订单Id: {}", orderId);
 
             // 收货人姓名
@@ -696,11 +707,9 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             orderDelivery.setReceiverRegion(receiverRegion);
             orderDelivery.setReceiverDetailAddress(receiverDetailAddress);
 
-            // 保存订单
-            boolean saveResult = this.save(order);
-            Assert.isTrue(saveResult, "订单保存失败");
-
-            orderDeliveryService.save(orderDelivery);
+            //保存物流信息
+            boolean saveOrderDeliveryResult =orderDeliveryService.save(orderDelivery);
+            log.info("【保存配送信息】成功：{}" , saveOrderDeliveryResult);
 
             // 保存订单商品
             saveOrderItems(order.getId(), orderItems, skuInfos);
