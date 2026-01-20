@@ -31,7 +31,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Description: TODO 商品库存业务实现类
@@ -294,17 +296,81 @@ public class PmsSkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> impleme
     public boolean lockStock(String orderToken, List<LockSkuDTO> lockSkuList) {
 
         log.info("记录锁定库存操作日志，便于问题排查");
-        log.info("订单({})锁定商品库存：{}", orderToken, JSONUtil.toJsonStr(lockSkuList));
+        log.info("【库存锁定】开始锁定库存，订单令牌: {}, 锁定列表: {}", orderToken, JSONUtil.toJsonStr(lockSkuList));
 
-        log.info("参数校验：锁定商品列表不能为空");
+
         Assert.isTrue(CollectionUtil.isNotEmpty(lockSkuList), "订单({})未包含任何商品", orderToken);
+        log.info("【库存锁定】参数校验通过，商品数量: {}", lockSkuList.size());
+
+
+
+        // 先查询商品信息，记录当前库存状态
+        Map<Long, PmsSku> skuMap = new HashMap<>();
+        for (LockSkuDTO lockedSku : lockSkuList) {
+            Long skuId = lockedSku.getSkuId();
+            PmsSku sku = this.getById(skuId);
+
+            if (sku == null) {
+                log.error("【库存锁定】商品不存在，SKU ID: {}", skuId);
+                throw new IllegalArgumentException("商品不存在");
+            }
+
+            skuMap.put(skuId, sku);
+
+            // 记录当前库存状态
+            log.info("【库存锁定】商品详情 - ID: {}, 名称: {}, 总库存: {}, 锁定库存: {}, 可用库存: {}, 需要锁定: {}",
+                    skuId, sku.getName(), sku.getStock(), sku.getLockedStock(),
+                    sku.getStock() - sku.getLockedStock(), lockedSku.getQuantity());
+        }
+
+
 
         // 校验库存数量是否足够以及锁定库存
         log.info("遍历需要锁定的每个SKU，逐个进行库存校验和锁定");
         for (LockSkuDTO lockedSku : lockSkuList) {
 
+            Long skuId = lockedSku.getSkuId();
             // 获取当前SKU需要锁定的数量
             Integer quantity = lockedSku.getQuantity(); // 订单的商品数量
+            PmsSku sku = skuMap.get(skuId);
+
+            // 计算当前可用库存
+            int currentLockedStock = sku.getLockedStock() != null ? sku.getLockedStock() : 0;
+            int currentStock = sku.getStock() != null ? sku.getStock() : 0;
+            int availableStock = currentStock - currentLockedStock;
+
+            // 检查库存数据一致性
+            if (availableStock < 0) {
+                log.error("【库存锁定】库存数据异常，SKU ID: {}, 总库存: {}, 锁定库存: {}, 可用库存为负数: {}",
+                        skuId, currentStock, currentLockedStock, availableStock);
+
+                // 自动修复：将锁定库存重置为不超过总库存
+                int fixedLockedStock = Math.min(currentLockedStock, currentStock);
+
+                log.warn("【库存锁定】自动修复库存数据，SKU ID: {}，原锁定库存: {}，修复为: {}",
+                        skuId, currentLockedStock, fixedLockedStock);
+
+                PmsSku updateSku = new PmsSku();
+                updateSku.setId(skuId);
+                updateSku.setLockedStock(fixedLockedStock);
+
+                this.updateById(updateSku);
+
+                // 重新计算可用库存
+                availableStock = currentStock - fixedLockedStock;
+            }
+
+            // 检查库存是否足够
+            if (availableStock < quantity) {
+                log.error("【库存锁定】库存不足，SKU ID: {}, 商品: {}, 需要: {}, 可用: {}, 总库存: {}, 已锁定: {}",
+                        skuId, sku.getName(), quantity, availableStock, currentStock, currentLockedStock);
+                throw new IllegalArgumentException(String.format("商品【%s】库存不足，当前可用%s件",
+                        sku.getName(), availableStock));
+            }
+
+            // 执行库存锁定
+            log.info("【库存锁定】执行库存锁定，SKU ID: {}, 锁定数量: {}", skuId, quantity);
+
 
             // 库存足够
             // 使用数据库乐观锁机制更新库存
@@ -321,6 +387,39 @@ public class PmsSkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> impleme
                     // 这个条件保证了不会超卖，是防止库存超卖的核心逻辑
                     .apply("stock - locked_stock >= {0}", quantity) // 剩余商品数 ≥ 订单商品数
             );
+
+            if (!lockResult) {
+                // 如果更新失败，可能是并发问题，重新检查
+                PmsSku newSku = this.getById(skuId);
+                int newLockedStock = newSku.getLockedStock() != null ? newSku.getLockedStock() : 0;
+                int newStock = newSku.getStock() != null ? newSku.getStock() : 0;
+                int newAvailableStock = newStock - newLockedStock;
+
+                if (newAvailableStock < quantity) {
+                    log.error("【库存锁定】并发库存不足，SKU ID: {}, 需要: {}, 新可用: {}",
+                            skuId, quantity, newAvailableStock);
+                    throw new IllegalArgumentException(String.format("商品【%s】库存不足，当前可用%s件",
+                            newSku.getName(), newAvailableStock));
+                } else {
+                    // 重试一次
+                    log.info("【库存锁定】重试锁定库存，SKU ID: {}", skuId);
+                    lockResult = this.update(new LambdaUpdateWrapper<PmsSku>()
+                            .setSql("locked_stock = locked_stock + " + quantity)
+                            .eq(PmsSku::getId, skuId)
+                            .apply("stock - locked_stock >= {0}", quantity)
+                    );
+
+                    if (!lockResult) {
+                        log.error("【库存锁定】最终锁定失败，SKU ID: {}", skuId);
+                        throw new IllegalArgumentException("库存锁定失败");
+                    }
+                }
+            }
+
+//            // 保存库存锁定记录
+//            saveLockRecord(orderToken, sku, quantity, currentLockedStock, currentLockedStock + quantity);
+
+            log.info("【库存锁定】SKU ID: {} 锁定成功，锁定数量: {}", skuId, quantity);
             log.info("如果更新失败（影响行数为0），说明库存不足，抛出异常并回滚事务");
             Assert.isTrue(lockResult, "商品库存不足");
         }
@@ -331,9 +430,54 @@ public class PmsSkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> impleme
         log.info("锁定的商品缓存至 Redis (后续使用：1.取消订单解锁库存；2：支付订单扣减库存)");
         log.info("将锁定的SKU信息缓存到Redis中，用于后续的解锁或扣减操作");
         log.info("缓存键格式：locked_skus:{orderToken}");
-        redisTemplate.opsForValue().set(ProductConstants.LOCKED_SKUS_PREFIX + orderToken, lockSkuList);
+        try {
+            redisTemplate.opsForValue().set(
+                    ProductConstants.LOCKED_SKUS_PREFIX + orderToken,
+                    lockSkuList,
+                    30,  // 30分钟过期
+                    TimeUnit.MINUTES
+            );
+            log.info("【库存锁定】Redis缓存成功");
+        } catch (Exception e) {
+            log.error("【库存锁定】Redis缓存失败: ", e);
+            // 这里不抛出异常，因为Redis缓存失败不应该影响主流程
+        }
+
+        log.info("【库存锁定】所有商品库存锁定成功，订单令牌: {}", orderToken);
+
         return true;
     }
+
+
+//    /**
+//     * 保存库存锁定记录
+//     */
+//    private void saveLockRecord(String orderToken, PmsSku sku, Integer quantity,
+//                                Integer beforeLocked, Integer afterLocked) {
+//        try {
+//            StockLockRecord record = new StockLockRecord();
+//            record.setOrderToken(orderToken);
+//            record.setSkuId(sku.getId());
+//            record.setSkuName(sku.getSkuName());
+//            record.setQuantity(quantity);
+//            record.setBeforeStock(sku.getStock());
+//            record.setBeforeLockedStock(beforeLocked);
+//            record.setAfterLockedStock(afterLocked);
+//            record.setCreateTime(new Date());
+//
+//            // 保存到数据库
+//            stockLockRecordMapper.insert(record);
+//
+//            log.debug("【库存记录】保存锁定记录成功，SKU ID: {}, 锁定数量: {}", sku.getId(), quantity);
+//
+//        } catch (Exception e) {
+//            log.error("【库存记录】保存锁定记录失败: ", e);
+//            // 这里不抛出异常，因为记录失败不影响主业务
+//        }
+//    }
+
+
+
 
     /**
      *     TODO             解锁已锁定的库存
