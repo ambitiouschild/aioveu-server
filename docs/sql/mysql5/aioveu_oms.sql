@@ -43,7 +43,7 @@ CREATE TABLE `oms_order`  (
                               UNIQUE INDEX `index_ti`(`transaction_id` ASC) USING BTREE COMMENT '商户支付单号唯一索引',
                               UNIQUE INDEX `index_orn`(`out_refund_no` ASC) USING BTREE COMMENT '商户退款单号唯一索引',
                               UNIQUE INDEX `index_ri`(`refund_id` ASC) USING BTREE COMMENT '退款单号唯一索引'
-) ENGINE = InnoDB AUTO_INCREMENT = 1351548262424822283 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '订单详情表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '订单详情表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for oms_order_delivery
@@ -91,7 +91,7 @@ CREATE TABLE `oms_order_item`  (
                                    `update_time` datetime NULL DEFAULT NULL COMMENT '修改时间',
                                    PRIMARY KEY (`id`) USING BTREE,
                                    INDEX `index_order_id`(`order_id` ASC) USING BTREE COMMENT '订单id索引'
-) ENGINE = InnoDB AUTO_INCREMENT = 551 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '订单商品信息表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '订单商品信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for oms_order_log
