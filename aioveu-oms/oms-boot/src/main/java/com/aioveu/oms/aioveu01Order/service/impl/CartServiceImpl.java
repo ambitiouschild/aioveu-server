@@ -170,7 +170,7 @@ public class CartServiceImpl implements CartService {
                 log.info("将构建好的VO对象添加到结果列表");
                 cartItemVoList.add(vo);
             }
-            log.info("返回构建完成的前端展示数据");
+            log.info("返回构建完成的前端展示数据:{}", cartItemVoList);
             return cartItemVoList;
         }
 
