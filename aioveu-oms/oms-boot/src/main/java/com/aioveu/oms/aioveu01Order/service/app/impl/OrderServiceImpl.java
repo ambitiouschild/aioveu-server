@@ -214,7 +214,10 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
             //在异步线程中尝试访问已回收的请求对象
             //但在 Spring 的线程池中，请求上下文可能已经被清理了。
-            // 恢复请求上下文
+
+            // 关键：在异步线程中恢复请求上下文
+            RequestContextHolder.setRequestAttributes(attributes, true);
+
 
             log.info("通过Feign客户端调用会员服务获取地址列表");
             Result<List<MemberAddressDTO>> getMemberAddressResult = memberFeignClient.listMemberAddresses(memberId);
