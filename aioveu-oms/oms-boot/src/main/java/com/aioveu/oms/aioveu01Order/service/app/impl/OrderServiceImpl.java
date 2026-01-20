@@ -33,6 +33,7 @@ import com.aioveu.oms.config.WxPayProperties;
 import com.aioveu.oms.aioveu01Order.constant.OrderConstants;
 import com.aioveu.oms.aioveu01Order.converter.OmsOrderConverter;
 import com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum;
+import com.aioveu.oms.aioveu01Order.enums.OrderSourceEnum;
 import com.aioveu.oms.aioveu01Order.enums.PaymentMethodEnum;
 import com.aioveu.oms.aioveu01Order.mapper.OmsOrderMapper;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderBO;
@@ -591,44 +592,115 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             OmsOrder order = new OmsOrder();
 
             Long memberId =  SecurityUtils.getMemberId();
-            log.info("【创建订单】上下文获取会员ID: {}", memberId);
+            log.info("【创建订单】8.上下文获取会员ID: {}", memberId);
 
             // 生成订单号
 //            String orderSn = OrderNoGenerator.generateOrderNo(submitForm.getMemberId());
             String orderSn = OrderNoGenerator.generateOrderNo(memberId);
-            log.info("【创建订单】生成订单号: {}", orderSn);
+            log.info("【创建订单】2.生成订单号: {}", orderSn);
 
-            // 计算订单金额
+            // 订单总额
             Long totalAmount = calculateOrderAmount(orderItems);
+            log.info("【创建订单】3.订单总额: {}", totalAmount);
+
+            // 商品总数
+            int  totalQuantity = orderItems.size();
+            log.info("【创建订单】4.商品总数: {}", totalAmount);
+
+            // 订单来源
+            int source = OrderSourceEnum.APP.getValue();
+            log.info("【创建订单】5.订单来源: {}", source);
+
+            // 订单状态
+            int  status = OrderStatusEnum.UNPAID.getValue();
+            log.info("【创建订单】6.订单状态: {}", status);
+
+            // 订单备注
+            String  remark = submitForm.getRemark();
+            log.info("【创建订单】7.订单备注: {}", remark);
+
+            // 使用的优惠券
+            Long  couponId = submitForm.getCouponId();
+            log.info("【创建订单】9.使用的优惠券: {}", couponId);
+
+            // 优惠券抵扣金额
+            Long  couponAmount = submitForm.getCouponAmount() != null ? submitForm.getCouponAmount() : 0;
+            log.info("【创建订单】10.优惠券抵扣金额: {}", couponAmount);
+
+            // 运费金额
+            Long  freightAmount = submitForm.getFreightAmount() != null ? submitForm.getFreightAmount() : 0;
+            log.info("【创建订单】11.运费金额: {}", freightAmount);
+
+            // 应付总额
+            Long  paymentAmount = submitForm.getPaymentAmount() != null ? submitForm.getPaymentAmount() : 0;
+            log.info("【创建订单】12.应付总额: {}", paymentAmount);
 
             log.info("【创建订单】开始赋值===========");
-            order.setMemberId(SecurityUtils.getMemberId());
+
             order.setOrderSn(orderSn);
 //            order.setOrderToken(submitForm.getOrderToken());
             order.setTotalAmount(totalAmount);
-            order.setPaymentAmount(submitForm.getPaymentAmount());
-            order.setCouponAmount(submitForm.getCouponAmount() != null ? submitForm.getCouponAmount() : 0);
-            order.setFreightAmount(submitForm.getFreightAmount() != null ? submitForm.getFreightAmount() : 0);
-            order.setPaymentMethod(submitForm.getPaymentMethod());
-            order.setSource(submitForm.getSource());
-            order.setStatus(OrderStatusEnum.UNPAID.getValue());
-            order.setRemark(submitForm.getRemark());
+            order.setTotalQuantity(totalQuantity);
+            order.setSource(source);
+            order.setStatus(status);
+            order.setRemark(remark);
+            order.setMemberId(memberId);
+            order.setMemberId(memberId);
+            order.setCouponId(couponId);
+            order.setCouponAmount(couponAmount);
+            order.setFreightAmount(freightAmount);
+            order.setPaymentAmount(paymentAmount);
+
+            //支付时间
+            //支付方式
+            //支付第三方商户订单号
+//            order.setPaymentMethod(submitForm.getPaymentMethod());
+
+
+
+
 
             // 设置订单收货地址
             // 构建订单配送实体
             OmsOrderDelivery orderDelivery = new OmsOrderDelivery();
-
             OrderSubmitForm.ShippingAddress shippingAddress = submitForm.getShippingAddress();
-            orderDelivery.setReceiverName(shippingAddress.getConsigneeName());
-            orderDelivery.setReceiverPhone(shippingAddress.getConsigneeMobile());
-            orderDelivery.setReceiverProvince(shippingAddress.getProvince());
-            orderDelivery.setReceiverCity(shippingAddress.getCity());
-            orderDelivery.setReceiverRegion(shippingAddress.getDistrict());
-            orderDelivery.setReceiverDetailAddress(shippingAddress.getDetailAddress());
+
+            // 订单id
+            Long orderId = order.getId();
+            log.info("【创建订单物流】2.订单Id: {}", orderId);
+
+            // 收货人姓名
+            String consigneeName = shippingAddress.getConsigneeName();
+            log.info("【创建订单物流】5.收货人姓名: {}", consigneeName);
+
+            String receiverPhone = shippingAddress.getConsigneeMobile();
+            log.info("【创建订单物流】6.收货人电话: {}", receiverPhone);
+
+            String receiverProvince = shippingAddress.getProvince();
+            log.info("【创建订单物流】7.收货人省份: {}", receiverProvince);
+
+            String receiverCity = shippingAddress.getCity();
+            log.info("【创建订单物流】8.收货人城市: {}", receiverCity);
+
+            String receiverRegion = shippingAddress.getDistrict();
+            log.info("【创建订单物流】9.收货人城市: {}", receiverRegion);
+
+            String receiverDetailAddress = shippingAddress.getDetailAddress();
+            log.info("【创建订单物流】10.收货人详细地址: {}", receiverDetailAddress);
+
+            orderDelivery.setOrderId(orderId);
+            orderDelivery.setReceiverName(consigneeName);
+            orderDelivery.setReceiverPhone(receiverPhone);
+            orderDelivery.setReceiverProvince(receiverProvince);
+            orderDelivery.setReceiverCity(receiverCity);
+            orderDelivery.setReceiverRegion(receiverRegion);
+            orderDelivery.setReceiverDetailAddress(receiverDetailAddress);
 
             // 保存订单
             boolean saveResult = this.save(order);
             Assert.isTrue(saveResult, "订单保存失败");
+
+            orderDeliveryService.save(orderDelivery);
 
             // 保存订单商品
             saveOrderItems(order.getId(), orderItems, skuInfos);

@@ -31,13 +31,17 @@ public class OrderSubmitForm {
     @Schema(description="会员ID")
     private Long memberId;
 
-    @Schema(description="订单来源")
+    @Schema(description="订单来源(0-PC订单；1-app订单)")
     @NotNull(message = "订单来源不能为空")
     private OrderSourceEnum orderSource;
 
     @Schema(description="订单商品明细")
     @NotEmpty(message = "订单商品不能为空")
     private List<OrderItem> orderItems;
+
+    @Schema(description="使用的优惠券")
+//    @NotNull(message = "使用的优惠券不能为空")
+    private Long couponId;
 
     @Schema(description="优惠金额(单位：分)")
     @NotNull(message = "优惠金额不能为空")
@@ -59,10 +63,6 @@ public class OrderSubmitForm {
 
     private Integer paymentMethod;
 
-    /**
-     * 订单来源(0-PC订单；1-app订单)
-     */
-    private Integer source;
 
     @Schema(description="收获地址")
     @NotNull(message = "收货地址不能为空")
