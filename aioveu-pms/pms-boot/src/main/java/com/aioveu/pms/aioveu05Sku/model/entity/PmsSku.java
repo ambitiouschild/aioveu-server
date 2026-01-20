@@ -21,6 +21,10 @@ public class PmsSku extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
     @TableId(type = IdType.AUTO)
+
+    /**
+     * 库存ID
+     */
     private Long id;
 
     /**

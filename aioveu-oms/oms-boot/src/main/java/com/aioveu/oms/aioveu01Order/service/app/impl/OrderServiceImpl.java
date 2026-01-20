@@ -174,26 +174,34 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     @Override
     public OrderConfirmVO confirmOrder(Long skuId) {
 
-        log.info("获取当前登录用户ID");
-        Long memberId = SecurityUtils.getMemberId();
 
+        Long memberId = SecurityUtils.getMemberId();
+        log.info("【订单确认】开始处理，用户ID: {}, SKU ID: {}", memberId, skuId);
+
+
+        RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
+        RequestContextHolder.setRequestAttributes(attributes, true);
         // 解决子线程无法获取HttpServletRequest请求对象中数据的问题
         log.info("解决子线程无法获取HttpServletRequest请求对象中数据的问题");
         log.info("将当前请求属性保存，以便在异步线程中继续使用");
-        RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
-        RequestContextHolder.setRequestAttributes(attributes, true);
+        log.info("【上下文保存】已保存请求上下文用于异步线程");
 
         log.info("使用CompletableFuture进行异步并行处理，提升接口响应速度");
 
-        // 获取订单商品
-        log.info("异步任务1：获取订单商品信息");
+
+        log.info("【异步任务1】开始获取订单商品");
         CompletableFuture<List<OrderItemDTO>> getOrderItemsFuture = CompletableFuture.supplyAsync(
-                        () -> this.getOrderItems(skuId, memberId), threadPoolExecutor)
+                        () ->
+                                this.getOrderItems(skuId, memberId),
+
+
+                        threadPoolExecutor)
                 .exceptionally(ex -> {
                     log.info("异常处理：如果获取商品信息失败，返回空列表并记录错误日志");
                     log.error("Failed to get order items: {}", ex.toString());
                     return Collections.emptyList();
                 });
+
 
         // 用户收货地址
         log.info("异步任务2：获取用户收货地址");
@@ -232,6 +240,10 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         log.info("等待所有异步任务完成");
         CompletableFuture.allOf(getOrderItemsFuture, getMemberAddressFuture, generateOrderTokenFuture).join();
+
+        log.info("等待所有异步任务完成，获取订单商品信息:{}" ,getOrderItemsFuture);
+        log.info("等待所有异步任务完成，获取用户收货地址：{}" ,getMemberAddressFuture);
+        log.info("等待所有异步任务完成，生成防重提交令牌：{}" ,generateOrderTokenFuture);
 
         log.info("构建返回结果");
         OrderConfirmVO orderConfirmVO = new OrderConfirmVO();
@@ -653,13 +665,17 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         List<OrderItemDTO> orderItems;
         if (skuId != null) {  // 直接购买
 
-            log.info("直接购买流程");
-            orderItems = new ArrayList<>();
 
-            log.info("查询商品详细信息");
+            orderItems = new ArrayList<>();
+            log.info("直接购买流程");
+
+
             SkuInfoDTO skuInfoDTO = skuFeignClient.getSkuInfo(skuId);
+            log.info("查询商品详细信息:{}", skuInfoDTO);
+
             OrderItemDTO orderItemDTO = new OrderItemDTO();
             orderItemDTO.setSkuId(skuId);
+
 
             log.info("拷贝商品属性到订单项");
             BeanUtil.copyProperties(skuInfoDTO, orderItemDTO);
@@ -671,18 +687,24 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         } else { // 购物车结算
 
             log.info("购物车结算流程");
-            log.info("获取用户购物车中的所有商品");
-            List<CartItemDto> cartItems = cartService.listCartItems(memberId);
 
-            log.info("过滤出选中的商品，并转换为订单项");
+            List<CartItemDto> cartItems = cartService.listCartItems(memberId);
+            log.info("获取用户购物车中的所有商品cartItems:{}",cartItems);
+
             orderItems = cartItems.stream()
                     .filter(CartItemDto::getChecked)    // 只处理选中的商品
                     .map(cartItem -> {
                         OrderItemDTO orderItemDTO = new OrderItemDTO();
+
+                        //传递购买数量
+                        orderItemDTO.setQuantity(cartItem.getCount());
+
                         BeanUtil.copyProperties(cartItem, orderItemDTO);
                         return orderItemDTO;
                     }).collect(Collectors.toList());
+            log.info("过滤出选中的商品，并转换为订单项orderItems:{}",orderItems);
         }
+
         return orderItems;
     }
 

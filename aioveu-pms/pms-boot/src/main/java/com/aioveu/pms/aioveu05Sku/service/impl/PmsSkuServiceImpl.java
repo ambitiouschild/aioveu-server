@@ -4,6 +4,8 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.aioveu.common.exception.BusinessException;
+import com.aioveu.common.result.ResultCode;
 import com.aioveu.pms.aioveu05Sku.converter.PmsSkuConverter;
 import com.aioveu.pms.aioveu05Sku.model.form.PmsSkuForm;
 import com.aioveu.pms.aioveu05Sku.model.query.PmsSkuQuery;
@@ -131,8 +133,39 @@ public class PmsSkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> impleme
     @Override
     public SkuInfoDTO getSkuInfo(Long skuId) {
 
-        log.info("调用Mapper层自定义方法获取SKU详细信息");
-        return this.baseMapper.getSkuInfo(skuId);
+        log.info("使用LambdaQueryWrapper获取SKU详细信息，skuId: {}", skuId);
+
+        if (skuId == null) {
+            log.warn("skuId不能为空");
+            throw new BusinessException("SKU ID不能为空");
+        }
+
+        try {
+            // 使用LambdaWrapper查询
+            LambdaQueryWrapper<PmsSku> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(PmsSku::getId, skuId);
+//                    .eq(PmsSku::getDeleted, 0)  // 未删除
+//                    .eq(PmsSku::getStatus, 1);  // 上架状态
+
+            PmsSku pmsSku = this.getOne(queryWrapper);
+
+            if (pmsSku == null) {
+                log.warn("未找到对应的SKU信息，skuId: {}", skuId);
+                throw new BusinessException( "商品不存在或已下架");
+            }
+
+            SkuInfoDTO skuInfo = pmsSkuConverter.entity2SkuInfoDto(pmsSku);
+            log.info("转换器转化为 skuInfo {}", skuInfo);
+
+            log.info("成功获取SKU信息，skuId: {}, skuName: {}", skuId, skuInfo.getSkuName());
+
+            return skuInfo;
+
+        } catch (Exception e) {
+            log.error("获取SKU信息失败，skuId: {}", skuId, e);
+            throw new BusinessException("获取商品信息失败");
+        }
+
     }
 
     /**
