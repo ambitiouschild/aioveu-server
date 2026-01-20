@@ -5,10 +5,13 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
+import com.aioveu.oms.aioveu01Order.utils.OrderNoGenerator;
 import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
+import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -48,6 +51,8 @@ import com.aioveu.pms.model.dto.LockSkuDTO;
 import com.aioveu.pms.model.dto.SkuInfoDTO;
 import com.aioveu.ums.api.MemberFeignClient;
 import com.aioveu.ums.dto.MemberAddressDTO;
+import com.ibm.icu.math.BigDecimal;
+import feign.FeignException;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,15 +62,14 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -265,119 +269,480 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
     /**
      *      TODO            订单提交
-     *                  核心业务流程：防重校验 → 商品校验 → 库存锁定 → 订单创建
+     *                  核心业务流程：1. 参数校验 -> 2. 防重提交校验 → 3. 商品信息校验
+     *                  → 4. 库存预检查  → 5. 锁定库存 -> 6. 创建订单 ->  7. 清理购物车
      *
      * @param submitForm {@link OrderSubmitForm} 订单提交表单数据
      * @return 订单编号
      */
     @Override
-    @GlobalTransactional
+    @GlobalTransactional(name = "submitOrder", rollbackFor = Exception.class, timeoutMills = 30000)
     public String submitOrder(OrderSubmitForm submitForm) {
-        log.info("订单提交参数:{}", JSONUtil.toJsonStr(submitForm));
-        String orderToken = submitForm.getOrderToken();
+
+
+        long startTime = System.currentTimeMillis();
+        String orderSn = null;
+
+        try {
+            log.info("【订单提交】开始处理，订单令牌: {}", submitForm.getOrderToken());
+            log.info("【订单提交】提交参数: {}", JSONUtil.toJsonStr(submitForm));
+
+            String orderToken = submitForm.getOrderToken();
+            List<OrderSubmitForm.OrderItem> orderItems = submitForm.getOrderItems();
+
+            // ==================== 1. 参数校验 ====================
+            validateSubmitForm(submitForm);
+
+            // ==================== 2. 防重提交校验 ====================
+            validateOrderToken(orderToken);
+
+            // ==================== 3. 商品信息校验 ====================
+            List<SkuInfoDTO> latestSkuInfos = validateAndGetSkuInfos(orderItems);
+
+            // ==================== 4. 库存预检查 ====================
+            preCheckStock(orderItems, latestSkuInfos);
+
+            // ==================== 5. 锁定库存 ====================
+            lockStockWithRetry(orderItems, orderToken, 2);
+
+            // ==================== 6. 创建订单 ====================
+            orderSn = createOrder(submitForm, orderItems, latestSkuInfos);
+
+            // ==================== 7. 清理购物车 ====================
+            clearCartItems(orderItems, submitForm.getMemberId());
+
+            long duration = System.currentTimeMillis() - startTime;
+            log.info("【订单提交】成功，订单号: {}, 耗时: {}ms", orderSn, duration);
+
+            return orderSn;
+
+        } catch (BusinessException e) {
+            log.error("【订单提交】业务异常: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("【订单提交】系统异常: ", e);
+            throw new BusinessException("订单提交失败，请稍后重试");
+        }
+
+
+    }
+
+
+    /**
+     * 参数校验
+     */
+    private void validateSubmitForm(OrderSubmitForm submitForm) {
+        log.info("【参数校验】开始校验提交参数");
+
+        Assert.notNull(submitForm, "订单提交参数不能为空");
+//        Assert.hasLength(submitForm.getOrderToken(), "订单令牌不能为空");
+
+        List<OrderSubmitForm.OrderItem> orderItems = submitForm.getOrderItems();
+        Assert.notEmpty(orderItems, "订单商品不能为空");
+
+//        Assert.notNull(submitForm.getMemberId(), "用户ID不能为空");
+        Assert.notNull(submitForm.getShippingAddress(), "收货地址不能为空");
+        Assert.notNull(submitForm.getPaymentAmount(), "支付金额不能为空");
+
+        // 校验商品数量
+        for (OrderSubmitForm.OrderItem item : orderItems) {
+            Assert.notNull(item.getSkuId(), "商品ID不能为空");
+            Assert.notNull(item.getQuantity(), "商品数量不能为空");
+            Assert.isTrue(item.getQuantity() > 0, "商品数量必须大于0");
+            Assert.notNull(item.getPrice(), "商品价格不能为空");
+
+            //item.getPrice()返回的是 Long类型，而不是 BigDecimal类型
+//            Assert.isTrue(item.getPrice().compareTo(BigDecimal.ZERO) > 0, "商品价格必须大于0");
+            Assert.isTrue(item.getPrice() > 0, "商品价格必须大于0");
+
+        }
+
+        log.info("【参数校验】参数校验通过，商品数量: {}", orderItems.size());
+    }
+
+    /**
+     * 防重提交校验
+     */
+    private void validateOrderToken(String orderToken) {
+        log.info("【防重校验】开始校验订单令牌: {}", orderToken);
+
+        // 使用LUA脚本保证原子性
+
+        String lockAcquireScript =
+                "if redis.call('get', KEYS[1]) == ARGV[1] then " +
+                        "    return redis.call('del', KEYS[1]) " +
+                        "else " +
+                        "    return 0 " +
+                        "end";
 
         // 1. 判断订单是否重复提交(LUA脚本保证获取和删除的原子性，成功返回1，否则返回0)
         log.info("1. 防重提交校验：使用LUA脚本保证原子性（获取和删除在同一个原子操作中）");
-        String lockAcquireScript = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+        log.info("1. 判断订单是否重复提交(LUA脚本保证获取和删除的原子性，成功返回1，否则返回0");
+
         Long lockAcquired = this.redisTemplate.execute(
                 new DefaultRedisScript<>(lockAcquireScript, Long.class),
                 Collections.singletonList(OrderConstants.ORDER_TOKEN_PREFIX + orderToken),
                 orderToken
         );
 
-        log.info("断言校验：如果令牌不存在或删除失败，说明是重复提交");
-        Assert.isTrue(lockAcquired != null && lockAcquired.equals(1L), "订单重复提交，请刷新页面后重试");
+        if (lockAcquired == null || !lockAcquired.equals(1L)) {
+            log.warn("【防重校验】如果令牌不存在或删除失败，说明订单重复提交，令牌: {}", orderToken);
+            Assert.isTrue(lockAcquired != null && lockAcquired.equals(1L), "订单重复提交，请刷新页面后重试");
+            throw new BusinessException("订单重复提交，请刷新页面后重试");
+        }
 
+        log.info("【防重校验】令牌校验通过");
+    }
+
+    /**
+     * 商品信息校验并获取最新信息
+     */
+    private List<SkuInfoDTO> validateAndGetSkuInfos(List<OrderSubmitForm.OrderItem> orderItems) {
         // 2. 订单商品校验 (PS：校验进入订单确认页面到提交过程商品(价格、上架状态)变化)
-        log.info("订单商品校验：校验从订单确认到提交过程中商品信息是否发生变化");
-        List<OrderSubmitForm.OrderItem> orderItems = submitForm.getOrderItems();
+        log.info("【商品校验】：校验从订单确认到提交过程中商品信息是否发生变化");
+        log.info("【商品校验】开始校验商品信息，商品数量: {}", orderItems.size());
 
-        log.info("提取所有商品SKU ID");
+        // 提取SKU ID
         List<Long> skuIds = orderItems.stream()
                 .map(OrderSubmitForm.OrderItem::getSkuId)
+                .distinct()
                 .collect(Collectors.toList());
 
-        log.info("批量查询商品最新信息");
+        log.info("【商品查询】批量查询商品信息，提取所有商品SKU IDs: {}", skuIds);
+
+        // 批量查询商品最新信息
         List<SkuInfoDTO> skuList;
         try {
+
             skuList = skuFeignClient.getSkuInfoList(skuIds);
+
+            if (skuList == null) {
+                log.error("【商品查询】获取商品信息失败");
+                throw new BusinessException("获取商品信息失败");
+            }
+
+        } catch (FeignException e) {
+            log.error("【商品查询】Feign调用异常: {}", e.getMessage());
+            throw new BusinessException("商品服务暂时不可用，请稍后重试");
         } catch (Exception e) {
-            log.error("Failed to get sku info list: {}", e.toString());
-            skuList = Collections.emptyList();
+            log.error("【商品查询】查询异常: {}", e.getMessage(), e);
+            throw new BusinessException("商品信息获取失败");
         }
 
-        log.info("逐个校验商品信息");
+        // 构建SKU映射，方便查找
+        Map<Long, SkuInfoDTO> skuMap = skuList.stream()
+                .collect(Collectors.toMap(SkuInfoDTO::getId, Function.identity()));
+
+        // 逐个校验商品
         for (OrderSubmitForm.OrderItem item : orderItems) {
 
-            log.info("查找对应的商品信息");
-            SkuInfoDTO skuInfo = skuList.stream().filter(sku -> sku.getId().equals(item.getSkuId()))
-                    .findFirst()
-                    .orElse(null);
+            //查找对应的商品信息
+//            SkuInfoDTO skuInfo = skuList.stream().filter(sku -> sku.getId().equals(item.getSkuId()))
+//                    .findFirst()
+//                    .orElse(null);
 
-            log.info("校验商品是否存在");
-            Assert.isTrue(skuInfo != null, "商品({})已下架或删除");
+            SkuInfoDTO skuInfo = skuMap.get(item.getSkuId());
 
-            log.info("校验商品价格是否发生变化");
-            Assert.isTrue(item.getPrice().compareTo(skuInfo.getPrice()) == 0, "商品({})价格发生变动，请刷新页面", item.getSkuName());
+            if (skuInfo == null) {
+                log.warn("【商品校验】商品不存在，SKU ID: {}", item.getSkuId());
+                throw new BusinessException(String.format("商品【%s】已下架或删除", item.getSkuName()));
+            }
+
+//            // 检查商品状态
+//            if (skuInfo.getStatus() != 1) {
+//                log.warn("【商品校验】商品已下架，SKU ID: {}, 状态: {}", item.getSkuId(), skuInfo.getStatus());
+//                throw new BusinessException(String.format("商品【%s】已下架", item.getSkuName()));
+//            }
+
+            // 检查商品价格
+            if (item.getPrice().compareTo(skuInfo.getPrice()) != 0) {
+                log.warn("【商品校验】商品价格变动，SKU ID: {}, 原价: {}, 现价: {}",
+                        item.getSkuId(), item.getPrice(), skuInfo.getPrice());
+                throw new BusinessException(String.format("商品【%s】价格已变动，请刷新页面", item.getSkuName()));
+            }
+
+            // 检查商品库存
+            if (skuInfo.getStock() < item.getQuantity()) {
+                log.warn("【商品校验】商品库存不足，SKU ID: {}, 库存: {}, 需要: {}",
+                        item.getSkuId(), skuInfo.getStock(), item.getQuantity());
+                throw new BusinessException(String.format("商品【%s】库存不足，当前库存%s件",
+                        item.getSkuName(), skuInfo.getStock()));
+            }
+
+            log.info("【商品校验】商品 {} 校验通过，库存: {}/{}",
+                    item.getSkuName(), skuInfo.getStock(), item.getQuantity());
         }
 
-        // 3. 校验库存并锁定库存
-        log.info("3. 校验库存并锁定库存");
+        log.info("【商品校验】所有商品校验通过");
+        return skuList;
+    }
+
+    /**
+     * 库存预检查
+     */
+    private void preCheckStock(List<OrderSubmitForm.OrderItem> orderItems, List<SkuInfoDTO> skuInfos) {
+        log.info("【库存预检】开始库存预检查");
+
+        Map<Long, Integer> skuStockMap = skuInfos.stream()
+                .collect(Collectors.toMap(SkuInfoDTO::getId, SkuInfoDTO::getStock));
+
+        for (OrderSubmitForm.OrderItem item : orderItems) {
+            Integer stock = skuStockMap.get(item.getSkuId());
+            if (stock == null) {
+                log.warn("【库存预检】商品库存信息不存在，SKU ID: {}", item.getSkuId());
+                throw new BusinessException("商品库存信息异常");
+            }
+
+            if (stock < item.getQuantity()) {
+                log.warn("【库存预检】库存不足，SKU ID: {}, 需要: {}, 库存: {}",
+                        item.getSkuId(), item.getQuantity(), stock);
+                throw new BusinessException(String.format("商品【%s】库存不足，当前剩余%s件",
+                        item.getSkuName(), stock));
+            }
+        }
+
+        log.info("【库存预检】库存预检查通过");
+    }
+
+    /**
+     * 带重试的库存锁定
+     */
+    private void lockStockWithRetry(List<OrderSubmitForm.OrderItem> orderItems, String orderToken, int maxRetries) {
+        log.info("【库存锁定】开始锁定库存，重试次数: {}", maxRetries);
+
         List<LockSkuDTO> lockSkuList = orderItems.stream()
                 .map(item -> new LockSkuDTO(item.getSkuId(), item.getQuantity()))
                 .collect(Collectors.toList());
 
+        int retryCount = 0;
+        while (retryCount <= maxRetries) {
+            try {
+                log.info("【库存锁定】第{}次尝试锁定", retryCount + 1);
 
-        log.info("调用商品服务锁定库存，使用订单令牌作为分布式事务的XID");
-        boolean lockStockResult = skuFeignClient.lockStock(orderToken, lockSkuList);
-        Assert.isTrue(lockStockResult, "订单提交失败：锁定商品库存失败！");
+                Boolean result = skuFeignClient.lockStock(orderToken, lockSkuList);
 
-        // 4. 生成订单
-        log.info("4. 生成订单");
-        boolean result = this.saveOrder(submitForm);
-        log.info("order订单token ({}) create result:{}", orderToken, result);
-        return orderToken;
+                if (result) {
+                    log.info("【库存锁定】库存锁定成功");
+                    return;
+                } else {
+                    log.warn("【库存锁定】锁定失败: {}");
+
+                    if (retryCount < maxRetries) {
+                        retryCount++;
+                        Thread.sleep(500L * retryCount); // 指数退避
+                        continue;
+                    }
+
+                    throw new BusinessException("库存锁定失败: ");
+                }
+
+            } catch (FeignException e) {
+                log.error("【库存锁定】Feign调用异常，状态码: {}, 消息: {}", e.status(), e.getMessage());
+
+                if (e.status() == 400) {
+                    // 400错误通常是库存不足
+                    String errorMsg = "商品库存不足";
+                    try {
+                        // 尝试解析错误消息
+                    } catch (Exception ignored) {
+                    }
+                    throw new BusinessException(errorMsg);
+                } else if (e.status() == 503 || e.status() == 504) {
+                    // 服务不可用，重试
+                    if (retryCount < maxRetries) {
+                        retryCount++;
+                        log.warn("【库存锁定】服务暂时不可用，等待重试");
+                        //Thread.sleep()方法会抛出 InterruptedException，需要进行异常处理
+//                        Thread.sleep(1000L * retryCount);
+                        continue;
+                    }
+                    throw new BusinessException("库存服务暂时不可用，请稍后重试");
+                } else {
+                    throw new BusinessException("库存锁定异常，请稍后重试");
+                }
+
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new BusinessException("库存锁定被中断");
+            } catch (Exception e) {
+                log.error("【库存锁定】系统异常: ", e);
+                throw new BusinessException("库存锁定失败，请稍后重试");
+            }
+        }
+
+        throw new BusinessException("库存锁定失败，已达到最大重试次数");
     }
 
 
     /**
-     *  TODO  创建订单实体并保存到数据库
-     *
-     * @param submitForm 订单提交表单对象
-     * @return 是否保存成功
+     * 创建订单
      */
-    private boolean saveOrder(OrderSubmitForm submitForm) {
+    private String createOrder(OrderSubmitForm submitForm,
+                               List<OrderSubmitForm.OrderItem> orderItems,
+                               List<SkuInfoDTO> skuInfos) {
+        log.info("【创建订单】开始创建订单");
 
-        log.info("转换表单数据为订单实体");
-        OmsOrder order = omsOrderConverter.form2Entity(submitForm);
+        try {
+            // 生成订单号
+            String orderSn = OrderNoGenerator.generateOrderNo(submitForm.getMemberId());
 
-        log.info("初始状态：待支付");
-        order.setStatus(OrderStatusEnum.UNPAID.getValue());
-        order.setMemberId(SecurityUtils.getMemberId());
-        order.setSource(submitForm.getOrderSource().getValue());
+            // 计算订单金额
+            Long totalAmount = calculateOrderAmount(orderItems);
 
-        log.info("保存订单主表");
-        boolean result = this.save(order);
+            // 构建订单实体
+            OmsOrder order = new OmsOrder();
+            order.setOrderSn(orderSn);
+            //表单获取会员ID
+            order.setMemberId(submitForm.getMemberId());
 
-        Long orderId = order.getId();
-        if (result) {
+            //上下文获取会员ID
+            order.setMemberId(SecurityUtils.getMemberId());
 
-            // 保存订单明细
-            log.info("保存订单明细（订单商品项）");
-            List<OmsOrderItem> orderItemEntities = omsOrderItemConverter.item2Entity(submitForm.getOrderItems());
+            order.setOrderToken(submitForm.getOrderToken());
+            order.setTotalAmount(totalAmount);
+            order.setPaymentAmount(submitForm.getPaymentAmount());
+            order.setCouponAmount(submitForm.getCouponAmount() != null ? submitForm.getCouponAmount() : 0);
+            order.setFreightAmount(submitForm.getFreightAmount() != null ? submitForm.getFreightAmount() : 0);
+            order.setPaymentMethod(submitForm.getPaymentMethod());
+            order.setSource(submitForm.getSource());
+            order.setStatus(OrderStatusEnum.UNPAID.getValue());
+            order.setRemark(submitForm.getRemark());
 
-            log.info("设置订单ID关联");
-            orderItemEntities.forEach(item -> item.setOrderId(orderId));
+            // 设置订单收货地址
+            // 构建订单配送实体
+            OmsOrderDelivery orderDelivery = new OmsOrderDelivery();
 
-            orderItemService.saveBatch(orderItemEntities);
+            OrderSubmitForm.ShippingAddress shippingAddress = submitForm.getShippingAddress();
+            orderDelivery.setReceiverName(shippingAddress.getConsigneeName());
+            orderDelivery.setReceiverPhone(shippingAddress.getConsigneeMobile());
+            orderDelivery.setReceiverProvince(shippingAddress.getProvince());
+            orderDelivery.setReceiverCity(shippingAddress.getCity());
+            orderDelivery.setReceiverRegion(shippingAddress.getDistrict());
+            orderDelivery.setReceiverDetailAddress(shippingAddress.getDetailAddress());
 
-            // 订单超时未支付取消
-            log.info("发送订单超时关闭的延迟消息到RabbitMQ");
-            log.info("订单在指定时间内未支付会自动取消，释放库存");
-            rabbitTemplate.convertAndSend("order.exchange", "order.close.delay", submitForm.getOrderToken());
+            // 保存订单
+            boolean saveResult = this.save(order);
+            Assert.isTrue(saveResult, "订单保存失败");
+
+            // 保存订单商品
+            saveOrderItems(order.getId(), orderItems, skuInfos);
+
+            // 发送订单创建事件
+//            sendOrderCreatedEvent(order);
+
+            log.info("【创建订单】订单创建成功，订单号: {}", orderSn);
+            return orderSn;
+
+        } catch (Exception e) {
+            log.error("【创建订单】创建失败: ", e);
+            throw new BusinessException("订单创建失败，请稍后重试");
         }
-        return result;
     }
+
+    /**
+     * 计算订单金额  使用 reduce 方法
+     */
+    private Long calculateOrderAmount(List<OrderSubmitForm.OrderItem> orderItems) {
+        return orderItems.stream()
+                .map(item -> {
+                    Long price = item.getPrice() != null ? item.getPrice() : 0L;
+                    Integer quantity = item.getQuantity() != null ? item.getQuantity() : 0;
+                    return price * quantity;
+                })
+                .reduce(0L, Long::sum);
+    }
+
+    /**
+     * 保存订单商品
+     */
+    private void saveOrderItems(Long orderId,
+                                List<OrderSubmitForm.OrderItem> orderItems,
+                                List<SkuInfoDTO> skuInfos) {
+        Map<Long, SkuInfoDTO> skuMap = skuInfos.stream()
+                .collect(Collectors.toMap(SkuInfoDTO::getId, Function.identity()));
+
+        log.info("保存订单明细（订单商品项）");
+        List<OmsOrderItem> orderItemList = orderItems.stream()
+                .map(item -> {
+                    OmsOrderItem orderItem = new OmsOrderItem();
+                    log.info("设置订单ID关联");
+                    orderItem.setOrderId(orderId);
+//                    orderItem.setOrderSn(OrderNoGenerator.generateOrderNo(null)); // 临时订单号
+                    orderItem.setSpuName(item.getSpuName());
+                    orderItem.setSkuId(item.getSkuId());
+                    orderItem.setSkuName(item.getSkuName());
+
+                    SkuInfoDTO skuInfo = skuMap.get(item.getSkuId());
+                    if (skuInfo != null) {
+                        orderItem.setPicUrl(skuInfo.getPicUrl());
+                        orderItem.setSkuSn(skuInfo.getSkuSn());
+                    }
+
+                    orderItem.setPrice(item.getPrice());
+                    orderItem.setQuantity(item.getQuantity());
+                    orderItem.setTotalAmount(item.getPrice() * item.getQuantity());
+//                    orderItem.setSkuSpec(item.getSpec() != null ? item.getSpec() : "");
+
+                    return orderItem;
+                })
+                .collect(Collectors.toList());
+
+        // 批量保存
+        orderItemService.saveBatch(orderItemList);
+        log.info("【创建订单】保存{}个订单商品", orderItemList.size());
+
+    }
+
+
+    /**
+     * 清理购物车
+     */
+    private void clearCartItems(List<OrderSubmitForm.OrderItem> orderItems, Long memberId) {
+        if (CollectionUtils.isEmpty(orderItems) || memberId == null) {
+            return;
+        }
+
+        try {
+            List<Long> skuIds = orderItems.stream()
+                    .map(OrderSubmitForm.OrderItem::getSkuId)
+                    .collect(Collectors.toList());
+
+//            Result<Boolean> result = cartFeignClient.clearCheckedItems(memberId, skuIds);
+
+            //移除购物车中被选中的商品
+            Boolean result = cartService.removeCheckedItem();
+
+            if (result) {
+                log.info("【清理购物车】购物车清理成功");
+            } else {
+                log.warn("【清理购物车】购物车清理失败: {}");
+            }
+
+        } catch (Exception e) {
+            log.error("【清理购物车】清理异常: ", e);
+            // 这里不抛出异常，因为购物车清理失败不应该影响订单创建
+        }
+    }
+
+//    /**
+//     * 发送订单创建事件
+//     */
+//    private void sendOrderCreatedEvent(OmsOrder order) {
+//        try {
+//            OrderCreatedEvent event = new OrderCreatedEvent();
+//            event.setOrderId(order.getId());
+//            event.setOrderSn(order.getOrderSn());
+//            event.setMemberId(order.getMemberId());
+//            event.setTotalAmount(order.getTotalAmount());
+//            event.setCreateTime(LocalDateTime.now());
+//
+//            applicationEventPublisher.publishEvent(event);
+//            log.info("【事件发布】订单创建事件已发布，订单号: {}", order.getOrderSn());
+//
+//        } catch (Exception e) {
+//            log.error("【事件发布】发布订单创建事件失败: ", e);
+//        }
+//    }
 
 
     /**

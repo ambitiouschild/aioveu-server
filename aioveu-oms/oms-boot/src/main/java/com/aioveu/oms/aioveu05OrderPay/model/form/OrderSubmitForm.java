@@ -23,9 +23,13 @@ import java.util.List;
 @ToString
 public class OrderSubmitForm {
 
+
     @Schema(description="订单确认页面签发的令牌(防止重复提交)")
     @NotBlank(message = "订单令牌不能为空")
     private String orderToken;
+
+    @Schema(description="会员ID")
+    private Long memberId;
 
     @Schema(description="订单来源")
     @NotNull(message = "订单来源不能为空")
@@ -35,9 +39,30 @@ public class OrderSubmitForm {
     @NotEmpty(message = "订单商品不能为空")
     private List<OrderItem> orderItems;
 
+    @Schema(description="优惠金额(单位：分)")
+    @NotNull(message = "优惠金额不能为空")
+    private Long couponAmount;
+
+
+    @Schema(description="运费金额(单位：分)")
+    @NotNull(message = "运费金额不能为空")
+    private Long freightAmount;
+
+
     @Schema(description="应付金额(单位：分)")
     @NotNull(message = "应付金额不能为空")
     private Long paymentAmount;
+
+    /**
+     * 支付方式【1->微信jsapi；2->支付宝；3->余额；4->微信app；】
+     */
+
+    private Integer paymentMethod;
+
+    /**
+     * 订单来源(0-PC订单；1-app订单)
+     */
+    private Integer source;
 
     @Schema(description="收获地址")
     @NotNull(message = "收货地址不能为空")

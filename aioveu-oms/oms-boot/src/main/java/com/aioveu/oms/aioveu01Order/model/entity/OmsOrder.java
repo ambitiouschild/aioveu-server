@@ -56,6 +56,13 @@ public class OmsOrder extends BaseEntity {
 	 * 会员id
 	 */
 	private Long memberId;
+
+	/**
+	 * 订单令牌
+	 */
+	private String orderToken;
+
+
 	/**
 	 * 使用的优惠券
 	 */
