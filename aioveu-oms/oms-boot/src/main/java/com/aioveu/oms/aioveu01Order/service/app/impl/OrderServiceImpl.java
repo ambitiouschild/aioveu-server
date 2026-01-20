@@ -596,7 +596,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             OmsOrder order = new OmsOrder();
             order.setOrderSn(orderSn);
             //表单获取会员ID
-            order.setMemberId(submitForm.getMemberId());
+//            order.setMemberId(submitForm.getMemberId());
 
             //上下文获取会员ID
             order.setMemberId(SecurityUtils.getMemberId());
