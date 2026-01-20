@@ -300,7 +300,7 @@ public class PmsSkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> impleme
 
 
         Assert.isTrue(CollectionUtil.isNotEmpty(lockSkuList), "订单({})未包含任何商品", orderToken);
-        log.info("【库存锁定】参数校验通过，商品数量: {}", lockSkuList.size());
+        log.info("【库存锁定】参数校验通过，需要锁定商品数量: {}", lockSkuList.size());
 
 
 
@@ -313,6 +313,18 @@ public class PmsSkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> impleme
             if (sku == null) {
                 log.error("【库存锁定】商品不存在，SKU ID: {}", skuId);
                 throw new IllegalArgumentException("商品不存在");
+            }
+
+            // 获取锁定库存，处理null值
+            Integer lockedStock = sku.getLockedStock();
+            if (lockedStock == null) {
+                lockedStock = 0;
+            }
+
+            // 获取总库存
+            Integer stock = sku.getStock();
+            if (stock == null) {
+                stock = 0;
             }
 
             skuMap.put(skuId, sku);
