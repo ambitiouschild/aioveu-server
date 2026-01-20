@@ -318,20 +318,20 @@ public class PmsSkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> impleme
             // 获取锁定库存，处理null值
             Integer lockedStock = sku.getLockedStock();
             if (lockedStock == null) {
-                sku.setLockedStock(0);
+                lockedStock = 0;
             }
 
-            // 获取总库存
-            Integer stock = sku.getStock();
+            // 获取锁定库存，处理null值
+            Integer stock = sku.getLockedStock();
             if (stock == null) {
-                sku.setStock(0);
+                stock = 0;
             }
 
             skuMap.put(skuId, sku);
 
             // 记录当前库存状态
             log.info("【库存锁定】商品详情 - ID: {}, 名称: {}, 总库存: {}, 锁定库存: {}, 可用库存: {}, 需要锁定: {}",
-                    skuId, sku.getName(), sku.getStock(), sku.getLockedStock(),
+                    skuId, sku.getName(), stock, lockedStock,
                     sku.getStock() - sku.getLockedStock(), lockedSku.getQuantity());
         }
 
