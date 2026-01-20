@@ -587,7 +587,8 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         try {
             // 生成订单号
-            String orderSn = OrderNoGenerator.generateOrderNo(submitForm.getMemberId());
+//            String orderSn = OrderNoGenerator.generateOrderNo(submitForm.getMemberId());
+            String orderSn = OrderNoGenerator.generateOrderNo(SecurityUtils.getMemberId());
 
             // 计算订单金额
             Long totalAmount = calculateOrderAmount(orderItems);
