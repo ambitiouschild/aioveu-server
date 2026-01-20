@@ -161,7 +161,7 @@ public class CartServiceImpl implements CartService {
                 log.info("设置商品详细信息到VO对象中");
                 vo.setSkuName(skuInfoDTO.getSkuName());   // 商品SKU名称
                 vo.setSpuName(skuInfoDTO.getSpuName());   // 商品SPU名称
-                vo.setImageUrl(skuInfoDTO.getPicUrl());   // 商品图片URL
+                vo.setPicUrl(skuInfoDTO.getPicUrl());   // 商品图片URL
                 vo.setPrice(skuInfoDTO.getPrice());     // 商品最新价格
                 vo.setCount(cartItem.getCount());       // 购物车中的商品数量（来自Redis）
                 vo.setChecked(cartItem.getChecked());     // 商品选中状态（来自Redis）

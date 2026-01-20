@@ -33,7 +33,7 @@ public class CartItemVo implements Serializable {
     /**
      * 商品图片
      */
-    private String imageUrl;
+    private String picUrl;
 
     /**
      * 加购数量·
