@@ -586,23 +586,25 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         log.info("【创建订单】开始创建订单");
 
         try {
+
+            // 构建订单实体
+            OmsOrder order = new OmsOrder();
+
+            Long memberId =  SecurityUtils.getMemberId();
+            log.info("【创建订单】上下文获取会员ID: {}", memberId);
+
             // 生成订单号
 //            String orderSn = OrderNoGenerator.generateOrderNo(submitForm.getMemberId());
-            String orderSn = OrderNoGenerator.generateOrderNo(SecurityUtils.getMemberId());
+            String orderSn = OrderNoGenerator.generateOrderNo(memberId);
+            log.info("【创建订单】生成订单号: {}", orderSn);
 
             // 计算订单金额
             Long totalAmount = calculateOrderAmount(orderItems);
 
-            // 构建订单实体
-            OmsOrder order = new OmsOrder();
-            order.setOrderSn(orderSn);
-            //表单获取会员ID
-//            order.setMemberId(submitForm.getMemberId());
-
-            //上下文获取会员ID
+            log.info("【创建订单】开始赋值===========");
             order.setMemberId(SecurityUtils.getMemberId());
-
-            order.setOrderToken(submitForm.getOrderToken());
+            order.setOrderSn(orderSn);
+//            order.setOrderToken(submitForm.getOrderToken());
             order.setTotalAmount(totalAmount);
             order.setPaymentAmount(submitForm.getPaymentAmount());
             order.setCouponAmount(submitForm.getCouponAmount() != null ? submitForm.getCouponAmount() : 0);
