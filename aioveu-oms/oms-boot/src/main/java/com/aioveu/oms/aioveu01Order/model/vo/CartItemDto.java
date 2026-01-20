@@ -50,7 +50,7 @@ public class CartItemDto implements Serializable {
     /**
      * 商品 图片地址
      */
-    private String imageUrl;
+    private String picUrl;
     /**
      * 商品 价格
      */

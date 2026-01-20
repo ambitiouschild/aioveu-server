@@ -224,6 +224,7 @@ public class CartServiceImpl implements CartService {
      * TODO   添加商品到购物车
      *
      * @param skuId 商品SKU ID
+     * @param count 添加商品到购物车商品数量
      * @return 添加成功返回true
      * @throws BizException 如果商品信息获取失败会抛出异常
      */
@@ -314,7 +315,7 @@ public class CartServiceImpl implements CartService {
             // 更新价格（保持最新价格）
             cartItem.setPrice(newPrice);   // 确保设置价格
             cartItem.setSkuName(skuInfo.getSkuName());
-            cartItem.setImageUrl(skuInfo.getPicUrl());
+            cartItem.setPicUrl(skuInfo.getPicUrl());
             // ✅ 关键：更新库存信息
             cartItem.setStock(skuInfo.getStock());
 
