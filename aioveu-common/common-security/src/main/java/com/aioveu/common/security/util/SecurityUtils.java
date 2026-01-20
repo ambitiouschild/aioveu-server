@@ -18,6 +18,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static cn.hutool.core.convert.Convert.toInt;
+
 /**
  * @Description: TODO Spring Security 工具类  这个工具类是Spring Security集成中的核心组件，为业务系统提供了统一的安全信息访问入口。
  *                      提供从SecurityContext中获取当前认证用户信息的便捷方法
@@ -73,6 +75,9 @@ public class SecurityUtils {
         log.info("获取JWT令牌的所有声明属性（Claims）");
         Map<String, Object> tokenAttributes = getTokenAttributes();
         if (tokenAttributes != null) {
+
+            Long userId = Convert.toLong(tokenAttributes.get("userId"));
+            log.info("SecurityUtils获取当前认证用户的用户名（通常是登录账号）:{}", userId);
             return Convert.toLong(tokenAttributes.get("userId"));
         }
         return null;
@@ -96,7 +101,8 @@ public class SecurityUtils {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
 
-            log.info("获取当前认证用户的用户名:直接从Authentication对象的getName()方法获取");
+            String name = authentication.getName();
+            log.info("SecurityUtils获取当前认证用户的用户名（通常是登录账号）:{}", name);
             return authentication.getName();
         }
         return null;
@@ -125,7 +131,7 @@ public class SecurityUtils {
      */
     public static Map<String, Object> getTokenAttributes() {
 
-        log.info("获取当前的安全上下文（SecurityContext）中的认证信息（Authentication）");
+        log.info("SecurityUtils获取当前的安全上下文（SecurityContext）中的认证信息（Authentication）");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         // 检查是否为JWT认证令牌
 
@@ -193,6 +199,9 @@ public class SecurityUtils {
     public static Long getDeptId() {
         Map<String, Object> tokenAttributes = getTokenAttributes();
         if (tokenAttributes != null) {
+
+            Long deptId = (Long) tokenAttributes.get("deptId");
+            log.info("SecurityUtils获取当前用户所属的部门ID:{}", deptId);
             return Convert.toLong(tokenAttributes.get("deptId"));
         }
         return null;
@@ -240,6 +249,9 @@ public class SecurityUtils {
     public static String getJti() {
         Map<String, Object> tokenAttributes = getTokenAttributes();
         if (tokenAttributes != null) {
+
+            var jti = (String) tokenAttributes.get("jti");
+            log.info("SecurityUtils获取JWT令牌的唯一标识符（JTI）:{}", jti);
             return String.valueOf(tokenAttributes.get("jti"));
         }
         return null;
@@ -264,6 +276,9 @@ public class SecurityUtils {
     public static Long getExp() {
         Map<String, Object> tokenAttributes = getTokenAttributes();
         if (tokenAttributes != null) {
+
+            Long exp = Convert.toLong(tokenAttributes.get("exp"));
+            log.info("SecurityUtils获取JWT令牌的过期时间（Expiration Time）:{}", exp);
             return Convert.toLong(tokenAttributes.get("exp"));
         }
         return null;
@@ -296,7 +311,11 @@ public class SecurityUtils {
     public static Integer getDataScope() {
         Map<String, Object> tokenAttributes = getTokenAttributes();
         if (tokenAttributes != null) {
-            return Convert.toInt(tokenAttributes.get("dataScope"));
+
+            int dataScope = Convert.toInt(tokenAttributes.get("dataScope"));
+            log.info("SecurityUtils获取当前用户的数据权限范围:{}", dataScope);
+
+            return dataScope;
         }
         return null;
     }
@@ -323,7 +342,10 @@ public class SecurityUtils {
     public static Long getMemberId() {
         Map<String, Object> tokenAttributes = getTokenAttributes();
         if (tokenAttributes != null) {
-            return Convert.toLong(tokenAttributes.get("memberId"));
+
+            Long memberId = Convert.toLong(tokenAttributes.get("memberId"));
+            log.info("SecurityUtils获取会员ID（适用于多租户或会员体系）:{}", memberId);
+            return memberId;
         }
         return null;
     }
