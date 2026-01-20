@@ -207,6 +207,11 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         log.info("异步任务2：获取用户收货地址");
         CompletableFuture<List<MemberAddressDTO>> getMemberAddressFuture = CompletableFuture.supplyAsync(() -> {
 
+
+            //在异步线程中尝试访问已回收的请求对象
+            //但在 Spring 的线程池中，请求上下文可能已经被清理了。
+            // 恢复请求上下文
+
             log.info("通过Feign客户端调用会员服务获取地址列表");
             Result<List<MemberAddressDTO>> getMemberAddressResult = memberFeignClient.listMemberAddresses(memberId);
             if (Result.isSuccess(getMemberAddressResult)) {
