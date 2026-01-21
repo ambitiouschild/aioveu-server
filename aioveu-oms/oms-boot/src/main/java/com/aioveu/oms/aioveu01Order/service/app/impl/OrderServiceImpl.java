@@ -6,6 +6,7 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.aioveu.common.exception.BusinessException;
+import com.aioveu.common.result.ResultCode;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
@@ -283,9 +284,14 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
      * @param submitForm {@link OrderSubmitForm} 订单提交表单数据
      * @return 订单编号
      */
+    //orderService.submitOrder()方法中抛出的 BusinessException被捕获但没有正确传播到 Controller 层。
     @Override
     @GlobalTransactional(name = "submitOrder", rollbackFor = Exception.class, timeoutMills = 30000)
-    public String submitOrder(OrderSubmitForm submitForm) {
+    // 确保捕获异常
+    //需要检查事务传播行为
+    //配置 Seata 不包装异常
+    //seata 全局事务拦截器包装了你的业务异常，需要解开这个包装，让真正的 BusinessException能够被全局异常处理器捕获和处理。
+    public String submitOrder(OrderSubmitForm submitForm) throws BusinessException{
 
 
         long startTime = System.currentTimeMillis();
@@ -325,11 +331,35 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             return orderSn;
 
         } catch (BusinessException e) {
-            log.error("【订单提交】业务异常: {}", e.getMessage());
-            throw e;
+
+            //1.第一个 catch (BusinessException e)捕获了业务异常
+            //2.你 throw e重新抛出
+            //3.但 Seata 的拦截器捕获了这个异常，把它包装成了 RuntimeException: try to proceed invocation error
+            //4.这个包装后的 RuntimeException不会被 catch (BusinessException e)捕获
+            //5.而是被 catch (Exception e)捕获
+            //6.在 catch (Exception e)中，你检查 e.getCause() instanceof BusinessException是 true
+            //7.你解包并重新抛出 throw be
+            //8.但实际上，这个重新抛出的 be又会被 Seata 包装一次！
+            //这是一个死循环。
+
+            // 记录原始异常
+            log.error("【订单提交】异常: ", e);
+
+            // 直接抛出，不要做任何包装
+            // Seata 会包装它，但我们会在 Controller 或全局异常处理器中解开
+            throw e;  // 直接抛出，让 Seata 处理
+            //但异常被 Seata 的 GlobalTransactionalInterceptor包装了
         } catch (Exception e) {
+
+            // 如果是 Seata 包装的异常，需要解包
+            if (e.getCause() instanceof BusinessException) {
+                BusinessException be = (BusinessException) e.getCause();
+                log.error("【订单提交】业务异常: {}", be.getMessage());
+                throw be;
+            }
+
             log.error("【订单提交】系统异常: ", e);
-            throw new BusinessException("订单提交失败，请稍后重试");
+            throw new BusinessException("订单提交失败，请稍后重试", ResultCode.Order_submission_system_exception);
         }
 
 

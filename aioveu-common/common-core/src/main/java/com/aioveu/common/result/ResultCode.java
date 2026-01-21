@@ -27,6 +27,9 @@ public enum ResultCode implements IResultCode, Serializable {
     /** 一级宏观错误码  */
     USER_ERROR("A0001", "用户端错误"),
 
+    INSUFFICIENT_STOCK("L0001", "库存不足"),
+
+    Order_submission_system_exception("L0001", "【订单提交】系统异常"),
 
     /** 二级宏观错误码  */
     USER_LOGIN_ERROR("A0200", "用户登录异常"),

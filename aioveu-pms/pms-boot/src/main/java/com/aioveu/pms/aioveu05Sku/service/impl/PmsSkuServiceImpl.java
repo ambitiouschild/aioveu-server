@@ -292,7 +292,7 @@ public class PmsSkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> impleme
      * @Transactional 注解保证方法在事务中执行，出现异常时回滚
      */
     @Override
-    @Transactional
+    @Transactional(rollbackFor = {BusinessException.class, Exception.class})  // 明确指定 添加事务注解的回滚规则
     public boolean lockStock(String orderToken, List<LockSkuDTO> lockSkuList) {
 
         log.info("记录锁定库存操作日志，便于问题排查");
@@ -312,7 +312,7 @@ public class PmsSkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> impleme
 
             if (sku == null) {
                 log.error("【库存锁定】商品不存在，SKU ID: {}", skuId);
-                throw new IllegalArgumentException("商品不存在");
+                throw new BusinessException("商品不存在");
             }
 
             // 获取锁定库存，处理null值
@@ -372,13 +372,13 @@ public class PmsSkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> impleme
                 availableStock = currentStock - fixedLockedStock;
             }
 
-            // 检查库存是否足够
-            if (availableStock < quantity) {
-                log.error("【库存锁定】库存不足，SKU ID: {}, 商品: {}, 需要: {}, 可用: {}, 总库存: {}, 已锁定: {}",
-                        skuId, sku.getName(), quantity, availableStock, currentStock, currentLockedStock);
-                throw new IllegalArgumentException(String.format("商品【%s】库存不足，当前可用%s件",
-                        sku.getName(), availableStock));
-            }
+                // 检查库存是否足够
+                if (availableStock < quantity) {
+                    log.error("【库存锁定】库存不足，SKU ID: {}, 商品: {}, 需要: {}, 可用: {}, 总库存: {}, 已锁定: {}",
+                            skuId, sku.getName(), quantity, availableStock, currentStock, currentLockedStock);
+                    throw new BusinessException(ResultCode.INSUFFICIENT_STOCK,String.format("商品【%s】库存不足，当前可用%s件",
+                            sku.getName(), availableStock));
+                }
 
             // 执行库存锁定
             log.info("【库存锁定】执行库存锁定，SKU ID: {}, 锁定数量: {}", skuId, quantity);
@@ -410,7 +410,7 @@ public class PmsSkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> impleme
                 if (newAvailableStock < quantity) {
                     log.error("【库存锁定】并发库存不足，SKU ID: {}, 需要: {}, 新可用: {}",
                             skuId, quantity, newAvailableStock);
-                    throw new IllegalArgumentException(String.format("商品【%s】库存不足，当前可用%s件",
+                    throw new BusinessException(String.format("商品【%s】库存不足，当前可用%s件",
                             newSku.getName(), newAvailableStock));
                 } else {
                     // 重试一次
@@ -423,7 +423,7 @@ public class PmsSkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> impleme
 
                     if (!lockResult) {
                         log.error("【库存锁定】最终锁定失败，SKU ID: {}", skuId);
-                        throw new IllegalArgumentException("库存锁定失败");
+                        throw new BusinessException("库存锁定失败");
                     }
                 }
             }

@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 /**
  * @Description: TODO 全局系统异常处理 调整异常处理的HTTP状态码，丰富异常处理类型
+ *                    全局异常处理器处理 Seata 包装的异常
  * @Author: 雒世松
  * @Date: 2025/6/5 16:26
  * @param
