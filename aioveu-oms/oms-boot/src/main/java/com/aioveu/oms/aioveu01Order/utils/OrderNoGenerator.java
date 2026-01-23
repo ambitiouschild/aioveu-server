@@ -1,5 +1,7 @@
 package com.aioveu.oms.aioveu01Order.utils;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -30,6 +32,15 @@ public class OrderNoGenerator {
     private static final int MAX_SEQUENCE = 9999;
 
     private static final Random RANDOM = new Random();
+
+
+    //方案2：使用 Redis 分布式序列（高并发场景推荐）
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
+    private static final String ORDER_SEQUENCE_KEY = "order:sequence:";
+
     /**
      * 生成订单号
      * 格式: 日期(8位) + 用户ID后6位 + 4位序列号
@@ -125,5 +136,35 @@ public class OrderNoGenerator {
         String randomPart = String.format("%05d", ThreadLocalRandom.current().nextInt(100000));
 
         return timestamp + memberPart + randomPart;
+    }
+
+
+    /**
+     * 使用Redis生成分布式唯一订单号  高并发场景：推荐方案2（Redis分布式序列）
+     * 格式: 日期(8位) + Redis序列(6位) + 随机数(6位)
+     */
+    public String generateDistributedOrderNo(Long memberId) {
+        // 1. 日期部分
+        String datePart = LocalDateTime.now().format(DATE_FORMATTER);
+
+        // 2. Redis分布式序列（每天重置）
+        String sequenceKey = ORDER_SEQUENCE_KEY + datePart;
+        Long sequence = redisTemplate.opsForValue().increment(sequenceKey, 1);
+
+        // 设置过期时间（2天，防止跨天问题）
+        if (sequence == 1) {
+            redisTemplate.expire(sequenceKey, 2, java.util.concurrent.TimeUnit.DAYS);
+        }
+
+        // 序列号格式化为6位
+        String sequencePart = String.format("%06d", sequence % 1000000);
+
+        // 3. 随机数部分（6位）
+        String randomPart = String.format("%06d", ThreadLocalRandom.current().nextInt(1000000));
+
+        // 4. 用户ID部分（可选，4位）
+        String memberPart = String.format("%04d", (memberId == null ? 0 : memberId) % 10000);
+
+        return datePart + sequencePart + randomPart;
     }
 }
