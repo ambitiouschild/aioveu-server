@@ -17,7 +17,8 @@ public enum PaymentMethodEnum implements IBaseEnum<Integer> {
     WX_JSAPI(1, "微信JSAPI支付"),
     ALIPAY(2, "支付宝支付"),
     BALANCE(3, "会员余额支付"),
-    WX_APP(4, "微信APP支付");
+    WX_APP(4, "微信APP支付"),
+    UNKNOWN(5, "未知");
 
     PaymentMethodEnum(int value, String label) {
         this.value = value;
@@ -29,4 +30,19 @@ public enum PaymentMethodEnum implements IBaseEnum<Integer> {
 
     @Getter
     private String label;
+
+    /**
+     * 根据值获取枚举
+     */
+    public static PaymentMethodEnum getByValue(String value) {
+        if (value == null) {
+            return UNKNOWN;
+        }
+        for (PaymentMethodEnum method : values()) {
+            if (method.getValue().equals(value)) {
+                return method;
+            }
+        }
+        return UNKNOWN;
+    }
 }

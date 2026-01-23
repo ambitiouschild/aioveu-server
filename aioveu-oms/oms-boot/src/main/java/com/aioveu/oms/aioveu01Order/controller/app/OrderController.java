@@ -89,8 +89,34 @@ public class OrderController {
     @Operation(summary ="订单支付")
     @PostMapping("/payment")
     public Result payOrder(@Validated @RequestBody OrderPaymentForm paymentForm) {
-        boolean result = orderService.payOrder(paymentForm);
-        return Result.judge(result);
+
+        try {
+            // 调用支付服务
+            Object paymentResult = orderService.payOrder(paymentForm);
+
+            return Result.success(paymentResult);
+        } catch (RuntimeException e) {
+            // 专门处理 Seata 包装的异常
+
+            if (e.getMessage() != null && e.getMessage().contains("try to proceed invocation error")) {
+                Throwable cause = e.getCause();
+
+                if (cause instanceof BusinessException) {
+                    BusinessException be = (BusinessException) cause;
+                    log.warn("Seata包装的业务异常: {}", be.getMessage());
+                    return Result.failed(ResultCode.Order_submission_system_exception, be.getMessage());
+                }
+            }
+            return Result.failed(ResultCode.Order_submission_system_exception, e.getMessage());
+
+        } catch (Exception e) {
+            log.error("订单支付系统异常: ", e);
+            return Result.failed(ResultCode.Order_submission_system_exception, "系统繁忙，请稍后重试");
+
+        } finally {
+            log.info("=== 订单支付结束 ===");
+        }
+
     }
 
     @Operation(summary ="订单删除")

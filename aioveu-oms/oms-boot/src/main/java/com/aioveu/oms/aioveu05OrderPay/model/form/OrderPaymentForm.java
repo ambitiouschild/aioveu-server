@@ -20,9 +20,12 @@ public class OrderPaymentForm {
     private String orderSn;
 
     @Schema(description="小程序 AppId")
-    String appId;
+    private String appId;
 
     @Schema(description="支付方式")
     private PaymentMethodEnum paymentMethod;
+
+    @Schema(description="支付金额")
+    private Long paymentAmount;
 
 }

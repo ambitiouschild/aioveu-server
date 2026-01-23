@@ -14,6 +14,7 @@ import com.aioveu.oms.aioveu01Order.utils.OrderNoGenerator;
 import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
+import com.aioveu.oms.config.MockPayService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -26,6 +27,7 @@ import com.github.binarywang.wxpay.bean.notify.WxPayRefundNotifyV3Result;
 import com.github.binarywang.wxpay.bean.request.WxPayUnifiedOrderV3Request;
 import com.github.binarywang.wxpay.bean.result.WxPayUnifiedOrderV3Result;
 import com.github.binarywang.wxpay.bean.result.enums.TradeTypeEnum;
+import com.github.binarywang.wxpay.config.WxPayConfig;
 import com.github.binarywang.wxpay.constant.WxPayConstants;
 import com.github.binarywang.wxpay.exception.WxPayException;
 import com.github.binarywang.wxpay.service.WxPayService;
@@ -62,6 +64,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
@@ -152,6 +156,14 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
     // 订单项转换器
     private final OmsOrderItemConverter omsOrderItemConverter;
+
+
+    // 模拟支付服务
+    @Autowired
+    private MockPayService mockPayService;
+    // 开启模拟支付
+    @Value("${pay.mock.enabled:true}")
+    private Boolean mockPayEnabled;
 
     /**
      * TODO  订单分页列表查询
@@ -425,7 +437,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         if (lockAcquired == null || !lockAcquired.equals(1L)) {
             log.warn("【防重校验】如果令牌不存在或删除失败，说明订单重复提交，令牌: {}", orderToken);
-            Assert.isTrue(lockAcquired != null && lockAcquired.equals(1L), "订单重复提交，请刷新页面后重试");
+//            Assert.isTrue(lockAcquired != null && lockAcquired.equals(1L), "订单重复提交，请刷新页面后重试");
             throw new BusinessException("订单重复提交，请刷新页面后重试");
         }
 
@@ -630,7 +642,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
             // 生成订单号
 //            String orderSn = OrderNoGenerator.generateOrderNo(submitForm.getMemberId());
-            String orderSn = OrderNoGenerator.generateOrderNo(memberId);
+            String orderSn = OrderNoGenerator.generateOrderNoRandom(memberId);
             log.info("【创建订单】2.生成订单号: {}", orderSn);
 
             // 订单总额
@@ -874,35 +886,153 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
      */
     @Override
     @GlobalTransactional
-    public <T> T payOrder(OrderPaymentForm paymentForm) {
-        String orderSn = paymentForm.getOrderSn();
+//    public <T> T payOrder(OrderPaymentForm paymentForm) {
 
+    public Object payOrder(OrderPaymentForm paymentForm) {
+
+        String orderSn = paymentForm.getOrderSn();
+        PaymentMethodEnum paymentMethod  = paymentForm.getPaymentMethod();
+        Long paymentAmount = paymentForm.getPaymentAmount();
+
+        log.info("【支付】开始处理，订单号: {}, 支付方式: {}, 支付金额: {},模拟模式: {}",
+                orderSn, paymentMethod, paymentAmount, mockPayEnabled);
+
+        // 1. 验证支付金额
+        if (paymentAmount == null || paymentAmount <= 0) {
+            log.error("【支付】支付金额无效: {}", paymentAmount);
+            throw new BizException("支付金额必须大于0");
+        }
+
+        // 2. 验证订单金额
         log.info("根据订单号查询订单");
         OmsOrder order = this.getOne(new LambdaQueryWrapper<OmsOrder>().eq(OmsOrder::getOrderSn, orderSn));
         Assert.isTrue(order != null, "订单不存在");
 
+
+        //
+        Long orderPaymentAmount = order.getPaymentAmount();
+        if (orderPaymentAmount == null || orderPaymentAmount <= 0) {
+            log.error("【支付】订单金额异常: {}", orderPaymentAmount);
+            throw new BizException("订单金额异常");
+        }
+
+        // 5. 比较金额  你在验证金额时，应该用原始的分进行比较，而不是转换后的元：
+        //保持单位为分进行比较（推荐）
+        if (!orderPaymentAmount.equals(paymentAmount)) {
+            // 只用于显示，不用于比较
+            double orderAmountYuan = orderPaymentAmount / 100.00;  // 121.5
+            double requestAmountYuan = paymentAmount / 100.00;           // 121.5
+
+            log.error("【支付】金额不匹配，订单金额: {}，请求金额: {}",
+                    orderAmountYuan, requestAmountYuan);
+            throw new BizException(String.format("支付金额不匹配，订单金额: ¥%.2f",
+                    orderPaymentAmount / 100.0));
+        }
+
         log.info("校验订单状态是否可支付");
         Assert.isTrue(OrderStatusEnum.UNPAID.getValue().equals(order.getStatus()), "订单不可支付，请检查订单状态");
 
+        // 2. 检查支付方式
+        if (!isValidPaymentMethod(paymentMethod)) {
+            throw new BizException("不支持的支付方式: " + paymentMethod);
+        }
+
+
         log.info("使用分布式锁防止重复支付（同一订单同时支付）");
         RLock lock = redissonClient.getLock(OrderConstants.ORDER_LOCK_PREFIX + order.getOrderSn());
+
+        log.info("获取锁");
+        lock.lock();
+
+        // 继续支付流程...
+        // 3. 判断使用模拟支付还是真实支付
+        if (Boolean.TRUE.equals(mockPayEnabled) && mockPayService.isMockEnabled()) {
+            log.info("【支付】使用模拟支付");
+            return processMockPayment(orderSn, paymentMethod, paymentAmount);
+        } else {
+            log.info("【支付】使用真实支付");
+            return processRealPayment(paymentForm, paymentMethod, order, lock);
+        }
+
+
+    }
+
+    /**
+     * 处理模拟支付
+     */
+    private Object processMockPayment(String orderSn, PaymentMethodEnum paymentMethod, Long paymentAmount)
+    {
+
+        Map<String, Object> result;
+
+        switch (paymentMethod) {
+            case WX_JSAPI:
+                result = mockPayService.mockWxJsapiPay(orderSn, paymentAmount);
+                break;
+
+            case ALIPAY:
+                result = mockPayService.mockAlipayPay(orderSn, paymentAmount);
+                break;
+
+            case BALANCE:
+                Long memberId = SecurityUtils.getMemberId();
+                result = mockPayService.mockBalancePay(orderSn, paymentAmount, memberId);
+                break;
+
+            default:
+                throw new BizException("不支持的支付方式: " + paymentMethod);
+        }
+
+        // 检查支付结果
+        if (Boolean.TRUE.equals(result.get("success"))) {
+            // 支付成功，更新订单状态
+            log.info("【支付成功】更新订单状态");
+            updateOrderAfterPayment(orderSn, paymentMethod, true);
+
+            //后端返回的是一个 Map 对象
+            return result.get("data");
+        } else {
+            // 支付失败
+            String errorCode = (String) result.get("code");
+            String errorMsg = (String) result.get("message");
+            throw new BizException(errorMsg);
+        }
+    }
+
+    /**
+     * 处理真实支付
+     */
+    private Object processRealPayment(OrderPaymentForm paymentForm,
+                                      PaymentMethodEnum paymentMethod,
+                                      OmsOrder order,
+                                      RLock lock) {
+        // 原有的真实支付逻辑
+        // 这里可以留空或抛出异常，提示需要配置真实支付
+
         try {
 
-            log.info("获取锁");
-            lock.lock();
-            T result;
+            Object result;
 
             log.info("根据支付方式路由到不同的支付处理逻辑");
-            switch (paymentForm.getPaymentMethod()) {
+            switch (paymentMethod) {
                 case WX_JSAPI:
 
                     log.info("微信JSAPI支付（小程序支付）");
-                    result = (T) wxJsapiPay(paymentForm.getAppId(), order.getOrderSn(), order.getPaymentAmount());
+                    result = wxJsapiPay(paymentForm.getAppId(), order.getOrderSn(), order.getPaymentAmount());
+                    break;
+                case ALIPAY:
+
+                    log.info("支付宝支付");
+                    result = wxJsapiPay(paymentForm.getAppId(), order.getOrderSn(), order.getPaymentAmount());
+                    break;
+                case WX_APP:
+
+                    log.info("微信APP支付");
+                    result = wxJsapiPay(paymentForm.getAppId(), order.getOrderSn(), order.getPaymentAmount());
                     break;
                 default:
-
-                    log.info("余额支付");
-                    result = (T) balancePay(order);
+                    log.info("BALANCE");
+                    result = balancePay(order);
                     break;
             }
             return result;
@@ -913,6 +1043,35 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             if (lock.isLocked()) {
                 lock.unlock();
             }
+        }
+
+//        throw new BizException("真实支付功能未配置，请启用模拟支付或配置真实支付参数");
+    }
+
+    /**
+     * 检查支付方式是否有效
+     */
+    private boolean isValidPaymentMethod(PaymentMethodEnum paymentMethod) {
+
+        return paymentMethod != null && paymentMethod != PaymentMethodEnum.UNKNOWN;
+    }
+
+    /**
+     * 支付后更新订单
+     */
+    private void updateOrderAfterPayment(String orderSn, PaymentMethodEnum paymentMethod, boolean success) {
+        if (success) {
+            // 支付成功，更新订单状态
+            this.update(new LambdaUpdateWrapper<OmsOrder>()
+                    .set(OmsOrder::getStatus, 1)  // 1=已支付
+                    .set(OmsOrder::getPaymentMethod, paymentMethod.getValue())
+                    .set(OmsOrder::getPaymentTime, new Date())
+                    .eq(OmsOrder::getOrderSn, orderSn));
+
+            log.info("【支付】订单支付成功，订单号: {}", orderSn);
+        } else {
+            // 支付失败，记录日志
+            log.warn("【支付】订单支付失败，订单号: {}", orderSn);
         }
     }
 
@@ -962,54 +1121,179 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
      * @return 微信支付调起参数
      */
     private WxPayUnifiedOrderV3Result.JsapiResult wxJsapiPay(String appId, String orderSn, Long paymentAmount) {
-        Long memberId = SecurityUtils.getMemberId();
-        // 如果已经有outTradeNo了就先进行关单
 
-        log.info("安全措施：如果订单已经有外部交易号，先关闭之前的微信支付订单");
-        if (StrUtil.isNotBlank(orderSn)) {
-            try {
-                wxPayService.closeOrderV3(orderSn);
-            } catch (WxPayException e) {
-                log.error(e.getMessage(), e);
-                throw new BizException("微信关单异常");
-            }
-        }
-
-        // 更新订单状态
-        log.info("更新订单支付方式为微信支付");
-        boolean result = this.update(new LambdaUpdateWrapper<OmsOrder>()
-                .set(OmsOrder::getPaymentMethod, PaymentMethodEnum.WX_JSAPI.getValue())
-                .eq(OmsOrder::getOrderSn, orderSn)
-        );
-
-        log.info(" 获取用户的微信OpenID");
-        String memberOpenId = memberFeignClient.getMemberOpenId(memberId).getData();
-
-
-        log.info(" 构建微信支付请求参数");
-        WxPayUnifiedOrderV3Request wxRequest = new WxPayUnifiedOrderV3Request()
-                .setAppid(appId)   // 小程序ID
-                .setOutTradeNo(orderSn)   // 商户订单号
-                .setAmount(new WxPayUnifiedOrderV3Request
-                        .Amount()
-                        .setTotal(Math.toIntExact(paymentAmount))  // 支付金额（分）
-                )
-                .setPayer(
-                        new WxPayUnifiedOrderV3Request.Payer()
-                                .setOpenid(memberOpenId)   // 用户OpenID
-                )
-                .setDescription("赅买-订单编号：" + orderSn)   // 商品描述
-                .setNotifyUrl(wxPayProperties.getPayNotifyUrl());   // 支付结果通知地址
-        WxPayUnifiedOrderV3Result.JsapiResult jsapiResult;
         try {
+            log.info("【微信JSAPI支付】开始处理，订单号: {}, 金额: {}分", orderSn, paymentAmount);
 
+            // 1. 检查支付服务是否可用
+            if (wxPayService == null) {
+                log.error("【微信JSAPI支付】支付服务未初始化");
+                throw new BusinessException("支付服务未就绪");
+            }
+
+            // 2. 检查配置
+            //调用了 wxPayService.getConfig()，但 configMap为 null。
+            WxPayConfig config = wxPayService.getConfig();
+            if (config == null) {
+                log.error("【微信JSAPI支付】微信支付配置为空");
+                throw new BusinessException("微信支付配置异常");
+            }
+
+            // 3. 参数验证
+            if (StrUtil.isBlank(orderSn)) {
+                log.error("【微信JSAPI支付】订单号为空");
+                throw new BusinessException("订单号不能为空");
+            }
+
+            if (paymentAmount == null || paymentAmount <= 0) {
+                log.error("【微信JSAPI支付】支付金额无效: {}", paymentAmount);
+                throw new BusinessException("支付金额必须大于0");
+            }
+
+            Long memberId = SecurityUtils.getMemberId();
+            if (memberId == null) {
+                log.error("【微信JSAPI支付】会员ID为空");
+                throw new BusinessException("用户信息获取失败");
+            }
+
+            // 4. 查询订单信息
+            OmsOrder order = this.getOne(new LambdaQueryWrapper<OmsOrder>()
+                    .eq(OmsOrder::getOrderSn, orderSn));
+
+            if (order == null) {
+                log.error("【微信JSAPI支付】订单不存在: {}", orderSn);
+                throw new BusinessException("订单不存在");
+            }
+
+            // 5. 安全措施：如果订单已经有外部交易号，先关闭之前的微信支付订单
+            log.info("【微信JSAPI支付】检查是否需要关闭历史支付订单");
+            if (StrUtil.isNotBlank(order.getOutTradeNo())) {
+                try {
+                    log.info("【微信JSAPI支付】关闭历史支付订单: {}", order.getOutTradeNo());
+                    wxPayService.closeOrderV3(order.getOutTradeNo());
+                    log.info("【微信JSAPI支付】历史支付订单关闭成功");
+                } catch (WxPayException e) {
+                    // 如果是订单不存在等可忽略的错误，继续执行
+                    if ("ORDER_NOT_EXIST".equals(e.getErrCode()) ||
+                            "ORDERPAID".equals(e.getErrCode())) {
+                        log.warn("【微信JSAPI支付】历史订单无需关闭: {}", e.getErrCodeDes());
+                    } else {
+                        log.error("【微信JSAPI支付】关闭历史订单失败: {}", e.getMessage(), e);
+                        throw new BizException("关闭历史支付订单失败: " + e.getErrCodeDes());
+                    }
+                }
+            }
+
+            // 6. 更新订单支付方式
+            log.info("【微信JSAPI支付】更新订单支付方式为微信支付");
+            boolean updateResult = this.update(new LambdaUpdateWrapper<OmsOrder>()
+                    .set(OmsOrder::getPaymentMethod, PaymentMethodEnum.WX_JSAPI.getValue())
+                    .eq(OmsOrder::getOrderSn, orderSn));
+
+            if (!updateResult) {
+                log.error("【微信JSAPI支付】更新订单支付方式失败: {}", orderSn);
+                throw new BizException("更新订单信息失败");
+            }
+
+            // 7. 获取用户的微信OpenID
+            log.info("【微信JSAPI支付】获取用户OpenID，会员ID: {}", memberId);
+            Result<String> openIdResult = memberFeignClient.getMemberOpenId(memberId);
+
+            if (openIdResult == null || !openIdResult.isSuccess(openIdResult) || StrUtil.isBlank(openIdResult.getData())) {
+                log.error("【微信JSAPI支付】获取用户OpenID失败: {}", openIdResult);
+                throw new BizException("获取用户支付信息失败，请重新登录");
+            }
+
+            String memberOpenId = openIdResult.getData();
+            log.info("【微信JSAPI支付】用户OpenID获取成功: {}", maskOpenId(memberOpenId));
+
+            // 8. 构建微信支付请求参数
+            log.info("【微信JSAPI支付】构建支付请求参数");
+            WxPayUnifiedOrderV3Request wxRequest = new WxPayUnifiedOrderV3Request();
+
+            // 设置金额
+            WxPayUnifiedOrderV3Request.Amount amount = new WxPayUnifiedOrderV3Request.Amount();
+            amount.setTotal(Math.toIntExact(paymentAmount));  // 金额（分）
+            amount.setCurrency("CNY");
+            wxRequest.setAmount(amount);
+
+            // 设置基本参数
+            wxRequest.setAppid(config.getAppId());  // 使用配置中的appId
+            wxRequest.setMchid(config.getMchId());
+            wxRequest.setDescription("商品购买 - 订单号：" + orderSn);
+            wxRequest.setOutTradeNo(orderSn);
+            wxRequest.setNotifyUrl(config.getNotifyUrl());  // 使用配置中的通知地址
+
+            // 设置支付者
+            WxPayUnifiedOrderV3Request.Payer payer = new WxPayUnifiedOrderV3Request.Payer();
+            payer.setOpenid(memberOpenId);
+            wxRequest.setPayer(payer);
+
+            // 9. 调用微信统一下单接口
+            log.info("【微信JSAPI支付】调用微信统一下单接口，金额: {}分", paymentAmount);
             log.info(" 调用微信统一下单接口");
-            jsapiResult = wxPayService.createOrderV3(TradeTypeEnum.JSAPI, wxRequest);
-        } catch (WxPayException e) {
-            log.error(e.getMessage(), e);
-            throw new BizException("微信统一下单异常");
+            WxPayUnifiedOrderV3Result result;
+            WxPayUnifiedOrderV3Result.JsapiResult jsapiResult;
+            try {
+                jsapiResult = wxPayService.createOrderV3(TradeTypeEnum.JSAPI, wxRequest);
+                result = wxPayService.createOrderV3(TradeTypeEnum.JSAPI, wxRequest);
+            } catch (WxPayException e) {
+                log.error("【微信JSAPI支付】微信统一下单失败，错误码: {}, 错误信息: {}",
+                        e.getErrCode(), e.getErrCodeDes(), e);
+                throw new BizException("微信支付失败: " + e.getErrCodeDes());
+            }
+
+            // 获取 prepay_id - 正确的获取方式
+            String prepayId = result.getPrepayId();
+            if (result == null || StrUtil.isBlank(result.getPrepayId())) {
+                log.error("【微信JSAPI支付】微信返回结果异常");
+                throw new BizException("微信支付返回结果异常");
+            }
+
+            log.info("【微信JSAPI支付】统一下单成功，预支付ID: {}", result.getPrepayId());
+
+
+            // 获取其他支付参数
+            String timeStamp = String.valueOf(System.currentTimeMillis() / 1000);
+            String nonceStr = jsapiResult.getNonceStr();
+            String packageStr = "prepay_id=" + prepayId;
+            String signType = "RSA";
+
+            // 构建返回给前端的参数
+            Map<String, String> payParams = new HashMap<>();
+            payParams.put("timeStamp", timeStamp);
+            payParams.put("nonceStr", nonceStr);
+            payParams.put("package", packageStr);
+            payParams.put("signType", signType);
+
+            // 生成签名
+//            String sign = wxPayService.createSign(payParams, signType);
+//            payParams.put("paySign", sign);
+
+
+            // 10. 更新订单外部交易号
+            this.update(new LambdaUpdateWrapper<OmsOrder>()
+                    .set(OmsOrder::getOutTradeNo, orderSn)  // 这里用orderSn作为outTradeNo，实际应该用微信返回的交易号
+                    .eq(OmsOrder::getOrderSn, orderSn));
+
+            return jsapiResult;
+
+        } catch (BizException e) {
+            // 业务异常直接抛出
+            throw e;
+        } catch (Exception e) {
+            log.error("【微信JSAPI支付】系统异常，订单号: {}", orderSn, e);
+            throw new BizException("支付系统异常: " + e.getMessage());
         }
-        return jsapiResult;
+    }
+
+    // 隐藏OpenID的中间部分，用于日志
+    private String maskOpenId(String openId) {
+        if (StrUtil.isBlank(openId) || openId.length() <= 8) {
+            return openId;
+        }
+        int length = openId.length();
+        return openId.substring(0, 4) + "***" + openId.substring(length - 4);
     }
 
     /**

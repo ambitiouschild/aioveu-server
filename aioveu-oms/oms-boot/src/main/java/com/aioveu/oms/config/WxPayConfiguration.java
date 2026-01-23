@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @Description: TODO 微信支付配置
+ * @Description: TODO 微信支付配置  - 支持模拟支付
  * @Author: 雒世松
  * @Date: 2025/6/5 18:03
  * @param

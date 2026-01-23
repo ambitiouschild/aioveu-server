@@ -75,4 +75,38 @@ public class PaymentHealthController {
 
         return Result.success("微信支付服务正常");
     }
+
+    @GetMapping("/wxpay/config")
+    public String getWxPayConfig() {
+        if (wxPayService == null) {
+            return "WxPayService is null";
+        }
+
+        try {
+            com.github.binarywang.wxpay.config.WxPayConfig config = wxPayService.getConfig();
+            if (config == null) {
+                return "WxPayConfig is null";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("WxPayConfig:\n");
+            sb.append("  AppId: ").append(config.getAppId()).append("\n");
+            sb.append("  MchId: ").append(config.getMchId()).append("\n");
+            sb.append("  MchKey: ").append(maskKey(config.getMchKey())).append("\n");
+            sb.append("  SignType: ").append(config.getSignType()).append("\n");
+            sb.append("  NotifyUrl: ").append(config.getNotifyUrl()).append("\n");
+            sb.append("  UseSandboxEnv: ").append(config.isUseSandboxEnv()).append("\n");
+
+            return sb.toString();
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+
+    private String maskKey(String key) {
+        if (key == null || key.length() <= 8) {
+            return "***";
+        }
+        return key.substring(0, 4) + "***" + key.substring(key.length() - 4);
+    }
 }
