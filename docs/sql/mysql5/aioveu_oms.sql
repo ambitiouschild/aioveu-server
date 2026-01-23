@@ -18,7 +18,9 @@ CREATE TABLE `oms_order`  (
                               `total_amount` bigint NOT NULL DEFAULT 0 COMMENT '订单总额（分）',
                               `total_quantity` int NOT NULL DEFAULT 0 COMMENT '商品总数',
                               `source` tinyint NULL DEFAULT NULL COMMENT '订单来源(1:APP；2:网页)',
-                              `status` int NOT NULL DEFAULT 101 COMMENT '订单状态：\r\n101->待付款；\r\n102->用户取消；\r\n103->系统取消；\r\n201->已付款；\r\n202->申请退款；\r\n203->已退款；\r\n301->待发货；\r\n401->已发货；\r\n501->用户收货；\r\n502->系统收货；\r\n901->已完成；',
+    -- 是的，这个状态设计太复杂了！有12种状态，而且数字编码不连续（101、102、103、201等），维护起来很困难。让我帮你简化并优化
+--                               `status` int NOT NULL DEFAULT 101 COMMENT '订单状态：\r\n101->待付款；\r\n102->用户取消；\r\n103->系统取消；\r\n201->已付款；\r\n202->申请退款；\r\n203->已退款；\r\n301->待发货；\r\n401->已发货；\r\n501->用户收货；\r\n502->系统收货；\r\n901->已完成；',
+                              `status` tinyint NOT NULL DEFAULT 1 COMMENT '订单状态：1-待付款；2-待发货；3-已发货；4-已完成；5-已关闭；6-已取消',
                               `remark` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '订单备注',
                               `member_id` bigint NOT NULL DEFAULT 0 COMMENT '会员id',
                               `coupon_id` bigint NOT NULL DEFAULT 0 COMMENT '使用的优惠券',
