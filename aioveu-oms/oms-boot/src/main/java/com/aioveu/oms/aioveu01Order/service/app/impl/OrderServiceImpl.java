@@ -12,6 +12,7 @@ import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
 import com.aioveu.oms.aioveu01Order.utils.OrderNoGenerator;
 import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
+import com.aioveu.oms.aioveu02OrderItem.mapper.OmsOrderItemMapper;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
 import com.aioveu.oms.config.MockPayService;
@@ -157,6 +158,8 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     // 订单项转换器
     private final OmsOrderItemConverter omsOrderItemConverter;
 
+    private final OmsOrderItemService omsOrderItemService;
+
 
     // 模拟支付服务
     @Autowired
@@ -179,8 +182,72 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
                 new Page<>(queryParams.getPageNum(), queryParams.getPageSize()),
                 queryParams);
 
-        log.info("将业务对象分页转换为前端展示的分页VO");
-        return omsOrderConverter.toVoPageForApp(boPage);
+        // 2. 如果订单不为空，查询商品
+        if (!CollectionUtils.isEmpty(boPage.getRecords())) {
+            // 收集订单ID
+            List<Long> orderIds = boPage.getRecords().stream()
+                    .map(OrderBO::getId)
+                    .collect(Collectors.toList());
+
+            // 批量查询商品
+            List<OmsOrderItem> allItems = omsOrderItemService.list(
+                    new LambdaQueryWrapper<OmsOrderItem>().in(OmsOrderItem::getOrderId, orderIds));
+
+            // 关键步骤：建立订单ID -> 商品列表的映射  OrderBO.OrderItem是内部类
+            Map<Long, List<OrderBO.OrderItem>> itemsByOrderId = allItems
+                    .stream()
+                    .map(item -> {
+                        OrderBO.OrderItem bo = new OrderBO.OrderItem();
+                        bo.setId(item.getId());
+                        bo.setOrderId(item.getOrderId());
+                        bo.setSkuId(item.getSkuId());
+                        bo.setSkuSn(item.getSkuSn());
+                        bo.setSkuName(item.getSkuName());
+                        bo.setSpuName(item.getSpuName());
+                        bo.setPicUrl(item.getPicUrl());
+                        bo.setPrice(item.getPrice());
+                        bo.setQuantity(item.getQuantity());
+                        bo.setTotalAmount(item.getTotalAmount());
+                        return bo;
+                    })
+                    .collect(Collectors.groupingBy(OrderBO.OrderItem::getOrderId));
+
+            // 3. 将商品设置到对应的订单中，并设置展示名
+            boPage.getRecords().forEach(order -> {
+                List<OrderBO.OrderItem> items = itemsByOrderId.getOrDefault(order.getId(),
+                        Collections.emptyList());
+
+                log.info("通过映射得到的商品各项: {}", items);
+                // 设置商品列表
+                order.setOrderItems(items);
+
+                log.info("前端展示的订单信息: {}", order);
+
+
+                // 设置订单展示名：取第一个商品的名称
+                if (!items.isEmpty()) {
+                    OrderBO.OrderItem firstItem = items.get(0);
+                    log.info("第一个商品详情: {}", firstItem);
+                    // 设置到订单的 spuName 字段
+                    order.setSpuName(firstItem.getSpuName());
+                    log.info("第一个商品spuName值: {}", firstItem.getSpuName());
+                    // 也可以设置第一个商品的图片
+                    order.setPicUrl(firstItem.getPicUrl());
+                    log.info("第一个商品picUrl值: {}", firstItem.getPicUrl());
+                } else {
+                    // 如果没有商品，设置默认值
+                    order.setSpuName("我的订单");
+                    order.setPicUrl("https://minio.aioveu.com/aioveu/20251128/9dc40c944d044c8d8ae37b14a35b8b83.png");
+                }
+            });
+        }
+
+
+        Page<OrderPageVO> orderPageVO=  omsOrderConverter.toVoPageForApp(boPage);
+        log.info("将业务对象分页转换为前端展示的分页VO:{}",orderPageVO);
+
+
+        return orderPageVO;
     }
 
     /**

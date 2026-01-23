@@ -4,6 +4,8 @@ import com.aioveu.common.base.BaseEntity;
 import com.aioveu.oms.aioveu01Order.enums.OrderSourceEnum;
 import com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum;
 import com.aioveu.oms.aioveu01Order.enums.PaymentMethodEnum;
+import com.aioveu.oms.aioveu02OrderItem.model.entity.OmsOrderItem;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -69,6 +71,15 @@ public class OrderBO extends BaseEntity {
 	 */
 	private String remark;
 
+	// 订单展示名：取第一个商品的名称
+	private String spuName;
+
+	/**
+	 * 订单展示图片：取第一个商品的图片
+	 */
+	private String picUrl;
+
+
 	/**
 	 * 订单商品明细列表
 	 */
@@ -93,6 +104,9 @@ public class OrderBO extends BaseEntity {
 		 * SKU编号
 		 */
 		private String skuSn;
+
+		@Schema(description="商品规格名称")
+		private String spuName;
 
 		/**
 		 * 商品名称

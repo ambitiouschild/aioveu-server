@@ -55,14 +55,35 @@ public class OrderPageVO {
     private String remark;
 
     @Schema(description="订单商品集合")
-    private List<OmsOrderPageVO.OrderItem> orderItems;
+    private List<OrderItem> orderItems;
+
+    @Schema(description="商品名称（取第一个商品的 spuName）")
+    // 确认是否有这两个字段
+    private String spuName;  // 商品展示名
+    private String picUrl;   // 商品展示图
 
     @Schema(description ="订单商品明细")
     @Data
     public static class OrderItem {
 
+
+        /**
+         * 订单ID
+         */
+        private Long orderId;
+
+
         @Schema(description="商品ID")
         private Long skuId;
+
+        /**
+         * SKU编号
+         */
+        private String skuSn;
+
+
+        // 商品信息
+        private String spuName;      // 商品名称
 
         @Schema(description="商品规格名称")
         private String skuName;

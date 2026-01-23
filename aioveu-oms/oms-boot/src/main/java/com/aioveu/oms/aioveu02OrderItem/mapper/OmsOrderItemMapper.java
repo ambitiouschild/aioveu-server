@@ -18,6 +18,7 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface OmsOrderItemMapper extends BaseMapper<OmsOrderItem> {
 
+
     /**
      * 获取订单商品信息分页数据
      *

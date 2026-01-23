@@ -4,15 +4,19 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.aioveu.oms.aioveu01Order.mapper.OmsOrderMapper">
 
-    <resultMap id="OrderMap" type="com.aioveu.oms.aioveu01Order.model.vo.OrderBO">
-        <collection property="orderItems"
-                    column="{orderId=id}"
-                    select="com.aioveu.oms.aioveu02OrderItem.mapper.OmsOrderItemMapper.getOrderItemsByOrderId">
-        </collection>
-    </resultMap>
+
+
+<!--    <resultMap id="OrderMap" type="com.aioveu.oms.aioveu01Order.model.vo.OrderBO">-->
+
+<!--        &lt;!&ndash; 商品列表（通过另一个查询获取） &ndash;&gt;-->
+<!--        <collection property="orderItems"-->
+<!--                    column="{orderId=id}"-->
+<!--                    select="com.aioveu.oms.aioveu02OrderItem.mapper.OmsOrderItemMapper.getOrderItemsByOrderId">-->
+<!--        </collection>-->
+<!--    </resultMap>-->
 
     <!-- 订单分页列表 -->
-    <select id="getOrderPage" resultMap="OrderMap">
+    <select id="getOrderPage" resultType="com.aioveu.oms.aioveu01Order.model.vo.OrderBO">
 
         SELECT
            t1.id,

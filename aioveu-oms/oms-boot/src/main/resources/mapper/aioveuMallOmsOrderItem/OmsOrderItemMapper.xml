@@ -4,11 +4,16 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.aioveu.oms.aioveu02OrderItem.mapper.OmsOrderItemMapper">
 
+<!--    查询存在N+1查询问题！每次查询订单列表都会为每个订单单独执行一次商品查询，这会导致性能问题。-->
+<!--    1. 先查询订单列表（1次查询）-->
+<!--    2. 为每个订单单独查询商品（N次查询，N=订单数量）-->
+<!--    修改 getOrderItemsByOrderId为批量查询-->
     <!-- 根据订单ID获取订单商品列表 -->
     <select id="getOrderItemsByOrderId" resultType="com.aioveu.oms.aioveu01Order.model.vo.OrderBO$OrderItem">
         SELECT
             id,
             order_id,
+            spu_name,
             sku_id,
             sku_sn,
             sku_name,
