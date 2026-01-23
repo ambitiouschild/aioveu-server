@@ -36,14 +36,31 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class WxPayProperties {
 
     /**
-     * 微信支付商户号
+     * 微信小程序AppId（必需）
+     */
+    private String appId;
+
+
+    /**
+     * 微信支付商户号(必需）
      */
     private String mchId;
 
     /**
-     * 微信支付商户密钥
+     * 微信支付商户密钥（必需）
      */
     private String mchKey;
+
+    /**
+     * 签名类型，默认MD5
+     */
+    private String signType = "MD5";
+
+    /**
+     * 支付结果通知URL（必需）
+     */
+    private String notifyUrl;
+
 
     /**
      * 服务商模式下的子商户公众账号ID，普通模式请不要配置，请在配置文件中将对应项删除
@@ -83,10 +100,10 @@ public class WxPayProperties {
     /**
      * 是否为沙盒环境
      */
-    private Boolean sandboxEnabled;
+    private Boolean sandboxEnabled = false;
 
     /**
-     * 支付通知url
+     * 支付通知url（兼容旧字段）
      */
     private String payNotifyUrl;
 

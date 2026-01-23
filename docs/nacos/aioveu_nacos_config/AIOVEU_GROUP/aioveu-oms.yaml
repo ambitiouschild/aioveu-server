@@ -94,3 +94,26 @@ knife4j:
   enable: false
   setting:
     language: zh_cn
+
+
+wx:
+  pay:
+    # 必需配置
+    app-id: wx1234567890abcdef      # 你的微信小程序AppId
+    mch-id: 1230000109               # 你的商户号
+    mch-key: your-mch-key-32-chars   # API密钥，32位
+    notify-url: https://your-domain.com/api/wxpay/notify
+
+    # 可选配置
+    sign-type: MD5                   # 签名类型：MD5 或 RSA
+    sandbox-enabled: false           # 是否使用沙箱环境
+
+    # 以下为可选证书配置（如果需要）
+    # key-path: classpath:/cert/apiclient_cert.p12
+    # private-key-path: classpath:/cert/apiclient_key.pem
+    # private-cert-path: classpath:/cert/apiclient_cert.pem
+    # api-v3-key: your-api-v3-key
+    # cert-serial-no: your-cert-serial-no
+
+    # 兼容字段
+    # pay-notify-url: https://your-domain.com/api/wxpay/notify
