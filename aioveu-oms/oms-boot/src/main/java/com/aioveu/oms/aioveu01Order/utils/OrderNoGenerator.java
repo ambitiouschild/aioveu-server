@@ -66,10 +66,10 @@ public class OrderNoGenerator {
         String date = LocalDate.now().format(FORMATTER);
 
         // 2. 用户ID部分（6位）
-        String memberPart = String.format("%06d", (memberId == null ? 0 : memberId) % 10000);
+        String memberPart = String.format("%06d", (memberId == null ? 0 : memberId) % 1000000);
 
         // 3. 随机数部分（4位）
-        String randomPart = String.format("%04d", ThreadLocalRandom.current().nextInt(1000000));
+        String randomPart = String.format("%04d", ThreadLocalRandom.current().nextInt(10000));
 
         return date + memberPart + randomPart;
     }
