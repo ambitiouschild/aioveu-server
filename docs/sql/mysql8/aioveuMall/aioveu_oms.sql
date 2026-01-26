@@ -18,7 +18,7 @@ CREATE TABLE `oms_order`  (
                               `total_amount` bigint NOT NULL DEFAULT 0 COMMENT '订单总额（分）',
                               `total_quantity` int NOT NULL DEFAULT 0 COMMENT '商品总数',
                               `source` tinyint NULL DEFAULT NULL COMMENT '订单来源(1:APP；2:网页)',
-                              `status` int NOT NULL DEFAULT 101 COMMENT '订单状态：\r\n101->待付款；\r\n102->用户取消；\r\n103->系统取消；\r\n201->已付款；\r\n202->申请退款；\r\n203->已退款；\r\n301->待发货；\r\n401->已发货；\r\n501->用户收货；\r\n502->系统收货；\r\n901->已完成；',
+                              `status` int NOT NULL DEFAULT 101 COMMENT '订单状态：\r\n1->待付款；\r\n2->待发货；\r\n3->已发货；\r\n4->已完成；',
                               `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '订单备注',
                               `member_id` bigint NOT NULL DEFAULT 0 COMMENT '会员id',
                               `coupon_id` bigint NOT NULL DEFAULT 0 COMMENT '使用的优惠券',
