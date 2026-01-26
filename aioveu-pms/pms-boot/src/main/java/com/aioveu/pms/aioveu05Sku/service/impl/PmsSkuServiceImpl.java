@@ -159,7 +159,16 @@ public class PmsSkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> impleme
             SkuInfoDTO skuInfo = pmsSkuConverter.entity2SkuInfoDto(pmsSku);
             log.info("转换器转化为 skuInfo {}", skuInfo);
 
-            log.info("成功获取SKU信息，skuId: {}, skuName: {}", skuId, skuInfo.getSkuName());
+            // 使用LambdaWrapper查询
+            LambdaQueryWrapper<PmsSpu> querySpuWrapper = new LambdaQueryWrapper<>();
+            querySpuWrapper.eq(PmsSpu::getId, pmsSku.getSpuId());
+
+            PmsSpu pmsSpu = pmsSpuService.getOne(querySpuWrapper);
+
+//            设置商品信息
+            skuInfo.setSpuName(pmsSpu.getName());
+
+            log.info("成功获取SKU信息，skuId: {}, spuName: {}, skuName: {}", skuId, skuInfo.getSpuName()  ,skuInfo.getSkuName());
 
             return skuInfo;
 
