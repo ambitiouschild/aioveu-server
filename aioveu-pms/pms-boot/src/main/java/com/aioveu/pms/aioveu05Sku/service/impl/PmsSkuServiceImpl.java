@@ -327,12 +327,14 @@ public class PmsSkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> impleme
             // 获取锁定库存，处理null值
             Integer lockedStock = sku.getLockedStock();
             if (lockedStock == null) {
+                sku.setLockedStock(0);
                 lockedStock = 0;
             }
 
             // 获取锁定库存，处理null值
             Integer stock = sku.getLockedStock();
             if (stock == null) {
+                sku.setStock(0);
                 stock = 0;
             }
 
