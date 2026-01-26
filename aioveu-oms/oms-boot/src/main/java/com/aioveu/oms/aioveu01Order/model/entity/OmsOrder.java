@@ -45,7 +45,7 @@ public class OmsOrder extends BaseEntity {
 	private Integer source;
 
 	/**
-	 * 订单状态(1-待付款;2-待发货;3-已发货;4-已完成;5-已关闭;6-已取消;)
+	 * 订单状态(1-待付款;2-待发货;3-已发货;4-已完成;)
 	 */
 	private Integer status;
 	/**

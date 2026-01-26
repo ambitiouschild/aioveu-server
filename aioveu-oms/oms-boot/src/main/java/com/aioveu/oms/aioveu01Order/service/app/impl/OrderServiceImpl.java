@@ -1130,7 +1130,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         if (success) {
             // 支付成功，更新订单状态
             this.update(new LambdaUpdateWrapper<OmsOrder>()
-                    .set(OmsOrder::getStatus, 1)  // 1=已支付
+                    .set(OmsOrder::getStatus, 2)  // 2=待发货
                     .set(OmsOrder::getPaymentMethod, paymentMethod.getValue())
                     .set(OmsOrder::getPaymentTime, new Date())
                     .eq(OmsOrder::getOrderSn, orderSn));
