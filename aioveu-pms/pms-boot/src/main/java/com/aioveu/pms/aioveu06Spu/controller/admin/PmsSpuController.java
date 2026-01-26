@@ -49,6 +49,22 @@ public class PmsSpuController {
         return PageResult.success(result);
     }
 
+    /**
+     * 根据分类ID分页查询商品列表
+     *
+     * @param queryParams 查询参数
+     * @return 商品分页列表
+     */
+    @Operation(summary = "根据分类ID获取商品列表")
+    @GetMapping("/list-by-category")
+    @PreAuthorize("@ss.hasPerm('aioveuMallPmsSpu:pms-spu:query')")
+    public PageResult<PmsSpuVO> getSpuListByCategory(PmsSpuQuery queryParams ) {
+        IPage<PmsSpuVO> result = pmsSpuService.getSpuListByCategory(queryParams);
+        return PageResult.success(result);
+    }
+
+
+
 
     @Operation(summary = "商品详情")
     @GetMapping("/{id}/detail")
@@ -83,15 +99,17 @@ public class PmsSpuController {
         return Result.success(formData);
     }
 
-//    @Operation(summary = "修改商品")
-//    @PutMapping(value = "/{id}")
-//    public Result updateSpuById(
-//            @Parameter(name = "商品ID") @PathVariable Long id,
-//            @RequestBody PmsSpuForm formData
-//    ) {
-//        boolean result = pmsSpuService.updateSpuById(id, formData);
-//        return Result.judge(result);
-//    }
+    @Operation(summary = "修改商品")
+    @PutMapping(value = "/admin/{id}")
+    public Result updateSpuById(
+            @Parameter(name = "商品ID") @PathVariable Long id,
+            @RequestBody PmsSpuForm formData
+    ) {
+
+        formData.setId(id);
+        boolean result = pmsSpuService.updateSpuById(id,formData);
+        return Result.judge(result);
+    }
 
     @Operation(summary = "修改商品")
     @PutMapping(value = "/{id}")

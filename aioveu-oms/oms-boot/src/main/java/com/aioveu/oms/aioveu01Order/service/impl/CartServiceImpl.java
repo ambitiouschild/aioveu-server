@@ -195,9 +195,9 @@ public class CartServiceImpl implements CartService {
 
 
             //把购物车里的购物车所有对象全部取出
-            log.info("获取Hash中所有的值（即所有购物车商品）");
-            List<CartItemDto> cartItems = cartHashOperations.values();
 
+            List<CartItemDto> cartItems = cartHashOperations.values();
+            log.info("获取Hash中所有的值（即所有购物车商品）：{}",cartItems);
             return cartItems;
         }
         log.info("用户ID为空时返回空列表，避免空指针异常");

@@ -29,6 +29,7 @@ import com.aioveu.pms.aioveu06Spu.service.PmsSpuService;
 import com.aioveu.ums.api.MemberFeignClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -296,7 +297,7 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
 
         log.info("拷贝基本信息，单独处理相册字段");
         BeanUtil.copyProperties(entity, pmsSpuDetailVO, "album");
-        pmsSpuDetailVO.setSubPicUrls(entity.getAlbum());
+        pmsSpuDetailVO.setAlbum(entity.getAlbum());
 
         // 商品属性列表
         log.info("查询商品属性列表");
@@ -332,6 +333,11 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
     @Override
     @Transactional
     public boolean addSpu(PmsSpuForm formData) {
+
+        log.info("=== 开始保存/更新商品（addSpu）===");
+
+        log.info("商品ID: {}", formData.getId());
+
 
         log.info("1. 转换表单数据为实体并保存商品基本信息");
         PmsSpu entity = pmsSpuConverter.form2Entity(formData);
@@ -774,6 +780,29 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
         );
         return pageVO;
     }
+
+
+    /**
+     * 根据分类ID分页查询商品列表
+     *
+     * @return {@link IPage<PmsSpuVO>} 根据分类ID分页查询商品列表
+     */
+    @Override
+    public IPage<PmsSpuVO> getSpuListByCategory(PmsSpuQuery queryParams) {
+        log.info("【商品列表】开始查询分类ID: {} 下的商品", queryParams.getCategoryId());
+
+
+        // 2. 调用自定义Mapper
+        Page<PmsSpuVO> pageVO = this.baseMapper.getPmsSpuPage(
+                new Page<>(queryParams.getPageNum(), queryParams.getPageSize()),
+                queryParams
+        );
+
+        log.info("【商品列表】查询完成，分类ID: {}，总数: {}", queryParams.getCategoryId(), pageVO.getTotal());
+
+        return pageVO;
+    }
+
 
     /**
      * 获取商品表单数据

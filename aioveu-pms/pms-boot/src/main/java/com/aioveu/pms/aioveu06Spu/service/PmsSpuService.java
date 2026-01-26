@@ -94,6 +94,15 @@ public interface PmsSpuService extends IService<PmsSpu> {
      */
     IPage<PmsSpuVO> getPmsSpuPage(PmsSpuQuery queryParams);
 
+
+    /**
+     * 根据分类ID分页查询商品列表
+     *
+     * @return {@link IPage<PmsSpuVO>} 根据分类ID分页查询商品列表
+     */
+    IPage<PmsSpuVO> getSpuListByCategory(PmsSpuQuery queryParams);
+
+
     /**
      * 获取商品表单数据
      *

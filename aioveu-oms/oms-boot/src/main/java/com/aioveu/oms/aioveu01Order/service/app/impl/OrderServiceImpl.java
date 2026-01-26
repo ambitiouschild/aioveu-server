@@ -865,6 +865,8 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
                     orderItem.setOrderId(orderId);
 //                    orderItem.setOrderSn(OrderNoGenerator.generateOrderNo(null)); // 临时订单号
                     orderItem.setSpuName(item.getSpuName());
+
+                    log.info("订单商品提交项的商品名：{}",item.getSpuName());
                     orderItem.setSkuId(item.getSkuId());
                     orderItem.setSkuName(item.getSkuName());
 
