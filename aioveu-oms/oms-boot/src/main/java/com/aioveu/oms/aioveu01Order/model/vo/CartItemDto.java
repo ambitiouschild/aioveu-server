@@ -30,6 +30,11 @@ public class CartItemDto implements Serializable {
     /**
      * 商品名称
      */
+    private String spuName;
+
+    /**
+     * 商品名称
+     */
     private String skuName;
 
     /**

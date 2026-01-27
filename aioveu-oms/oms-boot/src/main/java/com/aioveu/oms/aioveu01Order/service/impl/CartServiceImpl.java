@@ -95,13 +95,13 @@ public class CartServiceImpl implements CartService {
                 return Collections.emptyList();
             }
             // 取出购物车里所有的商品id
-            log.info("取出购物车里所有的商品id");
+
             // 使用Stream API进行数据处理：
             // 1. map(CartItemDto::getSkuId)：从CartItemDto中提取skuId
             // 2. distinct()：去重，避免重复查询同一商品
             // 3. toList()：转换为List集合
             List<Long> skuIds = cartItems.stream().map(CartItemDto::getSkuId).distinct().toList();
-
+            log.info("取出购物车里所有的商品id:{}",skuIds);
             //把这些商品信息全部查询出来，为了获取到最新的商品名称也好，商品价格也好 反正我现在是要获取到购物车里的所有商品的最新信息
             log.info("把这些商品信息全部查询出来，为了获取到最新的商品名称也好，商品价格也好 反正我现在是要获取到购物车里的所有商品的最新信息");
             // 通过Feign客户端批量调用商品服务，获取所有商品的最新信息
@@ -109,6 +109,8 @@ public class CartServiceImpl implements CartService {
             // 1. 避免多次网络请求（N+1查询问题）
             // 2. 确保显示的商品信息（价格、名称等）是最新的
             List<SkuInfoDTO> skuInfoList = skuFeignService.getSkuInfoList(skuIds);
+            log.info("商品信息（价格、名称等）:{}",skuInfoList);
+
 
             //把skuInfoList转为Map。key是id value是SkuInfoDTO
             log.info("将商品列表转换为Map结构，提高后续查找效率");
@@ -156,6 +158,7 @@ public class CartServiceImpl implements CartService {
                 log.info("优化后的代码：使用Map查找，时间复杂度O(1) - 这就是\"LeetCode 第一题\"的优化思想");
                 SkuInfoDTO skuInfoDTO = skuInfoMap.get(cartItem.getSkuId());
 
+                log.info("查找到的skuInfoDTO：{}",skuInfoDTO);
                 // TODO: 需要处理skuInfoDTO可能为null的情况（NPE问题）
                 //TODO  skuInfoDTO  NPE 的问题
                 log.info("设置商品详细信息到VO对象中");
