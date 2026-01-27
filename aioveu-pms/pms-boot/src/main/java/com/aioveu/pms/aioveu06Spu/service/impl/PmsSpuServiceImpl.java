@@ -611,7 +611,7 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
      * @param attrList 商品属性表单列表
      * @return boolean 操作是否成功
      */
-    private boolean saveSpuAttrs(Long spuId, List<PmsSpuAttributeForm> attrList) {
+    private boolean  saveSpuAttrs(Long spuId, List<PmsSpuAttributeForm> attrList) {
 
         // 1. 【删除】此次提交移除的商品规格
         log.info("1. 删除此次提交移除的商品属性");
