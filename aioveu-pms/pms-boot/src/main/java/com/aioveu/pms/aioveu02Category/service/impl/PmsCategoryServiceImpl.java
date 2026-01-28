@@ -91,7 +91,8 @@ public class PmsCategoryServiceImpl extends ServiceImpl<PmsCategoryMapper, PmsCa
         log.info("查询完整分类树，忽略parentId参数: {}", parentId);
         List<PmsCategory> categoryList = this.list(
                 new LambdaQueryWrapper<PmsCategory>()
-                        .eq(PmsCategory::getVisible, GlobalConstants.STATUS_YES)   // 只查询可见的分类
+                        //查询所有分类
+//                        .eq(PmsCategory::getVisible, GlobalConstants.STATUS_YES)   // 只查询可见的分类
                         //您的 getCategoryList方法无论传入什么 parentId，都查询了所有可见分类，然后通过内存递归构建树。
                         .orderByDesc(PmsCategory::getSort)    // 按排序字段降序排列
         );

@@ -40,7 +40,7 @@ public class PmsCategoryController {
 
     private final PmsCategoryService pmsCategoryService;
 
-    @Operation(summary = "商品分类列表")
+    @Operation(summary = "商品分类树形列表")
     @GetMapping("/categories")
     public Result<List<CategoryVO>> getCategoryList() {
         List<CategoryVO> list = pmsCategoryService.getCategoryList(null);
