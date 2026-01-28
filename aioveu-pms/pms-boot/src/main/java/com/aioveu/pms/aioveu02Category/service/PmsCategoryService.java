@@ -32,6 +32,14 @@ public interface PmsCategoryService extends IService<PmsCategory> {
     List<CategoryVO> getCategoryList(Long parentId);
 
     /**
+     * 分类列表（树形）
+     *
+     * @param parentId
+     * @return
+     */
+    List<CategoryVO> getCategoryListForApp(Long parentId);
+
+    /**
      * 分类列表（级联）
      * @return
      */
