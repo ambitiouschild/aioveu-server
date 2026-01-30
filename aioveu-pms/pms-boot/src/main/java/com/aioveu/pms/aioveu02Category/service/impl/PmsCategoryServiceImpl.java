@@ -196,7 +196,8 @@ public class PmsCategoryServiceImpl extends ServiceImpl<PmsCategoryMapper, PmsCa
         List<PmsCategory> categoryList = this.list(
                 new LambdaQueryWrapper<PmsCategory>()
                         .eq(PmsCategory::getVisible, GlobalConstants.STATUS_YES)   // 只查询可见的分类
-                        .orderByAsc(PmsCategory::getSort)   // 按排序字段升序排列
+//                        .orderByAsc(PmsCategory::getSort)   // 按排序字段升序排列
+                        .orderByDesc(PmsCategory::getSort)   // 按排序字段降序排列
         );
 
         log.info("递归构建级联选择器格式的数据结构");
