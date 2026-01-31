@@ -23,6 +23,9 @@
         <module>aioveu-ums</module>
 
         <module>aioveu-lss</module>
+        <module>aioveu-pay</module>
+        <module>aioveu-refund</module>
+        
     </modules>
 
     <parent>

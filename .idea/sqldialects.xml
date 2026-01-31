@@ -12,8 +12,8 @@
     <file url="file://$PROJECT_DIR$/docs/sql/mysql8/aioveuMall/aioveu_system.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/docs/sql/mysql8/aioveuMall/aioveu_ums.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/docs/sql/mysql8/aioveuMall/aioveu_xxl_job.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/aioveuMallLss/aioveu_Mall_Lss.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/aioveuMallLss/aioveu_Mall_Lss_Pms.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/aioveuMallLss/aioveu_oms_Codegen.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/aioveuMallLss/10.aioveu_Mall_Lss_refund.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/aioveuMallLss/4.aioveu_Mall_Lss_lss.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/aioveuMallLss/7.aioveu_Mall_Lss_oms_Codegen.sql" dialect="MySQL" />
   </component>
 </project>

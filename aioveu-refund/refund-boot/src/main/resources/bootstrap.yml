@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: aioveu-refund
+  profiles:
+    active: dev

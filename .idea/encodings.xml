@@ -23,10 +23,15 @@
     <file url="file://$PROJECT_DIR$/aioveu-oms/oms-boot/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-oms/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-oms/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/aioveu-pay/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-pms/pms-api/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-pms/pms-boot/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-pms/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-pms/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/aioveu-refund/refund-api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/aioveu-refund/refund-boot/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/aioveu-refund/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/aioveu-refund/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-sms/sms-api/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-sms/sms-boot/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-sms/src/main/java" charset="UTF-8" />
