@@ -1,5 +1,7 @@
 package com.aioveu.gateway.controller;
 
+import com.aioveu.common.annotation.Log;
+import com.aioveu.common.enums.LogModuleEnum;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,6 +21,7 @@ import reactor.core.publisher.Mono;
 public class GatewayTestController {
 
     @GetMapping("/ping")
+    @Log(value = "网关测试", module = LogModuleEnum.GATEWAY)
     public Mono<String> ping() {
         return Mono.just("Gateway is working at " + System.currentTimeMillis());
     }

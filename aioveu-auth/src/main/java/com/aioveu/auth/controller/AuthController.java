@@ -2,6 +2,8 @@ package com.aioveu.auth.controller;
 
 import com.aioveu.auth.model.CaptchaResult;
 import com.aioveu.auth.service.AuthService;
+import com.aioveu.common.annotation.Log;
+import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -41,6 +43,7 @@ public class AuthController {
      */
     @Operation(summary = "获取验证码")  // Swagger注解，在API文档中显示接口摘要描述
     @GetMapping("/captcha")  // 处理HTTP GET请求，完整路径为/api/v1/auth/captcha
+    @Log(value = "获取验证码", module = LogModuleEnum.AUTH)
     public Result<CaptchaResult> getCaptcha() {
 
         // 调用服务层生成验证码，包含图片和验证码信息

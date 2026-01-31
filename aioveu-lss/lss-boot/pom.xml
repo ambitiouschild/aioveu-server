@@ -122,6 +122,9 @@
             <artifactId>common-sms</artifactId>
         </dependency>
 
+        <!-- 普通 Web 服务的依赖 -->
+<!--        Spring Boot Web 应用默认使用 Tomcat-->
+<!--        普通微服务使用 Tomcat-->
         <!-- 单元测试 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -25,6 +25,8 @@
         </dependency>
 
         <!-- Spring Cloud Gateway -->
+        <!-- 网关会自动包含 Netty，不包含 Tomcat -->
+<!--        Spring Cloud Gateway 是基于 Reactive 响应式编程 的，它必须使用 Netty 作为服务器-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway</artifactId>

@@ -27,10 +27,17 @@ public enum LogModuleEnum {
     SETTING("系统配置"),
     OTHER("其他"),
 
+    AUTH("认证服务"),
+
+    GATEWAY("网关服务"),
+
     OMS("订单服务"),
     PMS("商品服务"),
     SMS("营销服务"),
-    UMS("会员服务");
+    UMS("会员服务"),
+
+    PAY("支付服务"),
+    REFUND("退款服务");
 
 
 
