@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.refund.aioveu03RefundDelivery.mapper.RefundDeliveryMapper">
+
+    <!-- 获取退款物流信息（用于退货）分页列表 -->
+    <select id="getRefundDeliveryPage" resultType="com.aioveu.refund.aioveu03RefundDelivery.model.vo.RefundDeliveryVO">
+        SELECT
+                id,
+                refund_id,
+                delivery_type,
+                delivery_company,
+                delivery_sn,
+                receiver_name,
+                receiver_phone,
+                receiver_address,
+                delivery_time,
+                receive_time,
+                create_time,
+                update_time,
+                deleted
+        FROM
+            refund_delivery
+        <where>
+            <if test="queryParams.refundId != null">
+                AND refund_id LIKE CONCAT(#{queryParams.refundId}, '%')
+            </if>
+            <if test="queryParams.deliveryType != null">
+                AND delivery_type LIKE CONCAT(#{queryParams.deliveryType}, '%')
+            </if>
+            <if test="queryParams.deliveryCompany != null and queryParams.deliveryCompany != ''">
+                AND delivery_company LIKE CONCAT(#{queryParams.deliveryCompany}, '%')
+            </if>
+            <if test="queryParams.deliverySn != null and queryParams.deliverySn != ''">
+                AND delivery_sn LIKE CONCAT(#{queryParams.deliverySn}, '%')
+            </if>
+            <if test="queryParams.receiverName != null and queryParams.receiverName != ''">
+                AND receiver_name LIKE CONCAT(#{queryParams.receiverName}, '%')
+            </if>
+            <if test="queryParams.receiverPhone != null and queryParams.receiverPhone != ''">
+                AND receiver_phone LIKE CONCAT(#{queryParams.receiverPhone}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.refund.aioveu02RefundItem.mapper.RefundItemMapper">
+
+    <!-- 获取退款商品明细分页列表 -->
+    <select id="getRefundItemPage" resultType="com.aioveu.refund.aioveu02RefundItem.model.vo.RefundItemVO">
+        SELECT
+                id,
+                refund_id,
+                refund_type,
+                order_item_id,
+                spu_id,
+                spu_name,
+                sku_id,
+                sku_name,
+                pic_url,
+                price,
+                quantity,
+                refund_amount,
+                refund_reason,
+                create_time,
+                update_time,
+                deleted
+        FROM
+            refund_item
+        <where>
+            <if test="queryParams.refundId != null">
+                AND refund_id LIKE CONCAT(#{queryParams.refundId}, '%')
+            </if>
+            <if test="queryParams.refundType != null">
+                AND refund_type LIKE CONCAT(#{queryParams.refundType}, '%')
+            </if>
+            <if test="queryParams.orderItemId != null">
+                AND order_item_id LIKE CONCAT(#{queryParams.orderItemId}, '%')
+            </if>
+            <if test="queryParams.spuId != null">
+                AND spu_id LIKE CONCAT(#{queryParams.spuId}, '%')
+            </if>
+            <if test="queryParams.spuName != null and queryParams.spuName != ''">
+                AND spu_name LIKE CONCAT(#{queryParams.spuName}, '%')
+            </if>
+            <if test="queryParams.skuId != null">
+                AND sku_id LIKE CONCAT(#{queryParams.skuId}, '%')
+            </if>
+            <if test="queryParams.skuName != null and queryParams.skuName != ''">
+                AND sku_name LIKE CONCAT(#{queryParams.skuName}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

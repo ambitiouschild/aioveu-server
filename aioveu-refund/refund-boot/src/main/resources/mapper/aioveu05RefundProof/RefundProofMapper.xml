@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.refund.aioveu05RefundProof.mapper.RefundProofMapper">
+
+    <!-- 获取退款凭证图片分页列表 -->
+    <select id="getRefundProofPage" resultType="com.aioveu.refund.aioveu05RefundProof.model.vo.RefundProofVO">
+        SELECT
+                id,
+                refund_id,
+                proof_type,
+                image_url,
+                image_desc,
+                create_time,
+                deleted
+        FROM
+            refund_proof
+        <where>
+            <if test="queryParams.refundId != null">
+                AND refund_id LIKE CONCAT(#{queryParams.refundId}, '%')
+            </if>
+            <if test="queryParams.proofType != null">
+                AND proof_type LIKE CONCAT(#{queryParams.proofType}, '%')
+            </if>
+            <if test="queryParams.imageDesc != null and queryParams.imageDesc != ''">
+                AND image_desc LIKE CONCAT(#{queryParams.imageDesc}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.refund.aioveu01RefundOrder.mapper.RefundOrderMapper">
+
+    <!-- 获取订单退款申请分页列表 -->
+    <select id="getRefundOrderPage" resultType="com.aioveu.refund.aioveu01RefundOrder.model.vo.RefundOrderVO">
+        SELECT
+                id,
+                order_id,
+                order_sn,
+                refund_sn,
+                user_id,
+                refund_type,
+                refund_reason,
+                description,
+                proof_images,
+                refund_amount,
+                actual_refund_amount,
+                status,
+                handle_note,
+                handle_by,
+                handle_time,
+                create_time,
+                update_time,
+                deleted,
+                version
+        FROM
+            refund_order
+        <where>
+            <if test="queryParams.orderId != null">
+                AND order_id LIKE CONCAT(#{queryParams.orderId}, '%')
+            </if>
+            <if test="queryParams.orderSn != null and queryParams.orderSn != ''">
+                AND order_sn LIKE CONCAT(#{queryParams.orderSn}, '%')
+            </if>
+            <if test="queryParams.refundSn != null and queryParams.refundSn != ''">
+                AND refund_sn LIKE CONCAT(#{queryParams.refundSn}, '%')
+            </if>
+            <if test="queryParams.userId != null">
+                AND user_id LIKE CONCAT(#{queryParams.userId}, '%')
+            </if>
+            <if test="queryParams.refundType != null">
+                AND refund_type LIKE CONCAT(#{queryParams.refundType}, '%')
+            </if>
+            <if test="queryParams.status != null">
+                AND status = #{queryParams.status}
+            </if>
+        </where>
+    </select>
+
+</mapper>

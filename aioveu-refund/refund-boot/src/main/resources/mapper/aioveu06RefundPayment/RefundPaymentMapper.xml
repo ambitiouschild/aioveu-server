@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.refund.aioveu06RefundPayment.mapper.RefundPaymentMapper">
+
+    <!-- 获取退款支付记录分页列表 -->
+    <select id="getRefundPaymentPage" resultType="com.aioveu.refund.aioveu06RefundPayment.model.vo.RefundPaymentVO">
+        SELECT
+                id,
+                refund_id,
+                payment_sn,
+                payment_type,
+                payment_amount,
+                payment_status,
+                payment_time,
+                payment_channel,
+                payment_trade_no,
+                payment_fee,
+                remark,
+                create_time,
+                update_time
+        FROM
+            refund_payment
+        <where>
+            <if test="queryParams.refundId != null">
+                AND refund_id LIKE CONCAT(#{queryParams.refundId}, '%')
+            </if>
+            <if test="queryParams.paymentSn != null and queryParams.paymentSn != ''">
+                AND payment_sn LIKE CONCAT(#{queryParams.paymentSn}, '%')
+            </if>
+            <if test="queryParams.paymentType != null">
+                AND payment_type LIKE CONCAT(#{queryParams.paymentType}, '%')
+            </if>
+            <if test="queryParams.paymentStatus != null">
+                AND payment_status LIKE CONCAT(#{queryParams.paymentStatus}, '%')
+            </if>
+            <if test="queryParams.paymentChannel != null and queryParams.paymentChannel != ''">
+                AND payment_channel LIKE CONCAT(#{queryParams.paymentChannel}, '%')
+            </if>
+            <if test="queryParams.paymentTradeNo != null and queryParams.paymentTradeNo != ''">
+                AND payment_trade_no LIKE CONCAT(#{queryParams.paymentTradeNo}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

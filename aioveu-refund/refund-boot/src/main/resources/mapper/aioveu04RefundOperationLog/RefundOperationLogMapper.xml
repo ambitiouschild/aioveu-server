@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.refund.aioveu04RefundOperationLog.mapper.RefundOperationLogMapper">
+
+    <!-- 获取退款操作记录（用于审计）分页列表 -->
+    <select id="getRefundOperationLogPage" resultType="com.aioveu.refund.aioveu04RefundOperationLog.model.vo.RefundOperationLogVO">
+        SELECT
+                id,
+                refund_id,
+                operation_type,
+                operation_content,
+                operator_id,
+                operator_name,
+                operator_type,
+                before_status,
+                after_status,
+                remark,
+                create_time
+        FROM
+            refund_operation_log
+        <where>
+            <if test="queryParams.refundId != null">
+                AND refund_id LIKE CONCAT(#{queryParams.refundId}, '%')
+            </if>
+            <if test="queryParams.operationType != null">
+                AND operation_type LIKE CONCAT(#{queryParams.operationType}, '%')
+            </if>
+            <if test="queryParams.operatorId != null">
+                AND operator_id LIKE CONCAT(#{queryParams.operatorId}, '%')
+            </if>
+            <if test="queryParams.operatorName != null and queryParams.operatorName != ''">
+                AND operator_name LIKE CONCAT(#{queryParams.operatorName}, '%')
+            </if>
+            <if test="queryParams.operatorType != null">
+                AND operator_type LIKE CONCAT(#{queryParams.operatorType}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

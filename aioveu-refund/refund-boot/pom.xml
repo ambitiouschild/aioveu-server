@@ -89,6 +89,8 @@
             <artifactId>common-security</artifactId>
         </dependency>
 
+
+<!--        如果确定不需要分布式事务，在 pom.xml 中移除 Seata 依赖-->
         <dependency>
             <groupId>com.aioveu</groupId>
             <artifactId>common-seata</artifactId>

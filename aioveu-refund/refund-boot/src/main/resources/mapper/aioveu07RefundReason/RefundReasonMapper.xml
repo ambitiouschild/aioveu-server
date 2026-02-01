@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.refund.aioveu07RefundReason.mapper.RefundReasonMapper">
+
+    <!-- 获取退款原因分类分页列表 -->
+    <select id="getRefundReasonPage" resultType="com.aioveu.refund.aioveu07RefundReason.model.vo.RefundReasonVO">
+        SELECT
+                id,
+                reason_type,
+                reason_content,
+                sort,
+                status,
+                create_time,
+                update_time
+        FROM
+            refund_reason
+        <where>
+            <if test="queryParams.reasonType != null">
+                AND reason_type LIKE CONCAT(#{queryParams.reasonType}, '%')
+            </if>
+            <if test="queryParams.reasonContent != null and queryParams.reasonContent != ''">
+                AND reason_content LIKE CONCAT(#{queryParams.reasonContent}, '%')
+            </if>
+            <if test="queryParams.status != null">
+                AND status LIKE CONCAT(#{queryParams.status}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
