@@ -1,6 +1,7 @@
 package com.aioveu.refund.aioveu01RefundOrder.service;
 
 import com.aioveu.refund.aioveu01RefundOrder.model.entity.RefundOrder;
+import com.aioveu.refund.aioveu01RefundOrder.model.form.RefundApplyFormDTO;
 import com.aioveu.refund.aioveu01RefundOrder.model.form.RefundOrderForm;
 import com.aioveu.refund.aioveu01RefundOrder.model.query.RefundOrderQuery;
 import com.aioveu.refund.aioveu01RefundOrder.model.vo.RefundOrderVO;
@@ -32,6 +33,16 @@ public interface RefundOrderService extends IService<RefundOrder> {
      */
     RefundOrderForm getRefundOrderFormData(Long id);
 
+
+    /**
+     * 获取订单退款申请表单数据
+     *
+     * @param refundSn 退款单号
+     * @return 订单退款申请表单数据
+     */
+    RefundOrder getRefundOrderEntityByRefundSn(String refundSn);
+
+
     /**
      * 新增订单退款申请
      *
@@ -39,6 +50,16 @@ public interface RefundOrderService extends IService<RefundOrder> {
      * @return 是否新增成功
      */
     boolean saveRefundOrder(RefundOrderForm formData);
+
+    /**
+     * 新增订单退款申请
+     *
+     * @param formData 订单退款申请表单对象
+     * @return 订单退款申请实体
+     */
+    RefundOrder createRefundOrder(RefundApplyFormDTO formData);
+
+
 
     /**
      * 修改订单退款申请

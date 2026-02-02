@@ -9,14 +9,17 @@ import com.aioveu.refund.aioveu02RefundItem.model.form.RefundItemForm;
 import com.aioveu.refund.aioveu02RefundItem.model.query.RefundItemQuery;
 import com.aioveu.refund.aioveu02RefundItem.model.vo.RefundItemVO;
 import com.aioveu.refund.aioveu02RefundItem.service.RefundItemService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: RefundItemServiceImpl
@@ -27,12 +30,15 @@ import java.util.List;
  * @Version 1.0
  **/
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RefundItemServiceImpl extends ServiceImpl<RefundItemMapper, RefundItem> implements RefundItemService {
 
     private final RefundItemConverter refundItemConverter;
 
+
+    //-----------------------------------查---------------------------------------------
     /**
      * 获取退款商品明细分页列表
      *
@@ -61,6 +67,24 @@ public class RefundItemServiceImpl extends ServiceImpl<RefundItemMapper, RefundI
     }
 
     /**
+     * 获取退款商品明细实体List
+     *
+     * @param refundId 退款申请ID
+     * @return 退款商品明细表单数据
+     */
+    @Override
+    public List<RefundItem> getRefundItemEntityByRefundId(Long refundId) {
+        List<RefundItem> items  = this.list(new LambdaQueryWrapper<RefundItem>()
+                .eq(RefundItem::getRefundId, refundId)
+        );
+
+        log.info("获取退款商品明细实体List:{}",items);
+
+        return items;
+    }
+
+    //-----------------------------------增---------------------------------------------
+    /**
      * 新增退款商品明细
      *
      * @param formData 退款商品明细表单对象
@@ -72,6 +96,36 @@ public class RefundItemServiceImpl extends ServiceImpl<RefundItemMapper, RefundI
         return this.save(entity);
     }
 
+    /**
+     * 保存退款商品明细
+     *
+     * @param items , refundOrderId
+     * @return 是否新增成功
+     */
+    @Override
+    public boolean saveRefundItems(List<RefundItem> items , Long refundId) {
+
+        List<RefundItem> refundItems = items.stream().map(itemDto -> {
+            RefundItem item = new RefundItem();
+            item.setRefundId(refundId);  //退款申请id
+            item.setSkuId(itemDto.getSkuId());
+            item.setSkuName(itemDto.getSkuName());
+            item.setPicUrl(itemDto.getPicUrl());
+            item.setPrice(itemDto.getPrice());
+            item.setQuantity(itemDto.getQuantity());
+            item.setRefundAmount(itemDto.getRefundAmount());
+            item.setRefundReason(itemDto.getRefundReason());
+            return item;
+        }).collect(Collectors.toList());
+
+        RefundItem item = new RefundItem();
+        this.save(item);
+
+        return this.save(item);
+    }
+
+
+    //-----------------------------------改---------------------------------------------
     /**
      * 更新退款商品明细
      *
@@ -85,6 +139,8 @@ public class RefundItemServiceImpl extends ServiceImpl<RefundItemMapper, RefundI
         return this.updateById(entity);
     }
 
+
+    //-----------------------------------删---------------------------------------------
     /**
      * 删除退款商品明细
      *

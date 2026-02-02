@@ -2,6 +2,7 @@ package com.aioveu.refund.aioveu05RefundProof.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.refund.aioveu02RefundItem.model.entity.RefundItem;
 import com.aioveu.refund.aioveu05RefundProof.converter.RefundProofConverter;
 import com.aioveu.refund.aioveu05RefundProof.mapper.RefundProofMapper;
 import com.aioveu.refund.aioveu05RefundProof.model.entity.RefundProof;
@@ -9,14 +10,17 @@ import com.aioveu.refund.aioveu05RefundProof.model.form.RefundProofForm;
 import com.aioveu.refund.aioveu05RefundProof.model.query.RefundProofQuery;
 import com.aioveu.refund.aioveu05RefundProof.model.vo.RefundProofVO;
 import com.aioveu.refund.aioveu05RefundProof.service.RefundProofService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: RefundProofServiceImpl
@@ -27,6 +31,7 @@ import java.util.List;
  * @Version 1.0
  **/
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RefundProofServiceImpl extends ServiceImpl<RefundProofMapper, RefundProof> implements RefundProofService {
@@ -61,6 +66,24 @@ public class RefundProofServiceImpl extends ServiceImpl<RefundProofMapper, Refun
     }
 
     /**
+     * 获取退款凭证图片实体List
+     *
+     * @param refundId 退款ID
+     * @return 退款凭证图片实体List
+     */
+    @Override
+    public List<RefundProof> getRefundProofEntityByRefundId(Long refundId) {
+        List<RefundProof> items  = this.list(new LambdaQueryWrapper<RefundProof>()
+                .eq(RefundProof::getRefundId, refundId)
+        );
+
+        log.info("获取退款凭证图片实体List:{}",items);
+
+        return items;
+    }
+
+
+    /**
      * 新增退款凭证图片
      *
      * @param formData 退款凭证图片表单对象
@@ -70,6 +93,28 @@ public class RefundProofServiceImpl extends ServiceImpl<RefundProofMapper, Refun
     public boolean saveRefundProof(RefundProofForm formData) {
         RefundProof entity = refundProofConverter.toEntity(formData);
         return this.save(entity);
+    }
+
+    /**
+     * 新增退款凭证图片
+     *
+     * @param proofImages 退款凭证图片表单对象
+     * @return 是否新增成功
+     */
+    @Override
+    public boolean saveRefundProofs(List<RefundProofForm> proofImages, Long refundId) {
+
+        List<RefundProof> proofs = proofImages.stream().map(url -> {
+            RefundProof proof = new RefundProof();
+            proof.setRefundId(refundId);
+            proof.setProofType(1); // 1-图片
+//            proof.setImageUrl(url);
+            return proof;
+        }).collect(Collectors.toList());
+
+        RefundProof proof = new RefundProof();
+
+        return this.save(proof);
     }
 
     /**

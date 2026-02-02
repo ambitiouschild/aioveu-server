@@ -7,6 +7,8 @@ import com.aioveu.refund.aioveu04RefundOperationLog.model.vo.RefundOperationLogV
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+
 /**
  * @ClassName: RefundOperationLogService
  * @Description TODO 退款操作记录（用于审计）服务类
@@ -32,6 +34,18 @@ public interface RefundOperationLogService extends IService<RefundOperationLog> 
      */
     RefundOperationLogForm getRefundOperationLogFormData(Long id);
 
+
+    /**
+     * 获取退款操作记录（用于审计）实体List
+     *
+     * @param refundId 退款ID
+     * @return 退款操作记录（用于审计）实体List
+     */
+    List<RefundOperationLog> getRefundOperationLogEntityByRefundId(Long refundId);
+
+
+
+
     /**
      * 新增退款操作记录（用于审计）
      *
@@ -39,6 +53,14 @@ public interface RefundOperationLogService extends IService<RefundOperationLog> 
      * @return 是否新增成功
      */
     boolean saveRefundOperationLog(RefundOperationLogForm formData);
+
+    /**
+     * 新增退款操作记录（用于审计）
+     *
+     * @param formData 退款操作记录（用于审计）表单对象
+     * @return 是否新增成功
+     */
+    boolean saveRefundOperationLogWithRefundId(RefundOperationLogForm formData,Long refundId);
 
     /**
      * 修改退款操作记录（用于审计）

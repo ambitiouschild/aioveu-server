@@ -1,6 +1,7 @@
 package com.aioveu.refund.aioveu03RefundDelivery.service;
 
 import com.aioveu.refund.aioveu03RefundDelivery.model.entity.RefundDelivery;
+import com.aioveu.refund.aioveu03RefundDelivery.model.form.ConfirmReceiveFormDTO;
 import com.aioveu.refund.aioveu03RefundDelivery.model.form.RefundDeliveryForm;
 import com.aioveu.refund.aioveu03RefundDelivery.model.query.RefundDeliveryQuery;
 import com.aioveu.refund.aioveu03RefundDelivery.model.vo.RefundDeliveryVO;
@@ -32,6 +33,15 @@ public interface RefundDeliveryService extends IService<RefundDelivery> {
      */
     RefundDeliveryForm getRefundDeliveryFormData(Long id);
 
+
+    /**
+     * 获取退款物流信息（用于退货）实体
+     *
+     * @param refundId 退款ID
+     * @return 退款物流信息（用于退货）实体
+     */
+    RefundDelivery getRefundDeliveryEntityByRefundId(Long refundId);
+
     /**
      * 新增退款物流信息（用于退货）
      *
@@ -39,6 +49,26 @@ public interface RefundDeliveryService extends IService<RefundDelivery> {
      * @return 是否新增成功
      */
     boolean saveRefundDelivery(RefundDeliveryForm formData);
+
+    /**
+     * 新增退款物流信息（用于退货）
+     *
+     * @param formData 退款物流信息（用于退货）表单对象
+     * @return 是否新增成功
+     */
+    RefundDelivery fillRefundDelivery(RefundDeliveryForm formData);
+
+
+
+
+    /**
+     * 新增退款物流信息（用于退货）
+     *
+     * @param formData 退款物流信息（用于退货）表单对象
+     * @return 是否新增成功
+     */
+    boolean createRefundDelivery(RefundDeliveryForm formData,Long refundId);
+
 
     /**
      * 修改退款物流信息（用于退货）
@@ -56,4 +86,14 @@ public interface RefundDeliveryService extends IService<RefundDelivery> {
      * @return 是否删除成功
      */
     boolean deleteRefundDeliverys(String ids);
+
+
+    /**
+     * 商家确认收货
+     *
+     * @param refundId   退款物流信息（用于退货）ID
+     * @param formData 退款物流信息（用于退货）表单对象
+     * @return 是否修改成功
+     */
+    boolean confirmReceive(Long refundId, ConfirmReceiveFormDTO formData);
 }

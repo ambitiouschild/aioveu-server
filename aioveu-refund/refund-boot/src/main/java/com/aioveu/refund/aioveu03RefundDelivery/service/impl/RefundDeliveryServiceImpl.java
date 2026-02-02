@@ -2,21 +2,30 @@ package com.aioveu.refund.aioveu03RefundDelivery.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.refund.aioveu01RefundOrder.model.entity.RefundOrder;
 import com.aioveu.refund.aioveu03RefundDelivery.converter.RefundDeliveryConverter;
+import com.aioveu.refund.aioveu03RefundDelivery.enums.DeliveryTypeEnum;
 import com.aioveu.refund.aioveu03RefundDelivery.mapper.RefundDeliveryMapper;
 import com.aioveu.refund.aioveu03RefundDelivery.model.entity.RefundDelivery;
+import com.aioveu.refund.aioveu03RefundDelivery.model.form.ConfirmReceiveFormDTO;
 import com.aioveu.refund.aioveu03RefundDelivery.model.form.RefundDeliveryForm;
 import com.aioveu.refund.aioveu03RefundDelivery.model.query.RefundDeliveryQuery;
 import com.aioveu.refund.aioveu03RefundDelivery.model.vo.RefundDeliveryVO;
 import com.aioveu.refund.aioveu03RefundDelivery.service.RefundDeliveryService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.formula.functions.Now;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+
+import static java.time.LocalDateTime.now;
 
 /**
  * @ClassName: RefundDeliveryServiceImpl
@@ -27,6 +36,7 @@ import java.util.List;
  * @Version 1.0
  **/
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RefundDeliveryServiceImpl extends ServiceImpl<RefundDeliveryMapper, RefundDelivery> implements RefundDeliveryService {
@@ -61,6 +71,24 @@ public class RefundDeliveryServiceImpl extends ServiceImpl<RefundDeliveryMapper,
     }
 
     /**
+     * 获取退款物流信息（用于退货）实体
+     *
+     * @param refundId 退款ID
+     * @return 退款物流信息（用于退货）实体
+     */
+    @Override
+    public RefundDelivery getRefundDeliveryEntityByRefundId(Long refundId) {
+        RefundDelivery refundDelivery = this.getOne(
+                new LambdaQueryWrapper<RefundDelivery>()
+                        .eq(RefundDelivery::getRefundId, refundId)
+        );
+
+        log.info("获取退款物流信息（用于退货）实体:{}",refundDelivery);
+
+        return refundDelivery;
+    }
+
+    /**
      * 新增退款物流信息（用于退货）
      *
      * @param formData 退款物流信息（用于退货）表单对象
@@ -70,6 +98,51 @@ public class RefundDeliveryServiceImpl extends ServiceImpl<RefundDeliveryMapper,
     public boolean saveRefundDelivery(RefundDeliveryForm formData) {
         RefundDelivery entity = refundDeliveryConverter.toEntity(formData);
         return this.save(entity);
+    }
+
+
+    /**
+     * 新增退款物流信息（用于退货）
+     *
+     * @param formData 退款物流信息（用于退货）表单对象
+     * @return 是否新增成功
+     */
+    @Override
+    public RefundDelivery fillRefundDelivery(RefundDeliveryForm formData) {
+
+        Long refundId = formData.getRefundId();
+        RefundDelivery delivery = this.getById(refundId);
+        delivery.setDeliveryType(DeliveryTypeEnum.Buyer_ships.getValue()); //买家发货
+        delivery.setDeliveryCompany(formData.getDeliveryCompany());
+        delivery.setDeliverySn(formData.getDeliverySn());
+        delivery.setReceiverName(formData.getReceiverName());
+        delivery.setReceiverPhone(formData.getReceiverPhone());
+        delivery.setReceiverAddress(formData.getReceiverAddress());
+        delivery.setDeliveryTime(now());
+
+        this.save(delivery);
+
+        return delivery;
+    }
+
+    /**
+     * 新增退款物流信息（用于退货）
+     *
+     * @param formData 退款物流信息（用于退货）表单对象
+     * @return 是否新增成功
+     */
+    @Override
+    public boolean createRefundDelivery(RefundDeliveryForm formData,Long refundId) {
+
+        RefundDelivery delivery = new RefundDelivery();
+        delivery.setRefundId(refundId);
+        delivery.setDeliveryType(DeliveryTypeEnum.Exchange_shipment.getValue());
+//        delivery.setDeliverySn(generateDeliverySn());
+        delivery.setDeliveryCompany(formData.getDeliveryCompany());
+
+
+
+        return this.save(delivery);
     }
 
     /**
@@ -99,5 +172,20 @@ public class RefundDeliveryServiceImpl extends ServiceImpl<RefundDeliveryMapper,
                 .map(Long::parseLong)
                 .toList();
         return this.removeByIds(idList);
+    }
+
+    /**
+     * 商家确认收货
+     *
+     * @param refundId 退款物流信息（用于退货）ID
+     * @return 退款物流信息（用于退货）表单数据
+     */
+    @Override
+    public boolean confirmReceive(Long refundId, ConfirmReceiveFormDTO formData) {
+
+        RefundDelivery delivery = this.getById(refundId);
+        delivery.setReceiveTime(now()); // 收货时间
+
+        return this.updateById(delivery);
     }
 }

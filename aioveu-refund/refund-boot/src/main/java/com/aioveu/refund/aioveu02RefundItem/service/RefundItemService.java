@@ -7,6 +7,8 @@ import com.aioveu.refund.aioveu02RefundItem.model.vo.RefundItemVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+
 /**
  * @ClassName: RefundItemService
  * @Description TODO  退款商品明细服务类
@@ -32,6 +34,16 @@ public interface RefundItemService extends IService<RefundItem> {
      */
     RefundItemForm getRefundItemFormData(Long id);
 
+
+    /**
+     * 获取退款商品明细实体List
+     *
+     * @param refundId 退款申请ID
+     * @return 退款商品明细表单数据
+     */
+    List<RefundItem> getRefundItemEntityByRefundId(Long refundId);
+
+
     /**
      * 新增退款商品明细
      *
@@ -39,6 +51,16 @@ public interface RefundItemService extends IService<RefundItem> {
      * @return 是否新增成功
      */
     boolean saveRefundItem(RefundItemForm formData);
+
+
+    /**
+     * 保存退款商品明细
+     *
+     * @param  items , refundOrderId
+     * @return 是否新增成功
+     */
+    boolean saveRefundItems(List<RefundItem> items , Long refundId);
+
 
     /**
      * 修改退款商品明细

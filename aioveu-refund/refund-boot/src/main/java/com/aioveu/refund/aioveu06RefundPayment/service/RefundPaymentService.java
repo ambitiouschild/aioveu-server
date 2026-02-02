@@ -32,6 +32,15 @@ public interface RefundPaymentService extends IService<RefundPayment> {
      */
     RefundPaymentForm getRefundPaymentFormData(Long id);
 
+
+    /**
+     * 获取退款支付记录实体
+     *
+     * @param refundId 退款ID
+     * @return 退款支付记录实体
+     */
+    RefundPayment getRefundPaymentEntityByRefundId(Long refundId);
+
     /**
      * 新增退款支付记录
      *

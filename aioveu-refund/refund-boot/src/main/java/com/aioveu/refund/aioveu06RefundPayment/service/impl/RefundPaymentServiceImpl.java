@@ -2,6 +2,7 @@ package com.aioveu.refund.aioveu06RefundPayment.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.refund.aioveu01RefundOrder.model.entity.RefundOrder;
 import com.aioveu.refund.aioveu06RefundPayment.converter.RefundPaymentConverter;
 import com.aioveu.refund.aioveu06RefundPayment.mapper.RefundPaymentMapper;
 import com.aioveu.refund.aioveu06RefundPayment.model.entity.RefundPayment;
@@ -9,10 +10,12 @@ import com.aioveu.refund.aioveu06RefundPayment.model.form.RefundPaymentForm;
 import com.aioveu.refund.aioveu06RefundPayment.model.query.RefundPaymentQuery;
 import com.aioveu.refund.aioveu06RefundPayment.model.vo.RefundPaymentVO;
 import com.aioveu.refund.aioveu06RefundPayment.service.RefundPaymentService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -26,6 +29,8 @@ import java.util.List;
  * @Date 2026/2/1 13:31
  * @Version 1.0
  **/
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RefundPaymentServiceImpl extends ServiceImpl<RefundPaymentMapper, RefundPayment> implements RefundPaymentService {
@@ -57,6 +62,24 @@ public class RefundPaymentServiceImpl extends ServiceImpl<RefundPaymentMapper, R
     public RefundPaymentForm getRefundPaymentFormData(Long id) {
         RefundPayment entity = this.getById(id);
         return refundPaymentConverter.toForm(entity);
+    }
+
+    /**
+     * 获取退款支付记录实体
+     *
+     * @param refundId 退款ID
+     * @return 退款支付记录实体
+     */
+    @Override
+    public RefundPayment getRefundPaymentEntityByRefundId(Long refundId) {
+        RefundPayment refundPayment = this.getOne(
+                new LambdaQueryWrapper<RefundPayment>()
+                        .eq(RefundPayment::getRefundId, refundId)
+        );
+
+        log.info("获取退款支付记录实体:{}",refundPayment);
+
+        return refundPayment;
     }
 
     /**

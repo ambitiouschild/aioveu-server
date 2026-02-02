@@ -2,6 +2,7 @@ package com.aioveu.refund.aioveu04RefundOperationLog.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.refund.aioveu02RefundItem.model.entity.RefundItem;
 import com.aioveu.refund.aioveu04RefundOperationLog.converter.RefundOperationLogConverter;
 import com.aioveu.refund.aioveu04RefundOperationLog.mapper.RefundOperationLogMapper;
 import com.aioveu.refund.aioveu04RefundOperationLog.model.entity.RefundOperationLog;
@@ -9,10 +10,12 @@ import com.aioveu.refund.aioveu04RefundOperationLog.model.form.RefundOperationLo
 import com.aioveu.refund.aioveu04RefundOperationLog.model.query.RefundOperationLogQuery;
 import com.aioveu.refund.aioveu04RefundOperationLog.model.vo.RefundOperationLogVO;
 import com.aioveu.refund.aioveu04RefundOperationLog.service.RefundOperationLogService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -27,6 +30,7 @@ import java.util.List;
  * @Version 1.0
  **/
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RefundOperationLogServiceImpl extends ServiceImpl<RefundOperationLogMapper, RefundOperationLog> implements RefundOperationLogService {
@@ -61,6 +65,24 @@ public class RefundOperationLogServiceImpl extends ServiceImpl<RefundOperationLo
     }
 
     /**
+     * 获取退款操作记录（用于审计）实体List
+     *
+     * @param refundId 退款ID
+     * @return 退款操作记录（用于审计）实体List
+     */
+    @Override
+    public List<RefundOperationLog> getRefundOperationLogEntityByRefundId(Long refundId) {
+        List<RefundOperationLog> items  = this.list(new LambdaQueryWrapper<RefundOperationLog>()
+                .eq(RefundOperationLog::getRefundId, refundId)
+        );
+
+        log.info("获取退款操作记录（用于审计）实体List:{}",items);
+
+        return items;
+    }
+
+
+    /**
      * 新增退款操作记录（用于审计）
      *
      * @param formData 退款操作记录（用于审计）表单对象
@@ -68,6 +90,18 @@ public class RefundOperationLogServiceImpl extends ServiceImpl<RefundOperationLo
      */
     @Override
     public boolean saveRefundOperationLog(RefundOperationLogForm formData) {
+        RefundOperationLog entity = refundOperationLogConverter.toEntity(formData);
+        return this.save(entity);
+    }
+
+    /**
+     * 新增退款操作记录（用于审计）
+     *
+     * @param formData 退款操作记录（用于审计）表单对象
+     * @return 是否新增成功
+     */
+    @Override
+    public boolean saveRefundOperationLogWithRefundId(RefundOperationLogForm formData,Long refundId) {
         RefundOperationLog entity = refundOperationLogConverter.toEntity(formData);
         return this.save(entity);
     }
