@@ -5,23 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.aioveu</groupId>
-        <artifactId>aioveu-server</artifactId>
+        <artifactId>aioveu-pay</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>aioveu-pay</artifactId>
-    <packaging>pom</packaging>
-    <modules>
-        <!-- API接口模块-->
-        <module>pay-api</module>
-        <!-- 核心业务模块-->
-        <module>pay-core</module>
-        <module>pay-common</module>
-        <module>pay-task</module>
-        <module>pay-boot</module>
-
-
-    </modules>
+    <artifactId>pay-task</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
