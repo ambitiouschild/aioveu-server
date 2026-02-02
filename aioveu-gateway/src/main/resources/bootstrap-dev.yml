@@ -1,5 +1,5 @@
 server:
-  port: 9999  # 网关端口，和你的配置一致
+  port: 6666  # 网关端口，和你的配置一致
 
 spring:
   main:
