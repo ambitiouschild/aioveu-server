@@ -120,7 +120,8 @@ CREATE TABLE `pay_refund_record` (
                              KEY `idx_refund_status` (`refund_status`) USING BTREE COMMENT '退款状态索引',
                              KEY `idx_create_time` (`create_time`) USING BTREE COMMENT '创建时间索引',
                              KEY `idx_refund_time` (`refund_time`) USING BTREE COMMENT '退款完成时间索引',
-                             KEY `idx_third_refund_no` (`third_refund_no`) USING BTREE COMMENT '第三方退款流水号索引',
+                             KEY `idx_third_refund_no` (`third_refund_no`) USING BTREE COMMENT '第三方退款流水号索引'
+
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='退款记录表';
 
 -- ============================================================================
@@ -152,7 +153,7 @@ CREATE TABLE `pay_channel_config` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='支付渠道配置表';
 
 -- 初始化支付宝配置
-INSERT INTO `payment_channel_config`
+INSERT INTO `pay_channel_config`
 (`channel_code`, `channel_name`, `channel_type`, `config_key`, `config_value`, `config_type`, `config_desc`, `is_enabled`, `is_default`, `priority`) VALUES
 ('ALIPAY', '支付宝', 'ONLINE', 'app_id', 'your_app_id', 'STRING', '应用ID', 1, 1, 100),
 ('ALIPAY', '支付宝', 'ONLINE', 'private_key', 'your_private_key', 'SECRET', '应用私钥', 1, 1, 100),
@@ -228,7 +229,7 @@ CREATE TABLE `pay_reconciliation_detail` (
                                          KEY `idx_order_no` (`order_no`) USING BTREE COMMENT '业务订单号索引',
                                          KEY `idx_trade_time` (`trade_time`) USING BTREE COMMENT '交易时间索引',
                                          KEY `idx_reconcile_status` (`reconcile_status`) USING BTREE COMMENT '对账状态索引',
-                                         KEY `idx_bill_date` (`bill_date`) USING BTREE COMMENT '对账日期索引',
+                                         KEY `idx_bill_date` (`bill_date`) USING BTREE COMMENT '对账日期索引'
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='对账明细表';
 
 -- ============================================================================
@@ -270,7 +271,7 @@ CREATE TABLE `pay_flow` (
                             KEY `idx_user_id` (`user_id`) USING BTREE COMMENT '用户ID索引',
                             KEY `idx_trade_time` (`trade_time`) USING BTREE COMMENT '交易时间索引',
                             KEY `idx_flow_type` (`flow_type`) USING BTREE COMMENT '流水类型索引',
-                            KEY `idx_create_time` (`create_time`) USING BTREE COMMENT '创建时间索引',
+                            KEY `idx_create_time` (`create_time`) USING BTREE COMMENT '创建时间索引'
 
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='支付流水表';
 
@@ -304,7 +305,7 @@ CREATE TABLE `pay_notify` (
                               KEY `idx_refund_no` (`refund_no`) USING BTREE COMMENT '退款单号索引',
                               KEY `idx_notify_status` (`notify_status`) USING BTREE COMMENT '通知状态索引',
                               KEY `idx_next_notify_time` (`next_notify_time`) USING BTREE COMMENT '下次通知时间索引',
-                              KEY `idx_create_time` (`create_time`) USING BTREE COMMENT '创建时间索引',
+                              KEY `idx_create_time` (`create_time`) USING BTREE COMMENT '创建时间索引'
 
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='支付通知表';
 
@@ -334,7 +335,7 @@ CREATE TABLE `pay_account` (
                               UNIQUE KEY `uk_account_no` (`account_no`) USING BTREE COMMENT '账户编号唯一',
                               UNIQUE KEY `uk_user_account_type` (`user_id`, `account_type`) USING BTREE COMMENT '用户ID 和 账户类型 唯一',
                               KEY `idx_user_id` (`user_id`) USING BTREE COMMENT '用户ID索引',
-                              KEY `idx_status` (`status`) USING BTREE COMMENT '账户状态索引',
+                              KEY `idx_status` (`status`) USING BTREE COMMENT '账户状态索引'
 
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='支付账户表';
 
@@ -364,7 +365,7 @@ CREATE TABLE `pay_account_flow` (
                                UNIQUE KEY `uk_flow_no` (`flow_no`) USING BTREE COMMENT '流水号唯一',
                                KEY `idx_account_no` (`account_no`) USING BTREE COMMENT '账户编号索引',
                                KEY `idx_biz_no` (`biz_no`) USING BTREE COMMENT '业务单号索引',
-                               KEY `idx_create_time` (`create_time`) USING BTREE COMMENT '创建时间索引',
+                               KEY `idx_create_time` (`create_time`) USING BTREE COMMENT '创建时间索引'
 
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='账户流水表';
 
