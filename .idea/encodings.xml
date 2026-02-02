@@ -23,7 +23,12 @@
     <file url="file://$PROJECT_DIR$/aioveu-oms/oms-boot/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-oms/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-oms/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/aioveu-pay/pay-api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/aioveu-pay/pay-common/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/aioveu-pay/pay-core/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/aioveu-pay/pay-task/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-pay/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/aioveu-pay/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-pms/pms-api/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-pms/pms-boot/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-pms/src/main/java" charset="UTF-8" />
