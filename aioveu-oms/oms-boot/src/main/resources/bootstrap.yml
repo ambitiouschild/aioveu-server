@@ -2,4 +2,4 @@ spring:
   application:
     name: aioveu-oms  # 订单服务
   profiles:
-    active: dev
+    active: prod  #dev prod

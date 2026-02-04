@@ -2,7 +2,7 @@
 #FROM ubuntu:22.04
 
 
-FROM openjdk:17-jdk-slim
+FROM aioveu-17-jdk-slim
 
 
 # Alternative (≈15MB smaller)
@@ -50,7 +50,7 @@ RUN apt-get update \
 
 
  # 添加应用程序
-COPY target/*.jar /app.jar
+COPY target/lss-boot.jar /app.jar
 
 
 
@@ -61,6 +61,10 @@ CMD java \
     -Djava.security.egd=file:/dev/./urandom \
     -Djdk.internal.platform.disable=true  \
     -jar /app.jar
+
+
+# 声明容器提供服务端口
+EXPOSE 9999
 
 # 优化启动命令
 #CMD java \

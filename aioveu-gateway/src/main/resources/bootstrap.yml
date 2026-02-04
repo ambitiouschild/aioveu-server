@@ -2,4 +2,11 @@ spring:
   application:
     name: aioveu-gateway # 确保应用名称设置，这样config的name可以省略，因为默认会使用这个名称   # 应用名称
   profiles:
-    active: dev
+    active: prod #prod dev
+
+# 临时添加调试
+logging:
+  level:
+    org.springframework.core.env: DEBUG
+
+    #启动时应该看到 The following profiles are active: prod

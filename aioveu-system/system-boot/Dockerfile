@@ -1,13 +1,17 @@
 # 基础镜像
-FROM openjdk:17-jdk-alpine
+FROM aioveu-17-jdk-slim
 
 # 维护者信息
-MAINTAINER 可我不敌可爱 <ambitiouschild@qq.com>
+LABEL maintainer="ambitiouschild@qq.com"
 
-RUN echo "https://mirrors.ustc.edu.cn/alpine/v3.7/main/" > /etc/apk/repositories && \
-    apk --no-cache add tzdata && \
-    cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
-    echo "Asia/Shanghai" > /etc/timezone
+#方案一：如果您使用的是 Debian/Ubuntu 基础镜像
+# 替换为 apt-get 命令
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends tzdata fonts-dejavu fontconfig \
+    && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo "Asia/Shanghai" > /etc/timezone \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # /tmp 目录作为容器数据卷目录，SpringBoot内嵌Tomcat容器默认使用/tmp作为工作目录，任何向 /tmp 中写入的信息不会记录进容器存储层
 # 在宿主机的/var/lib/docker目录下创建一个临时文件并把它链接到容器中的/tmp目录

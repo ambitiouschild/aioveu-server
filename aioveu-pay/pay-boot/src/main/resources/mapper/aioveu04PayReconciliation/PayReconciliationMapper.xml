@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.pay.aioveu04PayReconciliation.mapper.PayReconciliationMapper">
+
+    <!-- 获取支付对账分页列表 -->
+    <select id="getPayReconciliationPage" resultType="com.aioveu.pay.aioveu04PayReconciliation.model.vo.PayReconciliationVO">
+        SELECT
+                id,
+                reconciliation_no,
+                channel_code,
+                bill_date,
+                bill_type,
+                total_count,
+                total_amount,
+                success_count,
+                success_amount,
+                failure_count,
+                failure_amount,
+                difference_count,
+                reconcile_status,
+                download_status,
+                download_time,
+                reconcile_time,
+                bill_file_url,
+                error_message,
+                is_deleted,
+                create_by,
+                update_by,
+                create_time,
+                update_time
+        FROM
+            pay_reconciliation
+        <where>
+            <if test="queryParams.reconciliationNo != null and queryParams.reconciliationNo != ''">
+                AND reconciliation_no LIKE CONCAT(#{queryParams.reconciliationNo}, '%')
+            </if>
+            <if test="queryParams.channelCode != null and queryParams.channelCode != ''">
+                AND channel_code LIKE CONCAT(#{queryParams.channelCode}, '%')
+            </if>
+            <if test="queryParams.billType != null and queryParams.billType != ''">
+                AND bill_type LIKE CONCAT(#{queryParams.billType}, '%')
+            </if>
+            <if test="queryParams.reconcileStatus != null">
+                AND reconcile_status LIKE CONCAT(#{queryParams.reconcileStatus}, '%')
+            </if>
+            <if test="queryParams.reconcileTime != null">
+                <if test="queryParams.reconcileTime[0] != null and queryParams.reconcileTime[0] != ''">
+                    <bind name="startDate" value="queryParams.reconcileTime[0].length() == 10 ? queryParams.reconcileTime[0] + ' 00:00:00' : queryParams.reconcileTime[0]"/>
+                    AND reconcile_time &gt;= #{startDate}
+                </if>
+                <if test="queryParams.reconcileTime[1] != null and queryParams.reconcileTime[1] != ''">
+                    <bind name="endDate" value="queryParams.reconcileTime[1].length() == 10 ? queryParams.reconcileTime[1] + ' 23:59:59' : queryParams.reconcileTime[1]"/>
+                    AND reconcile_time &lt;= #{endDate}
+                </if>
+            </if>
+        </where>
+    </select>
+
+</mapper>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper">
+
+    <!-- 获取支付订单分页列表 -->
+    <select id="getPayOrderPage" resultType="com.aioveu.pay.aioveu01PayOrder.model.vo.PayOrderVO">
+        SELECT
+                id,
+                payment_no,
+                order_no,
+                biz_type,
+                user_id,
+                payment_amount,
+                payment_status,
+                payment_channel,
+                payment_method,
+                payment_time,
+                payment_expire_time,
+                third_payment_no,
+                third_transaction_no,
+                attach_data,
+                notify_url,
+                return_url,
+                client_ip,
+                device_info,
+                subject,
+                body,
+                currency,
+                error_code,
+                error_message,
+                notify_status,
+                notify_count,
+                last_notify_time,
+                next_notify_time,
+                is_deleted,
+                create_by,
+                update_by,
+                create_time,
+                update_time,
+                version
+        FROM
+            pay_order
+        <where>
+            <if test="queryParams.paymentNo != null and queryParams.paymentNo != ''">
+                AND payment_no LIKE CONCAT(#{queryParams.paymentNo}, '%')
+            </if>
+            <if test="queryParams.orderNo != null and queryParams.orderNo != ''">
+                AND order_no LIKE CONCAT(#{queryParams.orderNo}, '%')
+            </if>
+            <if test="queryParams.bizType != null and queryParams.bizType != ''">
+                AND biz_type LIKE CONCAT(#{queryParams.bizType}, '%')
+            </if>
+            <if test="queryParams.userId != null">
+                AND user_id LIKE CONCAT(#{queryParams.userId}, '%')
+            </if>
+            <if test="queryParams.paymentStatus != null">
+                AND payment_status LIKE CONCAT(#{queryParams.paymentStatus}, '%')
+            </if>
+            <if test="queryParams.paymentChannel != null and queryParams.paymentChannel != ''">
+                AND payment_channel LIKE CONCAT(#{queryParams.paymentChannel}, '%')
+            </if>
+            <if test="queryParams.paymentTime != null">
+                <if test="queryParams.paymentTime[0] != null and queryParams.paymentTime[0] != ''">
+                    <bind name="startDate" value="queryParams.paymentTime[0].length() == 10 ? queryParams.paymentTime[0] + ' 00:00:00' : queryParams.paymentTime[0]"/>
+                    AND payment_time &gt;= #{startDate}
+                </if>
+                <if test="queryParams.paymentTime[1] != null and queryParams.paymentTime[1] != ''">
+                    <bind name="endDate" value="queryParams.paymentTime[1].length() == 10 ? queryParams.paymentTime[1] + ' 23:59:59' : queryParams.paymentTime[1]"/>
+                    AND payment_time &lt;= #{endDate}
+                </if>
+            </if>
+            <if test="queryParams.thirdPaymentNo != null and queryParams.thirdPaymentNo != ''">
+                AND third_payment_no LIKE CONCAT(#{queryParams.thirdPaymentNo}, '%')
+            </if>
+            <if test="queryParams.createTime != null">
+                <if test="queryParams.createTime[0] != null and queryParams.createTime[0] != ''">
+                    <bind name="startDate" value="queryParams.createTime[0].length() == 10 ? queryParams.createTime[0] + ' 00:00:00' : queryParams.createTime[0]"/>
+                    AND create_time &gt;= #{startDate}
+                </if>
+                <if test="queryParams.createTime[1] != null and queryParams.createTime[1] != ''">
+                    <bind name="endDate" value="queryParams.createTime[1].length() == 10 ? queryParams.createTime[1] + ' 23:59:59' : queryParams.createTime[1]"/>
+                    AND create_time &lt;= #{endDate}
+                </if>
+            </if>
+        </where>
+    </select>
+
+</mapper>

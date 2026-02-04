@@ -2,4 +2,9 @@ spring:
   application:
     name: aioveu-ums   # 会员服务
   profiles:
-    active: dev
+    active: prod  #dev prod
+
+# 临时添加调试
+logging:
+  level:
+    org.springframework.core.env: DEBUG

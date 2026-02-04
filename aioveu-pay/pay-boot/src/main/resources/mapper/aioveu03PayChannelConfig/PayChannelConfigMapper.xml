@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.pay.aioveu03PayChannelConfig.mapper.PayChannelConfigMapper">
+
+    <!-- 获取支付渠道配置分页列表 -->
+    <select id="getPayChannelConfigPage" resultType="com.aioveu.pay.aioveu03PayChannelConfig.model.vo.PayChannelConfigVO">
+        SELECT
+                id,
+                channel_code,
+                channel_name,
+                channel_type,
+                config_key,
+                config_value,
+                config_type,
+                config_desc,
+                is_enabled,
+                is_default,
+                priority,
+                is_deleted,
+                create_by,
+                update_by,
+                create_time,
+                update_time
+        FROM
+            pay_channel_config
+        <where>
+            <if test="queryParams.channelCode != null and queryParams.channelCode != ''">
+                AND channel_code LIKE CONCAT(#{queryParams.channelCode}, '%')
+            </if>
+            <if test="queryParams.channelName != null and queryParams.channelName != ''">
+                AND channel_name LIKE CONCAT(#{queryParams.channelName}, '%')
+            </if>
+            <if test="queryParams.channelType != null and queryParams.channelType != ''">
+                AND channel_type LIKE CONCAT(#{queryParams.channelType}, '%')
+            </if>
+            <if test="queryParams.configType != null and queryParams.configType != ''">
+                AND config_type LIKE CONCAT(#{queryParams.configType}, '%')
+            </if>
+            <if test="queryParams.isEnabled != null">
+                AND is_enabled LIKE CONCAT(#{queryParams.isEnabled}, '%')
+            </if>
+            <if test="queryParams.isDefault != null">
+                AND is_default LIKE CONCAT(#{queryParams.isDefault}, '%')
+            </if>
+            <if test="queryParams.isDeleted != null">
+                AND is_deleted LIKE CONCAT(#{queryParams.isDeleted}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

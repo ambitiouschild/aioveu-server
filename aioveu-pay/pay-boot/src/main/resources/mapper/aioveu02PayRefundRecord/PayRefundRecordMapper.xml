@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.pay.aioveu02PayRefundRecord.mapper.PayRefundRecordMapper">
+
+    <!-- 获取退款记录分页列表 -->
+    <select id="getPayRefundRecordPage" resultType="com.aioveu.pay.aioveu02PayRefundRecord.model.vo.PayRefundRecordVO">
+        SELECT
+                id,
+                refund_no,
+                payment_no,
+                order_no,
+                biz_type,
+                refund_amount,
+                refund_status,
+                refund_channel,
+                refund_reason,
+                apply_time,
+                refund_time,
+                third_refund_no,
+                third_transaction_no,
+                currency,
+                error_code,
+                error_message,
+                notify_status,
+                notify_count,
+                last_notify_time,
+                next_notify_time,
+                callback_data,
+                callback_time,
+                is_deleted,
+                create_by,
+                update_by,
+                create_time,
+                update_time
+        FROM
+            pay_refund_record
+        <where>
+            <if test="queryParams.paymentNo != null and queryParams.paymentNo != ''">
+                AND payment_no LIKE CONCAT(#{queryParams.paymentNo}, '%')
+            </if>
+            <if test="queryParams.orderNo != null and queryParams.orderNo != ''">
+                AND order_no LIKE CONCAT(#{queryParams.orderNo}, '%')
+            </if>
+            <if test="queryParams.refundStatus != null">
+                AND refund_status LIKE CONCAT(#{queryParams.refundStatus}, '%')
+            </if>
+            <if test="queryParams.refundChannel != null and queryParams.refundChannel != ''">
+                AND refund_channel LIKE CONCAT(#{queryParams.refundChannel}, '%')
+            </if>
+            <if test="queryParams.refundTime != null">
+                <if test="queryParams.refundTime[0] != null and queryParams.refundTime[0] != ''">
+                    <bind name="startDate" value="queryParams.refundTime[0].length() == 10 ? queryParams.refundTime[0] + ' 00:00:00' : queryParams.refundTime[0]"/>
+                    AND refund_time &gt;= #{startDate}
+                </if>
+                <if test="queryParams.refundTime[1] != null and queryParams.refundTime[1] != ''">
+                    <bind name="endDate" value="queryParams.refundTime[1].length() == 10 ? queryParams.refundTime[1] + ' 23:59:59' : queryParams.refundTime[1]"/>
+                    AND refund_time &lt;= #{endDate}
+                </if>
+            </if>
+            <if test="queryParams.thirdTransactionNo != null and queryParams.thirdTransactionNo != ''">
+                AND third_transaction_no LIKE CONCAT(#{queryParams.thirdTransactionNo}, '%')
+            </if>
+            <if test="queryParams.createTime != null">
+                <if test="queryParams.createTime[0] != null and queryParams.createTime[0] != ''">
+                    <bind name="startDate" value="queryParams.createTime[0].length() == 10 ? queryParams.createTime[0] + ' 00:00:00' : queryParams.createTime[0]"/>
+                    AND create_time &gt;= #{startDate}
+                </if>
+                <if test="queryParams.createTime[1] != null and queryParams.createTime[1] != ''">
+                    <bind name="endDate" value="queryParams.createTime[1].length() == 10 ? queryParams.createTime[1] + ' 23:59:59' : queryParams.createTime[1]"/>
+                    AND create_time &lt;= #{endDate}
+                </if>
+            </if>
+        </where>
+    </select>
+
+</mapper>

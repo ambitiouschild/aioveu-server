@@ -75,6 +75,11 @@
         <!-- redisson 分布式锁 -->
         <redisson.version>3.24.3</redisson.version>
 
+        <!-- 其他 Maven 插件 -->
+        <!-- 添加以下缺失的属性 -->
+        <lombok.version>1.18.30</lombok.version>  <!-- 最重要！被依赖使用了 -->
+        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+
     </properties>
 
     <dependencies>

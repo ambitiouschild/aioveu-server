@@ -2,4 +2,4 @@ spring:
   application:
     name: aioveu-refund
   profiles:
-    active: dev
+    active: prod  #dev prod

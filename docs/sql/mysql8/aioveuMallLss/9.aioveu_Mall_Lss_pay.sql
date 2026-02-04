@@ -341,7 +341,7 @@ CREATE TABLE `pay_account` (
 
 
 -- ============================================================================
--- 8. 账户流水表
+-- 9. 账户流水表
 -- ============================================================================
 DROP TABLE IF EXISTS `pay_account_flow`;
 CREATE TABLE `pay_account_flow` (
@@ -370,7 +370,7 @@ CREATE TABLE `pay_account_flow` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='账户流水表';
 
 -- ============================================================================
--- 9. Table structure for undo_log
+-- 10. Table structure for undo_log
 -- ============================================================================
 
 DROP TABLE IF EXISTS `undo_log`;
