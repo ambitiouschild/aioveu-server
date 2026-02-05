@@ -1,0 +1,185 @@
+spring:
+  datasource: 
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${mysql.host}:${mysql.port}/aioveu_oms?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&autoReconnect=true
+    username: ${mysql.username}
+    password: ${mysql.password}
+  # RabbitMQ 配置
+  rabbitmq:
+    host: ${rabbitmq.host}
+    port: ${rabbitmq.port}
+    username: ${rabbitmq.username}
+    password: ${rabbitmq.password}
+    virtual-host: /
+    listener:
+      simple:
+        acknowledge-mode: manual   
+  data:
+    redis:
+      database: ${redis.database}
+      host: ${redis.host}
+      port: ${redis.port}
+      password: ${redis.password}
+      lettuce:
+        pool:
+          min-idle: 1
+mybatis-plus:
+  configuration:
+    # 驼峰下划线转换
+    map-underscore-to-camel-case: true
+    # 这个配置会将执行的sql打印出来，在开发或测试的时候可以用
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# Seata 配置
+seata: 
+  # 开启 Seata
+  enabled: true
+  application-id: oms-service
+  # 事务分组名称
+  tx-service-group: default_tx_group
+  service:
+    # 事务分组映射，根据分组名称匹配到集群
+    vgroup-mapping:
+      # 事务分组名称：集群名称
+      default_tx_group: default
+ #   grouplist:
+ #     default: host.docker.internal:8091  
+      # 使用特殊主机名  #理论上Seata客户端应该通过Nacos获取服务端地址。但是，
+      #如果配置了service.grouplist，则会直接使用该地址，而忽略注册中心。如果希望使用注册中心，可以不配置service.grouplist，而是让客户端从注册中心获取服务端地址。
+  registry:
+    type: nacos
+    nacos:
+      application: aioveu-seata-prod
+      server-addr: ${nacos.server-addr}
+      namespace: a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef 
+      group: SEATA_GROUP 
+
+
+  # 添加网络超时参数
+  client:
+    tm:
+      queryTimeout: 3000
+      connectTimeout: 5000
+    rm:
+      asynCommitBufferLimit: 5000
+# 不配置grouplist，使用注册中心获取
+#Seata服务器容器IP是172.19.0.4，但OMS运行在宿主机上，宿主机无法直接访问容器的私有IP（172.19.0.4）
+#应该使用宿主机IP或host.docker.internal进行连接
+#OMS服务尝试直接连接Docker内部IP 172.19.0.4:8091，而OMS在宿主机运行，无法访问Docker网络。同时出现连接超时异常
+
+# Feign 配置
+feign:
+  httpclient:
+    enabled: true
+  okhttp:
+    enabled: false
+  sentinel:  # 开启feign对sentinel的支持
+    enabled: false
+
+# 安全配置
+security:
+  # 白名单路径
+  whitelist-path:
+      - /app-api/v1/carts
+
+# springdoc-openapi项目配置
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.aioveu.oms.controller
+  # Api文档信息
+  info:
+    title: 订单服务
+    version: 3.0.0
+    description: 订单、购物车等接口
+    contact:
+      name: aioveu
+      url: https://www.aioveu.com
+      email: ambitiouschild@qq.com
+    license:
+      name: Apache 2.0
+      url: https://www.apache.org/licenses/LICENSE-2.0.html
+# knife4j的增强配置，不需要增强可以不配
+knife4j:
+  # 是否开启 Knife4j 增强功能
+  enable: true  # 设置为 true 表示开启增强功能
+  # 生产环境配置
+  production: false  # 设置为 true 表示在生产环境中不显示文档，为 false 表示显示文档（通常在开发环境中使用）
+  setting:
+    # 基础配置-------------
+    language: zh_cn
+    enable-version: true
+    # ✅ 开启重载功能
+    enable-reload: true
+    enable-open-api: true
+
+    # 调试和缓存-------------
+    # 启用调试模式
+    enable-debug: true
+    # 启用请求缓存
+    enable-request-cache: true
+    # 自动添加认证头
+    enable-filter-multipart-apimethod: 4
+    # Token 自动管理
+    enable-after-script: true
+
+
+    #显示配置-------------
+    # ✅ 添加这个关键配置
+    enable-swagger-models: true
+    enable-group: true
+    enable-footer: true
+    enable-footer-custom-content: "Aioveu 认证服务"
+    # ✅ 开启文档管理
+    enable-document-manage: true
+
+    # 搜索和国际化-------------
+    enable-search: true
+    enable-i18n: true
+
+    #高级功能-------------
+    # 启用动态参数
+    enable-dynamic-params: true
+    # ✅ 开启文件上传处理
+    enable-filter-multipart-param: true
+
+    # 开启全局参数
+    enable-global-parameters: true
+
+# 模拟支付配置
+pay:
+  mock:
+    enabled: true           # 启用模拟支付
+    auto-success: true      # 自动成功
+    delay: 1000             # 模拟延迟1秒
+    success-rate: 100       # 成功率100%
+
+wx:
+  pay:
+    # 必需配置
+    app-id: wx1234567890abcdef      # 你的微信小程序AppId
+    mch-id: 1230000109               # 你的商户号
+    mch-key: your-mch-key-32-chars   # API密钥，32位
+    notify-url: https://your-domain.com/api/wxpay/notify
+    
+    # 可选配置
+    sign-type: MD5                   # 签名类型：MD5 或 RSA
+    sandbox-enabled: false           # 是否使用沙箱环境
+    
+    # 以下为可选证书配置（如果需要）
+    # key-path: classpath:/cert/apiclient_cert.p12
+    # private-key-path: classpath:/cert/apiclient_key.pem
+    # private-cert-path: classpath:/cert/apiclient_cert.pem
+    # api-v3-key: your-api-v3-key
+    # cert-serial-no: your-cert-serial-no
+    
+    # 兼容字段
+    # pay-notify-url: https://your-domain.com/api/wxpay/notify

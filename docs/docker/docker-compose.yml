@@ -99,22 +99,23 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
     networks:
       - aioveu-server # 加入 "aioveu-server" 网络
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8848/nacos/v1/ns/service/list" ]
+      test: [ "CMD", "curl", "-f", "http://nacos:8848/nacos/v1/ns/service/list" ]
       interval: 30s
       timeout: 10s
       retries: 5
     depends_on:
       mysql:
         condition: service_healthy # 保证 MySQL 服务先启动
-
-    # 修复启动命令
-    command: >
-      sh -c "
-      echo '等待 MySQL 准备就绪...';
-      /wait-for-mysql.sh;
-      echo '启动 Nacos 服务...';
-      bash /home/nacos/bin/startup.sh
-      "
+      redis:
+        condition: service_healthy # 保证 MySQL 服务先启动
+#    # 修复启动命令
+#    command: >
+#      sh -c "
+#      echo '等待 MySQL 准备就绪...';
+#      /wait-for-mysql.sh;
+#      echo '启动 Nacos 服务...';
+#      bash /home/nacos/bin/startup.sh
+#      "
 
 
   seata:
@@ -211,7 +212,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       mysql:
         condition: service_healthy
       nacos:
-        condition: service_started
+        condition: service_healthy
 
     #出现一条警告：discard long time none received connection. , jdbcUrl : jdbc:mysql://mysql:3306/aioveu_seata...
     #警告原因：数据库连接长时间未收到数据包（174995毫秒，约175秒），连接被丢弃
@@ -328,7 +329,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       mysql:
         condition: service_healthy
       nacos:
-        condition: service_started
+        condition: service_healthy
 
   redis:
     image: redis:7.2.3
@@ -344,6 +345,15 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - 6380:6379
     networks:
       - aioveu-server
+
+    healthcheck: # 可以添加健康检查
+      # 通过配置文件使用密码
+      test: [ "CMD", "redis-cli", "-a", "$$(grep '^requirepass' /etc/redis/redis.conf | awk '{print $$2}')", "ping" ]
+      #      test: [ "CMD", "redis-cli", "-a", "775825", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
         #NOAUTH Authentication required 应用程序未使用密码
       #WRONGPASS invalid username-password pair  密码不匹配
       #Connection refused: no further information 连接地址错误
@@ -421,11 +431,12 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
 #      context: .
 #      dockerfile: Dockerfile
     ports:
-      - 6666:6666
+      - 6699:6666
     networks:
       - aioveu-server
     depends_on:
       - mysql
+      - redis
       - nacos
 ##
   auth:
@@ -434,12 +445,13 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
     #    build:
     #      context: .
     #      dockerfile: Dockerfile
-    ports:
-      - 9000:9000
+#    ports:
+#      - 9898:9000
     networks:
       - aioveu-server
     depends_on:
       - mysql
+      - redis
       - nacos
       - gateway
 #
@@ -449,12 +461,13 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
     #    build:
     #      context: .
     #      dockerfile: Dockerfile
-    ports:
-      - 9999:9999
+#    ports:
+#      - 9999:9999
     networks:
       - aioveu-server
     depends_on:
       - mysql
+      - redis
       - nacos
       - gateway
       - auth
@@ -462,12 +475,13 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
   oms:
     image: aioveu-oms:v1.1.1
     container_name: aioveu-oms
-    ports:
-      - 8813:8803
+#    ports:
+#      - 8813:8803
     networks:
       - aioveu-server
     depends_on:
       - mysql
+      - redis
       - nacos
       - gateway
       - auth
@@ -476,12 +490,13 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
   pms:
     image: aioveu-pms:v1.1.1
     container_name: aioveu-pms
-    ports:
-      - 8812:8802
+#    ports:
+#      - 8812:8802
     networks:
       - aioveu-server
     depends_on:
       - mysql
+      - redis
       - nacos
       - gateway
       - auth
@@ -489,12 +504,13 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
   sms:
     image: aioveu-sms:v1.1.1
     container_name: aioveu-sms
-    ports:
-      - 8814:8804
+#    ports:
+#      - 8814:8804
     networks:
       - aioveu-server
     depends_on:
       - mysql
+      - redis
       - nacos
       - gateway
       - auth
@@ -503,12 +519,13 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
   ums:
     image: aioveu-ums:v1.1.1
     container_name: aioveu-ums
-    ports:
-      - 8811:8801
+#    ports:
+#      - 8811:8801
     networks:
       - aioveu-server
     depends_on:
       - mysql
+      - redis
       - nacos
       - gateway
       - auth
@@ -531,6 +548,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - aioveu-server
     depends_on:
       - mysql
+      - redis
       - nacos
       - gateway
       - auth

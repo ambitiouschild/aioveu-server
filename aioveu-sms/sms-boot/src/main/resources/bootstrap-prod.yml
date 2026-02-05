@@ -12,7 +12,8 @@ spring:
       # 注册中心
       discovery:
         server-addr: nacos:8848  # Nacos服务地址
-        namespace: a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef #aioveu-prod  # 生产环境命名空间
+#        namespace: a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef #aioveu-prod  # 生产环境命名空间
+        namespace: 80147849-cdb8-4b7d-befc-b5aefa0e9ab6 #aioveu-prod  # 云98生产环境命名空间
         group: AIOVEU_GROUP  # 指定服务注册分组
         metadata:
           version: 1.0
@@ -22,7 +23,8 @@ spring:
       config:
         server-addr: ${spring.cloud.nacos.discovery.server-addr}
         file-extension: yaml
-        namespace: a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef #aioveu-prod  # 生产环境命名空间
+#        namespace: a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef #aioveu-prod  # 生产环境命名空间
+        namespace: 80147849-cdb8-4b7d-befc-b5aefa0e9ab6 #aioveu-prod  # 云98生产环境命名空间
         group: AIOVEU_GROUP  # 配置分组
         shared-configs:
           - data-id: aioveu-common.yaml  # 公共共享配置
