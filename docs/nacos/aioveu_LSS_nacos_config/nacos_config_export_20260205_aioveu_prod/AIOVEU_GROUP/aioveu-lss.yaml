@@ -123,7 +123,7 @@ oss:
   # MinIO 对象存储服务
   minio:
     # 服务Endpoint  #minio:9000 
-    endpoint:  minio.aioveu.com 
+    endpoint:  minio:9000
     # 访问凭据
     access-key: minioadminlss
     # 凭据密钥
