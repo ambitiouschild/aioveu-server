@@ -73,7 +73,8 @@ public class MemberDetailsService {
 
             MemberRegisterDto memberRegisterInfo = new MemberRegisterDto();
             memberRegisterInfo.setOpenid(openid);
-            memberRegisterInfo.setNickName("微信用户");
+            memberRegisterInfo.setAvatarUrl("https://minio.aioveu.com/aioveu/aioveu-server/avatar/avatar.png");
+            memberRegisterInfo.setNickName("新注册微信用户");
             // 注册会员
             //通过Feign客户端调用会员服务的注册接口，将注册信息发送到会员服务，并接收注册结果。
             Result<Long> registerMemberResult = memberFeignClient.registerMember(memberRegisterInfo);

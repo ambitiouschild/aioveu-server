@@ -74,6 +74,7 @@ public class AuthController {
      */
     @Operation(summary = "发送手机短信验证码")  // Swagger注解，描述接口功能
     @PostMapping("/sms_code")   // 处理HTTP POST请求，完整路径为/api/v1/auth/sms_code
+    @Log(value = "发送手机短信验证码", module = LogModuleEnum.AUTH)
     public Result sendLoginSmsCode(
             @Parameter(description = "手机号")   // Swagger参数描述，在API文档中显示参数说明
             @RequestParam String mobile         // 从请求参数中获取手机号，参数名为mobile
