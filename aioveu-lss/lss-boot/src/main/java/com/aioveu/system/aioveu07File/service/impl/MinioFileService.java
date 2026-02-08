@@ -29,6 +29,16 @@ import java.util.List;
 /**
  * @ClassName: MinioFileService
  * @Description TODO  MinIO 文件上传服务类
+ *                           在MinIO Java SDK的不同版本中，endpoint参数的格式要求不同
+ *                           1. 老版本（8.x以前）
+ *                            .endpoint("http://minio:9000")  // 可以带协议和端口
+ *                           2. 新版本（8.x以后）
+ *                                .endpoint("minio")  // 只能主机名
+ *                                  .port(9000)         // 端口单独设置
+ *                           新版本的MinIO Java SDK（8.x+） 支持在endpoint中直接放完整URL，包括协议和端口
+ *                           .endpoint("http://minio:9000")  // 完整URL
+ *
+ * java
  * @Author 可我不敌可爱
  * @Author 雒世松
  * @Date 2025/12/31 17:45
