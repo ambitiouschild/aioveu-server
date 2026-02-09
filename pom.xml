@@ -89,6 +89,10 @@
             <version>${lombok.version}</version>
         </dependency>
 
+
+<!--        如果您的项目不需要模板功能，可以在父级依赖中排除 hutool-extra的模板相关部分-->
+<!--        找到包含 Hutool 的父级或子模块，添加排除项。-->
+        <!-- 找到包含 hutool-all 或 hutool-extra 的依赖 -->
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
