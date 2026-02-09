@@ -181,11 +181,12 @@
         </dependency>
 
         <!-- 添加 Beetl 依赖解决 Hutool 模板引擎问题 -->
-        <dependency>
-            <groupId>com.ibeetl</groupId>
-            <artifactId>beetl</artifactId>
-            <version>3.15.3.RELEASE</version>
-        </dependency>
+<!--        不使用 Beetl-->
+<!--        <dependency>-->
+<!--            <groupId>com.ibeetl</groupId>-->
+<!--            <artifactId>beetl</artifactId>-->
+<!--            <version>3.15.3.RELEASE</version>-->
+<!--        </dependency>-->
 
     </dependencies>
 

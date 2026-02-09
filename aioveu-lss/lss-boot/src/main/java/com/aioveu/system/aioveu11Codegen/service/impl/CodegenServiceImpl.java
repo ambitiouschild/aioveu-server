@@ -254,7 +254,31 @@ public class CodegenServiceImpl implements CodegenService {
         bindMap.put("hasBigDecimal", hasBigDecimal);
         bindMap.put("hasRequiredField", hasRequiredField);
 
-        TemplateEngine templateEngine = TemplateUtil.createEngine(new TemplateConfig("templates", TemplateConfig.ResourceMode.CLASSPATH));
+
+//        为什么之前本地可以运行？
+//        可能的原因：
+//        本地 Maven 仓库有 Beetl 依赖的缓存
+//        开发环境有 Beetl 的间接依赖（来自其他模块）
+//        打包配置不同，导致生产环境缺少某些依赖
+        // 修改第257行，明确使用 Velocity
+
+        // 原来的（自动检测，会先尝试 Beetl）：
+        TemplateEngine templateEngine = TemplateUtil.createEngine
+                (new TemplateConfig("templates", TemplateConfig.ResourceMode.CLASSPATH));
+
+        // 关键：打印实际使用的引擎
+        log.error("=== 模板引擎调试 ===");
+        log.error("引擎类: {}", templateEngine.getClass().getName());
+        log.error("模板: {}", templateConfig.getTemplatePath());
+        log.error("配置: {}", templateConfig);
+
+// 改为（明确使用 Velocity）：
+//        TemplateEngine templateEngine = new cn.hutool.extra.template.engine.velocity.VelocityEngine(
+//                new TemplateConfig("templates", TemplateConfig.ResourceMode.CLASSPATH)
+//        );
+
+        //这样就能确保只使用 Velocity，避免自动检测带来的问题。
+
         Template template = templateEngine.getTemplate(templateConfig.getTemplatePath());
 
         return template.render(bindMap);
