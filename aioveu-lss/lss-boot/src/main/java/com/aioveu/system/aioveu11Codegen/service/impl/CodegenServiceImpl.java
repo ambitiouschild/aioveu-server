@@ -267,10 +267,10 @@ public class CodegenServiceImpl implements CodegenService {
                 (new TemplateConfig("templates", TemplateConfig.ResourceMode.CLASSPATH));
 
         // 关键：打印实际使用的引擎
-        log.error("=== 模板引擎调试 ===");
-        log.error("引擎类: {}", templateEngine.getClass().getName());
-        log.error("模板: {}", templateConfig.getTemplatePath());
-        log.error("配置: {}", templateConfig);
+        log.info("=== 模板引擎调试 ===");
+        log.info("引擎类: {}", templateEngine.getClass().getName());
+        log.info("模板: {}", templateConfig.getTemplatePath());
+        log.info("配置: {}", templateConfig);
 
 // 改为（明确使用 Velocity）：
 //        TemplateEngine templateEngine = new cn.hutool.extra.template.engine.velocity.VelocityEngine(
