@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.pay.aioveu09PayAccountFlow.mapper.PayAccountFlowMapper">
+
+    <!-- 获取账户流水分页列表 -->
+    <select id="getPayAccountFlowPage" resultType="com.aioveu.pay.aioveu09PayAccountFlow.model.vo.PayAccountFlowVO">
+        SELECT
+                id,
+                flow_no,
+                account_no,
+                biz_no,
+                biz_type,
+                flow_type,
+                amount,
+                balance_before,
+                balance_after,
+                frozen_before,
+                frozen_after,
+                remark,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            pay_account_flow
+        <where>
+            <if test="queryParams.flowNo != null and queryParams.flowNo != ''">
+                AND flow_no LIKE CONCAT(#{queryParams.flowNo}, '%')
+            </if>
+            <if test="queryParams.accountNo != null and queryParams.accountNo != ''">
+                AND account_no LIKE CONCAT(#{queryParams.accountNo}, '%')
+            </if>
+            <if test="queryParams.bizNo != null and queryParams.bizNo != ''">
+                AND biz_no LIKE CONCAT(#{queryParams.bizNo}, '%')
+            </if>
+            <if test="queryParams.bizType != null and queryParams.bizType != ''">
+                AND biz_type LIKE CONCAT(#{queryParams.bizType}, '%')
+            </if>
+            <if test="queryParams.flowType != null and queryParams.flowType != ''">
+                AND flow_type LIKE CONCAT(#{queryParams.flowType}, '%')
+            </if>
+            <if test="queryParams.createTime != null">
+                <if test="queryParams.createTime[0] != null and queryParams.createTime[0] != ''">
+                    <bind name="startDate" value="queryParams.createTime[0].length() == 10 ? queryParams.createTime[0] + ' 00:00:00' : queryParams.createTime[0]"/>
+                    AND create_time &gt;= #{startDate}
+                </if>
+                <if test="queryParams.createTime[1] != null and queryParams.createTime[1] != ''">
+                    <bind name="endDate" value="queryParams.createTime[1].length() == 10 ? queryParams.createTime[1] + ' 23:59:59' : queryParams.createTime[1]"/>
+                    AND create_time &lt;= #{endDate}
+                </if>
+            </if>
+        </where>
+    </select>
+
+</mapper>

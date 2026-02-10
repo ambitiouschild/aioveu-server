@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.pay.aioveu08PayAccount.mapper.PayAccountMapper">
+
+    <!-- 获取支付账户分页列表 -->
+    <select id="getPayAccountPage" resultType="com.aioveu.pay.aioveu08PayAccount.model.vo.PayAccountVO">
+        SELECT
+                id,
+                account_no,
+                user_id,
+                account_type,
+                balance,
+                frozen_balance,
+                available_balance,
+                total_income,
+                total_expend,
+                currency,
+                status,
+                version,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            pay_account
+        <where>
+            <if test="queryParams.accountNo != null and queryParams.accountNo != ''">
+                AND account_no LIKE CONCAT(#{queryParams.accountNo}, '%')
+            </if>
+            <if test="queryParams.userId != null">
+                AND user_id LIKE CONCAT(#{queryParams.userId}, '%')
+            </if>
+            <if test="queryParams.accountType != null and queryParams.accountType != ''">
+                AND account_type LIKE CONCAT(#{queryParams.accountType}, '%')
+            </if>
+            <if test="queryParams.status != null">
+                AND status LIKE CONCAT(#{queryParams.status}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

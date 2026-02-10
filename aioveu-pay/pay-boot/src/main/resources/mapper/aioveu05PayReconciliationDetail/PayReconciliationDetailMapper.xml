@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.pay.aioveu05PayReconciliationDetail.mapper.PayReconciliationDetailMapper">
+
+    <!-- 获取对账明细分页列表 -->
+    <select id="getPayReconciliationDetailPage" resultType="com.aioveu.pay.aioveu05PayReconciliationDetail.model.vo.PayReconciliationDetailVO">
+        SELECT
+                id,
+                reconciliation_id,
+                channel_code,
+                bill_date,
+                third_transaction_no,
+                third_order_no,
+                payment_no,
+                order_no,
+                trade_type,
+                trade_time,
+                trade_amount,
+                trade_status,
+                reconcile_status,
+                difference_reason,
+                reconcile_result,
+                reconcile_time,
+                remark,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            pay_reconciliation_detail
+        <where>
+            <if test="queryParams.reconciliationId != null">
+                AND reconciliation_id LIKE CONCAT(#{queryParams.reconciliationId}, '%')
+            </if>
+            <if test="queryParams.billDate != null">
+                <if test="queryParams.billDate[0] != null and queryParams.billDate[0] != ''">
+                    <bind name="startDate" value="queryParams.billDate[0].length() == 10 ? queryParams.billDate[0] + ' 00:00:00' : queryParams.billDate[0]"/>
+                    AND bill_date &gt;= #{startDate}
+                </if>
+                <if test="queryParams.billDate[1] != null and queryParams.billDate[1] != ''">
+                    <bind name="endDate" value="queryParams.billDate[1].length() == 10 ? queryParams.billDate[1] + ' 23:59:59' : queryParams.billDate[1]"/>
+                    AND bill_date &lt;= #{endDate}
+                </if>
+            </if>
+            <if test="queryParams.paymentNo != null and queryParams.paymentNo != ''">
+                AND payment_no LIKE CONCAT(#{queryParams.paymentNo}, '%')
+            </if>
+            <if test="queryParams.orderNo != null and queryParams.orderNo != ''">
+                AND order_no LIKE CONCAT(#{queryParams.orderNo}, '%')
+            </if>
+            <if test="queryParams.reconcileStatus != null">
+                AND reconcile_status LIKE CONCAT(#{queryParams.reconcileStatus}, '%')
+            </if>
+            <if test="queryParams.reconcileTime != null">
+                <if test="queryParams.reconcileTime[0] != null and queryParams.reconcileTime[0] != ''">
+                    <bind name="startDate" value="queryParams.reconcileTime[0].length() == 10 ? queryParams.reconcileTime[0] + ' 00:00:00' : queryParams.reconcileTime[0]"/>
+                    AND reconcile_time &gt;= #{startDate}
+                </if>
+                <if test="queryParams.reconcileTime[1] != null and queryParams.reconcileTime[1] != ''">
+                    <bind name="endDate" value="queryParams.reconcileTime[1].length() == 10 ? queryParams.reconcileTime[1] + ' 23:59:59' : queryParams.reconcileTime[1]"/>
+                    AND reconcile_time &lt;= #{endDate}
+                </if>
+            </if>
+        </where>
+    </select>
+
+</mapper>
