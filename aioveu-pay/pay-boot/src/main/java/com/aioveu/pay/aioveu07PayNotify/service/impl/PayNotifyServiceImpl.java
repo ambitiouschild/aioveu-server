@@ -100,4 +100,101 @@ public class PayNotifyServiceImpl extends ServiceImpl<PayNotifyMapper, PayNotify
                 .toList();
         return this.removeByIds(idList);
     }
+
+    /**
+     * 发送异步通知
+     */
+    @Override
+    public Result<Void> sendNotify(PayNotifyDTO notifyDTO) {
+        PayNotify notify = buildPayNotify(notifyDTO);
+        notifyMapper.insert(notify);
+
+        // 异步发送通知
+        notifyExecutor.execute(() -> {
+            executeNotify(notify);
+        });
+
+        return Result.success();
+    }
+
+    /**
+     * 执行通知
+     */
+    private void executeNotify(PayNotify notify) {
+        int retryCount = 0;
+        boolean success = false;
+
+        while (retryCount < notify.getMaxNotifyCount() && !success) {
+            try {
+                // 发送HTTP请求
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+
+                HttpEntity<String> request = new HttpEntity<>(notify.getRequestData(), headers);
+                ResponseEntity<String> response = restTemplate.postForEntity(
+                        notify.getNotifyUrl(),
+                        request,
+                        String.class
+                );
+
+                // 处理响应
+                if (response.getStatusCode().is2xxSuccessful()) {
+                    String responseBody = response.getBody();
+                    if (isSuccessResponse(responseBody)) {
+                        success = true;
+                        notify.setNotifyStatus(NotifyStatus.SUCCESS.getCode());
+                        notify.setSuccessTime(new Date());
+                        notify.setResponseData(responseBody);
+                    }
+                }
+
+            } catch (Exception e) {
+                log.error("通知发送失败: notifyNo={}, retryCount={}",
+                        notify.getNotifyNo(), retryCount, e);
+            }
+
+            if (!success) {
+                retryCount++;
+                notify.setNotifyCount(retryCount);
+                notify.setLastNotifyTime(new Date());
+                notify.setNextNotifyTime(calculateNextNotifyTime(retryCount));
+                notify.setErrorMessage("通知失败，重试次数: " + retryCount);
+
+                // 等待后重试
+                if (retryCount < notify.getMaxNotifyCount()) {
+                    try {
+                        Thread.sleep(getRetryInterval(retryCount));
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }
+
+            notifyMapper.updateById(notify);
+        }
+
+        if (!success) {
+            notify.setNotifyStatus(NotifyStatus.FAILED.getCode());
+            notify.setErrorMessage("达到最大重试次数，通知失败");
+            notifyMapper.updateById(notify);
+        }
+    }
+
+    /**
+     * 重试失败通知
+     */
+    @Override
+    @Scheduled(fixedDelay = 300000) // 每5分钟执行一次
+    public void retryFailedNotify() {
+        List<PayNotify> failedNotifies = notifyMapper.selectFailedNotifies();
+
+        for (PayNotify notify : failedNotifies) {
+            if (notify.getNextNotifyTime().before(new Date())) {
+                notifyExecutor.execute(() -> {
+                    executeNotify(notify);
+                });
+            }
+        }
+    }
 }

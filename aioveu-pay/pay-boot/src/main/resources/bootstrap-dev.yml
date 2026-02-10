@@ -28,3 +28,43 @@ spring:
           - data-id: aioveu-common.yaml # 公共共享配置
             group:  AIOVEU_GROUP  # 使用相同的分组
             refresh: true
+
+# application.yml
+alipay:
+  # 基础配置
+  app-id: 2021000116699999
+  app-private-key: "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC3wN7c..."
+  alipay-public-key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuZ7K..."
+  server-url: https://openapi.alipay.com/gateway.do
+
+  # 证书模式配置（二选一）
+  use-cert: false
+  app-cert-path: /path/to/appCertPublicKey.crt
+  alipay-cert-path: /path/to/alipayCertPublicKey.crt
+  alipay-root-cert-path: /path/to/alipayRootCert.crt
+
+  # 回调地址
+  notify-url: https://your-domain.com/api/payment/alipay/notify
+  return-url: https://your-domain.com/payment/return
+
+  # 其他配置
+  sign-type: RSA2
+  charset: UTF-8
+  format: json
+  timeout: 10
+
+  # 沙箱环境配置
+  # server-url: https://openapi.alipaydev.com/gateway.do
+  # app-id: 2016092700609999
+
+  # application.properties
+  # 支付宝配置
+#  alipay.app-id=2021000116699999
+#  alipay.app-private-key=MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC3wN7c...
+#  alipay.alipay-public-key=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuZ7K...
+#  alipay.server-url=https://openapi.alipay.com/gateway.do
+#  alipay.notify-url=https://your-domain.com/api/payment/alipay/notify
+#  alipay.return-url=https://your-domain.com/payment/return
+#  alipay.sign-type=RSA2
+#  alipay.charset=UTF-8
+#  alipay.format=json

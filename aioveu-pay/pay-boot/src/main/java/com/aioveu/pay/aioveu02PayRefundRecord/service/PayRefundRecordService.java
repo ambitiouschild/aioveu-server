@@ -1,9 +1,12 @@
 package com.aioveu.pay.aioveu02PayRefundRecord.service;
 
+import com.aioveu.common.result.PageResult;
+import com.aioveu.common.result.Result;
 import com.aioveu.pay.aioveu02PayRefundRecord.model.entity.PayRefundRecord;
 import com.aioveu.pay.aioveu02PayRefundRecord.model.form.PayRefundRecordForm;
 import com.aioveu.pay.aioveu02PayRefundRecord.model.query.PayRefundRecordQuery;
-import com.aioveu.pay.aioveu02PayRefundRecord.model.vo.PayRefundRecordVO;
+import com.aioveu.pay.aioveu02PayRefundRecord.model.query.RefundQueryDTO;
+import com.aioveu.pay.aioveu02PayRefundRecord.model.vo.*;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -56,4 +59,25 @@ public interface PayRefundRecordService extends IService<PayRefundRecord> {
      * @return 是否删除成功
      */
     boolean deletePayRefundRecords(String ids);
+
+    // 申请退款
+    Result<String> applyRefund(PayRefundApplyDTO dto);
+
+    // 处理退款回调
+    Result<Void> handleRefundCallback(PayRefundCallbackDTO dto);
+
+    // 查询退款状态
+    Result<PayRefundStatusVO> queryRefundStatus(String refundNo);
+
+    // 取消退款
+    Result<Void> cancelRefund(String refundNo);
+
+    // 分页查询退款记录
+    Result<PageResult<PayRefundRecordVO>> queryRefundPage(RefundQueryDTO queryDTO);
+
+    // 手动重试退款
+    Result<Void> retryRefund(String refundNo);
+
+
+
 }

@@ -1,9 +1,13 @@
 package com.aioveu.pay.aioveu08PayAccount.service;
 
+import com.aioveu.common.result.PageResult;
+import com.aioveu.common.result.Result;
 import com.aioveu.pay.aioveu08PayAccount.model.entity.PayAccount;
 import com.aioveu.pay.aioveu08PayAccount.model.form.PayAccountForm;
 import com.aioveu.pay.aioveu08PayAccount.model.query.PayAccountQuery;
-import com.aioveu.pay.aioveu08PayAccount.model.vo.PayAccountVO;
+import com.aioveu.pay.aioveu08PayAccount.model.vo.*;
+import com.aioveu.pay.aioveu09PayAccountFlow.model.query.PayAccountFlowQueryDTO;
+import com.aioveu.pay.aioveu09PayAccountFlow.model.vo.PayAccountFlowVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -57,4 +61,25 @@ public interface PayAccountService extends IService<PayAccount> {
      * @return 是否删除成功
      */
     boolean deletePayAccounts(String ids);
+
+    // 创建支付账户
+    Result<Void> createAccount(PayAccountCreateDTO dto);
+
+    // 查询账户余额
+    Result<PayAccountBalanceVO> queryBalance(Long userId, String accountType);
+
+    // 余额支付
+    Result<Void> balancePay(BalancePayDTO dto);
+
+    // 账户充值
+    Result<Void> recharge(PayRechargeDTO dto);
+
+    // 资金冻结
+    Result<Void> freezeBalance(PayFreezeBalanceDTO dto);
+
+    // 资金解冻
+    Result<Void> unfreezeBalance(PayUnfreezeBalanceDTO dto);
+
+    // 分页查询账户流水
+    Result<PageResult<PayAccountFlowVO>> queryAccountFlowPage(PayAccountFlowQueryDTO queryDTO);
 }

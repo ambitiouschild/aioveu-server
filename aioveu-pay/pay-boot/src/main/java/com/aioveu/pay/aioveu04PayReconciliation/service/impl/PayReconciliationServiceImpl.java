@@ -102,4 +102,111 @@ public class PayReconciliationServiceImpl extends ServiceImpl<PayReconciliationM
         return this.removeByIds(idList);
     }
 
+
+    /**
+     * 执行对账
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Void> executeReconciliation(String reconciliationNo) {
+        // 1. 查询对账记录
+        Reconciliation reconciliation = reconciliationMapper.selectByNo(reconciliationNo);
+        if (reconciliation == null) {
+            throw new BusinessException("对账单不存在");
+        }
+
+        if (reconciliation.getReconcileStatus() != ReconciliationStatus.NOT_RECONCILED.getCode()) {
+            throw new BusinessException("对账单状态不正确");
+        }
+
+        // 2. 更新为对账中
+        reconciliation.setReconcileStatus(ReconciliationStatus.RECONCILING.getCode());
+        reconciliationMapper.updateById(reconciliation);
+
+        try {
+            // 3. 获取系统订单数据
+            List<SystemOrder> systemOrders = getSystemOrders(reconciliation);
+
+            // 4. 获取渠道账单数据
+            List<ChannelOrder> channelOrders = getChannelOrders(reconciliation);
+
+            // 5. 执行对账比对
+            ReconciliationResult result = compareOrders(systemOrders, channelOrders);
+
+            // 6. 保存对账结果
+            saveReconciliationResult(reconciliation, result);
+
+            // 7. 更新对账单状态
+            reconciliation.setReconcileStatus(ReconciliationStatus.COMPLETED.getCode());
+            reconciliation.setReconcileTime(new Date());
+            reconciliation.setDifferenceCount(result.getDifferenceCount());
+            reconciliationMapper.updateById(reconciliation);
+
+            // 8. 生成对账报告
+            generateReconciliationReport(reconciliation, result);
+
+            return Result.success();
+
+        } catch (Exception e) {
+            log.error("对账执行异常", e);
+            reconciliation.setReconcileStatus(ReconciliationStatus.EXCEPTION.getCode());
+            reconciliation.setErrorMessage(e.getMessage());
+            reconciliationMapper.updateById(reconciliation);
+            throw new BusinessException("对账执行失败");
+        }
+    }
+
+    /**
+     * 比对订单数据
+     */
+    private ReconciliationResult compareOrders(List<SystemOrder> systemOrders,
+                                               List<ChannelOrder> channelOrders) {
+        ReconciliationResult result = new ReconciliationResult();
+
+        // 系统订单转Map
+        Map<String, SystemOrder> systemMap = systemOrders.stream()
+                .collect(Collectors.toMap(
+                        SystemOrder::getThirdTransactionNo,
+                        order -> order,
+                        (o1, o2) -> o1
+                ));
+
+        // 渠道订单转Map
+        Map<String, ChannelOrder> channelMap = channelOrders.stream()
+                .collect(Collectors.toMap(
+                        ChannelOrder::getTransactionNo,
+                        order -> order,
+                        (o1, o2) -> o1
+                ));
+
+        // 比对逻辑
+        for (SystemOrder systemOrder : systemOrders) {
+            String key = systemOrder.getThirdTransactionNo();
+            ChannelOrder channelOrder = channelMap.get(key);
+
+            if (channelOrder == null) {
+                // 系统有，渠道无
+                handleSystemMore(systemOrder, result);
+            } else if (!matchOrder(systemOrder, channelOrder)) {
+                // 金额不一致
+                handleDifference(systemOrder, channelOrder, result);
+            } else {
+                // 匹配成功
+                handleMatch(systemOrder, channelOrder, result);
+            }
+
+            channelMap.remove(key);
+        }
+
+        // 渠道有，系统无
+        for (ChannelOrder channelOrder : channelMap.values()) {
+            handleChannelMore(channelOrder, result);
+        }
+
+        return result;
+    }
+
+
+
+
 }

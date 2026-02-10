@@ -19,11 +19,12 @@
 
     <dependencies>
 
-        <!-- Spring Cloud & Alibaba -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-bootstrap</artifactId>
-        </dependency>
+<!--         Spring Cloud & Alibaba-->
+        <!--        该依赖在 Spring Cloud 2022.x (对应 Spring Boot 3.x) 及更高版本中已被移除。-->
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.cloud</groupId>-->
+<!--            <artifactId>spring-cloud-starter-bootstrap</artifactId>-->
+<!--        </dependency>-->
 
         <!-- 注册中心 -->
         <dependency>
@@ -104,6 +105,15 @@
             <groupId>org.springframework.amqp</groupId>
             <artifactId>spring-amqp</artifactId>
         </dependency>
+
+
+        <!--        集成微信和支付宝实现-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.aioveu</groupId>-->
+        <!--            <artifactId>pay-core</artifactId>-->
+        <!--        </dependency>-->
+
+
 
     </dependencies>
 

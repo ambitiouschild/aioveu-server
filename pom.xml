@@ -104,6 +104,7 @@
     <dependencies>
 
         <!--Spring Cloud  & Alibaba  -->
+<!--        （Spring Boot 3.x）-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-dependencies</artifactId>

@@ -17,4 +17,83 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+
+    <dependencies>
+
+        <!--         Spring Cloud & Alibaba-->
+<!--        该依赖在 Spring Cloud 2022.x (对应 Spring Boot 3.x) 及更高版本中已被移除。-->
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.cloud</groupId>-->
+<!--            <artifactId>spring-cloud-starter-bootstrap</artifactId>-->
+<!--        </dependency>-->
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-apidoc</artifactId>
+        </dependency>
+
+        <!--       支付宝依赖============================   -->
+        <!--        集成支付宝SDK并配置AlipayClient-->
+        <!-- 支付宝SDK -->
+        <dependency>
+            <groupId>com.alipay.sdk</groupId>
+            <artifactId>alipay-sdk-java</artifactId>
+            <version>4.35.79.ALL</version>
+        </dependency>
+
+        <!-- 或使用以下版本（根据需求选择） -->
+
+        <dependency>
+            <groupId>com.alipay.sdk</groupId>
+            <artifactId>alipay-easysdk</artifactId>
+            <version>2.2.3</version>
+        </dependency>
+
+
+        <!-- 如果需要使用沙箱环境 -->
+        <!--        <dependency>-->
+        <!--            <groupId>com.alipay.sdk</groupId>-->
+        <!--            <artifactId>alipay-sandbox-sdk</artifactId>-->
+        <!--            <version>1.0.0</version>-->
+        <!--        </dependency>-->
+
+        <!--       微信依赖============================   -->
+        <!-- 微信支付SDK -->
+        <!-- 微信支付SDK -->
+        <!-- 在pom.xml中使用这个官方推荐坐标 -->
+<!--        坐标变化：微信支付SDK从com.github.wechatpay-apiv3迁移到了com.wechat.pay-->
+<!--        <dependency>-->
+<!--            <groupId>com.wechat.pay</groupId>-->
+<!--            <artifactId>wechatpay-java</artifactId>-->
+<!--&lt;!&ndash;            <version>0.3.9</version>  &lt;!&ndash; 如果0.4.2确实不可用，使用这个稳定版本 &ndash;&gt;&ndash;&gt;-->
+<!--            <version>0.4.2</version>-->
+<!--        </dependency>-->
+
+        <dependency>
+            <groupId>com.github.wechatpay-apiv3</groupId>
+            <artifactId>wechatpay-java</artifactId>
+            <version>0.2.17</version>
+        </dependency>
+
+
+
+        <!-- 或使用旧版V2版本（如需兼容） -->
+<!--                <dependency>-->
+<!--                    <groupId>com.github.wxpay</groupId>-->
+<!--                    <artifactId>wxpay-sdk</artifactId>-->
+<!--                    <version>3.0.9</version>-->
+<!--                </dependency>-->
+
+        <!-- Hutool工具包（可选，但推荐） -->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.8.16</version>
+        </dependency>
+
+
+    </dependencies>
+
+
+
 </project>
