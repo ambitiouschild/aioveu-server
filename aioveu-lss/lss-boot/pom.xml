@@ -31,11 +31,12 @@
     <dependencies>
 
         <!-- Spring Cloud & Alibaba -->
+<!--        在 Spring Boot 3.x 中，应该只使用 application.ayml。-->
 <!--        该依赖在 Spring Cloud 2022.x (对应 Spring Boot 3.x) 及更高版本中已被移除-->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-starter-bootstrap</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
+        </dependency>
 
         <!-- 注册中心 -->
         <dependency>

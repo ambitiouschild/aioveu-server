@@ -41,8 +41,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- spring cloud & alibaba -->
+        <!-- Spring Boot 3.x 版本 -->
         <spring-cloud.version>2023.0.0</spring-cloud.version>
         <spring-cloud-alibaba.version>2023.0.0.0-RC1</spring-cloud-alibaba.version>
+        <!-- 将 RC 版本改为稳定版 -->
+<!--        <spring-cloud-alibaba.version>2023.0.1.1</spring-cloud-alibaba.version>-->
 
         <!-- 数据库 & ORM -->
         <mysql.version>8.0.28</mysql.version>
@@ -105,6 +108,7 @@
 
         <!--Spring Cloud  & Alibaba  -->
 <!--        （Spring Boot 3.x）-->
+<!--        父模块（pom.xml） - 只做版本管理-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-dependencies</artifactId>

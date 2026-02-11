@@ -1,0 +1,85 @@
+server:
+  port: 9999
+
+spring:
+  application:
+    name: aioveu-lss
+  profiles:
+    active: dev  # prod dev  # 这里控制加载哪个环境文件
+
+  # 延迟数据源初始化
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+
+  #  一处配置控制所有环境。这是可以的
+  #  方案一：使用 Spring Boot 3.x 的新特性（推荐）
+  # 命名空间映射（必须在 import 之前定义）
+  nacos:
+    namespace:
+      mapping:
+        dev: ""                            #aioveu-dev # 开发环境命名空间  # 不配置 namespace，默认为 public
+        test: test-namespace-id
+        prod: 80147849-cdb8-4b7d-befc-b5aefa0e9ab6 #aioveu-prod  # 云98生产环境命名空间
+      # prod: a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef #aioveu-prod # 生产环境命名空间
+      current: ${nacos.namespace.mapping.${spring.profiles.active}}
+
+  # Nacos 配置
+  cloud:
+    nacos:
+      discovery: # 服务发现配置
+        enabled: true  # 必须启用
+        server-addr: localhost:8848 # 使用服务名而非localhost
+        namespace: ${nacos.namespace.current}
+        group: AIOVEU_GROUP  # 指定服务注册分组
+        register-enabled: true  # 必须启用注册
+        metadata:
+          version: 1.0
+          env: ${spring.profiles.active}
+          zone: zone1
+
+      config:
+        enabled: true  # 必须启用
+        server-addr: localhost:8848
+        file-extension: yaml
+        namespace: ${nacos.namespace.current}
+        group: AIOVEU_GROUP  # 配置分组
+        import-check:
+          enabled: false
+        # 3.x 新的共享配置方式
+        extension-configs:
+          - data-id: aioveu-common.yaml  # 公共共享配置
+            group: AIOVEU_GROUP  # 使用相同的分组
+            refresh: true  # 启用动态刷新
+
+  # 邮件配置 邮件配置应该在 spring.mail下，而不是在 oss.mail下！
+  mail:
+    host: smtp.qq.com
+    port: 587  #465 # 或587
+    username: ambitiouschild@qq.com   #腾讯邮箱默认关闭 SMTP 服务，腾讯邮箱要求 SMTP 必须使用授权码（非登录密码）：pwjbkmmfmuspdgjh
+    password: pwjbkmmfmuspdgjh   # 替换为生成的授权码
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl: true   # 465端口必开
+          starttls:
+            enable: true    # 587端口必开
+    # 邮件发送者
+    from: ambitiouschild@qq.com
+
+
+  main:
+    allow-circular-references: true
+
+  mvc:
+    path-match:
+      matching-strategy: ant_path_matcher  # 使用Ant路径匹配策略
+
+  # 必须要有：spring.config.import（Spring Boot 3.x 强制要求）
+  # optional:表示即使 Nacos 连接失败，应用也能启动。
+  config: #导入codegen配置
+    import:
+      - classpath:codegen.yml  #方案一：使用数组格式（推荐）
+      - optional:nacos:${spring.application.name}.yaml?namespace=&group=AIOVEU_GROUP
+

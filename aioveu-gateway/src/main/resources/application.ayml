@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: aioveu-gateway # 确保应用名称设置，这样config的name可以省略，因为默认会使用这个名称   # 应用名称
+  profiles:
+    active: dev #prod dev
+
+  # 延迟数据源初始化
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+
+  #  一处配置控制所有环境。这是可以的
+  #  方案一：使用 Spring Boot 3.x 的新特性（推荐）
+  # 命名空间映射（必须在 import 之前定义）
+  nacos:
+    namespace:
+      mapping:
+        dev: public                            #aioveu-dev # 开发环境命名空间
+        test: test-namespace-id
+        prod: 80147849-cdb8-4b7d-befc-b5aefa0e9ab6 #aioveu-prod  # 云98生产环境命名空间
+      # prod: a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef #aioveu-prod # 生产环境命名空间
+
+  main:
+    allow-circular-references: true
+
+  mvc:
+    path-match:
+      matching-strategy: ant_path_matcher  # 使用Ant路径匹配策略
+
+  # 必须要有：spring.config.import（Spring Boot 3.x 强制要求）
+  # optional:表示即使 Nacos 连接失败，应用也能启动。
+  config: #导入codegen配置
+    import:
+#      - classpath:codegen.yml  #方案一：使用数组格式（推荐）
+      #      - classpath:application-dev.yml    #先加载Nacos连接信息
+      #      - classpath:application-prod.yml    #先加载Nacos连接信息
+      - optional:nacos:${spring.application.name}.yaml?namespace=#{${nacos.namespace.mapping}[${spring.profiles.active}]}&group=AIOVEU_GROUP
+
+# 临时添加调试
+logging:
+  level:
+    org.springframework.core.env: DEBUG
+
+    #启动时应该看到 The following profiles are active: prod

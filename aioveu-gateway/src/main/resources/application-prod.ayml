@@ -1,0 +1,36 @@
+server:
+  port: 6666
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: aioveu-gateway
+  cloud:
+    nacos:
+      discovery:  # 服务发现配置
+        server-addr: nacos:8848  # 使用服务名
+#        namespace: a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef #aioveu-prod  # 生产环境命名空间
+        namespace: 80147849-cdb8-4b7d-befc-b5aefa0e9ab6 #aioveu-prod  # 云98生产环境命名空间
+
+        group: AIOVEU_GROUP  # 指定服务注册分组
+        metadata:
+          version: 1.0
+          env: prod
+          zone: zone1
+      config:  # 配置中心配置
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        file-extension: yaml
+#        namespace: a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef #aioveu-prod  # 生产环境命名空间
+        namespace: 80147849-cdb8-4b7d-befc-b5aefa0e9ab6 #aioveu-prod  # 云98生产环境命名空间
+        group: AIOVEU_GROUP  # 配置分组
+        name: aioveu-gateway   # 默认情况下，应用会使用spring.application.name作为数据ID的前缀，所以这里可以不用配置，但可以显式配置
+        shared-configs:
+          - data-id: aioveu-common.yaml  # 公共共享配置
+            group: AIOVEU_GROUP  # 使用相同的分组
+            refresh: true  # 启用动态刷新
+
+#找了一晚上的bug，根本原因是 Spring Cloud Alibaba 2023.0.0.0-RC1 与 Nacos 2.x 的兼容性要求，
+#  1.历史版本兼容：旧版本的 Spring Cloud Alibaba 支持命名空间名称
+#  2.新版本要求ID：2023.0.0.0-RC1 版本要求必须使用命名空间ID
+#  3.空值处理：如果使用名称，Nacos 客户端可能将其视为空字符串，连接到默认命名空间（public）

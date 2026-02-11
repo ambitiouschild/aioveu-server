@@ -1,0 +1,47 @@
+server:
+  port: 9999
+
+spring:
+  main:
+    allow-circular-references: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher  # 使用Ant路径匹配策略
+  cloud:
+    nacos:
+      discovery: # 服务发现配置
+        server-addr: nacos:8848 # 使用服务名而非localhost
+#        namespace: a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef #aioveu-prod # 生产环境命名空间
+        namespace: 80147849-cdb8-4b7d-befc-b5aefa0e9ab6 #aioveu-prod  # 云98生产环境命名空间
+        group: AIOVEU_GROUP  # 指定服务注册分组
+        metadata:
+          version: 1.0
+          env: prod
+          zone: zone1
+
+      config:
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        file-extension: yaml
+#        namespace: a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef #aioveu-prod # 生产环境命名空间
+        namespace: 80147849-cdb8-4b7d-befc-b5aefa0e9ab6 #aioveu-prod  # 云98生产环境命名空间
+        group: AIOVEU_GROUP  # 配置分组
+        shared-configs:
+          - data-id: aioveu-common.yaml  # 公共共享配置
+            group: AIOVEU_GROUP  # 使用相同的分组
+            refresh: true  # 启用动态刷新
+
+  # 邮件配置 邮件配置应该在 spring.mail下，而不是在 oss.mail下！
+  mail:
+    host: smtp.qq.com
+    port: 587  #465 # 或587
+    username: ambitiouschild@qq.com   #腾讯邮箱默认关闭 SMTP 服务，腾讯邮箱要求 SMTP 必须使用授权码（非登录密码）：pwjbkmmfmuspdgjh
+    password: pwjbkmmfmuspdgjh   # 替换为生成的授权码
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl: true   # 465端口必开
+          starttls:
+            enable: true    # 587端口必开
+    # 邮件发送者
+    from: ambitiouschild@qq.com
