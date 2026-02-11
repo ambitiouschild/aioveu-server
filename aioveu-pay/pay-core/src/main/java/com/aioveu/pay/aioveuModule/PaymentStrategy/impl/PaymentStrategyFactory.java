@@ -51,20 +51,24 @@ public class PaymentStrategyFactory {
     private final Map<String, PaymentStrategy> strategyMap;
 
     @Autowired
-    public PaymentStrategyFactory(WeChatPayStrategyAdapter weChatPayService,
-                                  AlipayStrategyAdapter alipayService) {
+    public PaymentStrategyFactory(WeChatPayStrategyAdapter weChatPayStrategyAdapter,
+                                  AlipayStrategyAdapter alipayStrategyAdapter,
+                                  MockStrategyAdapter mockStrategyAdapter) {
         this.strategyMap = new HashMap<>();
 
         // 微信支付策略 - 所有微信支付方式都使用同一个适配器
-        strategyMap.put("WECHAT_JSAPI", weChatPayService);
-        strategyMap.put("WECHAT_APP", weChatPayService);
-        strategyMap.put("WECHAT_NATIVE", weChatPayService);
-        strategyMap.put("WECHAT_H5", weChatPayService);
+        strategyMap.put("WECHAT_JSAPI", weChatPayStrategyAdapter);
+        strategyMap.put("WECHAT_APP", weChatPayStrategyAdapter);
+        strategyMap.put("WECHAT_NATIVE", weChatPayStrategyAdapter);
+        strategyMap.put("WECHAT_H5", weChatPayStrategyAdapter);
 
         // 支付宝策略
-        strategyMap.put("ALIPAY_APP", alipayService);
-        strategyMap.put("ALIPAY_WAP", alipayService);
-        strategyMap.put("ALIPAY_PAGE", alipayService);
+        strategyMap.put("ALIPAY_APP", alipayStrategyAdapter);
+        strategyMap.put("ALIPAY_WAP", alipayStrategyAdapter);
+        strategyMap.put("ALIPAY_PAGE", alipayStrategyAdapter);
+
+        // 模拟支付策略
+        strategyMap.put("Mock_APP", mockStrategyAdapter);
     }
 
     /**

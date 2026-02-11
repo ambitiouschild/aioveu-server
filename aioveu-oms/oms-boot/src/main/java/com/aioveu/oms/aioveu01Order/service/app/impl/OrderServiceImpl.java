@@ -3,7 +3,6 @@ package com.aioveu.oms.aioveu01Order.service.app.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.RandomUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.ResultCode;
@@ -12,10 +11,12 @@ import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
 import com.aioveu.oms.aioveu01Order.utils.OrderNoGenerator;
 import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
-import com.aioveu.oms.aioveu02OrderItem.mapper.OmsOrderItemMapper;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
 import com.aioveu.oms.config.MockPayService;
+import com.aioveu.pay.api.PayFeignClient;
+import com.aioveu.pay.model.PaymentParamsVO;
+import com.aioveu.pay.model.PaymentRequestDTO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -25,16 +26,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.binarywang.wxpay.bean.notify.SignatureHeader;
 import com.github.binarywang.wxpay.bean.notify.WxPayOrderNotifyV3Result;
 import com.github.binarywang.wxpay.bean.notify.WxPayRefundNotifyV3Result;
-import com.github.binarywang.wxpay.bean.request.WxPayUnifiedOrderV3Request;
-import com.github.binarywang.wxpay.bean.result.WxPayUnifiedOrderV3Result;
-import com.github.binarywang.wxpay.bean.result.enums.TradeTypeEnum;
-import com.github.binarywang.wxpay.config.WxPayConfig;
 import com.github.binarywang.wxpay.constant.WxPayConstants;
 import com.github.binarywang.wxpay.exception.WxPayException;
 import com.github.binarywang.wxpay.service.WxPayService;
 import com.aioveu.common.result.Result;
 import com.aioveu.common.web.exception.BizException;
-import com.aioveu.oms.config.WxPayProperties;
 import com.aioveu.oms.aioveu01Order.constant.OrderConstants;
 import com.aioveu.oms.aioveu01Order.converter.OmsOrderConverter;
 import com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum;
@@ -57,7 +53,6 @@ import com.aioveu.pms.model.dto.LockSkuDTO;
 import com.aioveu.pms.model.dto.SkuInfoDTO;
 import com.aioveu.ums.api.MemberFeignClient;
 import com.aioveu.ums.dto.MemberAddressDTO;
-import com.ibm.icu.math.BigDecimal;
 import feign.FeignException;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
@@ -79,6 +74,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static cn.hutool.core.util.NumberUtil.toBigDecimal;
 
 
 /**
@@ -145,6 +142,10 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
     // 商品服务Feign客户端
     private final SkuFeignClient skuFeignClient;
+
+
+    // 添加支付微服务 Feign 客户端
+    private final PayFeignClient payFeignClient;
 
     // 微信支付服务
     private final WxPayService wxPayService;
@@ -1014,14 +1015,18 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         lock.lock();
 
         // 继续支付流程...
+
+        return processRealPayment(paymentForm, paymentMethod, order, lock);
+
+
         // 3. 判断使用模拟支付还是真实支付
-        if (Boolean.TRUE.equals(mockPayEnabled) && mockPayService.isMockEnabled()) {
-            log.info("【支付】使用模拟支付");
-            return processMockPayment(orderSn, paymentMethod, paymentAmount);
-        } else {
-            log.info("【支付】使用真实支付");
-            return processRealPayment(paymentForm, paymentMethod, order, lock);
-        }
+//        if (Boolean.TRUE.equals(mockPayEnabled) && mockPayService.isMockEnabled()) {
+//            log.info("【支付】使用模拟支付");
+//            return processMockPayment(orderSn, paymentMethod, paymentAmount);
+//        } else {
+//            log.info("【支付】使用真实支付");
+//            return processRealPayment(paymentForm, paymentMethod, order, lock);
+//        }
 
 
     }
@@ -1081,30 +1086,38 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         try {
 
             Object result;
-
             log.info("根据支付方式路由到不同的支付处理逻辑");
-            switch (paymentMethod) {
-                case WX_JSAPI:
 
-                    log.info("微信JSAPI支付（小程序支付）");
-                    result = wxJsapiPay(paymentForm.getAppId(), order.getOrderSn(), order.getPaymentAmount());
-                    break;
-                case ALIPAY:
+            String appId=paymentForm.getAppId();
+            String orderSn =   order.getOrderSn();
 
-                    log.info("支付宝支付");
-                    result = wxJsapiPay(paymentForm.getAppId(), order.getOrderSn(), order.getPaymentAmount());
-                    break;
-                case WX_APP:
+            Long memberId = SecurityUtils.getMemberId();
 
-                    log.info("微信APP支付");
-                    result = wxJsapiPay(paymentForm.getAppId(), order.getOrderSn(), order.getPaymentAmount());
-                    break;
-                default:
-                    log.info("BALANCE");
-                    result = balancePay(order);
-                    break;
+            // 7. 获取用户的微信OpenID
+            log.info("【会员微服务】获取用户OpenID，会员ID: {}", memberId);
+            Result<String> openIdResult = memberFeignClient.getOpenIdByMemberId(memberId);
+
+            String openId = openIdResult.getData();
+            log.info("【会员微服务】用户OpenID获取成功: {}", openId);
+
+
+
+            // 1. 构建支付请求
+            PaymentRequestDTO paymentRequest = buildPaymentRequest(order, paymentMethod, memberId, openId);
+            log.info("【支付微服务】支付请求参数: {}", JSONUtil.toJsonStr(paymentRequest));
+
+            // 2. 调用支付微服务
+            Result<PaymentParamsVO>  paymentResult = payFeignClient.createPayment(paymentRequest);
+
+            if (paymentResult == null) {
+                throw new BizException("支付服务返回空结果");
             }
-            return result;
+
+
+
+
+
+            return paymentResult;
         } finally {
             //释放锁
 
@@ -1115,6 +1128,73 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         }
 
 //        throw new BizException("真实支付功能未配置，请启用模拟支付或配置真实支付参数");
+    }
+
+
+    /**
+     * 构建支付请求
+     */
+    private PaymentRequestDTO buildPaymentRequest(OmsOrder order, PaymentMethodEnum paymentMethod,
+                                                  Long memberId, String openId) {
+
+        Long PaymentAmount = order.getPaymentAmount();
+
+        PaymentRequestDTO request = new PaymentRequestDTO();
+        request.setOrderNo(order.getOrderSn());
+        request.setAmount(toBigDecimal(PaymentAmount));
+        request.setSubject("商品购买");
+        request.setBody("订单号：" + order.getOrderSn());
+        request.setMemberId(memberId);
+
+        log.info("支付方式:{}", paymentMethod);
+
+        // 根据支付方式设置参数
+        switch (paymentMethod) {
+            case WX_JSAPI:
+                request.setChannel("WECHAT_JSAPI");
+                request.setPayType("jsapi");
+                request.setOpenId(openId);
+                break;
+            case ALIPAY:
+                request.setChannel("ALIPAY_APP");
+                request.setPayType("app");
+                break;
+            case BALANCE:
+                request.setChannel("balance");
+                request.setPayType("balance");
+                break;
+            case WX_APP:
+                request.setChannel("WECHAT_APP");
+                request.setPayType("app");
+                break;
+            default:
+                throw new BizException("不支持的支付方式: " + paymentMethod);
+        }
+
+        // 额外参数
+        Map<String, Object> extraParams = new HashMap<>();
+        extraParams.put("appId", getAppIdByMethod(paymentMethod));
+        extraParams.put("memberId", memberId);
+        extraParams.put("orderId", order.getId());
+        request.setExtraParams(extraParams);
+
+        return request;
+    }
+
+    /**
+     * 根据支付方式获取AppId
+     */
+    private String getAppIdByMethod(PaymentMethodEnum paymentMethod) {
+        // 这里可以从配置文件中读取
+        switch (paymentMethod) {
+            case WX_JSAPI:
+            case WX_APP:
+                return "wx1234567890abcdef"; // 替换为实际的微信AppId
+            case ALIPAY:
+                return "2021000118691234";   // 替换为实际的支付宝AppId
+            default:
+                return "";
+        }
     }
 
     /**
@@ -1181,188 +1261,12 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
 
     /**
-     *       TODO               微信JSAPI支付（小程序支付）
-     *                      生成微信支付调起参数，实际支付结果通过异步回调处理
+     *       TODO     支付成功后续操作
      *
-     * @param appId 微信小程序ID
-     * @param orderSn 订单编号
-     * @param paymentAmount 支付金额（单位：分）
-     * @return 微信支付调起参数
      */
-    private WxPayUnifiedOrderV3Result.JsapiResult wxJsapiPay(String appId, String orderSn, Long paymentAmount) {
+    private Result aftrtPay(String appId, String orderSn, Long paymentAmount) {
+        return null;
 
-        try {
-            log.info("【微信JSAPI支付】开始处理，订单号: {}, 金额: {}分", orderSn, paymentAmount);
-
-            // 1. 检查支付服务是否可用
-            if (wxPayService == null) {
-                log.error("【微信JSAPI支付】支付服务未初始化");
-                throw new BusinessException("支付服务未就绪");
-            }
-
-            // 2. 检查配置
-            //调用了 wxPayService.getConfig()，但 configMap为 null。
-            WxPayConfig config = wxPayService.getConfig();
-            if (config == null) {
-                log.error("【微信JSAPI支付】微信支付配置为空");
-                throw new BusinessException("微信支付配置异常");
-            }
-
-            // 3. 参数验证
-            if (StrUtil.isBlank(orderSn)) {
-                log.error("【微信JSAPI支付】订单号为空");
-                throw new BusinessException("订单号不能为空");
-            }
-
-            if (paymentAmount == null || paymentAmount <= 0) {
-                log.error("【微信JSAPI支付】支付金额无效: {}", paymentAmount);
-                throw new BusinessException("支付金额必须大于0");
-            }
-
-            Long memberId = SecurityUtils.getMemberId();
-            if (memberId == null) {
-                log.error("【微信JSAPI支付】会员ID为空");
-                throw new BusinessException("用户信息获取失败");
-            }
-
-            // 4. 查询订单信息
-            OmsOrder order = this.getOne(new LambdaQueryWrapper<OmsOrder>()
-                    .eq(OmsOrder::getOrderSn, orderSn));
-
-            if (order == null) {
-                log.error("【微信JSAPI支付】订单不存在: {}", orderSn);
-                throw new BusinessException("订单不存在");
-            }
-
-            // 5. 安全措施：如果订单已经有外部交易号，先关闭之前的微信支付订单
-            log.info("【微信JSAPI支付】检查是否需要关闭历史支付订单");
-            if (StrUtil.isNotBlank(order.getOutTradeNo())) {
-                try {
-                    log.info("【微信JSAPI支付】关闭历史支付订单: {}", order.getOutTradeNo());
-                    wxPayService.closeOrderV3(order.getOutTradeNo());
-                    log.info("【微信JSAPI支付】历史支付订单关闭成功");
-                } catch (WxPayException e) {
-                    // 如果是订单不存在等可忽略的错误，继续执行
-                    if ("ORDER_NOT_EXIST".equals(e.getErrCode()) ||
-                            "ORDERPAID".equals(e.getErrCode())) {
-                        log.warn("【微信JSAPI支付】历史订单无需关闭: {}", e.getErrCodeDes());
-                    } else {
-                        log.error("【微信JSAPI支付】关闭历史订单失败: {}", e.getMessage(), e);
-                        throw new BizException("关闭历史支付订单失败: " + e.getErrCodeDes());
-                    }
-                }
-            }
-
-            // 6. 更新订单支付方式
-            log.info("【微信JSAPI支付】更新订单支付方式为微信支付");
-            boolean updateResult = this.update(new LambdaUpdateWrapper<OmsOrder>()
-                    .set(OmsOrder::getPaymentMethod, PaymentMethodEnum.WX_JSAPI.getValue())
-                    .eq(OmsOrder::getOrderSn, orderSn));
-
-            if (!updateResult) {
-                log.error("【微信JSAPI支付】更新订单支付方式失败: {}", orderSn);
-                throw new BizException("更新订单信息失败");
-            }
-
-            // 7. 获取用户的微信OpenID
-            log.info("【微信JSAPI支付】获取用户OpenID，会员ID: {}", memberId);
-            Result<String> openIdResult = memberFeignClient.getMemberOpenId(memberId);
-
-            if (openIdResult == null || !openIdResult.isSuccess(openIdResult) || StrUtil.isBlank(openIdResult.getData())) {
-                log.error("【微信JSAPI支付】获取用户OpenID失败: {}", openIdResult);
-                throw new BizException("获取用户支付信息失败，请重新登录");
-            }
-
-            String memberOpenId = openIdResult.getData();
-            log.info("【微信JSAPI支付】用户OpenID获取成功: {}", maskOpenId(memberOpenId));
-
-            // 8. 构建微信支付请求参数
-            log.info("【微信JSAPI支付】构建支付请求参数");
-            WxPayUnifiedOrderV3Request wxRequest = new WxPayUnifiedOrderV3Request();
-
-            // 设置金额
-            WxPayUnifiedOrderV3Request.Amount amount = new WxPayUnifiedOrderV3Request.Amount();
-            amount.setTotal(Math.toIntExact(paymentAmount));  // 金额（分）
-            amount.setCurrency("CNY");
-            wxRequest.setAmount(amount);
-
-            // 设置基本参数
-            wxRequest.setAppid(config.getAppId());  // 使用配置中的appId
-            wxRequest.setMchid(config.getMchId());
-            wxRequest.setDescription("商品购买 - 订单号：" + orderSn);
-            wxRequest.setOutTradeNo(orderSn);
-            wxRequest.setNotifyUrl(config.getNotifyUrl());  // 使用配置中的通知地址
-
-            // 设置支付者
-            WxPayUnifiedOrderV3Request.Payer payer = new WxPayUnifiedOrderV3Request.Payer();
-            payer.setOpenid(memberOpenId);
-            wxRequest.setPayer(payer);
-
-            // 9. 调用微信统一下单接口
-            log.info("【微信JSAPI支付】调用微信统一下单接口，金额: {}分", paymentAmount);
-            log.info(" 调用微信统一下单接口");
-            WxPayUnifiedOrderV3Result result;
-            WxPayUnifiedOrderV3Result.JsapiResult jsapiResult;
-            try {
-                jsapiResult = wxPayService.createOrderV3(TradeTypeEnum.JSAPI, wxRequest);
-                result = wxPayService.createOrderV3(TradeTypeEnum.JSAPI, wxRequest);
-            } catch (WxPayException e) {
-                log.error("【微信JSAPI支付】微信统一下单失败，错误码: {}, 错误信息: {}",
-                        e.getErrCode(), e.getErrCodeDes(), e);
-                throw new BizException("微信支付失败: " + e.getErrCodeDes());
-            }
-
-            // 获取 prepay_id - 正确的获取方式
-            String prepayId = result.getPrepayId();
-            if (result == null || StrUtil.isBlank(result.getPrepayId())) {
-                log.error("【微信JSAPI支付】微信返回结果异常");
-                throw new BizException("微信支付返回结果异常");
-            }
-
-            log.info("【微信JSAPI支付】统一下单成功，预支付ID: {}", result.getPrepayId());
-
-
-            // 获取其他支付参数
-            String timeStamp = String.valueOf(System.currentTimeMillis() / 1000);
-            String nonceStr = jsapiResult.getNonceStr();
-            String packageStr = "prepay_id=" + prepayId;
-            String signType = "RSA";
-
-            // 构建返回给前端的参数
-            Map<String, String> payParams = new HashMap<>();
-            payParams.put("timeStamp", timeStamp);
-            payParams.put("nonceStr", nonceStr);
-            payParams.put("package", packageStr);
-            payParams.put("signType", signType);
-
-            // 生成签名
-//            String sign = wxPayService.createSign(payParams, signType);
-//            payParams.put("paySign", sign);
-
-
-            // 10. 更新订单外部交易号
-            this.update(new LambdaUpdateWrapper<OmsOrder>()
-                    .set(OmsOrder::getOutTradeNo, orderSn)  // 这里用orderSn作为outTradeNo，实际应该用微信返回的交易号
-                    .eq(OmsOrder::getOrderSn, orderSn));
-
-            return jsapiResult;
-
-        } catch (BizException e) {
-            // 业务异常直接抛出
-            throw e;
-        } catch (Exception e) {
-            log.error("【微信JSAPI支付】系统异常，订单号: {}", orderSn, e);
-            throw new BizException("支付系统异常: " + e.getMessage());
-        }
-    }
-
-    // 隐藏OpenID的中间部分，用于日志
-    private String maskOpenId(String openId) {
-        if (StrUtil.isBlank(openId) || openId.length() <= 8) {
-            return openId;
-        }
-        int length = openId.length();
-        return openId.substring(0, 4) + "***" + openId.substring(length - 4);
     }
 
     /**

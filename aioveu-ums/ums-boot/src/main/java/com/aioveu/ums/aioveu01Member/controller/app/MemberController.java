@@ -29,7 +29,7 @@ public class MemberController {
 
     @Operation(summary= "根据会员ID获取openid")
     @GetMapping("/{memberId}/openid")
-    public Result<String> getMemberById(@Parameter(name = "会员ID") @PathVariable Long memberId) {
+    public Result<String> getOpenIdByMemberId(@Parameter(name = "会员ID") @PathVariable Long memberId) {
         UmsMember member = memberService.getOne(new LambdaQueryWrapper<UmsMember>()
                 .eq(UmsMember::getId, memberId)
                 .select(UmsMember::getOpenid));

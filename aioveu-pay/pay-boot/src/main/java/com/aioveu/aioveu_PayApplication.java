@@ -5,6 +5,7 @@ import com.aioveu.pms.api.SkuFeignClient;
 import com.aioveu.ums.api.MemberFeignClient;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
@@ -19,6 +20,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
 @EnableDiscoveryClient
+@ConfigurationPropertiesScan
 @EnableFeignClients(basePackageClasses = { MemberFeignClient.class, SkuFeignClient.class})
 public class aioveu_PayApplication {
     public static void main(String[] args) {

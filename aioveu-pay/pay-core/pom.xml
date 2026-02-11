@@ -22,10 +22,10 @@
 
         <!--         Spring Cloud & Alibaba-->
 <!--        该依赖在 Spring Cloud 2022.x (对应 Spring Boot 3.x) 及更高版本中已被移除。-->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-starter-bootstrap</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.aioveu</groupId>

@@ -1,5 +1,6 @@
 package com.aioveu;
 
+import com.aioveu.pay.api.PayFeignClient;
 import com.aioveu.pms.api.SkuFeignClient;
 import com.aioveu.ums.api.MemberFeignClient;
 import org.springframework.boot.SpringApplication;
@@ -20,7 +21,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableFeignClients(basePackageClasses = { MemberFeignClient.class, SkuFeignClient.class})
+@EnableFeignClients(basePackageClasses = { MemberFeignClient.class, SkuFeignClient.class, PayFeignClient.class})
 public class aioveu_OmsApplication {
     public static void main(String[] args) {
 

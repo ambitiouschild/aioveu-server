@@ -28,6 +28,17 @@ spring:
           - data-id: aioveu-common.yaml # 公共共享配置
             group:  AIOVEU_GROUP  # 使用相同的分组
             refresh: true
+          - data-id: aioveu-WeChatPay.yaml # 公共共享配置
+            group: AIOVEU_PAY_GROUP  # 使用相同的分组
+            refresh: true
+
+          - data-id: aioveu-AliPay.yaml # 公共共享配置
+            group: AIOVEU_PAY_GROUP  # 使用相同的分组
+            refresh: true
+
+          - data-id: aioveu-MockPay.yaml # 公共共享配置
+            group: AIOVEU_PAY_GROUP  # 使用相同的分组
+            refresh: true
 
 # application.yml
 alipay:

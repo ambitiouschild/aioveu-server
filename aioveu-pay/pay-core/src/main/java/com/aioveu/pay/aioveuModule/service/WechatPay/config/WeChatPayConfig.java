@@ -9,7 +9,7 @@ import java.util.Map;
 
 /**
  * @ClassName: WechatPayConfig
- * @Description TODO 微信支付配置类
+ * @Description TODO 微信支付配置类  作用：读取外部配置文件，封装配置属性
  * @Author 可我不敌可爱
  * @Author 雒世松
  * @Date 2026/2/10 18:35
@@ -17,9 +17,15 @@ import java.util.Map;
  **/
 
 @Configuration
-@ConfigurationProperties(prefix = "wechat.pay")
+@ConfigurationProperties(prefix = "pay.wechat")
 @Data
 public class WeChatPayConfig {
+
+
+    /**
+     * 是否启用微信支付
+     */
+    private boolean enabled = false;  // 添加enabled字段，默认false
 
     /**
      * 应用ID（公众号/小程序/企业微信）

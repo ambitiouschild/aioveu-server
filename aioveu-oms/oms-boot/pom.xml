@@ -17,6 +17,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <service.port>8603</service.port>
         <service.nodeport>32000</service.nodeport>
+
+        <pay-api.version>1.0-SNAPSHOT</pay-api.version>  <!-- 添加这行 -->
     </properties>
 
     <dependencies>
@@ -68,6 +70,12 @@
 
         <dependency>
             <groupId>com.aioveu</groupId>
+            <artifactId>pay-api</artifactId>
+            <version>${pay-api.version}</version>  <!-- 添加这行 -->
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
             <artifactId>common-mybatis</artifactId>
         </dependency>
 
@@ -104,6 +112,7 @@
             <groupId>org.springframework.amqp</groupId>
             <artifactId>spring-amqp</artifactId>
         </dependency>
+
 
     </dependencies>
 

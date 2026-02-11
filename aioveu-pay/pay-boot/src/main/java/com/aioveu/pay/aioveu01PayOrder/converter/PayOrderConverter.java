@@ -2,6 +2,7 @@ package com.aioveu.pay.aioveu01PayOrder.converter;
 
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu01PayOrder.model.form.PayOrderForm;
+import com.aioveu.pay.aioveu07PayNotify.model.vo.PayNotifyDTO;
 import com.ibm.icu.math.BigDecimal;
 import org.mapstruct.Mapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -26,6 +27,8 @@ public interface PayOrderConverter {
 
 
     PayOrder toEntity(PayOrderForm formData);
+
+    PayNotifyDTO  toPayNotifyDTO(PayOrder order );
 
 
 }

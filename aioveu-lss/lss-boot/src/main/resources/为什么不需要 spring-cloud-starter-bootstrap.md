@@ -25,3 +25,11 @@
 3. **正确配置 application.yml**
 
 **不要**取消注释 `spring-cloud-starter-bootstrap`依赖，它在 Spring Boot 3.x 中已经不适用了。
+
+
+
+## 问题分析
+
+1. **配置中心配置方式已变**：Spring Boot 3.x 使用 `spring.config.import`而不是 `spring.cloud.nacos.config.name`
+2. **共享配置格式**：`shared-configs`的格式在 3.x 中可能已变化
+3. **缺少应用名**：没有设置 `spring.application.name`

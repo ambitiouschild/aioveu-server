@@ -48,7 +48,7 @@ import java.util.Map;
 
 /**
  * @ClassName: WechatPayServiceImpl
- * @Description TODO  微信支付服务实现类 - 使用工厂模式
+ * @Description TODO  微信支付服务实现类 - 使用工厂模式  - 返回支付参数
  *                      支付路由策略
  *                      根据用户设备选择支付方式
  *                      根据支付成功率动态路由
@@ -91,11 +91,11 @@ public class WeChatPayServiceImpl implements WeChatPayService {
     @Autowired
     public WeChatPayServiceImpl(WeChatPayConfig wechatPayConfig,
                                 WeChatPayRequestFactory requestFactory,
-                                JsapiService jsapiService,
-//                                NativeService nativeService,
-                                AppService appService,
-                                H5Service h5Service,
-                                RefundService refundService) {
+                                @Autowired(required = false) JsapiService jsapiService,  // 修改为 required = false
+                                @Autowired(required = false) AppService appService,
+                                @Autowired(required = false) H5Service h5Service,
+//                                @Autowired(required = false) NativePayService nativePayService,
+                                @Autowired(required = false) RefundService refundService) {
         this.wechatPayConfig = wechatPayConfig;
         this.requestFactory = requestFactory;
         this.jsapiService = jsapiService;

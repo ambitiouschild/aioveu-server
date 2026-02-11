@@ -27,6 +27,8 @@ import java.math.BigDecimal;
 public class PaymentRequestDTO implements Serializable {
 
 
+
+    private String userAgent;
     @NotBlank(message = "订单号不能为空")
     private String orderNo;
 
@@ -70,6 +72,8 @@ public class PaymentRequestDTO implements Serializable {
      * 渠道名称
      */
     private String channelName;
+
+    private String payType;
 
 
 

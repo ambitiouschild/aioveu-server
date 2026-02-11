@@ -128,7 +128,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       # 确保使用宿主机可访问的IP  当Seata注册到Nacos时，注册的IP地址决定微服务的连接方式  #强制指定注册IP
       # 关键1：注册到Nacos的IP（微服务可访问的地址）
       #更改seata注册配置顺序
-      SEATA_IP: 192.168.1.5  # 替换为你的宿主机IP  ,注意顺序，要先把id改为宿主机，顺序很重要  宿主机公网IP或内网可达IP   直接连接宿主机IP
+      SEATA_IP: 192.168.1.2  # 替换为你的宿主机IP  ,注意顺序，要先把id改为宿主机，顺序很重要  宿主机公网IP或内网可达IP   直接连接宿主机IP
       SEATA_PORT: 8091
       SEATA_REGISTRY_NACOS_NAMESPACE: public  # 确保命名空间匹配
 
@@ -197,7 +197,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
 
     volumes:
 #       挂载registry.conf，这样Seata会使用这个配置连接Nacos
-      - ./seata/config/registry.conf:/seata-server/resources/registry.conf
+#      - ./seata/config/registry.conf:/seata-server/resources/registry.conf
 #      - ./seata/config:/seata-server/resources  # 挂载自定义配置文件  # 挂载配置文件，其中包含registry.conf和file.conf
       # 挂载MySQL驱动
 #      - ./lib/mysql-connector-j-8.0.33.jar:/seata-server/lib/mysql-connector-java.jar

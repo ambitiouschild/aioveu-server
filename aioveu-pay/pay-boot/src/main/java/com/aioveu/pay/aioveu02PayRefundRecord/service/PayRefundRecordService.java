@@ -60,23 +60,23 @@ public interface PayRefundRecordService extends IService<PayRefundRecord> {
      */
     boolean deletePayRefundRecords(String ids);
 
-    // 申请退款
-    Result<String> applyRefund(PayRefundApplyDTO dto);
+//    // 申请退款
+//    Result<String> applyRefund(PayRefundApplyDTO dto);
+//
+//    // 处理退款回调
+//    Result<Void> handleRefundCallback(PayRefundCallbackDTO dto);
+//
+//    // 查询退款状态
+//    Result<PayRefundStatusVO> queryRefundStatus(String refundNo);
 
-    // 处理退款回调
-    Result<Void> handleRefundCallback(PayRefundCallbackDTO dto);
+//    // 取消退款
+//    Result<Void> cancelRefund(String refundNo);
 
-    // 查询退款状态
-    Result<PayRefundStatusVO> queryRefundStatus(String refundNo);
+//    // 分页查询退款记录
+//    Result<PageResult<PayRefundRecordVO>> queryRefundPage(RefundQueryDTO queryDTO);
 
-    // 取消退款
-    Result<Void> cancelRefund(String refundNo);
-
-    // 分页查询退款记录
-    Result<PageResult<PayRefundRecordVO>> queryRefundPage(RefundQueryDTO queryDTO);
-
-    // 手动重试退款
-    Result<Void> retryRefund(String refundNo);
+//    // 手动重试退款
+//    Result<Void> retryRefund(String refundNo);
 
 
 

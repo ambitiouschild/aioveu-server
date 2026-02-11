@@ -63,19 +63,21 @@ public interface PayReconciliationService extends IService<PayReconciliation> {
      */
     boolean deletePayReconciliations(String ids);
 
+//    // 查询对账记录
+//    PayReconciliation selectByNo(String reconciliationNo);
+//
+//    // 下载对账单
+//    Result<Void> downloadBill(PayBillDownloadDTO dto);
+//
+//    // 执行对账
+//    Result<Void> executeReconciliation(String reconciliationNo);
+//
+//    // 生成对账报告
+//    Result<PayReconciliationReportVO> generateReport(String reconciliationNo);
+//
+//    // 处理差异订单
+//    Result<Void> handleDifferenceOrder(PayReconciliationHandleDifferenceDTO dto);
 
-    // 下载对账单
-    Result<Void> downloadBill(PayBillDownloadDTO dto);
-
-    // 执行对账
-    Result<Void> executeReconciliation(String reconciliationNo);
-
-    // 生成对账报告
-    Result<PayReconciliationReportVO> generateReport(String reconciliationNo);
-
-    // 处理差异订单
-    Result<Void> handleDifferenceOrder(PayReconciliationHandleDifferenceDTO dto);
-
-    // 查询对账记录
-    Result<PageResult<PayReconciliationVO>> queryReconciliationPage(PayReconciliationQueryDTO queryDTO);
+//    // 查询对账记录
+//    Result<PageResult<PayReconciliationVO>> queryReconciliationPage(PayReconciliationQueryDTO queryDTO);
 }

@@ -2,6 +2,7 @@ package com.aioveu.pay.aioveu06PayFlow.model.entity;
 
 import com.aioveu.common.base.BaseEntity;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@Builder
 @TableName("pay_flow")
 public class PayFlow extends BaseEntity {
 

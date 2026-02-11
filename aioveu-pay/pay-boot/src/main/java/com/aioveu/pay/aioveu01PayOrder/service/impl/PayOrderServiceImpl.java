@@ -9,11 +9,16 @@ import com.aioveu.pay.aioveu01PayOrder.model.form.PayOrderForm;
 import com.aioveu.pay.aioveu01PayOrder.model.query.PayOrderQuery;
 import com.aioveu.pay.aioveu01PayOrder.model.vo.PayOrderVO;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
+import com.aioveu.pay.aioveuModule.enums.PaymentStatusEnum;
+import com.aioveu.pay.aioveuModule.model.vo.PaymentCallbackDTO;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +32,7 @@ import java.util.List;
  * @Version 1.0
  **/
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> implements PayOrderService {
@@ -99,5 +105,95 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
                 .map(Long::parseLong)
                 .toList();
         return this.removeByIds(idList);
+    }
+
+    /**
+     * 根据支付单号查询支付订单
+     *
+     * @param paymentNo 支付单号
+     * @return PayOrder
+     */
+    @Override
+    public PayOrder selectByPaymentNo(String paymentNo){
+
+        PayOrder payOrder = this.getOne(
+                new LambdaQueryWrapper<PayOrder>()
+                        .eq(PayOrder::getPaymentNo, paymentNo)
+        );
+
+        log.info("根据支付单号查询支付订单:{}",payOrder);
+
+        return payOrder;
+    }
+
+    /**
+     *  更新订单状态
+     *
+     * @param order 支付单号,callback
+     * @return Boolean
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean updateOrderStatus(PayOrder order, PaymentCallbackDTO callback){
+
+        // 设置状态
+        if (Boolean.TRUE.equals(callback.getSuccess())) {
+            order.setPaymentStatus(PaymentStatusEnum.SUCCESS.getValue());
+            order.setPaymentTime(callback.getPaymentTime());
+            order.setThirdPaymentNo(callback.getThirdPaymentNo());
+            order.setErrorCode(null);
+            order.setErrorMessage(null);
+        } else {
+            order.setPaymentStatus(PaymentStatusEnum.FAILED.getValue());
+            order.setErrorCode(callback.getErrorCode());
+            order.setErrorMessage(callback.getErrorMessage());
+        }
+
+        // 更新其他字段
+//        order.setUpdateTime(new Date());
+        order.setUpdateBy("system_callback");
+
+        // 更新数据库
+
+        // 记录状态变更日志
+//        payOrderLogService.logStatusChange(order.getPaymentNo(),
+//                PaymentStatusEnum.PENDING.getValue(),
+//                order.getPaymentStatus(),
+//                "回调通知");
+        return this.save(order);
+    }
+
+
+    /**
+     *  处理业务逻辑
+     *
+     * @param order 支付单号,callback
+     * @return Boolean
+     */
+    @Override
+    public void handleBusinessLogic(PayOrder order, PaymentCallbackDTO callback) {
+
+        if (!PaymentStatusEnum.SUCCESS.getValue().equals(order.getPaymentStatus())) {
+            return;  // 只有支付成功才处理业务
+        }
+
+        // 根据业务类型处理
+        String bizType = order.getBizType();
+//        String bizId = order.getBizId();
+
+        switch (bizType) {
+            case "ORDER_PAY":  // 订单支付
+//                orderService.paySuccess(bizId, order);
+                break;
+            case "RECHARGE":   // 充值
+//                userBalanceService.recharge(bizId, order);
+                break;
+            case "VIP_PAY":    // VIP购买
+//                vipService.activateVip(bizId, order);
+                break;
+            default:
+                log.warn("【业务处理】未知业务类型: {}", bizType);
+        }
+
     }
 }

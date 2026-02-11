@@ -22,6 +22,10 @@ import java.io.Serializable;
 @NoArgsConstructor
 public enum ResultCode implements IResultCode, Serializable {
 
+
+    CALLBACK_SIGN_ERROR("D001", "回调签名验证失败"),
+    ORDER_NOT_FOUND("D002", "支付订单不存在"),
+
     SUCCESS("00000", "一切ok"),
 
     /** 一级宏观错误码  */

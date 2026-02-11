@@ -15,16 +15,21 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- 支付模块-->
+        <pay-core.version>1.0-SNAPSHOT</pay-core.version>
+
+
     </properties>
 
     <dependencies>
 
 <!--         Spring Cloud & Alibaba-->
         <!--        该依赖在 Spring Cloud 2022.x (对应 Spring Boot 3.x) 及更高版本中已被移除。-->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-starter-bootstrap</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
+        </dependency>
 
         <!-- 注册中心 -->
         <dependency>
@@ -108,12 +113,18 @@
 
 
         <!--        集成微信和支付宝实现-->
-        <!--        <dependency>-->
-        <!--            <groupId>com.aioveu</groupId>-->
-        <!--            <artifactId>pay-core</artifactId>-->
-        <!--        </dependency>-->
+                <dependency>
+                    <groupId>com.aioveu</groupId>
+                    <artifactId>pay-core</artifactId>
+                    <version>${pay-core.version}</version>  <!-- 添加这行 -->
+                </dependency>
 
-
+        <!-- pom.xml 添加微信支付SDK -->
+        <dependency>
+            <groupId>com.github.binarywang</groupId>
+            <artifactId>weixin-java-pay</artifactId>
+<!--            <version>4.5.0</version>-->
+        </dependency>
 
     </dependencies>
 

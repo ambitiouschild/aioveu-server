@@ -1,0 +1,98 @@
+# application-WeChatPay.yml
+
+# ======================
+# 支付渠道通用配置
+# ======================
+payment:
+  channels:
+    # 微信支付渠道配置
+    wechat:
+      jsapi: WECHAT_JSAPI       # 微信公众号/小程序支付标识
+      app: WECHAT_APP           # APP支付标识
+      native: WECHAT_NATIVE     # 扫码支付标识
+      h5: WECHAT_H5             # H5支付标识
+
+    # 支付宝支付渠道配置
+    alipay:
+      app: ALIPAY_APP           # 支付宝APP支付标识
+      wap: ALIPAY_WAP           # 手机网站支付标识
+      page: ALIPAY_PAGE         # 电脑网站支付标识
+
+# ======================
+# 微信支付专用配置
+# ======================
+wechat:
+  pay:
+    # 基础开关配置
+    enabled: true               # 是否启用微信支付功能
+
+    # ================
+    # 基础认证信息
+    # ================
+    app-id: wx1234567890abcdef  # 微信应用ID(公众号/小程序/APP等)
+    mch-id: 1230000109          # 微信商户号(10位数字)
+    mch-key: ABCDEFGHIJKLMNOPQRSTUVWXYZ123456  # 商户API密钥(V2版API使用)
+    api-v3-key: ABCDEFGHIJKLMNOPQRSTUVWXYZ123456  # APIv3密钥(32位字符)
+    mch-serial-no: 1DDE55AD98ED7196  # 商户证书序列号
+
+    # ================
+    # 私钥配置(二选一)
+    # ================
+    private-key-path: classpath:certs/apiclient_key.pem  # 私钥文件路径(classpath:表示从resources加载)
+    # 或者直接配置私钥内容(推荐用于生产环境)
+    private-key: |
+      -----BEGIN PRIVATE KEY-----
+      MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC3wN7c...
+      -----END PRIVATE KEY-----
+
+    # ================
+    # 回调地址配置
+    # ================
+    notify-url: https://your-domain.com/api/payment/wechat/notify          # 支付结果通知地址
+    refund-notify-url: https://your-domain.com/api/payment/wechat/refund/notify  # 退款结果通知地址
+
+    # ================
+    # 证书配置
+    # ================
+    platform-cert-path: classpath:certs/wechatpay_cert.pem  # 微信支付平台证书路径
+    cert-path: classpath:certs/apiclient_cert.p12           # PKCS12格式商户证书路径(V2接口使用)
+    cert-password: 123456                                  # PKCS12证书密码
+
+    # ================
+    # 网络连接配置
+    # ================
+    api-domain: https://api.mch.weixin.qq.com  # 微信支付API域名
+    connect-timeout: 10                        # 连接超时时间(秒)
+    read-timeout: 10                           # 读取超时时间(秒)
+
+    # ================
+    # 高级配置
+    # ================
+    sandbox: false              # 是否使用沙箱环境(测试环境)
+    sign-type: RSA               # 签名算法类型(RSA/RSA2)
+    cert-store-type: FILE        # 证书存储方式(FILE/CLASSPATH)
+    auto-download-cert: true     # 是否自动下载平台证书
+
+    # ================
+    # 支付方式详细配置
+    # ================
+    payment-methods:
+      # JSAPI支付(公众号/小程序)
+      jsapi:
+        app-id: wx1234567890abcdef  # 专用AppID(可覆盖全局配置)
+        enabled: true               # 是否启用该支付方式
+
+      # APP支付
+      app:
+        app-id: wxd678efh567hg6787  # APP专用AppID
+        enabled: true
+
+      # Native支付(扫码支付)
+      native:
+        app-id: wx1234567890abcdef
+        enabled: true
+
+      # H5支付
+      h5:
+        app-id: wx1234567890abcdef
+        enabled: true

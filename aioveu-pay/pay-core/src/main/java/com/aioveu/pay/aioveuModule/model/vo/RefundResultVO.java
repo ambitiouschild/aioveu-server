@@ -1,9 +1,7 @@
 package com.aioveu.pay.aioveuModule.model.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -21,6 +19,8 @@ import java.util.Date;
 @Setter
 @Builder //需要为 VO 类添加 Lombok 的构建器模式支持
 @Schema( description = "退款结果对象")
+@NoArgsConstructor
+@AllArgsConstructor
 public class RefundResultVO {
 
 

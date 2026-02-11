@@ -263,3 +263,18 @@ spring:
 ```
 
 这样就能根据本地 profile 切换到对应的 Nacos 命名空间了。请告诉我您的 Nacos 命名空间 ID，
+
+
+
+
+
+1.启动微服务aioveu-pay中的pay-boot,
+
+2.pay-boot调用PaymentStrategy接口
+
+3.PaymentStrategy选择AlipayStrategyAdapter或者WeChatPayStrategyAdapter策略
+
+4.对应策略调用对应接口比如appPay，verifyCallback，queryStatus，closePayment，refund
+
+appPay调用jsapiPay，appPay，h5Pay
+

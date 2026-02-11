@@ -35,8 +35,8 @@ public interface MemberFeignClient {
      *
      * @return
      */
-    @PostMapping("/app-api/v1/members/{memberId}/openid")
-    Result<String> getMemberOpenId(@PathVariable Long memberId);
+    @GetMapping("/app-api/v1/members/{memberId}/openid")
+    Result<String> getOpenIdByMemberId(@PathVariable Long memberId);
 
     /**
      * 扣减会员余额

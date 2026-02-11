@@ -1,0 +1,49 @@
+package com.aioveu.pay.aioveuModule.service.mock.service;
+
+import com.aioveu.pay.aioveuModule.model.vo.*;
+
+import java.math.BigDecimal;
+import java.util.Map;
+
+/**
+ * @ClassName: MockPayService
+ * @Description TODO 模拟支付服务接口
+ * @Author 可我不敌可爱
+ * @Author 雒世松
+ * @Date 2026/2/11 18:07
+ * @Version 1.0
+ **/
+
+public interface MockPayService {
+
+    /**
+     * 模拟微信支付
+     */
+    PaymentParamsVO mockWxPay(PaymentRequestDTO request);
+
+    /**
+     * 模拟支付宝支付
+     */
+    PaymentParamsVO mockAlipay(PaymentRequestDTO request);
+
+    /**
+     * 模拟余额支付
+     */
+    PaymentParamsVO mockBalancePay(PaymentRequestDTO request);
+
+    /**
+     * 查询订单状态
+     */
+    PaymentStatusVO queryPayment(String paymentNo);
+
+    /**
+     * 退款
+     */
+    RefundResultVO refund(RefundRequestDTO request);
+
+    /**
+     * 关闭订单
+     */
+    boolean closePayment(String paymentNo);
+
+}

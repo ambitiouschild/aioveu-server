@@ -1,9 +1,11 @@
 package com.aioveu.pay.aioveu06PayFlow.service;
 
+import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu06PayFlow.model.entity.PayFlow;
 import com.aioveu.pay.aioveu06PayFlow.model.form.PayFlowForm;
 import com.aioveu.pay.aioveu06PayFlow.model.query.PayFlowQuery;
 import com.aioveu.pay.aioveu06PayFlow.model.vo.PayFlowVO;
+import com.aioveu.pay.aioveuModule.model.vo.PaymentCallbackDTO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -58,4 +60,15 @@ public interface PayFlowService extends IService<PayFlow> {
      * @return 是否删除成功
      */
     boolean deletePayFlows(String ids);
+
+
+//    boolean createPaymentFlow(PayOrder order);
+
+    /**
+     * 根据回调记录支付流水
+     *
+     * @param order 支付流水ID，多个以英文逗号(,)分割
+     * @return 是否删除成功
+     */
+    void recordPaymentFlow(PayOrder order, PaymentCallbackDTO callback);
 }

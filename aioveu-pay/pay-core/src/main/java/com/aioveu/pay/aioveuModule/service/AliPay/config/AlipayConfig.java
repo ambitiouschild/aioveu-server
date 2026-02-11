@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
  **/
 
 @Configuration
-@ConfigurationProperties(prefix = "alipay")
+@ConfigurationProperties(prefix = "pay.alipay")
 @Data
 public class AlipayConfig {
 

@@ -2,6 +2,7 @@ package com.aioveu.pay.aioveu06PayFlow.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu06PayFlow.converter.PayFlowConverter;
 import com.aioveu.pay.aioveu06PayFlow.mapper.PayFlowMapper;
 import com.aioveu.pay.aioveu06PayFlow.model.entity.PayFlow;
@@ -9,6 +10,8 @@ import com.aioveu.pay.aioveu06PayFlow.model.form.PayFlowForm;
 import com.aioveu.pay.aioveu06PayFlow.model.query.PayFlowQuery;
 import com.aioveu.pay.aioveu06PayFlow.model.vo.PayFlowVO;
 import com.aioveu.pay.aioveu06PayFlow.service.PayFlowService;
+import com.aioveu.pay.aioveu06PayFlow.utils.PayFlowNoGenerator;
+import com.aioveu.pay.aioveuModule.model.vo.PaymentCallbackDTO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -100,4 +103,32 @@ public class PayFlowServiceImpl extends ServiceImpl<PayFlowMapper, PayFlow> impl
                 .toList();
         return this.removeByIds(idList);
     }
+
+
+    /**
+     * 根据回调记录支付流水
+     *
+     * @param order 支付流水ID，多个以英文逗号(,)分割
+     * @return 是否删除成功
+     */
+    @Override
+    public void recordPaymentFlow(PayOrder order, PaymentCallbackDTO callback) {
+
+        Long memberId = order.getUserId();
+
+        PayFlow flow = PayFlow.builder()
+                .flowNo(PayFlowNoGenerator.generatePayFlowNo(memberId))
+                .paymentNo(order.getPaymentNo())
+                .orderNo(order.getOrderNo())
+//                .channel(order.getPaymentChannel())
+                .amount(order.getPaymentAmount())
+//                .status(order.getPaymentStatus())
+//                .thirdPaymentNo(order.getThirdPaymentNo())
+//                .callbackData(callback.getRawData())
+                .build();
+
+        this.save(flow);
+
+    }
+
 }

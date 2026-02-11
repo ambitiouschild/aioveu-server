@@ -2,12 +2,14 @@ package com.aioveu.pay.aioveu07PayNotify.service;
 
 import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.Result;
+import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu07PayNotify.model.entity.PayNotify;
 import com.aioveu.pay.aioveu07PayNotify.model.form.PayNotifyForm;
 import com.aioveu.pay.aioveu07PayNotify.model.query.NotifyQueryDTO;
 import com.aioveu.pay.aioveu07PayNotify.model.query.PayNotifyQuery;
 import com.aioveu.pay.aioveu07PayNotify.model.vo.PayNotifyDTO;
 import com.aioveu.pay.aioveu07PayNotify.model.vo.PayNotifyVO;
+import com.aioveu.pay.aioveuModule.model.vo.PaymentCallbackDTO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -62,15 +64,24 @@ public interface PayNotifyService extends IService<PayNotify> {
      */
     boolean deletePayNotifys(String ids);
 
-    // 发送异步通知
-    Result<Void> sendNotify(PayNotifyDTO dto);
 
-    // 重试失败通知
-    Result<Void> retryFailedNotify();
+    /**
+     * 发送异步通知
+     *
+     * @param order
+     * @return Result
+     */
+     Result<Void> sendPaymentNotify(PayOrder order, PaymentCallbackDTO callback);
 
-    // 查询通知记录
-    Result<PageResult<PayNotifyVO>> queryNotifyPage(NotifyQueryDTO queryDTO);
+//    // 发送异步通知
+//    Result<Void> sendPaymentNotify(PayNotifyDTO dto);
 
-    // 手动触发通知
-    Result<Void> triggerNotify(String notifyNo);
+//    // 重试失败通知
+//    Result<Void> retryFailedNotify();
+
+//    // 查询通知记录
+//    Result<PageResult<PayNotifyVO>> queryNotifyPage(NotifyQueryDTO queryDTO);
+
+//    // 手动触发通知
+//    Result<Void> triggerNotify(String notifyNo);
 }
