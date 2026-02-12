@@ -45,6 +45,10 @@ public class PaymentRequestDTO implements Serializable {
     @DecimalMin(value = "0.01", message = "支付金额必须大于0")
     private BigDecimal amount;
 
+    /**
+     * openId
+     */
+    private String openId;
 
 /*    支付渠道 (Pay Channel)
     定义：指第三方支付平台
@@ -79,8 +83,6 @@ public class PaymentRequestDTO implements Serializable {
 
     private Integer expireMinutes = 30; // 默认30分钟过期
 
-
-    private String openid;
     /**
      * 渠道编码：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联
      */

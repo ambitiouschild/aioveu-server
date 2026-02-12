@@ -45,6 +45,7 @@ public class WeChatPayStrategyAdapter implements PaymentStrategy {
         switch (payType) {
             case "JSAPI":
                 log.info("【微信支付服务接口】调用JSAPI支付（小程序/公众号）");
+                log.info("【微信支付服务接口】请求OpenId：{}",request.getOpenId());
                 return weChatPayService.jsapiPay(request);
             case "APP":
                 log.info("【微信支付服务接口】调用App支付");

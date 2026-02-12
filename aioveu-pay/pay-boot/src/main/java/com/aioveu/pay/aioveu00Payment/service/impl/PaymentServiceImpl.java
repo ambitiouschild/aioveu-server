@@ -58,8 +58,6 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired
     private PayOrderConverter payOrderConverter;
 
-    @Autowired
-    private RefundService refundService;
 
     @Autowired
     //使用字段注入

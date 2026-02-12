@@ -79,6 +79,9 @@ public class PaymentRequestDTO implements Serializable {
     private Integer expireMinutes = 30; // 默认30分钟过期
 
 
+    /**
+     * openId
+     */
     private String openId;
     /**
      * 渠道编码：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联

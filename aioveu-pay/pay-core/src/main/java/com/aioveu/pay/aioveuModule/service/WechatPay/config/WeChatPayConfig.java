@@ -4,6 +4,7 @@ import com.alipay.api.internal.util.file.FileUtils;
 import com.alipay.api.internal.util.file.IOUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -190,6 +191,11 @@ public class WeChatPayConfig {
 
             // 1. 加载私钥
             String privateKey = loadPrivateKey();
+            log.debug("【微信支付】私钥内容（前100字符）: {}",
+                    privateKey.substring(0, Math.min(100, privateKey.length())));
+
+            // 2. 验证私钥格式
+            validatePrivateKey(privateKey);
 
             // 2. 创建配置
             return new com.wechat.pay.java.core.RSAAutoCertificateConfig.Builder()
@@ -206,23 +212,99 @@ public class WeChatPayConfig {
     }
 
     /**
-     * 加载私钥
+     * 验证私钥格式
+     */
+    private void validatePrivateKey(String privateKey) {
+        if (StringUtils.isBlank(privateKey)) {
+            throw new RuntimeException("私钥内容为空");
+        }
+
+        // 检查是否包含必要的标记
+        if (!privateKey.contains("-----BEGIN PRIVATE KEY-----")) {
+            throw new RuntimeException("私钥格式错误：缺少 BEGIN PRIVATE KEY 标记");
+        }
+
+        if (!privateKey.contains("-----END PRIVATE KEY-----")) {
+            throw new RuntimeException("私钥格式错误：缺少 END PRIVATE KEY 标记");
+        }
+
+        // 检查是否是 PKCS#8 格式
+        if (privateKey.contains("-----BEGIN RSA PRIVATE KEY-----")) {
+            throw new RuntimeException("私钥格式错误：检测到PKCS#1格式，需要PKCS#8格式");
+        }
+
+        log.info("【微信支付】私钥格式验证通过，长度: {}", privateKey.length());
+    }
+
+    /**
+     * 加载私钥  如果是从微信支付平台下载的证书： 下载的 apiclient_key.pem应该是 PKCS#8 格式 如果格式不对，用 OpenSSL 转换
      */
     private String loadPrivateKey() throws IOException {
-        if (privateKeyPath.startsWith("classpath:")) {
-            String path = privateKeyPath.substring("classpath:".length());
-            Resource resource = new ClassPathResource(path);
-            if (!resource.exists()) {
-                throw new RuntimeException("私钥文件不存在: " + path);
+        try {
+            log.info("【微信支付】加载私钥文件: {}", privateKeyPath);
+
+            String keyContent;
+            if (privateKeyPath.startsWith("classpath:")) {
+                // 从classpath加载
+                String path = privateKeyPath.substring("classpath:".length());
+                Resource resource = new ClassPathResource(path);
+
+                if (!resource.exists()) {
+                    throw new RuntimeException("私钥文件不存在: " + path);
+                }
+
+                keyContent = IOUtils.toString(resource.getInputStream(), StandardCharsets.UTF_8);
+
+            } else {
+                // 从文件系统加载
+                File file = new File(privateKeyPath);
+                if (!file.exists()) {
+                    throw new RuntimeException("私钥文件不存在: " + privateKeyPath);
+                }
+
+                keyContent = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
             }
-            return IOUtils.toString(resource.getInputStream(), StandardCharsets.UTF_8);
-        } else {
-            File file = new File(privateKeyPath);
-            if (!file.exists()) {
-                throw new RuntimeException("私钥文件不存在: " + privateKeyPath);
-            }
-            return FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+
+            // 清理私钥内容
+            keyContent = cleanPrivateKey(keyContent);
+            log.info("【微信支付】私钥加载成功，长度: {}", keyContent.length());
+
+            return keyContent;
+
+        } catch (Exception e) {
+            log.error("【微信支付】加载私钥失败", e);
+            throw new RuntimeException("加载私钥失败: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * 清理私钥内容
+     */
+    private String cleanPrivateKey(String privateKey) {
+        if (StringUtils.isBlank(privateKey)) {
+            return privateKey;
+        }
+
+        // 移除可能的BOM
+        privateKey = privateKey.replace("\uFEFF", "");
+
+        // 确保正确的换行符
+        privateKey = privateKey.replace("\r\n", "\n");
+
+        // 确保头尾标记正确
+        if (!privateKey.startsWith("-----BEGIN PRIVATE KEY-----")) {
+            privateKey = "-----BEGIN PRIVATE KEY-----\n" + privateKey;
+        }
+
+        if (!privateKey.endsWith("-----END PRIVATE KEY-----\n")) {
+            if (!privateKey.endsWith("-----END PRIVATE KEY-----")) {
+                privateKey = privateKey + "\n-----END PRIVATE KEY-----";
+            } else {
+                privateKey = privateKey + "\n";
+            }
+        }
+
+        return privateKey;
     }
 
 }

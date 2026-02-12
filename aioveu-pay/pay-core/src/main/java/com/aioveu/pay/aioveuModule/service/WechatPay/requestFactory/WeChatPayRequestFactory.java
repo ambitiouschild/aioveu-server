@@ -47,7 +47,7 @@ public class WeChatPayRequestFactory {
         // 设置支付者（JSAPI特有）
         com.wechat.pay.java.service.payments.jsapi.model.Payer payer =
                 new com.wechat.pay.java.service.payments.jsapi.model.Payer();
-        payer.setOpenid(request.getOpenid());
+        payer.setOpenid(request.getOpenId());
         prepayRequest.setPayer(payer);
 
         // 设置公共参数

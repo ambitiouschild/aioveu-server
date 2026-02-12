@@ -275,8 +275,8 @@ public class WeChatPayServiceImpl implements WeChatPayService {
         if (StringUtils.isBlank(request.getOrderNo())) {
             throw new IllegalArgumentException("订单号不能为空");
         }
-        if (StringUtils.isBlank(request.getOpenid())) {
-            throw new IllegalArgumentException("JSAPI支付必须提供openid");
+        if (StringUtils.isBlank(request.getOpenId())) {
+            throw new IllegalArgumentException("JSAPI支付必须提供openId");
         }
         if (request.getAmount() == null ||
                 request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {

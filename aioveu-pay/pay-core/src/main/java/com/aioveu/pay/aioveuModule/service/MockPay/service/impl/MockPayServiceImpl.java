@@ -63,7 +63,7 @@ public class MockPayServiceImpl implements MockPayService {
 
         String orderNo = request.getOrderNo();
         BigDecimal amount = request.getAmount();
-        String openId = request.getOpenid();
+        String openId = request.getOpenId();
 
         // 记录请求
         if (mockPayConfig.getLogRequest()) {
@@ -78,7 +78,7 @@ public class MockPayServiceImpl implements MockPayService {
         boolean success = mockPayConfig.shouldSuccess();
 
         // 生成支付参数
-        return buildWxPaymentParams(orderNo, amount, request.getOpenid());
+        return buildWxPaymentParams(orderNo, amount, request.getOpenId());
     }
 
     @Override
@@ -93,7 +93,7 @@ public class MockPayServiceImpl implements MockPayService {
 
         String orderNo = request.getOrderNo();
         BigDecimal amount = request.getAmount();
-        String openId = request.getOpenid();
+        String openId = request.getOpenId();
 
         // 记录请求
         if (mockPayConfig.getLogRequest()) {
