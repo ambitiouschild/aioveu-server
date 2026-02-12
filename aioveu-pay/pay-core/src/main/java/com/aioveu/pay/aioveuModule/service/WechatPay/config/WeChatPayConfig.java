@@ -1,9 +1,17 @@
 package com.aioveu.pay.aioveuModule.service.WechatPay.config;
 
+import com.alipay.api.internal.util.file.FileUtils;
+import com.alipay.api.internal.util.file.IOUtils;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,6 +24,7 @@ import java.util.Map;
  * @Version 1.0
  **/
 
+@Slf4j
 @Configuration
 @ConfigurationProperties(prefix = "pay.wechat")
 @Data
@@ -162,4 +171,49 @@ public class WeChatPayConfig {
         STRING, // 字符串存储
         CLOUD   // 云存储
     }
+
+    /**
+     * 转换为微信支付SDK需要的Config
+     */
+    public com.wechat.pay.java.core.Config toSdkConfig() {
+        try {
+            log.info("【微信支付】创建SDK配置，商户号: {}, 应用ID: {}", mchId, appId);
+
+            // 1. 加载私钥
+            String privateKey = loadPrivateKey();
+
+            // 2. 创建配置
+            return new com.wechat.pay.java.core.RSAAutoCertificateConfig.Builder()
+                    .merchantId(mchId)
+                    .privateKey(privateKey)
+                    .merchantSerialNumber(mchSerialNo)
+                    .apiV3Key(apiV3Key)
+                    .build();
+
+        } catch (Exception e) {
+            log.error("【微信支付】创建SDK配置失败", e);
+            throw new RuntimeException("创建微信支付SDK配置失败", e);
+        }
+    }
+
+    /**
+     * 加载私钥
+     */
+    private String loadPrivateKey() throws IOException {
+        if (privateKeyPath.startsWith("classpath:")) {
+            String path = privateKeyPath.substring("classpath:".length());
+            Resource resource = new ClassPathResource(path);
+            if (!resource.exists()) {
+                throw new RuntimeException("私钥文件不存在: " + path);
+            }
+            return IOUtils.toString(resource.getInputStream(), StandardCharsets.UTF_8);
+        } else {
+            File file = new File(privateKeyPath);
+            if (!file.exists()) {
+                throw new RuntimeException("私钥文件不存在: " + privateKeyPath);
+            }
+            return FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+        }
+    }
+
 }
