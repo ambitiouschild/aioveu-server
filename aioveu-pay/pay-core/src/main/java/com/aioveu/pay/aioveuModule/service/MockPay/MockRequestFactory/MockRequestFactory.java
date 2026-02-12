@@ -1,8 +1,7 @@
-package com.aioveu.pay.aioveuModule.service.mock.MockRequestFactory;
+package com.aioveu.pay.aioveuModule.service.MockPay.MockRequestFactory;
 
 import com.aioveu.pay.aioveuModule.model.vo.PaymentRequestDTO;
-import com.aioveu.pay.aioveuModule.service.AliPay.config.AlipayConfig;
-import com.aioveu.pay.aioveuModule.service.mock.config.MockPayConfig;
+import com.aioveu.pay.aioveuModule.service.MockPay.config.MockPayConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

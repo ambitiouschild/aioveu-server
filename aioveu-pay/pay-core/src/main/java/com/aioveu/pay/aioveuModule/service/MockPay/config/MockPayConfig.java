@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveuModule.service.mock.config;
+package com.aioveu.pay.aioveuModule.service.MockPay.config;
 
 import jakarta.annotation.PostConstruct;
 import lombok.Data;

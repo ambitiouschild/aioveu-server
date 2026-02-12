@@ -1,9 +1,6 @@
-package com.aioveu.pay.aioveuModule.service.mock.service;
+package com.aioveu.pay.aioveuModule.service.MockPay.service;
 
 import com.aioveu.pay.aioveuModule.model.vo.*;
-
-import java.math.BigDecimal;
-import java.util.Map;
 
 /**
  * @ClassName: MockPayService

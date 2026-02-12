@@ -82,6 +82,8 @@ public class WeChatPayServiceImpl implements WeChatPayService {
 
     private final WeChatPayConfig wechatPayConfig;
     private final WeChatPayRequestFactory requestFactory;
+
+    // 自己管理这些服务实例
     private final JsapiService jsapiService;
 //    private final NativeService nativeService;
     private final AppService appService;
@@ -90,19 +92,55 @@ public class WeChatPayServiceImpl implements WeChatPayService {
 
     @Autowired
     public WeChatPayServiceImpl(WeChatPayConfig wechatPayConfig,
-                                WeChatPayRequestFactory requestFactory,
-                                @Autowired(required = false) JsapiService jsapiService,  // 修改为 required = false
-                                @Autowired(required = false) AppService appService,
-                                @Autowired(required = false) H5Service h5Service,
-//                                @Autowired(required = false) NativePayService nativePayService,
-                                @Autowired(required = false) RefundService refundService) {
+                                WeChatPayRequestFactory requestFactory
+                                //移除构造函数注入，改为自己初始化
+    ) {
         this.wechatPayConfig = wechatPayConfig;
         this.requestFactory = requestFactory;
-        this.jsapiService = jsapiService;
-//        this.nativeService = nativeService;
-        this.appService = appService;
-        this.h5Service = h5Service;
-        this.refundService = refundService;
+        // 在构造函数中调用初始化
+        initWeChatPayClient();
+    }
+
+    /**
+     * 初始化微信支付客户端
+     */
+    private void initWeChatPayClient() {
+        try {
+            log.info("【微信支付】开始初始化支付客户端...");
+
+            // 1. 创建微信支付配置
+            // 1. 创建微信支付核心配置
+            com.wechat.pay.java.core.Config config = createWeChatPayConfig();
+
+            // 2. 初始化各个支付服务
+            this.jsapiService = new JsapiService.Builder()
+                    .config(config)  // 使用创建的 config
+                    .build();
+
+            this.appService = new AppService.Builder()
+                    .config(config)
+                    .build();
+
+            this.h5Service = new H5Service.Builder()
+                    .config(config)
+                    .build();
+
+            this.refundService = new RefundService.Builder()
+                    .config(config)
+                    .build();
+
+            log.info("【微信支付】支付客户端初始化成功");
+            log.info("  - 商户号: {}", wechatPayConfig.getMchId());
+            log.info("  - 应用ID: {}", wechatPayConfig.getAppId());
+            log.info("  - JsapiService: {}", jsapiService != null ? "已初始化" : "null");
+            log.info("  - AppService: {}", appService != null ? "已初始化" : "null");
+            log.info("  - H5Service: {}", h5Service != null ? "已初始化" : "null");
+            log.info("  - RefundService: {}", refundService != null ? "已初始化" : "null");
+
+        } catch (Exception e) {
+            log.error("【微信支付】客户端初始化失败", e);
+            throw new RuntimeException("微信支付客户端初始化失败: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -114,13 +152,13 @@ public class WeChatPayServiceImpl implements WeChatPayService {
             // 使用工厂创建请求
             com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest prepayRequest =
                     requestFactory.createJsapiRequest(request, wechatPayConfig);
-            log.info("【微信支付-JSAPI支付（小程序/公众号）】使用工厂创建请求");
+            log.info("【微信支付-JSAPI支付（小程序/公众号）】使用工厂创建请求prepayRequest:{}",prepayRequest);
 
 
             // 调用支付接口
             com.wechat.pay.java.service.payments.jsapi.model.PrepayResponse response =
                     jsapiService.prepay(prepayRequest);
-            log.info("【微信支付-JSAPI支付（小程序/公众号）】调用支付接口");
+            log.info("【微信支付-JSAPI支付（小程序/公众号）】调用支付接口response:{}",response);
 
             // 生成支付参数
             Map<String, String> payParams = generateJsapiPayParams(response.getPrepayId());

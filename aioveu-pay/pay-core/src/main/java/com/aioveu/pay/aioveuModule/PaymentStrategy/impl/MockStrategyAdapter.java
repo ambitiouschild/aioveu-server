@@ -2,7 +2,7 @@ package com.aioveu.pay.aioveuModule.PaymentStrategy.impl;
 
 import com.aioveu.pay.aioveuModule.PaymentStrategy.PaymentStrategy;
 import com.aioveu.pay.aioveuModule.model.vo.*;
-import com.aioveu.pay.aioveuModule.service.mock.service.MockPayService;
+import com.aioveu.pay.aioveuModule.service.MockPay.service.MockPayService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

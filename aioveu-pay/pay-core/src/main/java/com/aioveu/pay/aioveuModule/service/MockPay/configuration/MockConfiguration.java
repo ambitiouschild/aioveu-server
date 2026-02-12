@@ -1,8 +1,8 @@
-package com.aioveu.pay.aioveuModule.service.mock.configuration;
+package com.aioveu.pay.aioveuModule.service.MockPay.configuration;
 
-import com.aioveu.pay.aioveuModule.service.mock.MockRequestFactory.MockRequestFactory;
-import com.aioveu.pay.aioveuModule.service.mock.config.MockPayConfig;
-import com.aioveu.pay.aioveuModule.service.mock.service.impl.MockPayServiceImpl;
+import com.aioveu.pay.aioveuModule.service.MockPay.MockRequestFactory.MockRequestFactory;
+import com.aioveu.pay.aioveuModule.service.MockPay.config.MockPayConfig;
+import com.aioveu.pay.aioveuModule.service.MockPay.service.impl.MockPayServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
