@@ -6,23 +6,25 @@ import com.aioveu.pay.aioveuModule.model.vo.*;
 import com.aioveu.pay.aioveuModule.service.MockPay.MockRequestFactory.MockRequestFactory;
 import com.aioveu.pay.aioveuModule.service.MockPay.config.MockPayConfig;
 import com.aioveu.pay.aioveuModule.service.MockPay.service.MockPayService;
+import com.aioveu.pay.aioveuModule.service.WechatPay.utils.weChatPay.aioveuWeChatPayGeneratePayParamsUtil;
 import com.alipay.api.request.AlipayTradeCloseRequest;
 import com.alipay.api.request.AlipayTradeQueryRequest;
 import com.alipay.api.request.AlipayTradeRefundRequest;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.alipay.api.response.AlipayTradeRefundResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Map;
 import java.util.Random;
 
 import static com.fasterxml.jackson.core.io.NumberInput.parseBigDecimal;
+import static org.bouncycastle.math.ec.rfc8032.Ed25519.sign;
 
 
 /**
@@ -40,7 +42,8 @@ import static com.fasterxml.jackson.core.io.NumberInput.parseBigDecimal;
 public class MockPayServiceImpl implements MockPayService {
 
     private final MockRequestFactory requestFactory;
-
+    @Autowired
+    private aioveuWeChatPayGeneratePayParamsUtil aioveuWeChatPayGeneratePayParamsUtil;
 
     private final MockPayConfig mockPayConfig;
     private final Random random = new Random();
@@ -56,85 +59,154 @@ public class MockPayServiceImpl implements MockPayService {
     @Override
     public PaymentParamsVO jsapiPay(PaymentRequestDTO request) {
 
-        if (!mockPayConfig.getEnabled()) {
-            throw new RuntimeException("【Mock】模拟支付未启用");
+        try {
+                if (!mockPayConfig.getEnabled()) {
+                    throw new RuntimeException("【Mock】模拟支付未启用");
+                }
+
+
+                String orderNo = request.getOrderNo();
+                BigDecimal amount = request.getAmount();
+                String openId = request.getOpenId();
+
+                // 记录请求
+                if (mockPayConfig.getLogRequest()) {
+                    log.info("【Mock】订单: {}, 金额: {}分, OpenID: {}",
+                            orderNo, amount, openId);
+                }
+
+                // 模拟延迟
+                simulateDelay();
+
+                // 模拟支付结果
+                boolean success = mockPayConfig.shouldSuccess();
+
+                String prepayId = "这是我要测试的预付ID";
+                // 生成支付参数
+                Map<String, Object> payParams = aioveuWeChatPayGeneratePayParamsUtil.generateJsapiPayParams();
+
+                // 生成支付参数
+                return PaymentParamsVO.builder()
+                        .paymentNo(request.getOrderNo())
+                        .orderNo(request.getOrderNo())
+                        .amount(request.getAmount())
+                        .subject(request.getSubject())
+                        .body(request.getBody())
+                        .payType("JSAPI")
+                        .channel("MOCK")
+                        .prepayId(prepayId)
+                        .payParams(payParams)
+                        .createTime(System.currentTimeMillis())
+                        .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
+                        .build();
+
+            }catch (Exception e) {
+                log.error("【Mock】模拟支付jsapiPay支付失败, 订单号: {}", request.getOrderNo(), e);
+                throw new RuntimeException("【Mock】模拟支付jsapiPay支付失败", e);  //你调用了一个声明抛出 Exception的方法，但没有处理这个异常。
         }
 
-
-        String orderNo = request.getOrderNo();
-        BigDecimal amount = request.getAmount();
-        String openId = request.getOpenId();
-
-        // 记录请求
-        if (mockPayConfig.getLogRequest()) {
-            log.info("【Mock】 订单: {}, 金额: {}分, OpenID: {}",
-                    orderNo, amount, openId);
-        }
-
-        // 模拟延迟
-        simulateDelay();
-
-        // 模拟支付结果
-        boolean success = mockPayConfig.shouldSuccess();
-
-        // 生成支付参数
-        return buildWxPaymentParams(orderNo, amount, request.getOpenId());
     }
+
+
 
     @Override
     public PaymentParamsVO appPay(PaymentRequestDTO request) {
-        if (!mockPayConfig.getEnabled()) {
-            throw new RuntimeException("模拟支付未启用");
+
+        try {
+            if (!mockPayConfig.getEnabled()) {
+                throw new RuntimeException("【Mock】模拟支付未启用");
+            }
+
+
+            String orderNo = request.getOrderNo();
+            BigDecimal amount = request.getAmount();
+            String openId = request.getOpenId();
+
+            // 记录请求
+            if (mockPayConfig.getLogRequest()) {
+                log.info("【Mock】 订单: {}, 金额: {}分, OpenID: {}",
+                        orderNo, amount, openId);
+            }
+
+            // 模拟延迟
+            simulateDelay();
+
+            // 模拟支付结果
+            boolean success = mockPayConfig.shouldSuccess();
+
+            String prepayId = "111";
+            // 生成支付参数
+            Map<String, Object> payParams = aioveuWeChatPayGeneratePayParamsUtil.generateJsapiPayParams();
+
+            // 生成支付参数
+            return PaymentParamsVO.builder()
+                    .paymentNo(request.getOrderNo())
+                    .orderNo(request.getOrderNo())
+                    .amount(request.getAmount())
+                    .subject(request.getSubject())
+                    .body(request.getBody())
+                    .payType("JSAPI")
+                    .channel("WECHAT")
+                    .prepayId(prepayId)
+                    .payParams(payParams)
+                    .createTime(System.currentTimeMillis())
+                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
+                    .build();
+
+        }catch (Exception e) {
+            log.error("【Mock】模拟支付jsapiPay支付失败, 订单号: {}", request.getOrderNo(), e);
+            throw new RuntimeException("【Mock】模拟支付jsapiPay支付失败", e);  //你调用了一个声明抛出 Exception的方法，但没有处理这个异常。
         }
-
-        if (!mockPayConfig.getAlipay().getEnabled()) {
-            throw new RuntimeException("支付宝模拟支付未启用");
-        }
-
-        String orderNo = request.getOrderNo();
-        BigDecimal amount = request.getAmount();
-        String openId = request.getOpenId();
-
-        // 记录请求
-        if (mockPayConfig.getLogRequest()) {
-            log.info("[支付宝模拟支付] 订单: {}, 金额: {}分", orderNo, amount);
-        }
-
-        // 模拟延迟
-        simulateDelay();
-
-        // 模拟支付结果
-        boolean success = mockPayConfig.shouldSuccess();
-
-        // 生成支付参数
-        return buildAlipayPaymentParams(orderNo, amount, request.getSubject(), request.getBody());
     }
 
     @Override
     public PaymentParamsVO h5Pay(PaymentRequestDTO request) {
-        if (!mockPayConfig.getEnabled()) {
-            throw new RuntimeException("模拟支付未启用");
+
+        try {
+            if (!mockPayConfig.getEnabled()) {
+                throw new RuntimeException("【Mock】模拟支付未启用");
+            }
+
+
+            String orderNo = request.getOrderNo();
+            BigDecimal amount = request.getAmount();
+            String openId = request.getOpenId();
+
+            // 记录请求
+            if (mockPayConfig.getLogRequest()) {
+                log.info("【Mock】 订单: {}, 金额: {}分, OpenID: {}",
+                        orderNo, amount, openId);
+            }
+
+            // 模拟延迟
+            simulateDelay();
+
+            // 模拟支付结果
+            boolean success = mockPayConfig.shouldSuccess();
+
+            String prepayId = "111";
+            // 生成支付参数
+            Map<String, Object> payParams = aioveuWeChatPayGeneratePayParamsUtil.generateJsapiPayParams();
+
+            // 生成支付参数
+            return PaymentParamsVO.builder()
+                    .paymentNo(request.getOrderNo())
+                    .orderNo(request.getOrderNo())
+                    .amount(request.getAmount())
+                    .subject(request.getSubject())
+                    .body(request.getBody())
+                    .payType("JSAPI")
+                    .channel("WECHAT")
+                    .prepayId(prepayId)
+                    .payParams(payParams)
+                    .createTime(System.currentTimeMillis())
+                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
+                    .build();
+
+        }catch (Exception e) {
+            log.error("【Mock】模拟支付jsapiPay支付失败, 订单号: {}", request.getOrderNo(), e);
+            throw new RuntimeException("【Mock】模拟支付jsapiPay支付失败", e);  //你调用了一个声明抛出 Exception的方法，但没有处理这个异常。
         }
-
-        if (!mockPayConfig.getBalance().getEnabled()) {
-            throw new RuntimeException("余额模拟支付未启用");
-        }
-
-        String orderNo = request.getOrderNo();
-        BigDecimal amount = request.getAmount();
-        Long userId = request.getUserId();
-
-        // 记录请求
-        if (mockPayConfig.getLogRequest()) {
-            log.info("[余额模拟支付] 订单: {}, 金额: {}分, 用户: {}", orderNo, amount, userId);
-        }
-
-        // 模拟延迟
-        simulateDelay();
-
-
-        // 生成支付参数
-        return buildBalancePaymentParams(orderNo, amount, userId);
     }
 
     private void simulateDelay() {
@@ -145,177 +217,6 @@ public class MockPayServiceImpl implements MockPayService {
                 Thread.currentThread().interrupt();
             }
         }
-    }
-
-    /**
-     * 生成微信支付参数
-     */
-    private PaymentParamsVO buildWxPaymentParams(String orderNo, BigDecimal amount, String openId) {
-        String timeStamp = String.valueOf(System.currentTimeMillis() / 1000);
-        String nonceStr = generateNonceStr(32);
-        String prepayId = "wx" + System.currentTimeMillis() + random.nextInt(1000);
-        String packageValue = "prepay_id=" + prepayId;
-        String appId = mockPayConfig.getWechat().getAppId();
-
-        // 模拟签名
-        String signType = "MD5";
-        String paySign = generateMockSign(64);
-
-        // 构建支付参数
-        PaymentParamsVO params = new PaymentParamsVO();
-        params.setPaymentNo("WX" + generatePaymentNo());
-        params.setOrderNo(orderNo);
-        params.setChannel("wechat");
-        params.setSuccess(true);
-        params.setMessage("微信支付参数生成成功");
-
-        // 微信支付特定参数
-        params.setAppId(appId);
-        params.setTimeStamp(timeStamp);
-        params.setNonceStr(nonceStr);
-        params.setPackageValue(packageValue);
-        params.setSignType(signType);
-        params.setPaySign(paySign);
-        params.setPrepayId(prepayId);
-        params.setMchId(mockPayConfig.getWechat().getMchId());
-
-        // 生成调起支付的参数字符串
-        String paymentParams = buildWxPaymentParamsString(appId, timeStamp, nonceStr, packageValue, signType, paySign);
-        params.setPaymentParams(paymentParams);
-
-        // 其他信息
-//        params.setSubject(properties.getWechat().getSubject());
-//        params.setBody(properties.getWechat().getBody());
-//        params.setTotalAmount(amount.toString());
-        params.setCreateTime(System.currentTimeMillis());
-        params.setExpireMinutes(30); // 30分钟过期
-
-        if (mockPayConfig.getLogResponse()) {
-            log.info("【Mock】模拟支付参数,订单: {}, prepayId: {}, 有效期: {}分钟",
-                    orderNo, prepayId, params.getExpireMinutes());
-        }
-
-        return params;
-    }
-
-    /**
-     * 生成微信支付参数字符串
-     */
-    private String buildWxPaymentParamsString(String appId, String timeStamp, String nonceStr,
-                                              String packageValue, String signType, String paySign) {
-        return String.format("appId=%s&timeStamp=%s&nonceStr=%s&package=%s&signType=%s&paySign=%s",
-                appId, timeStamp, nonceStr, packageValue, signType, paySign);
-    }
-
-    /**
-     * 生成支付宝支付参数
-     */
-    private PaymentParamsVO buildAlipayPaymentParams(String orderNo, BigDecimal amount,
-                                                     String subject, String body) {
-        String appId = mockPayConfig.getAlipay().getAppId();
-        String tradeNo = "ali" + System.currentTimeMillis() + random.nextInt(1000);
-
-
-        // 构建支付参数
-        PaymentParamsVO params = new PaymentParamsVO();
-        params.setPaymentNo("ALI" + generatePaymentNo());
-        params.setOrderNo(orderNo);
-        params.setChannel("alipay");
-        params.setSuccess(true);
-        params.setMessage("支付宝支付参数生成成功");
-
-        // 支付宝支付特定参数
-        params.setAppId(appId);
-        params.setTradeNo(tradeNo);
-        params.setOutTradeNo(orderNo);
-
-        // 支付参数字符串
-
-
-        // 其他信息
-        params.setSubject(subject);
-        params.setBody(body);
-        params.setCreateTime(System.currentTimeMillis());
-        params.setExpireMinutes(15); // 支付宝15分钟过期
-
-        if (mockPayConfig.getLogResponse()) {
-            log.info("[支付宝支付参数] 订单: {}, tradeNo: {}, 有效期: {}分钟",
-                    orderNo, tradeNo, params.getExpireMinutes());
-        }
-
-        return params;
-    }
-
-
-
-    /**
-     * 生成余额支付参数
-     */
-    private PaymentParamsVO buildBalancePaymentParams(String orderNo, BigDecimal amount, Long userId) {
-        // 检查余额是否充足
-
-        // 构建支付参数
-        PaymentParamsVO params = new PaymentParamsVO();
-        params.setPaymentNo("BAL" + generatePaymentNo());
-        params.setOrderNo(orderNo);
-        params.setChannel("balance");
-        params.setSuccess(true);
-        params.setMessage("余额支付参数生成成功");
-
-        // 余额支付特定信息
-        params.setUserId(userId);
-
-        // 余额支付不需要额外的支付参数
-        params.setPaymentParams(orderNo + "|" + userId + "|" + amount);
-
-        // 计算剩余余额
-
-
-        // 其他信息
-        params.setSubject("余额支付");
-        params.setBody("用户余额支付");
-        params.setCreateTime(System.currentTimeMillis());
-        params.setExpireMinutes(5); // 余额支付5分钟过期
-
-        if (mockPayConfig.getLogResponse()) {
-            log.info("[余额支付参数] 订单: {}, 用户: {}, 支付金额: {}元, 剩余余额: {}元",
-                    orderNo, userId, amount);
-        }
-
-        return params;
-    }
-
-
-    /**
-     * 生成随机字符串
-     */
-    private String generateNonceStr(int length) {
-        String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < length; i++) {
-            sb.append(chars.charAt(random.nextInt(chars.length())));
-        }
-        return sb.toString();
-    }
-
-    /**
-     * 生成模拟签名
-     */
-    private String generateMockSign(int length) {
-        String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < length; i++) {
-            sb.append(chars.charAt(random.nextInt(chars.length())));
-        }
-        return sb.toString();
-    }
-
-    /**
-     * 生成支付单号
-     */
-    private String generatePaymentNo() {
-        return LocalDateTime.now().format(FORMATTER) +
-                String.format("%06d", random.nextInt(1000000));
     }
 
 

@@ -1,5 +1,6 @@
 package com.aioveu.pay.aioveuModule.service.AliPay.service.AlipayService.impl;
 
+import com.aioveu.pay.aioveuModule.service.WechatPay.utils.aliPay.aioveuAlipayGeneratePayParamsUtil;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.request.*;
@@ -39,6 +40,8 @@ public class AlipayServiceImpl implements AlipayService {
     private final AlipayRequestFactory requestFactory;
     private final AlipayConfig alipayConfig;
     private final AlipayClient alipayClient;
+
+    aioveuAlipayGeneratePayParamsUtil aioveuAlipayGeneratePayParamsUtil;
 
 
     @Autowired
@@ -97,9 +100,22 @@ public class AlipayServiceImpl implements AlipayService {
                         response.getSubCode(), response.getSubMsg()));
             }
 
+            // 生成支付参数
+            Map<String, Object> payParams = aioveuAlipayGeneratePayParamsUtil.generateAppPayParams(response.getBody());
+
+            // 生成支付参数
             return PaymentParamsVO.builder()
                     .paymentNo(request.getOrderNo())
-                    .paymentParams(response.getBody())  // 从response中获取body
+                    .orderNo(request.getOrderNo())
+                    .amount(request.getAmount())
+                    .subject(request.getSubject())
+                    .body(request.getBody())
+                    .payType("JSAPI")
+                    .channel("WECHAT")
+                    .prepayId("111")
+                    .payParams(payParams)
+                    .createTime(System.currentTimeMillis())
+                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
                     .build();
 
         } catch (Exception e) {
@@ -138,9 +154,22 @@ public class AlipayServiceImpl implements AlipayService {
                         response.getSubCode(), response.getSubMsg()));
             }
 
+            // 生成支付参数
+            Map<String, Object> payParams = aioveuAlipayGeneratePayParamsUtil.generateAppPayParams(response.getBody());
+
+            // 生成支付参数
             return PaymentParamsVO.builder()
                     .paymentNo(request.getOrderNo())
-                    .paymentParams(response.getBody())  // 从response中获取body
+                    .orderNo(request.getOrderNo())
+                    .amount(request.getAmount())
+                    .subject(request.getSubject())
+                    .body(request.getBody())
+                    .payType("JSAPI")
+                    .channel("WECHAT")
+                    .prepayId("111")
+                    .payParams(payParams)
+                    .createTime(System.currentTimeMillis())
+                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
                     .build();
 
         } catch (Exception e) {
@@ -179,9 +208,22 @@ public class AlipayServiceImpl implements AlipayService {
                         response.getSubCode(), response.getSubMsg()));
             }
 
+            // 生成支付参数
+            Map<String, Object> payParams = aioveuAlipayGeneratePayParamsUtil.generateAppPayParams(response.getBody());
+
+            // 生成支付参数
             return PaymentParamsVO.builder()
                     .paymentNo(request.getOrderNo())
-                    .paymentParams(response.getBody())  // 从response中获取body
+                    .orderNo(request.getOrderNo())
+                    .amount(request.getAmount())
+                    .subject(request.getSubject())
+                    .body(request.getBody())
+                    .payType("JSAPI")
+                    .channel("WECHAT")
+                    .prepayId("111")
+                    .payParams(payParams)
+                    .createTime(System.currentTimeMillis())
+                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
                     .build();
 
         } catch (Exception e) {

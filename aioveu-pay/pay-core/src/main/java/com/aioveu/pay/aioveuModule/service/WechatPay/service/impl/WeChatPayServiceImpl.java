@@ -1,15 +1,13 @@
 package com.aioveu.pay.aioveuModule.service.WechatPay.service.impl;
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.IdUtil;
 import com.aioveu.pay.aioveuModule.model.vo.*;
 import com.aioveu.pay.aioveuModule.service.WechatPay.config.WeChatPayConfig;
 import com.aioveu.pay.aioveuModule.service.WechatPay.requestFactory.WeChatPayRequestFactory;
 import com.aioveu.pay.aioveuModule.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveuModule.enums.PaymentStatusEnum;
 import com.aioveu.pay.aioveuModule.enums.RefundStatusEnum;
-import com.alibaba.fastjson.JSON;
+import com.aioveu.pay.aioveuModule.service.WechatPay.utils.weChatPay.aioveuWeChatPayGeneratePayParamsUtil;
 
 //在同一个类中，当不同支付方式的实体类名相同但包路径不同时，确实会产生冲突。
 //注意：Java本身不支持import as语法，这是Python的语法。Java中需要使用方案1或方案3。
@@ -17,6 +15,7 @@ import com.alibaba.fastjson.JSON;
 
 //-------------------------------------------------------
 //如果您确实是普通商户（非服务商）
+import com.aioveu.pay.aioveuModule.service.WechatPay.utils.weChatPay.aioveuWeChatPayGetServiceUtil;
 import com.wechat.pay.java.service.payments.jsapi.JsapiService;  //- 普通商户支付
 import com.wechat.pay.java.service.payments.app.AppService;  // - 普通商户支付
 import com.wechat.pay.java.service.payments.h5.H5Service;   // - 普通商户支付
@@ -37,13 +36,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
-import java.security.PrivateKey;
-import java.security.Signature;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.Base64;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -84,8 +76,13 @@ public class WeChatPayServiceImpl implements WeChatPayService {
     private final WeChatPayConfig wechatPayConfig;
     private final WeChatPayRequestFactory requestFactory;
 
-    // 单例配置
-    private volatile  com.wechat.pay.java.core.Config sdkConfig;
+    @Autowired
+    private  aioveuWeChatPayGetServiceUtil aioveuWeChatPayGetServiceUtil;
+
+    @Autowired
+    private aioveuWeChatPayGeneratePayParamsUtil aioveuWeChatPayGeneratePayParamsUtil;
+
+
 
     /*   TODO  这个设计的优点
                 ✅ 单例模式：避免重复创建
@@ -98,9 +95,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
 
 
 
-    // 服务缓存
-    private final Map<String, Object> serviceCache = new ConcurrentHashMap<>();
-    // 自己管理这些服务实例  在每个方法中直接使用
+
 
 
     @Autowired
@@ -120,106 +115,9 @@ public class WeChatPayServiceImpl implements WeChatPayService {
 //        log.info("【wechatPayConfig】直接从配置创建SDK配置sdkConfig:{}",sdkConfig);
     }
 
-    /**
-     * 获取SDK配置（单例+双重检查锁）
-     */
-    private com.wechat.pay.java.core.Config getSdkConfig() {
-        if (sdkConfig == null) {
-            synchronized (this) {
-                if (sdkConfig == null) {
-                    try {
-                        log.info("【微信支付】创建SDK配置");
-                        sdkConfig = wechatPayConfig.toSdkConfig();
-                        log.info("【微信支付】SDK配置创建成功");
-                    } catch (Exception e) {
-                        log.error("【微信支付】创建SDK配置失败", e);
-                        throw new RuntimeException("创建微信支付SDK配置失败", e);
-                    }
-                }
-            }
-        }
-        return sdkConfig;
-    }
-
-    /**
-     * 获取JSAPI服务
-     */
-    private JsapiService getJsapiService() {
-        return (JsapiService) serviceCache.computeIfAbsent("jsapi", key -> {
-            log.info("【微信支付】创建JSAPI服务");
-            try {
-                return new JsapiService.Builder()
-                        .config(getSdkConfig())
-                        .build();
-            } catch (Exception e) {
-                log.error("【微信支付】创建JSAPI服务失败", e);
-                throw new RuntimeException("创建JSAPI服务失败", e);
-            }
-        });
-    }
-
-    /**
-     * 获取APP服务
-     */
-    private AppService getAppService() {
-        return (AppService) serviceCache.computeIfAbsent("app", key -> {
-            log.info("【微信支付】创建APP服务");
-            try {
-                return new AppService.Builder()
-                        .config(getSdkConfig())
-                        .build();
-            } catch (Exception e) {
-                log.error("【微信支付】创建APP服务失败", e);
-                throw new RuntimeException("创建APP服务失败", e);
-            }
-        });
-    }
-
-    /**
-     * 获取H5服务
-     */
-    private H5Service getH5Service() {
-        return (H5Service) serviceCache.computeIfAbsent("h5", key -> {
-            log.info("【微信支付】创建H5服务");
-            try {
-                return new H5Service.Builder()
-                        .config(getSdkConfig())
-                        .build();
-            } catch (Exception e) {
-                log.error("【微信支付】创建H5服务失败", e);
-                throw new RuntimeException("创建H5服务失败", e);
-            }
-        });
-    }
-
-    /**
-     * 获取退款服务
-     */
-    private RefundService getRefundService() {
-        return (RefundService) serviceCache.computeIfAbsent("refund", key -> {
-            log.info("【微信支付】创建退款服务");
-            try {
-                return new RefundService.Builder()
-                        .config(getSdkConfig())
-                        .build();
-            } catch (Exception e) {
-                log.error("【微信支付】创建退款服务失败", e);
-                throw new RuntimeException("创建退款服务失败", e);
-            }
-        });
-    }
 
 
-    /**
-     * TODO 重新加载配置（热更新）
-     *      记住：YAGNI原则（You Ain't Gonna Need It）- 不要为可能不需要的功能做过度设计。先让核心支付功能稳定运行，后续需要时再扩展管理功能。
-     */
-    public synchronized void reloadSdkConfig() {
-        log.info("【微信支付】重新加载配置");
-        serviceCache.clear();  // 先清空服务
-        sdkConfig = null;      // 再清空配置
-        log.info("【微信支付】配置重新加载完成");
-    }
+
 
     /**
      * JSAPI支付（小程序/公众号）
@@ -232,7 +130,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
             validateJsapiRequest(request);
 
             // 1. 创建JSAPI服务
-            JsapiService jsapiService = getJsapiService();
+            JsapiService jsapiService = aioveuWeChatPayGetServiceUtil.getJsapiService();
 
             log.info("【微信支付-JSAPI支付（小程序/公众号）】创建JSAPI服务:{}",jsapiService);
 
@@ -251,13 +149,24 @@ public class WeChatPayServiceImpl implements WeChatPayService {
             log.info("【微信支付-JSAPI支付（小程序/公众号）】调用支付接口response,预支付成功，prepayId: {}",response.getPrepayId());
 
             // 生成支付参数
-            Map<String, String> payParams = generateJsapiPayParams(response.getPrepayId());
+            Map<String, Object> payParams = aioveuWeChatPayGeneratePayParamsUtil.generateJsapiPayParams(response.getPrepayId());
             log.info("【微信支付-JSAPI支付（小程序/公众号）】生成支付参数");
+
+            // 4. 构建返回结果
 
             return PaymentParamsVO.builder()
                     .paymentNo(request.getOrderNo())
-                    .paymentParams(JSON.toJSONString(payParams))
-                    .thirdPaymentNo(response.getPrepayId())
+                    .orderNo(request.getOrderNo())
+                    .amount(request.getAmount())
+                    .subject(request.getSubject())
+                    .body(request.getBody())
+                    .payType("JSAPI")
+                    .channel("WECHAT")
+                    .prepayId(response.getPrepayId())
+                    .createTime(System.currentTimeMillis())
+                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
+//                    .paymentParams(JSON.toJSONString(payParams))
+                    .payParams(payParams)
                     .build();
         } catch (Exception e) {
             log.error("JSAPI支付失败, 订单号: {}", request.getOrderNo(), e);
@@ -324,7 +233,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
             validateAppRequest(request);
 
             // 1. 创建App服务
-            AppService appService = getAppService();
+            AppService appService = aioveuWeChatPayGetServiceUtil.getAppService();
 
             log.info("【微信支付-App支付）】创建App服务:{}",appService);
             log.info("【微信支付-APP】开始支付，订单号: {}, 金额: {}",
@@ -341,14 +250,24 @@ public class WeChatPayServiceImpl implements WeChatPayService {
             log.info("【微信支付-App支付】调用支付接口,预支付成功，prepayId: {}", response.getPrepayId());
 
             // 生成支付参数
-            Map<String, String> payParams = generateAppPayParams(response.getPrepayId());
+            Map<String, Object> payParams = aioveuWeChatPayGeneratePayParamsUtil.generateAppPayParams(response.getPrepayId());
             log.info("【微信支付-App支付】生成支付参数");
+
 
             return PaymentParamsVO.builder()
                     .paymentNo(request.getOrderNo())
-                    .paymentParams(JSON.toJSONString(payParams))
-                    .thirdPaymentNo(response.getPrepayId())
+                    .orderNo(request.getOrderNo())
+                    .amount(request.getAmount())
+                    .subject(request.getSubject())
+                    .body(request.getBody())
+                    .payType("APP")
+                    .channel("WECHAT")
+                    .prepayId(response.getPrepayId())
+                    .payParams(payParams)
+                    .createTime(System.currentTimeMillis())
+                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
                     .build();
+            //简单就是美，特别是业务逻辑代码。等真的出现大量重复时，再考虑提取公共方法。现在这样写最清晰、最易维护。
         } catch (Exception e) {
             log.error("App支付失败, 订单号: {}", request.getOrderNo(), e);
             throw new RuntimeException("App支付失败", e);
@@ -382,7 +301,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
             validateH5Request(request);
 
             // 1. 创建H5服务
-            H5Service h5Service = getH5Service();
+            H5Service h5Service = aioveuWeChatPayGetServiceUtil.getH5Service();
 
             log.info("【微信支付-H5支付）】创建H5服务:{}",h5Service);
             log.info("【微信支付-H5】开始支付，订单号: {}, 金额: {}",
@@ -398,13 +317,24 @@ public class WeChatPayServiceImpl implements WeChatPayService {
                     h5Service.prepay(prepayRequest);
             log.info("【微信支付-H5支付】调用支付接口,预支付成功，h5Url: {}", response.getH5Url());
 
+            // 2. 生成支付参数
+            Map<String, Object> payParams = aioveuWeChatPayGeneratePayParamsUtil.generateJsapiPayParams(response.getH5Url());
+
 
             return PaymentParamsVO.builder()
-                    .paymentNo(request.getOrderNo())
-                    .paymentParams(response.getH5Url())
-//                    .thirdPaymentNo(response.getPrepayId())
-                    .h5Url(response.getH5Url()) // 专门存储H5 URL
+                    .orderNo(request.getOrderNo())
+                    .amount(request.getAmount())
+                    .subject(request.getSubject())
+                    .body(request.getBody())
+                    .payType("JSAPI")
+                    .channel("WECHAT")
+//                    .prepayId(response.getPrepayId())
+                    .payParams(payParams)
+                    .createTime(System.currentTimeMillis())
+                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
                     .build();
+
+
         } catch (Exception e) {
             log.error("H5支付失败, 订单号: {}", request.getOrderNo(), e);
             throw new RuntimeException("H5支付失败", e);
@@ -448,7 +378,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
             queryRequest.setMchid(wechatPayConfig.getMchId());
 
             // 2. 创建JSAPI服务
-            JsapiService jsapiService = getJsapiService();
+            JsapiService jsapiService = aioveuWeChatPayGetServiceUtil.getJsapiService();
 
             com.wechat.pay.java.service.payments.model.Transaction transaction =
                     jsapiService.queryOrderByOutTradeNo(queryRequest);
@@ -481,7 +411,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
             closeRequest.setOutTradeNo(paymentNo);
 
             // 2. 创建JSAPI服务
-            JsapiService jsapiService = getJsapiService();
+            JsapiService jsapiService = aioveuWeChatPayGetServiceUtil.getJsapiService();
 
             jsapiService.closeOrder(closeRequest);
             log.info("【微信支付】关闭订单成功");
@@ -507,7 +437,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
                     buildRefundRequest(request);
 
             // 2. 创建Refund服务
-            RefundService refundService = getRefundService();
+            RefundService refundService = aioveuWeChatPayGetServiceUtil.getRefundService();
 
             com.wechat.pay.java.service.refund.model.Refund response =
                     refundService.create(refundRequest);
@@ -541,61 +471,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
 
 
 
-    /**
-     * 生成JSAPI支付参数
-     */
-    private Map<String, String> generateJsapiPayParams(String prepayId) throws Exception {
-        long timestamp = System.currentTimeMillis() / 1000;
-        String nonceStr = IdUtil.fastSimpleUUID().substring(0, 32);
-        String packageStr = "prepay_id=" + prepayId;
 
-        String signStr = String.format("%s\n%d\n%s\n%s\n",
-                wechatPayConfig.getAppId(),
-                timestamp,
-                nonceStr,
-                packageStr
-        );
-
-        String sign = sign(signStr);
-
-        Map<String, String> params = new HashMap<>();
-        params.put("appId", wechatPayConfig.getAppId());
-        params.put("timeStamp", String.valueOf(timestamp));
-        params.put("nonceStr", nonceStr);
-        params.put("package", packageStr);
-        params.put("signType", SIGN_TYPE_RSA);
-        params.put("paySign", sign);
-
-        return params;
-    }
-
-    /**
-     * 生成App支付参数
-     */
-    private Map<String, String> generateAppPayParams(String prepayId) throws Exception {
-        long timestamp = System.currentTimeMillis() / 1000;
-        String nonceStr = IdUtil.fastSimpleUUID().substring(0, 32);
-
-        String signStr = String.format("%s\n%d\n%s\n%s\n",
-                wechatPayConfig.getAppId(),
-                timestamp,
-                nonceStr,
-                prepayId
-        );
-
-        String sign = sign(signStr);
-
-        Map<String, String> params = new HashMap<>();
-        params.put("appid", wechatPayConfig.getAppId());
-        params.put("partnerid", wechatPayConfig.getMchId());
-        params.put("prepayid", prepayId);
-        params.put("package", "Sign=WXPay");
-        params.put("noncestr", nonceStr);
-        params.put("timestamp", String.valueOf(timestamp));
-        params.put("sign", sign);
-
-        return params;
-    }
 
 
     /**
@@ -734,37 +610,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
         return new BigDecimal(fen).divide(BigDecimal.valueOf(AMOUNT_MULTIPLIER), 2, RoundingMode.HALF_UP);
     }
 
-    /**
-     * 生成签名
-     */
-    private String sign(String message) throws Exception {
-        PrivateKey privateKey = loadPrivateKey();
-        Signature signature = Signature.getInstance("SHA256withRSA");
-        signature.initSign(privateKey);
-        signature.update(message.getBytes(StandardCharsets.UTF_8));
-        return Base64.getEncoder().encodeToString(signature.sign());
-    }
 
-    /**
-     * 加载私钥
-     */
-    private PrivateKey loadPrivateKey() throws Exception {
-        String privateKeyContent = wechatPayConfig.getPrivateKey();
-        if (StringUtils.isBlank(privateKeyContent)) {
-            privateKeyContent = FileUtil.readString(
-                    wechatPayConfig.getPrivateKeyPath(),
-                    StandardCharsets.UTF_8
-            );
-        }
 
-        privateKeyContent = privateKeyContent
-                .replace("-----BEGIN PRIVATE KEY-----", "")
-                .replace("-----END PRIVATE KEY-----", "")
-                .replaceAll("\\s+", "");
 
-        byte[] keyBytes = Base64.getDecoder().decode(privateKeyContent);
-        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        return keyFactory.generatePrivate(spec);
-    }
 }

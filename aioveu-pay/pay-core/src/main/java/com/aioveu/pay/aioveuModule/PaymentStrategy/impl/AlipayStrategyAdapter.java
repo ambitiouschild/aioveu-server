@@ -96,17 +96,22 @@ public class AlipayStrategyAdapter implements PaymentStrategy{
             // 设置订单号
             request.setOrderNo(paymentNo);
 
-            // 确定支付类型
-            String payType = determinePayType(request);
+            String payType = request.getPayType();
 
             // 根据支付类型调用不同的支付方法
             switch (payType) {
                 case "APP":
-                    return processAppPay(request);
+                    return alipayService.appPay(request);
                 case "PAGE":
-                    return processPagePay(request);
+                    /**
+                     * 处理网页支付
+                     */
+                    return alipayService.pagePay(request);
                 case "WAP":
-                    return processWapPay(request);
+                    /**
+                     * 处理手机网站支付
+                     */
+                    return alipayService.wapPay(request);
                 default:
                     throw new IllegalArgumentException("不支持的支付宝支付类型: " + payType);
             }
@@ -116,61 +121,6 @@ public class AlipayStrategyAdapter implements PaymentStrategy{
                     paymentNo, request.getPayType(), e);
             throw new RuntimeException("支付宝支付失败: " + e.getMessage(), e);
         }
-    }
-
-    /**
-     * 处理APP支付
-     */
-    private PaymentParamsVO processAppPay(PaymentRequestDTO request) {
-        // 使用传统SDK
-        return alipayService.appPay(request);
-
-        // 或者使用EasySDK
-        // return alipayEasyService.appPay(request);
-    }
-
-    /**
-     * 处理网页支付
-     */
-    private PaymentParamsVO processPagePay(PaymentRequestDTO request) {
-        // 使用传统SDK
-        return alipayService.pagePay(request);
-
-        // 或者使用EasySDK
-        // return alipayEasyService.pagePay(request);
-    }
-
-    /**
-     * 处理手机网站支付
-     */
-    private PaymentParamsVO processWapPay(PaymentRequestDTO request) {
-        // 使用传统SDK
-        return alipayService.wapPay(request);
-
-        // 或者使用EasySDK
-        // return alipayEasyService.wapPay(request);
-    }
-
-    /**
-     * 根据请求参数确定支付类型
-     */
-    private String determinePayType(PaymentRequestDTO request) {
-        String payType = request.getPayType();
-
-        if (payType == null || payType.trim().isEmpty()) {
-            // 根据设备类型自动判断
-            return autoDetectPayType(request);
-        }
-
-        // 从映射中获取标准支付类型
-        String standardPayType = PAY_TYPE_MAPPING.get(payType.toUpperCase());
-
-        if (standardPayType == null) {
-            log.warn("未知的支付类型: {}, 使用默认APP支付", payType);
-            return "APP";
-        }
-
-        return standardPayType;
     }
 
     /**

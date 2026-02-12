@@ -1057,8 +1057,9 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             log.info("【支付微服务】Pay微服务后端createPayment需求参数PaymentRequestDTO: {}", JSONUtil.toJsonStr(paymentRequest));
 
             // 2. 调用支付微服务
-            log.info("【支付微服务】调用支付微服务payFeignClient，获取前端调用第三方支付所需的支付参数PaymentParamsVO");
+
             Result<PaymentParamsVO>  paymentParamsVO = payFeignClient.createPayment(paymentRequest);
+            log.info("【支付微服务】调用支付微服务payFeignClient，获取前端调用第三方支付所需的支付参数PaymentParamsVO:{}",paymentParamsVO.getData());
 
 
             if (paymentParamsVO == null) {

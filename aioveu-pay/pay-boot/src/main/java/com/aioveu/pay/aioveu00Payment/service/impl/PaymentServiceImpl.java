@@ -106,7 +106,7 @@ public class PaymentServiceImpl implements PaymentService {
 
             // 4. 调用策略获取支付参数
             PaymentParamsVO params = strategy.appPay(paymentNo, request);
-            log.info("【Pay】调用策略支付：{}", params);
+            log.info("【Pay】调用策略支付后获取的请求参数：{}", params);
 
             // 5. 直接返回支付参数VO
             return Result.success(params);

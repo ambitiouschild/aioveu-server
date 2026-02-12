@@ -7,6 +7,7 @@ import com.aioveu.pay.aioveuModule.service.AliPay.AlipayRequestFactory.AlipayReq
 import com.aioveu.pay.aioveuModule.service.AliPay.config.AlipayConfig;
 import com.aioveu.pay.aioveuModule.service.AliPay.service.AlipayEasyService.AlipayEasyService;
 import com.aioveu.pay.aioveuModule.service.AliPay.service.AlipayService.AlipayService;
+import com.aioveu.pay.aioveuModule.service.WechatPay.utils.aliPay.aioveuAlipayGeneratePayParamsUtil;
 import com.alipay.easysdk.payment.app.models.AlipayTradeAppPayResponse;
 import com.alipay.easysdk.payment.common.models.AlipayTradeCloseResponse;
 import com.alipay.easysdk.payment.common.models.AlipayTradeQueryResponse;
@@ -84,6 +85,8 @@ public class AlipayEasyServiceImpl implements AlipayEasyService {
      */
     private static final String TRADE_CLOSED = "TRADE_CLOSED";
 
+    aioveuAlipayGeneratePayParamsUtil aioveuAlipayGeneratePayParamsUtil;
+
 
     /**
      * 构造器注入
@@ -121,10 +124,21 @@ public class AlipayEasyServiceImpl implements AlipayEasyService {
 //                throw new RuntimeException(String.format("支付宝APP支付失败: %s - %s",
 //                        response.subCode, response.subMsg));
 //            }
+            // 生成支付参数
+            Map<String, Object> payParams = aioveuAlipayGeneratePayParamsUtil.generateAppPayParams(response.getBody());
 
             PaymentParamsVO result = PaymentParamsVO.builder()
                     .paymentNo(request.getOrderNo())
-                    .paymentParams(response.body)  // 这里是实际的支付参数
+                    .orderNo(request.getOrderNo())
+                    .amount(request.getAmount())
+                    .subject(request.getSubject())
+                    .body(request.getBody())
+                    .payType("JSAPI")
+                    .channel("WECHAT")
+                    .prepayId("111")
+                    .payParams(payParams)
+                    .createTime(System.currentTimeMillis())
+                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
                     .build();
 
             log.info("支付宝APP支付成功, 订单号: {}", request.getOrderNo());
@@ -165,10 +179,21 @@ public class AlipayEasyServiceImpl implements AlipayEasyService {
 //                throw new RuntimeException(String.format("支付宝网页支付失败: %s - %s",
 //                        response.subCode, response.subMsg));
 //            }
+            // 生成支付参数
+            Map<String, Object> payParams = aioveuAlipayGeneratePayParamsUtil.generateAppPayParams(response.getBody());
 
             PaymentParamsVO result = PaymentParamsVO.builder()
                     .paymentNo(request.getOrderNo())
-                    .paymentParams(response.body)  // 网页支付返回的是表单HTML
+                    .orderNo(request.getOrderNo())
+                    .amount(request.getAmount())
+                    .subject(request.getSubject())
+                    .body(request.getBody())
+                    .payType("JSAPI")
+                    .channel("WECHAT")
+                    .prepayId("111")
+                    .payParams(payParams)
+                    .createTime(System.currentTimeMillis())
+                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
                     .build();
 
             log.info("支付宝网页支付成功, 订单号: {}", request.getOrderNo());
@@ -208,10 +233,21 @@ public class AlipayEasyServiceImpl implements AlipayEasyService {
 //                throw new RuntimeException(String.format("支付宝手机网站支付失败: %s - %s",
 //                        response.subCode, response.subMsg));
 //            }
+            // 生成支付参数
+            Map<String, Object> payParams = aioveuAlipayGeneratePayParamsUtil.generateAppPayParams(response.getBody());
 
             PaymentParamsVO result = PaymentParamsVO.builder()
                     .paymentNo(request.getOrderNo())
-                    .paymentParams(response.body)  // 手机网站支付返回的是表单HTML
+                    .orderNo(request.getOrderNo())
+                    .amount(request.getAmount())
+                    .subject(request.getSubject())
+                    .body(request.getBody())
+                    .payType("JSAPI")
+                    .channel("WECHAT")
+                    .prepayId("111")
+                    .payParams(payParams)
+                    .createTime(System.currentTimeMillis())
+                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
                     .build();
 
             log.info("支付宝手机网站支付成功, 订单号: {}", request.getOrderNo());

@@ -1,19 +1,51 @@
 package com.aioveu.pay.aioveuModule.model.vo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @ClassName: PaymentParamsVO
- * @Description TODO 支付参数VO - 用于前端调起支付
+ * @Description TODO 支付参数VO - 用于前端调起支付  推荐使用方案3（通用设计）
  * @Author 可我不敌可爱
  * @Author 雒世松
  * @Date 2026/2/10 16:47
  * @Version 1.0
  **/
+
+/*       TODO  问题：
+            ❌ 违反 RESTful 设计：应该是结构化的 JSON，而不是查询字符串
+            ❌ 前端需要额外解析：增加前端复杂度
+            ❌ 可读性差：调试时不易阅读
+            ❌ 类型不安全：所有值都是字符串，需要手动转换
+            ❌ 扩展性差：新增参数需要修改字符串拼接逻辑*/
+
+/*    TODO 立即修改为结构化JSON格式，因为：
+            ✅ 符合RESTful规范
+            ✅ 前端处理简单
+            ✅ 类型安全
+            ✅ 易于扩展
+            ✅ 调试方便
+            ✅ 文档清晰
+             不要使用查询字符串格式，除非有特殊原因（如需要直接拼接到URL中）。
+             即使H5支付需要URL，也应该单独返回h5Url字段，而不是让前端拼接。*/
+
+/*   TODO 添加：
+        1.响应码和消息
+        2.Map类型的payParams
+        3.快捷访问方法
+        4.这样设计的优势：
+        ✅ 结构清晰：基础信息+支付参数分离
+        ✅ 可扩展：支持任意支付参数
+        ✅ 类型安全：通过Map管理
+        ✅ 前后端一致：统一数据结构
+        ✅ 易于维护：新增支付渠道只需扩展Map*/
+
 
 @Getter
 @Setter
@@ -33,10 +65,6 @@ public class PaymentParamsVO implements Serializable {
     @Schema(description = "商户订单号", example = "202502110001", requiredMode = Schema.RequiredMode.REQUIRED)
     private String orderNo;
 
-    @Schema(description = "支付渠道: wechat-微信 alipay-支付宝 balance-余额",
-            example = "wechat", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String channel;
-
     @Schema(description = "支付金额(元)", example = "100.00", requiredMode = Schema.RequiredMode.REQUIRED)
     private BigDecimal amount;
 
@@ -46,117 +74,93 @@ public class PaymentParamsVO implements Serializable {
     @Schema(description = "商品描述", example = "苹果手机 iPhone 15 Pro 256GB")
     private String body;
 
-    @Schema(description = "是否成功(true-成功 false-失败)", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
-    private Boolean success;
+    // ==================== 支付信息 ====================
 
-    @Schema(description = "返回消息", example = "支付参数生成成功")
-    private String message;
+    @Schema(description = "支付渠道: WECHAT-微信 ALIPAY-支付宝")
+    private String channel;
 
-    @Schema(description = "错误码", example = "SUCCESS")
-    private String errorCode;
 
-    @Schema(description = "错误信息", example = "成功")
-    private String errorMessage;
+    @Schema(description = "支付类型: JSAPI-小程序/公众号 APP-APP支付 NATIVE-扫码支付 H5-H5支付")
+    private String payType;
 
+    @Schema(description = "预支付ID(微信)", example = "wx20250212170724abc123")
+    private String prepayId;
+
+    // ==================== 支付参数映射 ====================
+    @Schema(description = "支付参数映射表")
+    private Map<String, Object> payParams;
+
+    // ==================== 时间信息 ====================
     @Schema(description = "创建时间戳(毫秒)", example = "1739257200000")
     private Long createTime;
 
-    @Schema(description = "过期时间(分钟)", example = "30")
-    private Integer expireMinutes;
+    @Schema(description = "过期时间戳(毫秒)", example = "1739259000000")
+    private Long expireTime;
 
-    // ==================== 支付参数字段 ====================
-    @Schema(description = "支付参数(JSON字符串或特定格式字符串)",
-            example = "{\"appId\":\"wx123456\",\"timeStamp\":\"1739257200\"}")
-    private String paymentParams;
+    // ==================== 快捷方法 ====================
+    public Object getPayParam(String key) {
+        return payParams != null ? payParams.get(key) : null;
+    }
 
-    @Schema(description = "第三方支付单号", example = "4200002009202402111234567890")
-    private String thirdPaymentNo;
+    public String getPayParamAsString(String key) {
+        Object value = getPayParam(key);
+        return value != null ? value.toString() : null;
+    }
 
-    @Schema(description = "商户交易号", example = "M202502110001")
-    private String tradeNo;
+    public void addPayParam(String key, Object value) {
+        if (payParams == null) {
+            payParams = new HashMap<>();
+        }
+        payParams.put(key, value);
+    }
 
-    // ==================== 微信支付特定参数 ====================
-    @Schema(description = "应用ID(微信)", example = "wx1234567890abcdef")
-    private String appId;
+    //Lombok的 @Builder为这些getter方法自动生成了对应的setter，即使没有对应的字段！
+    // 微信支付快捷方法
+//    @JsonIgnore  // 关键：不让Jackson序列化这个方法
+//    public String getAppId() {
+//        return getPayParamAsString("appId");
+//    }
+//
+//    @JsonIgnore  // 关键：不让Jackson序列化这个方法
+//    public String getTimeStamp() {
+//        return getPayParamAsString("timeStamp");
+//    }
+//
+//    @JsonIgnore  // 关键：不让Jackson序列化这个方法
+//    public String getNonceStr() {
+//        return getPayParamAsString("nonceStr");
+//    }
+//
+//    @JsonIgnore  // 关键：不让Jackson序列化这个方法
+//    public String getPackageStr() {
+//        return getPayParamAsString("package");
+//    }
+//
+//    @JsonIgnore  // 关键：不让Jackson序列化这个方法
+//    public String getSignType() {
+//        return getPayParamAsString("signType");
+//    }
+//
+//    @JsonIgnore  // 关键：不让Jackson序列化这个方法
+//    public String getPaySign() {
+//        return getPayParamAsString("paySign");
+//    }
+//
+//    @JsonIgnore  // 关键：不让Jackson序列化这个方法
+//    public String getH5Url() {
+//        return getPayParamAsString("h5Url");
+//    }
+//
+//    @JsonIgnore  // 关键：不让Jackson序列化这个方法
+//    public String getQrCodeUrl() {
+//        return getPayParamAsString("qrCodeUrl");
+//    }
+//
+//    @JsonIgnore  // 关键：不让Jackson序列化这个方法
+//    // 支付宝快捷方法
+//    public String getOrderInfo() {
+//        return getPayParamAsString("orderInfo");
+//    }
 
-    @Schema(description = "商户号(微信)", example = "1234567890")
-    private String mchId;
 
-    @Schema(description = "时间戳(微信)", example = "1739257200")
-    private String timeStamp;
-
-    @Schema(description = "随机字符串(微信)", example = "5K8264ILTKCH16CQ2502SI8ZNMTM67VS")
-    private String nonceStr;
-
-    @Schema(description = "订单详情扩展字符串(微信)", example = "prepay_id=wx202502110001")
-    private String packageValue;
-
-    @Schema(description = "签名方式(微信)", example = "RSA")
-    private String signType;
-
-    @Schema(description = "签名(微信)", example = "C380BEC2BFD727A4B6845133519F3AD6")
-    private String paySign;
-
-    @Schema(description = "预支付交易会话ID(微信)", example = "wx202502110001")
-    private String prepayId;
-
-    // ==================== 支付宝特定参数 ====================
-    @Schema(description = "支付宝应用ID", example = "2021003123456789")
-    private String aliAppId;
-
-    @Schema(description = "支付宝交易号", example = "202502110001123456789")
-    private String aliTradeNo;
-
-    @Schema(description = "商户订单号(支付宝)", example = "202502110001")
-    private String outTradeNo;
-
-    @Schema(description = "支付宝订单信息", example = "app_id=2021003123456789&biz_content={...}")
-    private String orderInfo;
-
-    // ==================== 展示方式参数 ====================
-    @Schema(description = "二维码URL(仅Native支付使用)", example = "https://api.weixin.qq.com/v3/pay/qrcode")
-    private String qrCodeUrl;
-
-    @Schema(description = "H5支付URL", example = "https://pay.weixin.qq.com/h5/pay")
-    private String h5Url;
-
-    @Schema(description = "小程序支付参数", example = "{\"package\":\"prepay_id=wx202502110001\"}")
-    private String miniProgramParams;
-
-    @Schema(description = "APP支付参数", example = "alipay_sdk=alipay-sdk-java")
-    private String appParams;
-
-    @Schema(description = "网页支付URL", example = "https://mapi.alipay.com/gateway.do")
-    private String webUrl;
-
-    // ==================== 状态字段 ====================
-    @Schema(description = "支付状态: INITIAL-初始化 PAYING-支付中 SUCCESS-成功 FAILED-失败",
-            example = "INITIAL")
-    private String payStatus;
-
-    // ==================== 其他字段 ====================
-    @Schema(description = "用户ID", example = "100001")
-    private Long userId;
-
-    @Schema(description = "商户号", example = "MERCHANT001")
-    private String merchantId;
-
-    @Schema(description = "设备信息", example = "WEB")
-    private String deviceInfo;
-
-    // ==================== 业务字段 ====================
-    @Schema(description = "业务标识", example = "ORDER_PAY")
-    private String bizType;
-
-    @Schema(description = "业务ID", example = "ORDER_202502110001")
-    private String bizId;
-
-    @Schema(description = "附加数据", example = "{\"userId\":100001}")
-    private String attach;
-
-    @Schema(description = "通知地址", example = "https://api.example.com/pay/notify")
-    private String notifyUrl;
-
-    @Schema(description = "前端回跳地址", example = "https://example.com/pay/success")
-    private String returnUrl;          // H5支付URL
 }
