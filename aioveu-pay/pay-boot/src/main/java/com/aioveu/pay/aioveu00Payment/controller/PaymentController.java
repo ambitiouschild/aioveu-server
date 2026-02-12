@@ -1,18 +1,19 @@
 package com.aioveu.pay.aioveu00Payment.controller;
 
+import com.aioveu.common.annotation.Log;
+import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.result.Result;
 import com.aioveu.pay.aioveu00Payment.service.PaymentService;
 import com.aioveu.pay.aioveuModule.model.vo.PaymentParamsVO;
 import com.aioveu.pay.aioveuModule.model.vo.PaymentRequestDTO;
 import com.aioveu.pay.aioveuModule.model.vo.PaymentResultVO;
 import com.alibaba.fastjson.JSON;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -38,7 +39,10 @@ public class PaymentController {
     /**
      * 创建支付订单
      */
+    @Operation(summary ="创建前端调用第三方支付所需的支付参数")
     @PostMapping("/create")
+//    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrder:oms-order:query')")
+    @Log( value = "创建前端调用第三方支付所需的支付参数",module = LogModuleEnum.PAY)
     public Result<PaymentParamsVO> createPayment(@RequestBody PaymentRequestDTO request) {
 
         log.info("收到支付请求: {}", JSON.toJSONString(request));
@@ -49,7 +53,10 @@ public class PaymentController {
      * 微信支付回调
      * 微信回调是XML格式
      */
+    @Operation(summary ="微信支付回调")
     @PostMapping("/callback/wechat")
+//    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrder:oms-order:query')")
+    @Log( value = "微信支付回调",module = LogModuleEnum.PAY)
     public String wechatCallback(HttpServletRequest request) {
 
 //        return paymentService.handleCallback(request);
@@ -75,7 +82,10 @@ public class PaymentController {
      * 支付宝回调
      * 支付宝回调是表单格式
      */
+    @Operation(summary ="支付宝回调")
     @PostMapping("/callback/alipay")
+//    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrder:oms-order:query')")
+    @Log( value = "支付宝回调",module = LogModuleEnum.PAY)
     public String alipayCallback(HttpServletRequest request) {
 
         try {

@@ -57,18 +57,14 @@ public class PaymentStrategyFactory {
         this.strategyMap = new HashMap<>();
 
         // 微信支付策略 - 所有微信支付方式都使用同一个适配器
-        strategyMap.put("WECHAT_JSAPI", weChatPayStrategyAdapter);
-        strategyMap.put("WECHAT_APP", weChatPayStrategyAdapter);
-        strategyMap.put("WECHAT_NATIVE", weChatPayStrategyAdapter);
-        strategyMap.put("WECHAT_H5", weChatPayStrategyAdapter);
+        strategyMap.put("WECHAT", weChatPayStrategyAdapter);
 
         // 支付宝策略
-        strategyMap.put("ALIPAY_APP", alipayStrategyAdapter);
-        strategyMap.put("ALIPAY_WAP", alipayStrategyAdapter);
-        strategyMap.put("ALIPAY_PAGE", alipayStrategyAdapter);
-
+        strategyMap.put("ALIPAY", alipayStrategyAdapter);
+        // 支付宝策略
+        strategyMap.put("BALANCE", alipayStrategyAdapter);
         // 模拟支付策略
-        strategyMap.put("Mock_APP", mockStrategyAdapter);
+        strategyMap.put("MOCK", mockStrategyAdapter);
     }
 
     /**

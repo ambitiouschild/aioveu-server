@@ -3,6 +3,7 @@ package com.aioveu.pay.aioveuModule.PaymentStrategy.impl;
 import com.aioveu.pay.aioveuModule.PaymentStrategy.PaymentStrategy;
 import com.aioveu.pay.aioveuModule.model.vo.*;
 import com.aioveu.pay.aioveuModule.service.WechatPay.service.WeChatPayService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component;
  * @Version 1.0
  **/
 
+@Slf4j
 @Component("WeChatPayService")
 public class WeChatPayStrategyAdapter implements PaymentStrategy {
 
@@ -37,36 +39,26 @@ public class WeChatPayStrategyAdapter implements PaymentStrategy {
 
         //如果现有的 WechatPayService已经支持多种支付方式（JSAPI、APP、Native、H5），可以这样增强
         // 根据请求类型调用不同的支付方法
-        String payType = determinePayType(request);
+        String payType = request.getPayType();
+        log.info("【微信支付策略适配器】根据请求类型调用不同的支付方法payType：{}",payType);
 
         switch (payType) {
             case "JSAPI":
+                log.info("【微信支付服务接口】调用JSAPI支付（小程序/公众号）");
                 return weChatPayService.jsapiPay(request);
             case "APP":
+                log.info("【微信支付服务接口】调用App支付");
                 return weChatPayService.appPay(request);
             case "NATIVE":
+                log.info("【微信支付服务接口】调用Native支付（扫码支付）");
 //                return weChatPayService.nativePay(request);
             case "H5":
+                log.info("【微信支付服务接口】调用H5支付");
                 return weChatPayService.h5Pay(request);
             default:
                 throw new IllegalArgumentException("不支持的支付类型: " + payType);
         }
     }
-
-    /**
-     * 根据请求参数确定支付类型
-     */
-    private String determinePayType(PaymentRequestDTO request) {
-        // 根据业务逻辑判断支付类型
-        if (request.getOpenid() != null) {
-            return "JSAPI";
-        } else if (request.getClientIp() != null) {
-            return "H5";
-        } else {
-            return "APP"; // 默认APP支付
-        }
-    }
-
 
 
     @Override

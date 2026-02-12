@@ -13,7 +13,6 @@ import com.aioveu.oms.aioveu01Order.utils.OrderNoGenerator;
 import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
-import com.aioveu.oms.config.MockPayService;
 import com.aioveu.pay.api.PayFeignClient;
 import com.aioveu.pay.model.PaymentParamsVO;
 import com.aioveu.pay.model.PaymentRequestDTO;
@@ -116,8 +115,6 @@ import static cn.hutool.core.util.NumberUtil.toBigDecimal;
 @Slf4j
 public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> implements OrderService {
 
-    // 微信支付配置属性
-    private final WxPayProperties wxPayProperties;
 
     // 购物车服务
     private final CartService cartService;
@@ -147,8 +144,6 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     // 添加支付微服务 Feign 客户端
     private final PayFeignClient payFeignClient;
 
-    // 微信支付服务
-    private final WxPayService wxPayService;
 
     // 分布式锁客户端
     private final RedissonClient redissonClient;
@@ -162,9 +157,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     private final OmsOrderItemService omsOrderItemService;
 
 
-    // 模拟支付服务
-    @Autowired
-    private MockPayService mockPayService;
+
     // 开启模拟支付
     @Value("${pay.mock.enabled:true}")
     private Boolean mockPayEnabled;
@@ -1031,52 +1024,11 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
     }
 
-    /**
-     * 处理模拟支付
-     */
-    private Object processMockPayment(String orderSn, PaymentMethodEnum paymentMethod, Long paymentAmount)
-    {
-
-        Map<String, Object> result;
-
-        switch (paymentMethod) {
-            case WX_JSAPI:
-                result = mockPayService.mockWxJsapiPay(orderSn, paymentAmount);
-                break;
-
-            case ALIPAY:
-                result = mockPayService.mockAlipayPay(orderSn, paymentAmount);
-                break;
-
-            case BALANCE:
-                Long memberId = SecurityUtils.getMemberId();
-                result = mockPayService.mockBalancePay(orderSn, paymentAmount, memberId);
-                break;
-
-            default:
-                throw new BizException("不支持的支付方式: " + paymentMethod);
-        }
-
-        // 检查支付结果
-        if (Boolean.TRUE.equals(result.get("success"))) {
-            // 支付成功，更新订单状态
-            log.info("【支付成功】更新订单状态");
-            updateOrderAfterPayment(orderSn, paymentMethod, true);
-
-            //后端返回的是一个 Map 对象
-            return result.get("data");
-        } else {
-            // 支付失败
-            String errorCode = (String) result.get("code");
-            String errorMsg = (String) result.get("message");
-            throw new BizException(errorMsg);
-        }
-    }
 
     /**
      * 处理真实支付
      */
-    private Object processRealPayment(OrderPaymentForm paymentForm,
+    private Result<PaymentParamsVO> processRealPayment(OrderPaymentForm paymentForm,
                                       PaymentMethodEnum paymentMethod,
                                       OmsOrder order,
                                       RLock lock) {
@@ -1085,7 +1037,6 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         try {
 
-            Object result;
             log.info("根据支付方式路由到不同的支付处理逻辑");
 
             String appId=paymentForm.getAppId();
@@ -1101,23 +1052,21 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             log.info("【会员微服务】用户OpenID获取成功: {}", openId);
 
 
-
             // 1. 构建支付请求
             PaymentRequestDTO paymentRequest = buildPaymentRequest(order, paymentMethod, memberId, openId);
-            log.info("【支付微服务】支付请求参数: {}", JSONUtil.toJsonStr(paymentRequest));
+            log.info("【支付微服务】Pay微服务后端createPayment需求参数PaymentRequestDTO: {}", JSONUtil.toJsonStr(paymentRequest));
 
             // 2. 调用支付微服务
-            Result<PaymentParamsVO>  paymentResult = payFeignClient.createPayment(paymentRequest);
+            log.info("【支付微服务】调用支付微服务payFeignClient，前端调用第三方支付所需的支付参数PaymentParamsVO: {}");
+            Result<PaymentParamsVO>  paymentParamsVO = payFeignClient.createPayment(paymentRequest);
 
-            if (paymentResult == null) {
+
+            if (paymentParamsVO == null) {
                 throw new BizException("支付服务返回空结果");
             }
 
 
-
-
-
-            return paymentResult;
+            return paymentParamsVO;
         } finally {
             //释放锁
 
@@ -1140,32 +1089,34 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         Long PaymentAmount = order.getPaymentAmount();
 
         PaymentRequestDTO request = new PaymentRequestDTO();
+        request.setUserId(memberId);
+        request.setBizType("ORDER");
         request.setOrderNo(order.getOrderSn());
         request.setAmount(toBigDecimal(PaymentAmount));
+
         request.setSubject("商品购买");
         request.setBody("订单号：" + order.getOrderSn());
-        request.setMemberId(memberId);
 
         log.info("支付方式:{}", paymentMethod);
 
         // 根据支付方式设置参数
         switch (paymentMethod) {
             case WX_JSAPI:
-                request.setChannel("WECHAT_JSAPI");
-                request.setPayType("jsapi");
+                request.setChannel("WECHAT");
+                request.setPayType("JSAPI");
                 request.setOpenId(openId);
                 break;
             case ALIPAY:
-                request.setChannel("ALIPAY_APP");
-                request.setPayType("app");
+                request.setChannel("ALIPAY");
+                request.setPayType("APP");
                 break;
             case BALANCE:
-                request.setChannel("balance");
-                request.setPayType("balance");
+                request.setChannel("BALANCE");
+                request.setPayType("BALANCE");
                 break;
             case WX_APP:
-                request.setChannel("WECHAT_APP");
-                request.setPayType("app");
+                request.setChannel("WECHAT");
+                request.setPayType("APP");
                 break;
             default:
                 throw new BizException("不支持的支付方式: " + paymentMethod);
@@ -1315,84 +1266,10 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     }
 
 
-    /**
-     *        TODO              处理微信支付结果通知（异步回调）
-     *                      微信支付成功后，微信服务器会调用此接口通知支付结果
-     *
-     * @param signatureHeader 微信签名头信息
-     * @param notifyData 加密的通知数据
-     * @throws WxPayException 微信支付异常
-     */
-    @Override
-    public void handleWxPayOrderNotify(SignatureHeader signatureHeader, String notifyData) throws WxPayException {
-        log.info("开始处理支付结果通知");
-        // 解密支付通知内容
-
-        log.info("解密支付通知内容");
-        final WxPayOrderNotifyV3Result.DecryptNotifyResult result = this.wxPayService.parseOrderNotifyV3Result(notifyData, signatureHeader).getResult();
-        log.debug("支付通知解密成功：[{}]", result.toString());
 
 
-        // 根据商户订单号查询订单
-        log.info("根据商户订单号查询订单");
-        OmsOrder orderDO = this.getOne(new LambdaQueryWrapper<OmsOrder>()
-                .eq(OmsOrder::getOutTradeNo, result.getOutTradeNo())
-        );
-        // 支付成功处理
-        log.info("支付成功处理");
-        if (WxPayConstants.WxpayTradeStatus.SUCCESS.equals(result.getTradeState())) {
-
-            log.info("更新订单状态为已支付");
-            orderDO.setStatus(OrderStatusEnum.PAID.getValue());
-
-            log.info("微信支付交易号");
-            orderDO.setTransactionId(result.getTransactionId());
-            orderDO.setPaymentTime(new Date());
-            this.updateById(orderDO);
-        }
-        log.info("账单更新成功");
-
-        // 支付成功删除购物车已勾选的商品
-        log.info("支付成功删除购物车已勾选的商品");
-        cartService.removeCheckedItem();
-    }
 
 
-    /**
-     * TODO    处理微信退款结果通知（异步回调）
-     *
-     * @param signatureHeader 微信签名头信息
-     * @param notifyData 加密的退款通知数据
-     * @throws WxPayException 微信支付异常
-     */
-    @Override
-    public void handleWxPayRefundNotify(SignatureHeader signatureHeader, String notifyData) throws WxPayException {
-        log.info("开始处理退款结果通知");
-        // 解密支付通知内容
-        final WxPayRefundNotifyV3Result.DecryptNotifyResult result = this.wxPayService.parseRefundNotifyV3Result(notifyData, signatureHeader).getResult();
-        log.debug("退款通知解密成功：[{}]", result.toString());
-
-
-        // 根据商户退款单号查询订单
-        log.info("根据商户订单号查询订单");
-        QueryWrapper<OmsOrder> wrapper = new QueryWrapper<>();
-        wrapper.lambda().eq(OmsOrder::getOutTradeNo, result.getOutTradeNo());
-        OmsOrder orderDO = this.getOne(wrapper);
-
-
-        // 退款成功处理
-        log.info("退款成功处理");
-        if (WxPayConstants.RefundStatus.SUCCESS.equals(result.getRefundStatus())) {
-
-            log.info("更新为已完成状态");
-            orderDO.setStatus(OrderStatusEnum.COMPLETE.getValue());
-
-            log.info("微信退款单号");
-            orderDO.setRefundId(result.getRefundId());
-            this.updateById(orderDO);
-        }
-        log.info("账单更新成功");
-    }
 
 
     /**

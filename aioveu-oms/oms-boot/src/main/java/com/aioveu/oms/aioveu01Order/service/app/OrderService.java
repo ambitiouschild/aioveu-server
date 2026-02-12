@@ -55,23 +55,9 @@ public interface OrderService extends IService<OmsOrder> {
      */
     boolean deleteOrder(Long id);
 
-    /**
-     * 处理微信支付成功回调
-     *
-     * @param signatureHeader 签名头
-     * @param notifyData      加密通知
-     * @throws WxPayException 微信异常
-     */
-    void handleWxPayOrderNotify(SignatureHeader signatureHeader, String notifyData) throws WxPayException;
 
-    /**
-     * 处理微信退款成功回调
-     *
-     * @param signatureHeader 签名头
-     * @param notifyData      加密通知
-     * @throws WxPayException 微信异常
-     */
-    void handleWxPayRefundNotify(SignatureHeader signatureHeader, String notifyData) throws WxPayException;
+
+
 
     /**
      * 订单分页列表
@@ -80,6 +66,7 @@ public interface OrderService extends IService<OmsOrder> {
      * @return {@link OrderPageVO}
      */
     IPage<OrderPageVO> getOrderPage(OrderPageQuery queryParams);
+
 
 }
 

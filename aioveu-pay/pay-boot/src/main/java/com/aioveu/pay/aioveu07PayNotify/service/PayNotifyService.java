@@ -12,6 +12,8 @@ import com.aioveu.pay.aioveu07PayNotify.model.vo.PayNotifyVO;
 import com.aioveu.pay.aioveuModule.model.vo.PaymentCallbackDTO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.github.binarywang.wxpay.bean.notify.SignatureHeader;
+import com.github.binarywang.wxpay.exception.WxPayException;
 
 /**
  * @ClassName: PayNotifyService
@@ -84,4 +86,7 @@ public interface PayNotifyService extends IService<PayNotify> {
 
 //    // 手动触发通知
 //    Result<Void> triggerNotify(String notifyNo);
+
+
+
 }

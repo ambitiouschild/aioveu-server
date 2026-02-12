@@ -4,14 +4,10 @@ import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.Result;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.pay.aioveu00Payment.service.PaymentService;
-import com.aioveu.pay.aioveu00Payment.utils.verifyCallbackSign;
 import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
-import com.aioveu.pay.aioveu01PayOrder.model.vo.PayOrderCreateDTO;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
-import com.aioveu.pay.aioveu03PayChannelConfig.enums.PayChannelEnum;
 import com.aioveu.pay.aioveu06PayFlow.service.PayFlowService;
-import com.aioveu.pay.aioveu07PayNotify.model.vo.PayNotifyDTO;
 import com.aioveu.pay.aioveu07PayNotify.service.PayNotifyService;
 import com.aioveu.pay.aioveu08PayAccount.service.PayAccountService;
 import com.aioveu.pay.aioveuModule.PaymentStrategy.PaymentStrategy;
@@ -21,6 +17,7 @@ import com.aioveu.pay.aioveuModule.enums.PaymentStatusEnum;
 import com.aioveu.pay.aioveuModule.model.vo.*;
 import com.alibaba.fastjson.JSON;
 import com.wechat.pay.java.service.refund.RefundService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,6 +42,7 @@ import java.util.TreeMap;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor  // Lombok 自动生成构造函数
 public class PaymentServiceImpl implements PaymentService {
 
 
@@ -57,6 +55,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired
     private PayOrderService payOrderService;
 
+    @Autowired
     private PayOrderConverter payOrderConverter;
 
     @Autowired
@@ -97,24 +96,19 @@ public class PaymentServiceImpl implements PaymentService {
             // 1. 参数校验
 //            validatePaymentRequest(request);
 
-////             2. 创建支付订单
-//            PayOrderCreateDTO orderDTO = payOrderService.buildPayOrderDTO(request);
-//            Result<String> createResult = payOrderService.createPayOrder(orderDTO);
-//            if (!createResult.isSuccess(createResult)) {
-//                return Result.failed(createResult.getCode());
-//            }
-
-//            String paymentNo = createResult.getData();
-
-            String paymentNo = "11";
+//             2. 创建支付订单
+            PayOrder payOrder = payOrderConverter.toPayOrder(request);
+            payOrderService.save(payOrder);
+            String paymentNo = payOrder.getPaymentNo();
+            log.info("【Pay】支付订单支付单号paymentNo：{}",paymentNo);
 
             // 3. 根据支付渠道选择支付策略
             PaymentStrategy strategy = strategyFactory.getStrategy(request.getChannel());
-            log.info("【支付服务处理】获取支付策略：{}",strategy.getClass().getSimpleName());
+            log.info("【Pay】获取支付策略：{}",strategy.getClass().getSimpleName());
 
             // 4. 调用策略获取支付参数
             PaymentParamsVO params = strategy.appPay(paymentNo, request);
-            log.info("【支付服务处理】调用策略支付：{}", params);
+            log.info("【Pay】调用策略支付：{}", params);
 
             // 5. 直接返回支付参数VO
             return Result.success(params);
