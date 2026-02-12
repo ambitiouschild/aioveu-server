@@ -45,6 +45,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @ClassName: WechatPayServiceImpl
@@ -83,12 +84,24 @@ public class WeChatPayServiceImpl implements WeChatPayService {
     private final WeChatPayConfig wechatPayConfig;
     private final WeChatPayRequestFactory requestFactory;
 
-    // 自己管理这些服务实例
-    private final JsapiService jsapiService;
-//    private final NativeService nativeService;
-    private final AppService appService;
-    private final H5Service h5Service;
-    private final RefundService refundService;
+    // 单例配置
+    private volatile  com.wechat.pay.java.core.Config sdkConfig;
+
+    /*   TODO  这个设计的优点
+                ✅ 单例模式：避免重复创建
+                ✅ 懒加载：按需创建，提高启动速度
+                ✅ 线程安全：使用ConcurrentHashMap和synchronized
+                ✅ 可热更新：支持重新加载配置
+                ✅ 代码清晰：职责分离明确
+                ✅ 性能优秀：服务复用，连接池复用
+                */
+
+
+
+    // 服务缓存
+    private final Map<String, Object> serviceCache = new ConcurrentHashMap<>();
+    // 自己管理这些服务实例  在每个方法中直接使用
+
 
     @Autowired
     public WeChatPayServiceImpl(WeChatPayConfig wechatPayConfig,
@@ -97,50 +110,115 @@ public class WeChatPayServiceImpl implements WeChatPayService {
     ) {
         this.wechatPayConfig = wechatPayConfig;
         this.requestFactory = requestFactory;
-        // 在构造函数中调用初始化
-        initWeChatPayClient();
+        log.info("【微信支付】服务初始化完成，商户号: {}", wechatPayConfig.getMchId());
+        // 1. 直接从配置创建SDK配置
+        // ❌ 问题1：这里直接创建sdkConfig，但wechatPayConfig.toSdkConfig()可能抛异常
+        // ❌ 问题2：构造函数不应该做复杂的初始化
+        //修复：不要在构造函数中做可能失败的初始化
+//        com.wechat.pay.java.core.Config sdkConfig = wechatPayConfig.toSdkConfig();
+//        this.sdkConfig = sdkConfig;
+//        log.info("【wechatPayConfig】直接从配置创建SDK配置sdkConfig:{}",sdkConfig);
     }
 
     /**
-     * 初始化微信支付客户端
+     * 获取SDK配置（单例+双重检查锁）
      */
-    private void initWeChatPayClient() {
-        try {
-            log.info("【微信支付】开始初始化支付客户端...");
-
-            // 1. 创建微信支付配置
-            // 1. 创建微信支付核心配置
-            com.wechat.pay.java.core.Config config = createWeChatPayConfig();
-
-            // 2. 初始化各个支付服务
-            this.jsapiService = new JsapiService.Builder()
-                    .config(config)  // 使用创建的 config
-                    .build();
-
-            this.appService = new AppService.Builder()
-                    .config(config)
-                    .build();
-
-            this.h5Service = new H5Service.Builder()
-                    .config(config)
-                    .build();
-
-            this.refundService = new RefundService.Builder()
-                    .config(config)
-                    .build();
-
-            log.info("【微信支付】支付客户端初始化成功");
-            log.info("  - 商户号: {}", wechatPayConfig.getMchId());
-            log.info("  - 应用ID: {}", wechatPayConfig.getAppId());
-            log.info("  - JsapiService: {}", jsapiService != null ? "已初始化" : "null");
-            log.info("  - AppService: {}", appService != null ? "已初始化" : "null");
-            log.info("  - H5Service: {}", h5Service != null ? "已初始化" : "null");
-            log.info("  - RefundService: {}", refundService != null ? "已初始化" : "null");
-
-        } catch (Exception e) {
-            log.error("【微信支付】客户端初始化失败", e);
-            throw new RuntimeException("微信支付客户端初始化失败: " + e.getMessage(), e);
+    private com.wechat.pay.java.core.Config getSdkConfig() {
+        if (sdkConfig == null) {
+            synchronized (this) {
+                if (sdkConfig == null) {
+                    try {
+                        log.info("【微信支付】创建SDK配置");
+                        sdkConfig = wechatPayConfig.toSdkConfig();
+                        log.info("【微信支付】SDK配置创建成功");
+                    } catch (Exception e) {
+                        log.error("【微信支付】创建SDK配置失败", e);
+                        throw new RuntimeException("创建微信支付SDK配置失败", e);
+                    }
+                }
+            }
         }
+        return sdkConfig;
+    }
+
+    /**
+     * 获取JSAPI服务
+     */
+    private JsapiService getJsapiService() {
+        return (JsapiService) serviceCache.computeIfAbsent("jsapi", key -> {
+            log.info("【微信支付】创建JSAPI服务");
+            try {
+                return new JsapiService.Builder()
+                        .config(getSdkConfig())
+                        .build();
+            } catch (Exception e) {
+                log.error("【微信支付】创建JSAPI服务失败", e);
+                throw new RuntimeException("创建JSAPI服务失败", e);
+            }
+        });
+    }
+
+    /**
+     * 获取APP服务
+     */
+    private AppService getAppService() {
+        return (AppService) serviceCache.computeIfAbsent("app", key -> {
+            log.info("【微信支付】创建APP服务");
+            try {
+                return new AppService.Builder()
+                        .config(getSdkConfig())
+                        .build();
+            } catch (Exception e) {
+                log.error("【微信支付】创建APP服务失败", e);
+                throw new RuntimeException("创建APP服务失败", e);
+            }
+        });
+    }
+
+    /**
+     * 获取H5服务
+     */
+    private H5Service getH5Service() {
+        return (H5Service) serviceCache.computeIfAbsent("h5", key -> {
+            log.info("【微信支付】创建H5服务");
+            try {
+                return new H5Service.Builder()
+                        .config(getSdkConfig())
+                        .build();
+            } catch (Exception e) {
+                log.error("【微信支付】创建H5服务失败", e);
+                throw new RuntimeException("创建H5服务失败", e);
+            }
+        });
+    }
+
+    /**
+     * 获取退款服务
+     */
+    private RefundService getRefundService() {
+        return (RefundService) serviceCache.computeIfAbsent("refund", key -> {
+            log.info("【微信支付】创建退款服务");
+            try {
+                return new RefundService.Builder()
+                        .config(getSdkConfig())
+                        .build();
+            } catch (Exception e) {
+                log.error("【微信支付】创建退款服务失败", e);
+                throw new RuntimeException("创建退款服务失败", e);
+            }
+        });
+    }
+
+
+    /**
+     * TODO 重新加载配置（热更新）
+     *      记住：YAGNI原则（You Ain't Gonna Need It）- 不要为可能不需要的功能做过度设计。先让核心支付功能稳定运行，后续需要时再扩展管理功能。
+     */
+    public synchronized void reloadSdkConfig() {
+        log.info("【微信支付】重新加载配置");
+        serviceCache.clear();  // 先清空服务
+        sdkConfig = null;      // 再清空配置
+        log.info("【微信支付】配置重新加载完成");
     }
 
     /**
@@ -149,6 +227,18 @@ public class WeChatPayServiceImpl implements WeChatPayService {
     @Override
     public PaymentParamsVO jsapiPay(PaymentRequestDTO request) {
         try {
+
+            // 参数校验
+            validateJsapiRequest(request);
+
+            // 1. 创建JSAPI服务
+            JsapiService jsapiService = getJsapiService();
+
+            log.info("【微信支付-JSAPI支付（小程序/公众号）】创建JSAPI服务:{}",jsapiService);
+
+            log.info("【微信支付-JSAPI】开始支付，订单号: {}, 金额: {}",
+                    request.getOrderNo(), request.getAmount());
+
             // 使用工厂创建请求
             com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest prepayRequest =
                     requestFactory.createJsapiRequest(request, wechatPayConfig);
@@ -158,7 +248,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
             // 调用支付接口
             com.wechat.pay.java.service.payments.jsapi.model.PrepayResponse response =
                     jsapiService.prepay(prepayRequest);
-            log.info("【微信支付-JSAPI支付（小程序/公众号）】调用支付接口response:{}",response);
+            log.info("【微信支付-JSAPI支付（小程序/公众号）】调用支付接口response,预支付成功，prepayId: {}",response.getPrepayId());
 
             // 生成支付参数
             Map<String, String> payParams = generateJsapiPayParams(response.getPrepayId());
@@ -172,6 +262,25 @@ public class WeChatPayServiceImpl implements WeChatPayService {
         } catch (Exception e) {
             log.error("JSAPI支付失败, 订单号: {}", request.getOrderNo(), e);
             throw new RuntimeException("JSAPI支付失败", e);
+        }
+    }
+
+    /**
+     * 验证JSAPI支付请求
+     */
+    private void validateJsapiRequest(PaymentRequestDTO request) {
+        if (request == null) {
+            throw new IllegalArgumentException("支付请求不能为空");
+        }
+        if (StringUtils.isBlank(request.getOrderNo())) {
+            throw new IllegalArgumentException("订单号不能为空");
+        }
+        if (StringUtils.isBlank(request.getOpenid())) {
+            throw new IllegalArgumentException("JSAPI支付必须提供openid");
+        }
+        if (request.getAmount() == null ||
+                request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("支付金额必须大于0");
         }
     }
 
@@ -210,6 +319,17 @@ public class WeChatPayServiceImpl implements WeChatPayService {
     @Override
     public PaymentParamsVO appPay(PaymentRequestDTO request) {
         try {
+
+            // 参数校验
+            validateAppRequest(request);
+
+            // 1. 创建App服务
+            AppService appService = getAppService();
+
+            log.info("【微信支付-App支付）】创建App服务:{}",appService);
+            log.info("【微信支付-APP】开始支付，订单号: {}, 金额: {}",
+                    request.getOrderNo(), request.getAmount());
+
             // 使用工厂创建请求
             com.wechat.pay.java.service.payments.app.model.PrepayRequest prepayRequest =
                     requestFactory.createAppRequest(request, wechatPayConfig);
@@ -218,7 +338,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
             // 调用支付接口
             com.wechat.pay.java.service.payments.app.model.PrepayResponse response =
                     appService.prepay(prepayRequest);
-            log.info("【微信支付-App支付】调用支付接口");
+            log.info("【微信支付-App支付】调用支付接口,预支付成功，prepayId: {}", response.getPrepayId());
 
             // 生成支付参数
             Map<String, String> payParams = generateAppPayParams(response.getPrepayId());
@@ -235,12 +355,39 @@ public class WeChatPayServiceImpl implements WeChatPayService {
         }
     }
 
+    private void validateAppRequest(PaymentRequestDTO request) {
+        if (request == null) {
+            throw new IllegalArgumentException("支付请求不能为空");
+        }
+        if (StringUtils.isBlank(request.getOrderNo())) {
+            throw new IllegalArgumentException("订单号不能为空");
+        }
+        if (StringUtils.isBlank(request.getClientIp())) {
+            throw new IllegalArgumentException("APP支付必须提供客户端IP");
+        }
+        if (request.getAmount() == null ||
+                request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("支付金额必须大于0");
+        }
+    }
+
     /**
      * H5支付
      */
     @Override
     public PaymentParamsVO h5Pay(PaymentRequestDTO request) {
         try {
+
+            // 参数校验
+            validateH5Request(request);
+
+            // 1. 创建H5服务
+            H5Service h5Service = getH5Service();
+
+            log.info("【微信支付-H5支付）】创建H5服务:{}",h5Service);
+            log.info("【微信支付-H5】开始支付，订单号: {}, 金额: {}",
+                    request.getOrderNo(), request.getAmount());
+
             // 使用工厂创建请求
             com.wechat.pay.java.service.payments.h5.model.PrepayRequest prepayRequest =
                     requestFactory.createH5Request(request, wechatPayConfig);
@@ -249,7 +396,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
             // 调用支付接口
             com.wechat.pay.java.service.payments.h5.model.PrepayResponse response =
                     h5Service.prepay(prepayRequest);
-            log.info("【微信支付-H5支付】调用支付接口");
+            log.info("【微信支付-H5支付】调用支付接口,预支付成功，h5Url: {}", response.getH5Url());
 
 
             return PaymentParamsVO.builder()
@@ -264,12 +411,35 @@ public class WeChatPayServiceImpl implements WeChatPayService {
         }
     }
 
+    private void validateH5Request(PaymentRequestDTO request) {
+        if (request == null) {
+            throw new IllegalArgumentException("支付请求不能为空");
+        }
+        if (StringUtils.isBlank(request.getOrderNo())) {
+            throw new IllegalArgumentException("订单号不能为空");
+        }
+        if (StringUtils.isBlank(request.getClientIp())) {
+            throw new IllegalArgumentException("H5支付必须提供客户端IP");
+        }
+        if (request.getAmount() == null ||
+                request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("支付金额必须大于0");
+        }
+    }
+
     /**
      * 查询支付结果
      */
     @Override
     public PaymentStatusVO queryPayment(String paymentNo) {
         try {
+
+            if (StringUtils.isBlank(paymentNo)) {
+                throw new IllegalArgumentException("支付单号不能为空");
+            }
+
+            log.info("【微信支付】查询支付结果，支付单号: {}", paymentNo);
+
             // 使用构造函数创建查询请求
             com.wechat.pay.java.service.payments.jsapi.model.QueryOrderByOutTradeNoRequest queryRequest =
                     new com.wechat.pay.java.service.payments.jsapi.model.QueryOrderByOutTradeNoRequest();
@@ -277,9 +447,13 @@ public class WeChatPayServiceImpl implements WeChatPayService {
             queryRequest.setOutTradeNo(paymentNo);
             queryRequest.setMchid(wechatPayConfig.getMchId());
 
+            // 2. 创建JSAPI服务
+            JsapiService jsapiService = getJsapiService();
+
             com.wechat.pay.java.service.payments.model.Transaction transaction =
                     jsapiService.queryOrderByOutTradeNo(queryRequest);
 
+            log.info("【微信支付】查询支付结果成功，状态: {}", transaction.getTradeState());
 
             return convertToPaymentStatus(transaction);
         } catch (Exception e) {
@@ -294,12 +468,24 @@ public class WeChatPayServiceImpl implements WeChatPayService {
     @Override
     public boolean closePayment(String paymentNo) {
         try {
+
+            if (StringUtils.isBlank(paymentNo)) {
+                throw new IllegalArgumentException("支付单号不能为空");
+            }
+
+            log.info("【微信支付】关闭订单，支付单号: {}", paymentNo);
+
             com.wechat.pay.java.service.payments.jsapi.model.CloseOrderRequest closeRequest =
                     new com.wechat.pay.java.service.payments.jsapi.model.CloseOrderRequest();
             closeRequest.setMchid(wechatPayConfig.getMchId());
             closeRequest.setOutTradeNo(paymentNo);
 
+            // 2. 创建JSAPI服务
+            JsapiService jsapiService = getJsapiService();
+
             jsapiService.closeOrder(closeRequest);
+            log.info("【微信支付】关闭订单成功");
+
             return true;
         } catch (Exception e) {
             log.error("关闭订单失败, 订单号: {}", paymentNo, e);
@@ -313,16 +499,41 @@ public class WeChatPayServiceImpl implements WeChatPayService {
     @Override
     public RefundResultVO refund(RefundRequestDTO request) {
         try {
+
+            // 参数校验
+            validateRefundRequest(request);
+
             com.wechat.pay.java.service.refund.model.CreateRequest refundRequest =
                     buildRefundRequest(request);
 
+            // 2. 创建Refund服务
+            RefundService refundService = getRefundService();
+
             com.wechat.pay.java.service.refund.model.Refund response =
                     refundService.create(refundRequest);
+
+            log.info("【微信支付】退款申请成功，退款单号: {}", response.getRefundId());
 
             return buildRefundResult(request, response);
         } catch (Exception e) {
             log.error("退款申请失败, 订单号: {}", request.getPaymentNo(), e);
             throw new RuntimeException("退款申请失败", e);
+        }
+    }
+
+    private void validateRefundRequest(RefundRequestDTO request) {
+        if (request == null) {
+            throw new IllegalArgumentException("退款请求不能为空");
+        }
+        if (StringUtils.isBlank(request.getPaymentNo())) {
+            throw new IllegalArgumentException("支付单号不能为空");
+        }
+        if (StringUtils.isBlank(request.getRefundNo())) {
+            throw new IllegalArgumentException("退款单号不能为空");
+        }
+        if (request.getRefundAmount() == null ||
+                request.getRefundAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("退款金额必须大于0");
         }
     }
 
