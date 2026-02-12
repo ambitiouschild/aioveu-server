@@ -12,6 +12,7 @@ import com.alipay.api.request.AlipayTradeRefundRequest;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.alipay.api.response.AlipayTradeRefundResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -35,6 +36,7 @@ import static com.fasterxml.jackson.core.io.NumberInput.parseBigDecimal;
 
 @Slf4j
 @Service
+@Primary  // 优先使用这个Mock实现
 public class MockPayServiceImpl implements MockPayService {
 
     private final MockRequestFactory requestFactory;
@@ -48,18 +50,16 @@ public class MockPayServiceImpl implements MockPayService {
                               MockPayConfig mockPayConfig) {
         this.requestFactory = requestFactory;
         this.mockPayConfig = mockPayConfig;
-        log.info("模拟支付服务初始化完成");
+        log.info("【Mock】模拟支付服务初始化完成");
     }
 
     @Override
-    public PaymentParamsVO mockWxPay(PaymentRequestDTO request) {
+    public PaymentParamsVO jsapiPay(PaymentRequestDTO request) {
+
         if (!mockPayConfig.getEnabled()) {
-            throw new RuntimeException("模拟支付未启用");
+            throw new RuntimeException("【Mock】模拟支付未启用");
         }
 
-        if (!mockPayConfig.getWechat().getEnabled()) {
-            throw new RuntimeException("微信模拟支付未启用");
-        }
 
         String orderNo = request.getOrderNo();
         BigDecimal amount = request.getAmount();
@@ -67,7 +67,7 @@ public class MockPayServiceImpl implements MockPayService {
 
         // 记录请求
         if (mockPayConfig.getLogRequest()) {
-            log.info("[微信模拟支付] 订单: {}, 金额: {}分, OpenID: {}",
+            log.info("【Mock】 订单: {}, 金额: {}分, OpenID: {}",
                     orderNo, amount, openId);
         }
 
@@ -82,7 +82,7 @@ public class MockPayServiceImpl implements MockPayService {
     }
 
     @Override
-    public PaymentParamsVO mockAlipay(PaymentRequestDTO request) {
+    public PaymentParamsVO appPay(PaymentRequestDTO request) {
         if (!mockPayConfig.getEnabled()) {
             throw new RuntimeException("模拟支付未启用");
         }
@@ -111,7 +111,7 @@ public class MockPayServiceImpl implements MockPayService {
     }
 
     @Override
-    public PaymentParamsVO mockBalancePay(PaymentRequestDTO request) {
+    public PaymentParamsVO h5Pay(PaymentRequestDTO request) {
         if (!mockPayConfig.getEnabled()) {
             throw new RuntimeException("模拟支付未启用");
         }
@@ -191,7 +191,7 @@ public class MockPayServiceImpl implements MockPayService {
         params.setExpireMinutes(30); // 30分钟过期
 
         if (mockPayConfig.getLogResponse()) {
-            log.info("[微信支付参数] 订单: {}, prepayId: {}, 有效期: {}分钟",
+            log.info("【Mock】模拟支付参数,订单: {}, prepayId: {}, 有效期: {}分钟",
                     orderNo, prepayId, params.getExpireMinutes());
         }
 

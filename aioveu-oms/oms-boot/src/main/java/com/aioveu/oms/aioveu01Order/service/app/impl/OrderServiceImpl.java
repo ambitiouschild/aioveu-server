@@ -1057,7 +1057,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             log.info("【支付微服务】Pay微服务后端createPayment需求参数PaymentRequestDTO: {}", JSONUtil.toJsonStr(paymentRequest));
 
             // 2. 调用支付微服务
-            log.info("【支付微服务】调用支付微服务payFeignClient，前端调用第三方支付所需的支付参数PaymentParamsVO: {}");
+            log.info("【支付微服务】调用支付微服务payFeignClient，获取前端调用第三方支付所需的支付参数PaymentParamsVO");
             Result<PaymentParamsVO>  paymentParamsVO = payFeignClient.createPayment(paymentRequest);
 
 
@@ -1097,10 +1097,15 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         request.setSubject("商品购买");
         request.setBody("订单号：" + order.getOrderSn());
 
-        log.info("支付方式:{}", paymentMethod);
+        log.info("【构建支付请求】支付方式:{}", paymentMethod);
 
         // 根据支付方式设置参数
         switch (paymentMethod) {
+            case MOCK:
+                request.setChannel("MOCK");
+                request.setPayType("JSAPI");
+                request.setOpenId(openId);
+                break;
             case WX_JSAPI:
                 request.setChannel("WECHAT");
                 request.setPayType("JSAPI");

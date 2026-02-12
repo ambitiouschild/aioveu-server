@@ -16,17 +16,17 @@ public interface MockPayService {
     /**
      * 模拟微信支付
      */
-    PaymentParamsVO mockWxPay(PaymentRequestDTO request);
+    PaymentParamsVO jsapiPay(PaymentRequestDTO request);
 
     /**
      * 模拟支付宝支付
      */
-    PaymentParamsVO mockAlipay(PaymentRequestDTO request);
+    PaymentParamsVO appPay(PaymentRequestDTO request);
 
     /**
      * 模拟余额支付
      */
-    PaymentParamsVO mockBalancePay(PaymentRequestDTO request);
+    PaymentParamsVO h5Pay(PaymentRequestDTO request);
 
     /**
      * 查询订单状态

@@ -14,11 +14,13 @@ import lombok.Getter;
 
 public enum PaymentMethodEnum implements IBaseEnum<Integer> {
 
+
     WX_JSAPI(1, "微信JSAPI支付"),
     ALIPAY(2, "支付宝支付"),
     BALANCE(3, "会员余额支付"),
     WX_APP(4, "微信APP支付"),
-    UNKNOWN(5, "未知");
+    MOCK(5, "模拟支付"),
+    UNKNOWN(6, "未知");
 
     PaymentMethodEnum(int value, String label) {
         this.value = value;

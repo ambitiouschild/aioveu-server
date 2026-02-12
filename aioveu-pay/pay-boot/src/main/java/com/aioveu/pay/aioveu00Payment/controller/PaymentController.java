@@ -45,7 +45,7 @@ public class PaymentController {
     @Log( value = "创建前端调用第三方支付所需的支付参数",module = LogModuleEnum.PAY)
     public Result<PaymentParamsVO> createPayment(@RequestBody PaymentRequestDTO request) {
 
-        log.info("收到支付请求: {}", JSON.toJSONString(request));
+        log.info("【Pay微服务PaymentController】收到支付请求: {}", JSON.toJSONString(request));
         return paymentService.unifiedPayment(request);
     }
 

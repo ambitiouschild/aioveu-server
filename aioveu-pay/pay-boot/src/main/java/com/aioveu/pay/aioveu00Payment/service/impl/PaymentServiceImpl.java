@@ -89,7 +89,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional(rollbackFor = Exception.class)
     public Result<PaymentParamsVO> unifiedPayment(PaymentRequestDTO request) {
         try {
-            log.info("============【支付服务处理】统一支付接口============");
+            log.info("============【Pay】统一支付接口============");
 
             // 1. 参数校验
 //            validatePaymentRequest(request);
