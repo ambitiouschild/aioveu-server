@@ -20,7 +20,21 @@ public enum DataScopeEnum implements IBaseEnum<Integer> {
     ALL(1, "所有数据"),
     DEPT_AND_SUB(2, "部门及子部门数据"),
     DEPT(3, "本部门数据"),
-    SELF(4, "本人数据");
+    SELF(4, "本人数据"),
+
+    /**
+     * 自定义部门数据
+     */
+    CUSTOM(5, "自定义部门数据");
+
+//    正确做法：
+//
+//    使用 DataScopeEnum.getByValue(role.getDataScope())获取枚举实例
+//
+//    或者使用 DataScopeEnum.getLabelByValue(role.getDataScope())直接获取 label
+//
+//    选择方案3（在枚举中添加 getLabelByValue方法）是最简洁和推荐的方案。
+
 
     private final Integer value;
 
@@ -29,5 +43,28 @@ public enum DataScopeEnum implements IBaseEnum<Integer> {
     DataScopeEnum(Integer value, String label) {
         this.value = value;
         this.label = label;
+    }
+
+    /**
+     * 根据value获取枚举实例
+     */
+    public static DataScopeEnum getByValue(Integer value) {
+        if (value == null) {
+            return null;
+        }
+        for (DataScopeEnum e : values()) {
+            if (e.value.equals(value)) {
+                return e;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 根据value直接获取label（更方便）
+     */
+    public static String getLabelByValue(Integer value) {
+        DataScopeEnum e = getByValue(value);
+        return e == null ? null : e.getLabel();
     }
 }

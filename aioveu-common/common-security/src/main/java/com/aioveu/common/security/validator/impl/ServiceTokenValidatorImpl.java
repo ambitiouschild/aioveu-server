@@ -1,8 +1,11 @@
 package com.aioveu.common.security.validator.impl;
 
+import cn.hutool.core.util.StrUtil;
+import com.aioveu.common.constant.RedisConstants;
 import com.aioveu.common.security.validator.ServiceTokenValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -30,6 +33,12 @@ public class ServiceTokenValidatorImpl implements ServiceTokenValidator {
 
     // 缓存的令牌列表
     private List<String> validTokens;
+
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    public ServiceTokenValidatorImpl(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     @Override
     public boolean validate(String token) {
@@ -95,5 +104,29 @@ public class ServiceTokenValidatorImpl implements ServiceTokenValidator {
         if (token.contains("admin")) return "admin-service";
 
         return "unknown-service";
+    }
+
+    /**
+     * 失效指定用户的所有会话
+     * <p>
+     * 通过递增用户 tokenVersion，使该用户之前签发的所有 Token 因版本号不匹配而失效。
+     * <p>
+     * 适用场景：
+     * <ul>
+     *   <li>用户修改密码</li>
+     *   <li>管理员强制下线用户</li>
+     *   <li>用户主动踢出所有设备</li>
+     *   <li>用户被禁用</li>
+     * </ul>
+     */
+    @Override
+    public void invalidateUserSessions(Long userId) {
+        if (userId == null) {
+            return;
+        }
+
+        String versionKey = StrUtil.format(RedisConstants.Auth.USER_TOKEN_VERSION, userId);
+        // 递增版本号，无需设置 TTL（版本号永久有效，避免 TTL 过期导致的安全问题）
+        redisTemplate.opsForValue().increment(versionKey);
     }
 }

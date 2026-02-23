@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -57,6 +58,26 @@ public class SysUserDetails implements UserDetails {
     private Integer dataScope;
 
     /**
+     * 数据权限列表
+     * <p>
+     * 存储用户所有角色的数据权限范围，用于实现多角色权限合并（并集策略）
+     */
+    private List<RoleDataScope> dataScopes;
+
+
+
+    /**
+     * 租户ID
+     */
+    private Long tenantId;
+
+    /**
+     * 租户切换权限（true 可切换租户）
+     */
+    private Boolean canSwitchTenant;
+
+
+    /**
      * 用户角色权限集合
      */
     private Collection<SimpleGrantedAuthority> authorities;
@@ -80,6 +101,30 @@ public class SysUserDetails implements UserDetails {
                 // 角色名加上前缀 "ROLE_"，用于区分角色 (ROLE_ADMIN) 和权限 (user:add)
                 .map(role -> new SimpleGrantedAuthority(SecurityConstants.ROLE_PREFIX + role))
                 .collect(Collectors.toSet())
+                : Collections.emptySet();
+    }
+
+    /**
+     * 构造函数：根据用户认证信息初始化用户详情对象
+     *
+     * @param user 用户认证信息对象 {@link UserAuthInfoWithTenantId}
+     */
+    public SysUserDetails(UserAuthInfoWithTenantId user) {
+        this.userId = user.getUserId();
+        this.username = user.getUsername();
+        this.password = user.getPassword();
+        this.enabled = ObjectUtil.equal(user.getStatus(), 1);
+        this.deptId = user.getDeptId();
+        this.dataScopes = user.getDataScopes();
+        this.tenantId = user.getTenantId();
+        this.canSwitchTenant = user.getCanSwitchTenant();
+
+        // 初始化角色权限集合
+        this.authorities = CollectionUtil.isNotEmpty(user.getRoles())
+                ? user.getRoles().stream()
+                // 角色名加上前缀 "ROLE_"，用于区分角色 (ROLE_ADMIN) 和权限 (user:add)
+                  .map(role -> new SimpleGrantedAuthority(SecurityConstants.ROLE_PREFIX + role))
+                  .collect(Collectors.toSet())
                 : Collections.emptySet();
     }
 

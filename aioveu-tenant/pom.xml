@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.aioveu</groupId>
+        <artifactId>aioveu-server</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+
+    <artifactId>aioveu-tenant</artifactId>
+    <description>基于 Java 17 + SpringBoot 4 + Spring Security 构建的权限管理系统。</description>
+
+<!--    这就是问题所在！公共模块依赖父模块的 3.x 版本，你的子项目用 4.x 会导致版本冲突！-->
+<!--    公共模块编译时用的是 Spring Boot 3.x，但运行时你的项目是 4.x，会导致二进制不兼容！-->
+
+    <packaging>pom</packaging>
+    <modules>
+        <module>tenant-api</module>
+        <module>tenant-boot</module>
+    </modules>
+
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    </properties>
+
+</project>

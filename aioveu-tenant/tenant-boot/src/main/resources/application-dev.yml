@@ -1,0 +1,76 @@
+server:
+  port: 9696
+
+# 数据库类型：用于 MyBatis-Plus 分页方言等（仅方言，不负责连接信息）
+#app:
+#  db-type: mysql # 可选：mysql | postgres
+
+spring:
+  main:
+    allow-circular-references: true
+  mvc:
+    path-match:
+      matching-strategy: ant_path_matcher  # 使用Ant路径匹配策略
+
+  config:
+    import: # ✅ 正确：config.import才是数组
+      #spring.config.import中的变量引用要在变量被解析后才能使用，但导入过程太早，变量还没被解析，所以直接写死配置文件名是最可靠的解决方案。
+      # 按顺序导入配置
+      # 必须指定group参数
+      - optional:nacos:aioveu-common.yaml?group=AIOVEU_GROUP&namespace=public
+      - optional:nacos:aioveu-tenant.yaml?group=AIOVEU_GROUP&namespace=public # 使用固定名称
+#      - optional:nacos:${spring.application.name}.yaml?group=AIOVEU_GROUP
+  cloud:
+    nacos:
+#          如果只想用配置中心，不用注册中心：
+#          可以去掉 discovery部分，但这样其他服务无法发现这个服务
+    #（公共基础配置） 只放真正公共的、不会变的配置
+      config:
+        server-addr: ${NACOS_HOST:localhost}:${NACOS_PORT:8848}
+        file-extension: yaml
+        group: AIOVEU_GROUP  # 这里设置默认分组
+        namespace: public
+        # 不需要配置shared-configs，因为已经在import中指定了
+        # 不需要配置name，import中已经指定了具体文件
+        # 或者使用shared-configs方式
+#        shared-configs:
+#          - data-id: aioveu-common.yaml
+#            group: AIOVEU_GROUP  # 这里也要指定
+#            refresh: true
+#          - data-id: aioveu-tenant.yaml
+#            group: AIOVEU_GROUP
+#            refresh: true
+      # 注册中心
+      discovery:
+        server-addr: ${spring.cloud.nacos.config.server-addr}
+        group: AIOVEU_GROUP
+        namespace: ${spring.cloud.nacos.config.namespace}
+
+# 多租户配置
+tenant:
+  # 租户字段名（默认：tenant_id）
+  column: tenant_id
+  # 忽略多租户过滤的表名列表（系统表、租户表等不需要租户隔离的表）
+  ignore-tables:
+    - sys_tenant # 租户表本身
+    - sys_tenant_plan # 租户套餐表
+    - sys_tenant_plan_menu # 租户套餐菜单关联表
+    - sys_menu # 菜单表（功能入口定义，所有租户共享）
+    - sys_dict # 字典表（通常共享）
+    - sys_dict_item # 字典项表（通常共享）
+    - sys_config # 系统配置表（通常共享）
+    - gen_table # 代码生成表（平台共用）
+    - gen_table_column # 代码生成字段表（平台共用）
+# ============================================
+
+#  🎉 恭喜！
+#
+#  你的应用已经：
+#
+#  ✅ 成功连接到Nacos配置中心
+#
+#  ✅ 成功注册到Nacos服务发现
+#
+#  ✅ 成功启动Tomcat服务
+#
+#  ✅ 成功加载数据库和Redis配置

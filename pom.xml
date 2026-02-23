@@ -25,7 +25,8 @@
         <module>aioveu-lss</module>
         <module>aioveu-pay</module>
         <module>aioveu-refund</module>
-        
+        <module>aioveu-tenant</module>
+
     </modules>
 
     <parent>

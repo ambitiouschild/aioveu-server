@@ -49,6 +49,10 @@
     <file url="file://$PROJECT_DIR$/aioveu-system/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-system/system-api/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-system/system-boot/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/aioveu-tenant/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/aioveu-tenant/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/aioveu-tenant/tenant-api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/aioveu-tenant/tenant-boot/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-ums/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-ums/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-ums/ums-api/src/main/java" charset="UTF-8" />

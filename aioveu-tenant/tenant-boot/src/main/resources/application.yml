@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: aioveu-tenant
+  profiles:
+    active: dev
+  config:
+    import: classpath:codegen.yml
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+# 在 banner.txt 中显示项目版本，使用 @project.version@ 从 pom.xml 获取
+project:
+  version: @project.version@
+
+
+#  正确的启动流程
+#  1.启动Nacos服务器（单机或集群）
+#  2.在Nacos配置中心创建配置：
+#  aioveu-tenant.yaml（应用配置）
+#  aioveu-common.yaml（共享配置）
+#  3.启动应用程序：
+#  第一步：从Nacos配置中心读取配置
+#  第二步：应用根据配置完成初始化
+#  第三步：向Nacos注册中心注册服务
+#  其他服务可以通过注册中心发现 aioveu-tenant服务
+#  这样设计的好处是：应用的配置（如数据库连接、Redis地址等）可以动态更新，而不需要重启应用；服务注册让微服务之间能够互相发现和调用。
+
+#  执行顺序
+#    先配置 → 后注册
+#  详细流程：
+#  1.配置阶段（应用启动初期）
+#    应用程序启动
+#    通过 spring.config.import从Nacos配置中心拉取配置
+#    应用根据获取的配置进行初始化（数据库连接、各种参数等）
+#  2.注册阶段（应用启动后期）
+#    应用自身服务初始化完成
+#    将服务注册到Nacos注册中心
+#    其他服务可以通过注册中心发现该服务
+
+#  应用启动
+#  ↓
+#  1. 从Nacos加载 aioveu-tenant.yaml (AIOVEU_GROUP分组)
+#  ↓
+#  2. 从Nacos加载 aioveu-common.yaml (AIOVEU_GROUP分组)
+#  ↓
+#  3. 加载本地 classpath:codegen.yml
+#  ↓
+#  4. 应用配置初始化完成
+#  ↓
+#  5. 向Nacos注册中心注册 aioveu-tenant 服务

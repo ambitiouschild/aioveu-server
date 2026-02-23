@@ -1,21 +1,23 @@
 package com.aioveu.common.security.util;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.constant.SecurityConstants;
 import com.aioveu.common.constant.SystemConstants;
+import com.aioveu.common.security.model.RoleDataScope;
+import com.aioveu.common.security.model.SysUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static cn.hutool.core.convert.Convert.toInt;
@@ -51,6 +53,23 @@ import static cn.hutool.core.convert.Convert.toInt;
 @Slf4j
 public class SecurityUtils {
 
+
+    /**
+     * 获取当前登录人信息
+     *
+     * @return Optional<SysUserDetails>
+     */
+    public static Optional<SysUserDetails> getUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof SysUserDetails) {
+                return Optional.of((SysUserDetails) principal);
+            }
+        }
+        return Optional.empty();
+    }
+
     /**
      * 从JWT令牌中获取当前用户ID
      *
@@ -70,7 +89,7 @@ public class SecurityUtils {
      *
      * @注意: 需要在Spring Security认证上下文中调用，如Controller、Service层
      */
-    public static Long getUserId() {
+    public static Long getUserId2() {
 
         log.info("获取JWT令牌的所有声明属性（Claims）");
         Map<String, Object> tokenAttributes = getTokenAttributes();
@@ -81,6 +100,15 @@ public class SecurityUtils {
             return Convert.toLong(tokenAttributes.get("userId"));
         }
         return null;
+    }
+
+    /**
+     * 获取用户ID
+     *
+     * @return Long
+     */
+    public static Long getUserId() {
+        return getUser().map(SysUserDetails::getUserId).orElse(null);
     }
 
     /**
@@ -97,7 +125,7 @@ public class SecurityUtils {
      *   - 用户名可能变化（如改名），用户ID唯一不变
      *   - 用户名用于显示，用户ID用于数据关联
      */
-    public static String getUsername() {
+    public static String getUsername2() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
 
@@ -106,6 +134,15 @@ public class SecurityUtils {
             return authentication.getName();
         }
         return null;
+    }
+
+    /**
+     * 获取用户账号
+     *
+     * @return String 用户账号
+     */
+    public static String getUsername() {
+        return getUser().map(SysUserDetails::getUsername).orElse(null);
     }
 
     /**
@@ -161,7 +198,7 @@ public class SecurityUtils {
      *
      * @示例输出: ["ADMIN", "MANAGER", "USER"]
      */
-    public static Set<String> getRoles() {
+    public static Set<String> getRoles2() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
             return AuthorityUtils.authorityListToSet(authentication.getAuthorities())
@@ -176,6 +213,33 @@ public class SecurityUtils {
                     .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
         }
         return Collections.emptySet();  // 返回空集合而不是 null，避免空指针
+    }
+
+    /**
+     * 获取角色集合
+     *
+     * @return 角色集合
+     */
+    public static Set<String> getRoles() {
+        return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .map(Authentication::getAuthorities)
+                .filter(CollectionUtil::isNotEmpty)
+                .stream()
+                .flatMap(Collection::stream)
+                .map(GrantedAuthority::getAuthority)
+                // 筛选角色,authorities 中的角色都是以 ROLE_ 开头
+                .filter(authority -> authority.startsWith(SecurityConstants.ROLE_PREFIX))
+                .map(authority -> StrUtil.removePrefix(authority, SecurityConstants.ROLE_PREFIX))
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * 获取数据权限列表
+     *
+     * @return 数据权限列表
+     */
+    public static List<RoleDataScope> getDataScopes() {
+        return getUser().map(SysUserDetails::getDataScopes).orElse(Collections.emptyList());
     }
 
     /**
@@ -207,6 +271,25 @@ public class SecurityUtils {
         return null;
     }
 
+    /**
+     * 获取部门ID
+     *
+     * @return Long
+     */
+    public static Long getDeptId2() {
+
+        return getUser().map(SysUserDetails::getDeptId).orElse(null);
+    }
+
+
+    /**
+     * 是否可切换租户
+     *
+     * @return true 表示可切换租户
+     */
+    public static boolean canSwitchTenant() {
+        return getUser().map(SysUserDetails::getCanSwitchTenant).orElse(false);
+    }
 
     /**
      * 判断当前用户是否为超级管理员（最高权限角色）

@@ -3,6 +3,8 @@ package com.aioveu.system.aioveu02User.mapper;
 import com.aioveu.system.aioveu02User.model.entity.UserRole;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
+import java.util.List;
+
 /**
   *@ClassName: UserRoleMapper
   *@Description TODO  用户角色访问层
@@ -19,4 +21,12 @@ public interface UserRoleMapper extends BaseMapper<UserRole> {
      * @param roleId 角色ID
      */
     int countUsersForRole(Long roleId);
+
+    /**
+     * 获取角色绑定的用户ID集合
+     *
+     * @param roleId 角色ID
+     * @return 用户ID集合
+     */
+    List<Long> listUserIdsByRoleId(Long roleId);
 }

@@ -37,7 +37,8 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       #这样，MySQL会加载/etc/mysql/conf.d目录下的所有配置文件，同时不会出现权限问题。
 
   nacos:  #docker exec -it aioveu-server-nacos-server ping mysql
-    image: nacos/nacos-server:v2.2.3 # 使用 Nacos 2.2.3 镜像  #等一等不要着急，连接容器数据库需要时间，直到连接数据库完成
+    image: nacos/nacos-server:v2.3.1  # 升级到2.3.1  Spring Boot 3.x 支持声明式配置, 配置继承
+#    image: nacos/nacos-server:v2.2.3 # 使用 Nacos 2.2.3 镜像  #等一等不要着急，连接容器数据库需要时间，直到连接数据库完成
     container_name: aioveu-nacos-server
 #    restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
     environment:
