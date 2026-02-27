@@ -5,10 +5,17 @@ import com.aioveu.auth.service.AuthService;
 import com.aioveu.common.annotation.Log;
 import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.result.Result;
+import com.aioveu.tenant.api.TenantFeignClient;
+import com.aioveu.tenant.dto.TenantVO;
+import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
+import com.alibaba.nacos.client.naming.utils.CollectionUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.*;
 
 /**
  * @Description: TODO 认证控制器 获取验证码、退出登录等接口
@@ -18,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
  * @param
  * @return:
  **/
-
+@Slf4j
 @RestController  // 标识该类为RESTful Web服务控制器，所有方法返回数据直接写入HTTP响应体
 @RequestMapping("/api/v1/auth")   // 定义控制器的基础请求映射路径，所有接口都以/api/v1/auth开头
 @RequiredArgsConstructor   // Lombok注解，为所有final字段生成构造函数，实现依赖注入
@@ -28,7 +35,7 @@ public class AuthController {
     // 注入认证服务层实例，用于处理业务逻辑
     private final AuthService authService;
 
-
+    private final TenantFeignClient tenantFeignClient;
     /**
      * 生成图形验证码接口
      * 用于用户登录或注册时的安全验证，防止机器人恶意请求
@@ -85,6 +92,26 @@ public class AuthController {
 
         // 根据布尔结果返回对应的响应（成功或失败）
         return Result.judge(result);
+    }
+
+    /**
+     * 获取当前用户的租户列表
+     * <p>
+     * 根据当前登录用户查询其所属的所有租户
+     * </p>
+     *
+     * @return 租户列表
+     */
+    @Operation(summary = "新增:根据用户名获取可登录的租户列表")
+    @GetMapping("/tenants/{username}")
+    @Log(value = "新增：根据用户名获取可登录的租户列表）", module = LogModuleEnum.USER)
+    public Result<List<TenantVO>> getAccessibleTenantsByUsername(
+            @Parameter(description = "用户名") @PathVariable String username
+    ) {
+        log.info("调用tenantFeignClient微服务一次查询获取用户名在所有租户中的可访问租户");
+        List<TenantVO> tenantList= tenantFeignClient.getAccessibleTenantsByUsername(username);
+        log.info("一次查询获取用户名在所有租户中的可访问租户tenantList:{}",tenantList);
+        return Result.success(tenantList);
     }
 
 

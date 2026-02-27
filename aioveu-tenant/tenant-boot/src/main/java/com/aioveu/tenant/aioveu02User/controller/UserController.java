@@ -11,6 +11,8 @@ import com.aioveu.common.security.model.UserAuthCredentials;
 import com.aioveu.common.security.model.UserAuthInfoWithTenantId;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.common.util.ExcelUtils;
+import com.aioveu.tenant.aioveu01Tenant.model.vo.TenantVO;
+import com.aioveu.tenant.aioveu01Tenant.service.TenantService;
 import com.aioveu.tenant.aioveu02User.listener.UserImportListener;
 import com.aioveu.tenant.aioveu02User.model.dto.CurrentUserDTO;
 import com.aioveu.tenant.aioveu02User.model.dto.UserExportDTO;
@@ -23,6 +25,7 @@ import com.aioveu.tenant.aioveu02User.model.vo.UserProfileVO;
 import com.aioveu.tenant.aioveu02User.service.UserService;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
+import com.alibaba.nacos.client.naming.utils.CollectionUtils;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,6 +34,7 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -41,7 +45,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.util.*;
 
 /**
  * @ClassName: UserController
@@ -55,10 +59,65 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
 
     private final UserService userService;
 
+    private final TenantService tenantService;
+
+
+    /**
+     * 获取当前用户的租户列表
+     * <p>
+     * 根据当前登录用户查询其所属的所有租户
+     * </p>
+     *
+     * @return 租户列表
+     */
+    @Operation(summary = "新增:根据用户名获取可登录的租户列表")
+    @GetMapping("/tenants/{username}")
+    @Log(value = "新增：根据用户名获取可登录的租户列表）", module = LogModuleEnum.USER)
+    public Result<List<TenantVO>> getAccessibleTenantsByUsername(
+            @Parameter(description = "用户名") @PathVariable String username
+    ) {
+
+        //方案一；两次查询
+        // 1. 根据用户名查询所有用户ID（跨所有租户）
+        List<Long> userIds = userService.getUserIdsByUsername(username);
+
+        if (CollectionUtils.isEmpty(userIds)) {
+            log.info("用户名 '{}' 不存在任何租户中", username);
+            return Result.success(Collections.emptyList());
+        }
+
+        log.info("根据用户名：{}，获取对应的用户ID列表：{}", username, userIds);
+
+        // 2. 获取所有用户的可访问租户（去重）
+        Set<TenantVO> allTenants = new HashSet<>();
+        for (Long userId : userIds) {
+            List<TenantVO> userTenants = tenantService.getAccessibleTenants(userId);
+            if (!CollectionUtils.isEmpty(userTenants)) {
+                allTenants.addAll(userTenants);
+            }
+        }
+        // 3. 转换为列表并排序（按租户名或ID）
+        List<TenantVO> tenantList = new ArrayList<>(allTenants);
+        tenantList.sort(Comparator.comparing(TenantVO::getName));
+        log.debug("用户名 '{}' 可访问 {} 个租户", username, tenantList.size());
+
+
+        //优化版本（一次查询）
+        // 直接调用优化的Service方法
+        List<TenantVO> tenantList2 = tenantService.getAccessibleTenantsByUsername(username);
+
+        if (CollectionUtils.isEmpty(tenantList2)) {
+            log.info("用户名 '{}' 不存在任何可用租户中", username);
+            return Result.success(Collections.emptyList());
+        }
+
+        return Result.success(tenantList);
+    }
 
     /**
      * 根据用户名和租户ID获取认证信息（用于多租户登录）

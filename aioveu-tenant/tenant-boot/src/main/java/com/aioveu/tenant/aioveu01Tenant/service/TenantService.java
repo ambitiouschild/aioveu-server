@@ -24,8 +24,22 @@ public interface TenantService extends IService<Tenant> {
 
     boolean hasTenantSwitchPermission();
 
+
+    /**
+     * 一次查询获取用户名在所有租户中的可访问租户
+     * <p>
+     * 通过用户名查询该用户在所有租户下的账户，返回可访问的租户列表
+     * </p>
+     *
+     * @param username 用户名
+     * @return 可访问的租户列表
+     */
+    List<TenantVO> getAccessibleTenantsByUsername(String username);
+
+
     /**
      * 获取用户可访问的租户列表
+     * 还是根据租户id进行查找
      * <p>
      * 通过用户名查询该用户在所有租户下的账户，返回可访问的租户列表
      * </p>

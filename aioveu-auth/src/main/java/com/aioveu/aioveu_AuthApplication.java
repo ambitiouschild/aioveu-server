@@ -3,6 +3,7 @@ package com.aioveu;
 
 import com.aioveu.lss.api.LssFeignClient;
 import com.aioveu.system.api.SystemFeignClient;
+import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.ums.api.MemberFeignClient;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,7 +23,8 @@ import org.springframework.context.annotation.ComponentScan;
 @EnableFeignClients(basePackageClasses = {
         SystemFeignClient.class,
         LssFeignClient.class,
-        MemberFeignClient.class})
+        MemberFeignClient.class,
+        TenantFeignClient.class})
 @SpringBootApplication
 @EnableDiscoveryClient
 @ComponentScan(basePackages = {

@@ -38,6 +38,7 @@ import com.aioveu.tenant.aioveu13Mail.service.MailService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -88,6 +89,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     private final TenantProperties tenantProperties;
 
+
+    /**
+     * 根据用户名查询所有用户ID（跨所有租户）
+     *
+     * @return {@link List<Long>} 所有用户ID（跨所有租户）列表
+     */
+    @Override
+    public List<Long> getUserIdsByUsername(String username){
+        // 查询所有租户下该用户名的用户ID
+        List<User> users = this.list(new LambdaQueryWrapper<User>()
+                .select(User::getId)
+                .eq(User::getUsername, username)
+                .eq(User::getIsDeleted, 0) // 未删除的用户
+        );
+
+        // 或者更高效的实现（直接返回ID列表）
+        // @Select("SELECT id FROM sys_user WHERE username = #{username} AND isDeleted = 0")
+
+        return users.stream()
+                .map(User::getId)
+                .collect(Collectors.toList());
+    }
 
     /**
      * 获取用户分页列表
@@ -279,6 +302,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return userAuthInfoWithTenantId;
     }
 
+    /**
+     * 根据用户名和租户ID获取认证信息（用于多租户登录）
+     *
+     * @param username 用户名
+     * @param tenantId 租户ID
+     * @return {@link UserAuthInfoWithTenantId}
+     */
     @Override
     public UserAuthInfoWithTenantId getAuthInfoByUsernameInTenant(String username, Long tenantId) {
         Long oldTenantId = TenantContextHolder.getTenantId();
@@ -297,6 +327,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             if (user == null) {
                 return null;
             }
+            log.info("已经根据tenantId：{}进行了过滤，这里的用户User”{}唯一", tenantId, user);
+//            已经进行了过滤，这里的
             // 设置租户上下文，然后查询认证信息（这样会包含该租户下的角色）
             TenantContextHolder.setIgnoreTenant(false);
             TenantContextHolder.setTenantId(tenantId);

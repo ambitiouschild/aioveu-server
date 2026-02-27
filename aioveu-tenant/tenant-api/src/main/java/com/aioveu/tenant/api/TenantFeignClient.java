@@ -5,12 +5,15 @@ import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.result.Result;
 import com.aioveu.common.web.config.FeignDecoderConfig;
 import com.aioveu.tenant.api.fallback.TenantFeignFallbackClient;
+import com.aioveu.tenant.dto.TenantVO;
 import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+
+import java.util.List;
 
 /**
  * @ClassName: TenantFeignClient
@@ -35,9 +38,22 @@ public interface TenantFeignClient {
      * @return {@link UserAuthInfoWithTenantId}
      */
     @Operation(summary = "根据用户名和租户ID获取认证信息（用于多租户登录）", hidden = true)
-    @GetMapping("/{username}/{tenantId}/authInfo")
+    @GetMapping("/api/v1/users/{username}/{tenantId}/authInfo")
     @Log(value = "根据用户名和租户ID获取认证信息（用于多租户登录）", module = LogModuleEnum.USER)
     UserAuthInfoWithTenantId getUserAuthInfoWithTenantId(@PathVariable String username,@PathVariable Long tenantId);
 
+
+    /**
+     * 获取当前用户的租户列表
+     * <p>
+     * 根据当前登录用户查询其所属的所有租户
+     * </p>
+     *
+     * @return 租户列表
+     */
+    @Operation(summary = "新增:根据用户名获取可登录的租户列表")
+    @GetMapping("/api/v1/users/tenants/{username}")
+    @Log(value = "新增：根据用户名获取可登录的租户列表）", module = LogModuleEnum.USER)
+    List<TenantVO> getAccessibleTenantsByUsername(@PathVariable String username);
 
 }

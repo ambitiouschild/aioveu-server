@@ -10,7 +10,7 @@ import org.springframework.cloud.openfeign.support.SpringDecoder;
 import org.springframework.context.annotation.Bean;
 
 /**
- * @Description: TODO
+ * @Description: TODO OpenFeign调用后解析配置
  * @Author: 雒世松
  * @Date: 2025/6/5 16:23
  * @param

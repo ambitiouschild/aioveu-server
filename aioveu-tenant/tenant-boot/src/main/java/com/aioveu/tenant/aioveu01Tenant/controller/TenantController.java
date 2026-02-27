@@ -1,5 +1,7 @@
 package com.aioveu.tenant.aioveu01Tenant.controller;
 
+import com.aioveu.common.annotation.Log;
+import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.Result;
 import com.aioveu.common.security.util.SecurityUtils;
@@ -43,6 +45,7 @@ public class TenantController {
 
     private final TenantService tenantService;
 
+
     /**
      * 获取当前用户的租户列表
      * <p>
@@ -53,6 +56,7 @@ public class TenantController {
      */
     @Operation(summary = "获取当前用户可访问的租户列表")
     @GetMapping("/options")
+    @Log(value = "根据用户名获取可登录的租户列表）", module = LogModuleEnum.USER)
     public Result<List<TenantVO>> getAccessibleTenants() {
         Long userId = SecurityUtils.getUserId();
         List<TenantVO> tenantList = tenantService.getAccessibleTenants(userId);

@@ -6,6 +6,8 @@ import com.aioveu.common.constant.SecurityConstants;
 import com.aioveu.common.enums.StatusEnum;
 import com.aioveu.lss.api.dto.UserAuthCredentials;
 import com.aioveu.system.dto.UserAuthInfo;
+import com.aioveu.tenant.dto.RoleDataScope;
+import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.CredentialsContainer;
@@ -16,6 +18,7 @@ import org.springframework.util.Assert;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,6 +49,16 @@ public class SysUserDetails implements UserDetails, CredentialsContainer {
      * 用户角色数据权限集合
      */
     private Integer dataScope;
+
+    /**
+     * 数据权限列表
+     */
+    private List<RoleDataScope> dataScopes;
+
+    /**
+     * 租户ID
+     */
+    private Long tenantId;
 
     /**
      * 默认字段
@@ -112,6 +125,35 @@ public class SysUserDetails implements UserDetails, CredentialsContainer {
                 .collect(Collectors.toSet())
                 : Collections.emptySet();
     }
+
+    //=================================================================================
+    /**
+     * 构造函数：根据用户认证信息初始化用户详情对象  使用UserAuthInfoWithTenantId构建
+     *
+     * @param user 用户认证信息对象 {@link UserAuthCredentials}
+     */
+    public SysUserDetails(UserAuthInfoWithTenantId user) {
+
+        log.info("调用lssFeignClient微服务的UserAuthCredentials构建Spring Security所需的UserDetails实现对象");
+        this.userId = user.getUserId();
+        this.username = user.getUsername();
+//        this.password = user.getPassword();
+        this.setPassword("{bcrypt}" + user.getPassword());
+        this.enabled = ObjectUtil.equal(user.getStatus(), 1);
+        this.deptId = user.getDeptId();
+        this.dataScopes = user.getDataScopes();
+        this.tenantId = user.getTenantId();
+
+        // 初始化角色权限集合
+        this.authorities = CollectionUtil.isNotEmpty(user.getRoles())
+                ? user.getRoles().stream()
+                // 角色名加上前缀 "ROLE_"，用于区分角色 (ROLE_ADMIN) 和权限 (user:add)
+                  .map(role -> new SimpleGrantedAuthority(SecurityConstants.ROLE_PREFIX + role))
+                  .collect(Collectors.toSet())
+                : Collections.emptySet();
+    }
+
+
 
 
     //=================================================================================

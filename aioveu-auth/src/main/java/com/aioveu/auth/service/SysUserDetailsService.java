@@ -1,6 +1,7 @@
 package com.aioveu.auth.service;
 
 import cn.hutool.core.lang.Assert;
+import com.aioveu.common.tenant.TenantContextHolder;
 import com.aioveu.lss.api.LssFeignClient;
 import com.aioveu.auth.model.LoginUserInfo;
 import com.aioveu.auth.model.SysUserDetails;
@@ -8,6 +9,8 @@ import com.aioveu.common.enums.StatusEnum;
 import com.aioveu.lss.api.dto.UserAuthCredentials;
 import com.aioveu.system.api.SystemFeignClient;
 import com.aioveu.system.dto.UserAuthInfo;
+import com.aioveu.tenant.api.TenantFeignClient;
+import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.DisabledException;
@@ -42,6 +45,9 @@ public class SysUserDetailsService implements UserDetailsService {
 
     // 用户服务Feign客户端，用于远程调用用户微服务获取用户认证信息
     private final LssFeignClient lssFeignClient;
+
+    // 用户服务Feign客户端，用于远程调用用户微服务获取用户认证信息
+    private final TenantFeignClient tenantFeignClient;
 
     /**
      * 根据用户名获取用户信息(用户名、密码和角色权限)
@@ -113,8 +119,8 @@ public class SysUserDetailsService implements UserDetailsService {
 
         // 确保用户名有效
         String trimmedUsername = username.trim();
-        log.info("调用systemFeignClient微服务查询用户名和加密密码: {}", trimmedUsername);
-        log.info("正在查询用户认证信息: {}", trimmedUsername);
+        log.info("确保用户名有效trimmedUsername: {}", trimmedUsername);
+        log.info("正在查询用户认证信息trimmedUsername: {}", trimmedUsername);
 
 
         // 打印 Feign 客户端类信息  systemFeignClient
@@ -128,14 +134,24 @@ public class SysUserDetailsService implements UserDetailsService {
 //        UserAuthInfo userAuthInfo = systemFeignClient.getUserAuthInfo(username);
 
         // 调用您的方法获取用户信息
-        log.info("调用lssFeignClient微服务查询用户名和加密密码");
-        UserAuthCredentials userAuthCredentials = lssFeignClient.getAuthCredentialsByUsername(username);
+//        log.info("调用lssFeignClient微服务查询用户名和加密密码");
+//        UserAuthCredentials userAuthCredentials = lssFeignClient.getAuthCredentialsByUsername(username);
+
+
+        Long currentTenantId = TenantContextHolder.getTenantId();
+        log.info("当前用户名username:{}",username);
+        log.info("当前租户currentTenantId:{}",currentTenantId);
+        log.info("调用tenantFeignClient微服务查询用户名和加密密码");
+        UserAuthInfoWithTenantId userAuthInfoWithTenantId= tenantFeignClient.getUserAuthInfoWithTenantId(username,currentTenantId);
 
 //         使用断言验证用户是否存在，如果为null则抛出异常并提示"用户不存在"
 //        Assert.isTrue(userAuthInfo != null, "system用户不存在");
 
         // 使用断言验证用户是否存在，如果为null则抛出异常并提示"用户不存在"
-        Assert.isTrue(userAuthCredentials != null, "lss用户不存在");
+//        Assert.isTrue(userAuthCredentials != null, "lss用户不存在");
+
+        // 使用断言验证用户是否存在，如果为null则抛出异常并提示"用户不存在"
+        Assert.isTrue(userAuthInfoWithTenantId != null, "tenant用户不存在");
 
         // 检查用户状态：如果用户被禁用，抛出DisabledException异常
 //        if (!StatusEnum.ENABLE.getValue().equals(userAuthInfo.getStatus())) {
@@ -153,12 +169,16 @@ public class SysUserDetailsService implements UserDetailsService {
 //        SysUserDetails  sysUserDetails1 = new SysUserDetails(userAuthInfo);
 //        log.info("sysUserDetails1:{}", sysUserDetails1);
 
-        log.info("调用lssFeignClient微服务构建Spring Security所需的UserDetails实现对象");
-        SysUserDetails  sysUserDetails2  = new SysUserDetails(userAuthCredentials);
-        log.info("sysUserDetails2:{}", sysUserDetails2);
+//        log.info("调用lssFeignClient微服务构建Spring Security所需的UserDetails实现对象");
+//        SysUserDetails  sysUserDetails2  = new SysUserDetails(userAuthCredentials);
+//        log.info("sysUserDetails2:{}", sysUserDetails2);
+
+        log.info("调用tenantFeignClient微服务构建Spring Security所需的UserDetails实现对象");
+        SysUserDetails  sysUserDetails3  = new SysUserDetails(userAuthInfoWithTenantId);
+        log.info("sysUserDetails3:{}", sysUserDetails3);
 
 
-        return sysUserDetails2;
+        return sysUserDetails3;
 
 
 

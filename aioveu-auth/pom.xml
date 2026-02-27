@@ -73,6 +73,12 @@
 
         <dependency>
             <groupId>com.aioveu</groupId>
+            <artifactId>tenant-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
             <artifactId>common-web</artifactId>
         </dependency>
 

@@ -1,9 +1,13 @@
 package com.aioveu.tenant.api.fallback;
 
+import com.aioveu.common.result.Result;
 import com.aioveu.tenant.api.TenantFeignClient;
+import com.aioveu.tenant.dto.TenantVO;
 import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * @ClassName: TenantFeignFallbackClient
@@ -21,5 +25,11 @@ public class TenantFeignFallbackClient implements TenantFeignClient {
     public UserAuthInfoWithTenantId getUserAuthInfoWithTenantId(String username,Long tenantId) {
         log.error("feign远程调用多租户服务异常后的降级方法");
         return new UserAuthInfoWithTenantId();
+    }
+
+    @Override
+    public List<TenantVO> getAccessibleTenantsByUsername(String username) {
+        log.error("根据用户名获取可登录的租户列表失败");
+        return null;
     }
 }

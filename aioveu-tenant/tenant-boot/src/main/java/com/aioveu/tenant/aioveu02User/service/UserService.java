@@ -27,6 +27,13 @@ public interface UserService extends IService<User> {
 
 
     /**
+     * 根据用户名查询所有用户ID（跨所有租户）
+     *
+     * @return {@link List<Long>} 所有用户ID（跨所有租户）列表
+     */
+    List<Long> getUserIdsByUsername(String username);
+
+    /**
      * 用户分页列表
      *
      * @return {@link IPage<UserPageVO>} 用户分页列表
