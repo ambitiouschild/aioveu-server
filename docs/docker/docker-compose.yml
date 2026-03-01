@@ -45,10 +45,16 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       # 数据库连接配置  使用内置数据库配置方式
       MODE: standalone  #虽然设置了 MODE=standalone，但未配置 MySQL 连接信息
       #如果不需要持久化存储，可以完全移除 MySQL 依赖:这样 Nacos 会使用内置的 Derby 数据库，避免了外部依赖问题
+      # 认证配置
+      NACOS_AUTH_ENABLE: true   # 启动认证
+      NACOS_AUTH_SERVER_IDENTITY_KEY: aioveu  #们启用了认证（nacos.core.auth.enabled=true），但没有配置服务器身份标识
+      NACOS_AUTH_SERVER_IDENTITY_VALUE: 775825
+
+      # 安全配置
+      NACOS_AUTH_TOKEN_EXPIRE_SECONDS: 18000
+      NACOS_AUTH_TOKEN: SecretKey012345678901234567890123456789012345678901234567890123456789
+
       # 数据库配置
-      NACOS_AUTH_ENABLE: "false"   # 启动认证
-#      NACOS_AUTH_SERVER_IDENTITY_KEY: 775825  #们启用了认证（nacos.core.auth.enabled=true），但没有配置服务器身份标识
-#      NACOS_AUTH_SERVER_IDENTITY_VALUE: 775825
       SPRING_DATASOURCE_PLATFORM: mysql
       MYSQL_SERVICE_HOST: mysql
       MYSQL_SERVICE_DB_NAME: aioveu_nacos_config
