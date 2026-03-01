@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -60,11 +61,56 @@ public class SecurityUtils {
      * @return Optional<SysUserDetails>
      */
     public static Optional<SysUserDetails> getUser() {
+
+        log.info("开始获取用户信息");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null) {
+            log.warn("⚠️ Authentication 为 null");
+            return Optional.empty();
+        }
+
+        log.info("Authentication 类型: {}", authentication.getClass().getName());
+        log.info("Authentication 名称: {}", authentication.getName());
+        log.info("是否已认证: {}", authentication.isAuthenticated());
+
+        Object principal = authentication.getPrincipal();
+        log.info("Principal 类型: {}", principal.getClass().getName());
+        log.info("Principal 值: {}", principal);
+
+
         if (authentication != null) {
-            Object principal = authentication.getPrincipal();
             if (principal instanceof SysUserDetails) {
+                log.info("✅ Principal 是 SysUserDetails 类型");
                 return Optional.of((SysUserDetails) principal);
+            }else if (principal instanceof Jwt) {
+                log.warn("❌ Principal 不是 SysUserDetails 类型，实际是: {}",
+                        principal.getClass().getName());
+                log.info("问题找到了！\u200B 认证信息中的 Principal是 Jwt对象，不是 SysUserDetails。这就是为什么 getUsername()返回 null的原因");
+                log.info("✅ Principal 是 Jwt 类型，从 JWT 构建用户信息");
+
+                Jwt jwt = (Jwt) principal;
+
+                // 从 JWT 构建 SysUserDetails
+                SysUserDetails userDetails = new SysUserDetails();
+                // 设置用户名
+                String username = jwt.getSubject();  // JWT 的 "sub" 字段
+                userDetails.setUsername(username);
+
+                // 可选：设置其他字段
+                Map<String, Object> claims = jwt.getClaims();
+                Object userIdObj = claims.get("userId");
+                if (userIdObj instanceof Number) {
+                    userDetails.setUserId(((Number) userIdObj).longValue());
+                }
+
+                // 设置部门ID
+                Object deptIdObj = claims.get("deptId");
+                if (deptIdObj instanceof Number) {
+                    userDetails.setDeptId(((Number) deptIdObj).longValue());
+                }
+                log.info("✅ 从 JWT 成功构建用户: {}", username);
+                return Optional.of((userDetails));
             }
         }
         return Optional.empty();
@@ -89,7 +135,7 @@ public class SecurityUtils {
      *
      * @注意: 需要在Spring Security认证上下文中调用，如Controller、Service层
      */
-    public static Long getUserId2() {
+    public static Long getUserId() {
 
         log.info("获取JWT令牌的所有声明属性（Claims）");
         Map<String, Object> tokenAttributes = getTokenAttributes();
@@ -107,7 +153,7 @@ public class SecurityUtils {
      *
      * @return Long
      */
-    public static Long getUserId() {
+    public static Long getUserId2() {
         return getUser().map(SysUserDetails::getUserId).orElse(null);
     }
 
@@ -125,7 +171,7 @@ public class SecurityUtils {
      *   - 用户名可能变化（如改名），用户ID唯一不变
      *   - 用户名用于显示，用户ID用于数据关联
      */
-    public static String getUsername2() {
+    public static String getUsername() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
 
@@ -138,10 +184,10 @@ public class SecurityUtils {
 
     /**
      * 获取用户账号
-     *
+     * 是的，你说得对！ 只有当 getUser()返回的 SysUserDetails不为空时，getUsername()才能获取到用户名。
      * @return String 用户账号
      */
-    public static String getUsername() {
+    public static String getUsername2() {
         return getUser().map(SysUserDetails::getUsername).orElse(null);
     }
 
@@ -198,7 +244,7 @@ public class SecurityUtils {
      *
      * @示例输出: ["ADMIN", "MANAGER", "USER"]
      */
-    public static Set<String> getRoles2() {
+    public static Set<String> getRoles() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
             return AuthorityUtils.authorityListToSet(authentication.getAuthorities())
@@ -220,7 +266,7 @@ public class SecurityUtils {
      *
      * @return 角色集合
      */
-    public static Set<String> getRoles() {
+    public static Set<String> getRoles2() {
         return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
                 .map(Authentication::getAuthorities)
                 .filter(CollectionUtil::isNotEmpty)

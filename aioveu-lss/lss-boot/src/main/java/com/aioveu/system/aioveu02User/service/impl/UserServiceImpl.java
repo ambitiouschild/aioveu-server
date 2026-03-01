@@ -437,7 +437,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public CurrentUserDTO getCurrentUserInfo() {
 
+        log.info("（获取\"我\"的用户信息）");
+
         String username = SecurityUtils.getUsername();
+        log.info("获取我的用户信息username:{}",username);
 
         // 获取登录用户基础信息
         User user = this.getOne(new LambdaQueryWrapper<User>()

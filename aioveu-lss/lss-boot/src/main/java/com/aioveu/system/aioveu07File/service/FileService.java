@@ -18,7 +18,7 @@ public interface FileService {
      * @param file 表单文件对象
      * @return 文件信息
      */
-    FileInfo uploadFile(MultipartFile file);
+    FileInfo uploadFile(MultipartFile file,String moduleName);
 
     /**
      * 删除文件

@@ -118,11 +118,22 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
         OAuth2ClientAuthenticationToken clientPrincipal = OAuth2AuthenticationProviderUtils
                 .getAuthenticatedClientElseThrowInvalidClient(passwordAuthenticationToken);
 
+        // 检查客户端主体是否为null
+        if (clientPrincipal == null) {
+            log.error("客户端认证失败：clientPrincipal 为 null");
+            throw new OAuth2AuthenticationException(OAuth2ErrorCodes.INVALID_CLIENT);
+        }
 
         // 从客户端主体获取注册的客户端信息
         log.info("从客户端主体获取注册的客户端信息");
         RegisteredClient registeredClient = clientPrincipal.getRegisteredClient();
 
+        if (registeredClient == null) {
+            log.error("客户端认证失败：registeredClient 为 null");
+            throw new OAuth2AuthenticationException(OAuth2ErrorCodes.INVALID_CLIENT);
+        }
+
+        log.info("客户端认证成功，客户端ID: {}", registeredClient.getClientId());
 
         // 步骤2: 验证客户端是否支持密码授权模式
         // 检查客户端的授权类型列表是否包含PASSWORD模式
@@ -142,9 +153,10 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
 
         // 生成用户名密码身份验证令牌
         // 从参数中提取用户名和密码
-        log.info("从参数中提取用户名和密码");
+
         String username = (String) additionalParameters.get(OAuth2ParameterNames.USERNAME);
         String password = (String) additionalParameters.get(OAuth2ParameterNames.PASSWORD);
+        log.info("从参数中提取用户名:{} 和 密码:{}",username,password);
 
         // 创建Spring Security标准的用户名密码认证令牌
         log.info("创建Spring Security标准的用户名密码认证令牌");

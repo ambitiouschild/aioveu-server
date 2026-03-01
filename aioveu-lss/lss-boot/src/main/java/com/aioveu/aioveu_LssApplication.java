@@ -4,12 +4,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertySource;
 
-
+//@SpringBootApplication已经包含了 @ComponentScan，不需要重复声明。
 @SpringBootApplication
 @EnableDiscoveryClient
+// 确保扫描到 FilePathGenerator 所在的包
 //原因：IDEA 需要在控制台输出中检测到端口启动日志，才会自动在运行配置名称后添加端口号。
 public class aioveu_LssApplication {
     public static void main(String[] args) {

@@ -3,6 +3,8 @@ package com.aioveu.system.aioveu07File.controller;
 import com.aioveu.common.result.Result;
 import com.aioveu.system.aioveu07File.model.vo.FileInfo;
 import com.aioveu.system.aioveu07File.service.FileService;
+import com.aioveu.system.aioveu07File.utils.ModuleResolver;
+import com.alibaba.cloud.commons.lang.StringUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -11,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @Version 1.0
  **/
 
+@Slf4j
 @Tag(name = "07.文件接口")
 @RestController
 @RequestMapping("/api/v1/files")
@@ -30,6 +34,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class FileController {
 
     private final FileService fileService;
+
+    private final ModuleResolver moduleResolver;
 
     @PostMapping
     @Operation(summary = "文件上传")
@@ -43,9 +49,36 @@ public class FileController {
             )
             //多图上传，后端接口只认特定的字段名  // 这里的 "file" 必须和前端的字段名完全匹配
             @RequestPart(value = "file") MultipartFile file,
+            @RequestParam(value = "module", required = false) String module,
             HttpServletRequest request // 添加请求对象获取协议信息
     ) {
-        FileInfo fileInfo = fileService.uploadFile(file);
+
+        log.info("====== 开始文件上传 ======");
+        log.info("文件名: {}", file.getOriginalFilename());
+        log.info("文件大小: {} bytes", file.getSize());
+        log.info("Content-Type: {}", file.getContentType());
+        log.info("模块参数: {}", module);
+        log.info("请求URL: {}", request.getRequestURL());
+
+        // 1. 优先使用传入的模块名
+        if (StringUtils.isBlank(module)) {
+            // 2. 自动推断模块名
+            module = moduleResolver.resolveModule(request);
+        }
+
+        // 2. 还可以根据文件类型再次确认
+        if ("common".equals(module)) {
+            module = moduleResolver.resolveModuleByFile(file);
+        }
+
+        // 3. 在Service层添加默认值
+        if (StringUtils.isBlank(module)) {
+            module = "common";  // 默认模块
+        }
+
+        log.info("模块名：{}",module);
+
+        FileInfo fileInfo = fileService.uploadFile(file, module);
 
         /*
          * 解决返回的 URL 是 HTTP 导致前端 HTTPS 页面无法访问的问题，需要修改上传逻辑，确保返回的 FileInfo 对象中的 URL 是 HTTPS 格式

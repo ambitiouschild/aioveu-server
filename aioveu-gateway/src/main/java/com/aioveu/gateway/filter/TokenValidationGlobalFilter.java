@@ -168,7 +168,7 @@ public class TokenValidationGlobalFilter implements GlobalFilter, Ordered {
         }
 
         // 步骤4: 令牌不在黑名单中，继续执行过滤器链
-        log.info("步骤4: 令牌不在黑名单中，继续执行过滤器链");
+        log.info("步骤4: 令牌不在黑名单中，继续执行过滤器链,网关认证通过");
         return chain.filter(exchange);
     }
 

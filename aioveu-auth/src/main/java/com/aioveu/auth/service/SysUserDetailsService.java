@@ -97,6 +97,11 @@ public class SysUserDetailsService implements UserDetailsService {
      *               技术栈: Spring Boot + MyBatis Plus
      *               数据库: MySQL（用户主数据）
      *               功能: 用户管理、权限管理、组织架构
+     *              TODO 将三个微服务的用户认证逻辑按优先级依次尝试，直到找到有效的用户信息
+     *                  直接使用 SysUserDetails变量：不需要中间的 UserAuthInfo转换
+     *                  在每个分支中直接创建 SysUserDetails：利用已有的三个构造函数
+     *                  正确的条件判断：使用 sysUserDetails == null来判断是否找到用户
+     *                  简化逻辑：找到用户后直接返回，不再进行不必要的转换
      *
      *
      * @param username 用户名（用户登录时输入的用户名）
@@ -119,68 +124,89 @@ public class SysUserDetailsService implements UserDetailsService {
 
         // 确保用户名有效
         String trimmedUsername = username.trim();
-        log.info("确保用户名有效trimmedUsername: {}", trimmedUsername);
         log.info("正在查询用户认证信息trimmedUsername: {}", trimmedUsername);
 
-
-        // 打印 Feign 客户端类信息  systemFeignClient
-//        log.info("Feign 客户端类: {}", systemFeignClient.getClass().getName());
-//        log.info("Feign 客户端父类: {}", systemFeignClient.getClass().getSuperclass().getName());
-//        log.info("Feign 客户端接口: {}", Arrays.toString(systemFeignClient.getClass().getInterfaces()));
-
-        // 通过Feign客户端调用远程用户服务，根据用户名获取用户认证信息
-        // 注意：这里可能会抛出Feign异常（如服务不可用、网络超时等）
-//        log.info("调用systemFeignClient微服务查询用户名和加密密码");
-//        UserAuthInfo userAuthInfo = systemFeignClient.getUserAuthInfo(username);
-
-        // 调用您的方法获取用户信息
-//        log.info("调用lssFeignClient微服务查询用户名和加密密码");
-//        UserAuthCredentials userAuthCredentials = lssFeignClient.getAuthCredentialsByUsername(username);
-
-
         Long currentTenantId = TenantContextHolder.getTenantId();
-        log.info("当前用户名username:{}",username);
         log.info("当前租户currentTenantId:{}",currentTenantId);
-        log.info("调用tenantFeignClient微服务查询用户名和加密密码");
-        UserAuthInfoWithTenantId userAuthInfoWithTenantId= tenantFeignClient.getUserAuthInfoWithTenantId(username,currentTenantId);
 
-//         使用断言验证用户是否存在，如果为null则抛出异常并提示"用户不存在"
-//        Assert.isTrue(userAuthInfo != null, "system用户不存在");
+        // 直接声明 SysUserDetails 变量
+        SysUserDetails sysUserDetails = null;
+        UserAuthInfo userAuthInfo = null;
+        String source = "";
 
-        // 使用断言验证用户是否存在，如果为null则抛出异常并提示"用户不存在"
-//        Assert.isTrue(userAuthCredentials != null, "lss用户不存在");
+        //SysUserDetails已经有三个构造函数
+        log.info("SysUserDetails已经有三个构造函数");
 
-        // 使用断言验证用户是否存在，如果为null则抛出异常并提示"用户不存在"
-        Assert.isTrue(userAuthInfoWithTenantId != null, "tenant用户不存在");
+        // 方案1：按优先级依次尝试
+        try {
+            // 1. 优先使用tenant微服务（多租户模式）
+            if (currentTenantId != null) {
+                log.info("尝试从tenant微服务查询用户: {}", trimmedUsername);
+                UserAuthInfoWithTenantId userAuthInfoWithTenantId = tenantFeignClient.getUserAuthInfoWithTenantId(trimmedUsername, currentTenantId);
+                if (userAuthInfoWithTenantId != null) {
+                    // 构建Spring Security所需的UserDetails实现对象
+                    source = "tenant";
+                    sysUserDetails = new SysUserDetails(userAuthInfoWithTenantId);
+                    //        sysUserDetails.setSource(source); // 可选：记录用户来源
 
-        // 检查用户状态：如果用户被禁用，抛出DisabledException异常
-//        if (!StatusEnum.ENABLE.getValue().equals(userAuthInfo.getStatus())) {
+                    log.info("从tenant微服务找到用户");
+                }
+            }
+
+
+            // 2. 如果tenant没找到，尝试lss微服务（系统管理员等）
+            if (sysUserDetails == null) {
+                log.info("尝试从lss微服务查询用户: {}", trimmedUsername);
+                try {
+                    UserAuthCredentials lssAuthInfo = lssFeignClient.getAuthCredentialsByUsername(trimmedUsername);
+                    if (lssAuthInfo != null) {
+                        source = "lss";
+                        sysUserDetails = new SysUserDetails(lssAuthInfo);
+                        //        sysUserDetails.setSource(source); // 可选：记录用户来源
+
+                        log.info("从lss微服务找到用户");
+                    }
+                } catch (Exception e) {
+                    log.warn("lss微服务查询失败: {}", e.getMessage());
+                }
+            }
+
+            // 3. 如果前两者都没找到，尝试system微服务（业务用户）
+            if (sysUserDetails == null) {
+                log.info("尝试从system微服务查询用户: {}", trimmedUsername);
+                try {
+                    UserAuthInfo systemAuthInfo = systemFeignClient.getUserAuthInfo(trimmedUsername);
+                    if (systemAuthInfo != null) {
+                        source = "system";
+                        sysUserDetails = new SysUserDetails(systemAuthInfo);
+                        //        sysUserDetails.setSource(source); // 可选：记录用户来源
+
+                        log.info("从system微服务找到用户");
+                    }
+                } catch (Exception e) {
+                    log.warn("system微服务查询失败: {}", e.getMessage());
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("查询用户认证信息时发生异常", e);
+            throw new UsernameNotFoundException("用户认证服务异常: " + e.getMessage());
+        }
+
+        // 检查用户是否存在
+        if (sysUserDetails == null) {
+            log.error("用户不存在，用户名: {}, 租户ID: {}, 尝试来源: {}", trimmedUsername, currentTenantId, source);
+            throw new UsernameNotFoundException("用户不存在: " + trimmedUsername);
+        }
+
+        // 检查用户状态
+//        if (!StatusEnum.ENABLE.getValue().equals(SysUserDetails.getStatus())) {
 //            throw new DisabledException("该账户已被禁用!");
 //        }
 
-//        // 检查用户状态：如果用户被禁用，抛出DisabledException异常
-//        if (!StatusEnum.ENABLE.getValue().equals(userAuthCredentials.getStatus())) {
-//            throw new DisabledException("该账户已被禁用!");
-//        }
+        log.info("从{}微服务成功构建用户详情", source);
 
-        // 构建Spring Security所需的UserDetails实现对象
-        // SysUserDetails包含：用户ID、用户名、密码、部门ID、数据权限、角色权限列表等
-//        log.info("调用systemFeignClient微服务构建Spring Security所需的UserDetails实现对象");
-//        SysUserDetails  sysUserDetails1 = new SysUserDetails(userAuthInfo);
-//        log.info("sysUserDetails1:{}", sysUserDetails1);
-
-//        log.info("调用lssFeignClient微服务构建Spring Security所需的UserDetails实现对象");
-//        SysUserDetails  sysUserDetails2  = new SysUserDetails(userAuthCredentials);
-//        log.info("sysUserDetails2:{}", sysUserDetails2);
-
-        log.info("调用tenantFeignClient微服务构建Spring Security所需的UserDetails实现对象");
-        SysUserDetails  sysUserDetails3  = new SysUserDetails(userAuthInfoWithTenantId);
-        log.info("sysUserDetails3:{}", sysUserDetails3);
-
-
-        return sysUserDetails3;
-
-
+        return sysUserDetails;
 
     }
 
