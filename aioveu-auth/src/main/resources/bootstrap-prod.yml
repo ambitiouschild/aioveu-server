@@ -7,24 +7,30 @@ spring:
       matching-strategy: ant_path_matcher # 使用Ant路径匹配策略
   cloud:
     nacos:
+      # 配置中心  # 配置中心配置  先获取配置，后执行服务发现”
+      config:
+        enabled: true
+        server-addr: ${NACOS_SERVER:nacos:8848} # 使用服务名而非localhost
+        file-extension: yaml
+        namespace: ${NACOS_NAMESPACE:80147849-cdb8-4b7d-befc-b5aefa0e9ab6} #aioveu-prod  # 生产环境命名空间
+        group: ${NACOS_GROUP:AIOVEU_GROUP}
+        username: ${NACOS_USER:aioveu}  # 从环境变量读取
+        password: ${NACOS_PASSWORD:775825}   # 从环境变量读取
+        #name: ${spring.application.name}  # 默认情况下，应用会使用spring.application.name作为数据ID的前缀，所以这里可以不用配置，但可以显式配置
+        shared-configs:
+          - data-id: aioveu-common.yaml  # 公共共享配置
+            group: ${NACOS_GROUP:AIOVEU_GROUP} # 使用相同的分组
+            refresh: true  # 启用动态刷新
+
       # 注册中心 # 服务发现配置
       discovery:
-        server-addr: nacos:8848 # 使用服务名而非localhost
-#        namespace: a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef #aioveu-prod  # 生产环境命名空间
-        namespace: 80147849-cdb8-4b7d-befc-b5aefa0e9ab6 #aioveu-prod  # 云98生产环境命名空间
-        group: AIOVEU_GROUP  # 指定服务注册分组
+        enabled: true
+        server-addr: ${spring.cloud.nacos.config.server-addr}
+        namespace: ${spring.cloud.nacos.config.namespace}
+        group: ${spring.cloud.nacos.config.group}
+        username: ${spring.cloud.nacos.config.username}  # 复用config的认证
+        password: ${spring.cloud.nacos.config.password}
         metadata:
           version: 1.0
           env: prod
           zone: zone1
-      # 配置中心  # 配置中心配置
-      config:
-        server-addr: ${spring.cloud.nacos.discovery.server-addr}
-        file-extension: yaml
-#        namespace:  a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef  #aioveu-prod  # 生产环境命名空间
-        namespace: 80147849-cdb8-4b7d-befc-b5aefa0e9ab6 #aioveu-prod  # 云98生产环境命名空间
-        group: AIOVEU_GROUP  # 配置分组
-        shared-configs:
-          - data-id: aioveu-common.yaml  # 公共共享配置
-            group: AIOVEU_GROUP  # 使用相同的分组
-            refresh: true  # 启用动态刷新
