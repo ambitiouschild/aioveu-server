@@ -132,9 +132,28 @@ ADD target/*.jar app.jar
 # 容器启动执行命令
 #增大 Docker 内存分配
 #这是一个 JDK 在容器环境中的监控问题，不影响业务逻辑
+
+#CMD java \
+#    -Xms512m \        # 初始堆512MB   # 初始更大，减少扩容
+#    -Xmx1536m \       # 最大堆1.5GB
+#    -XX:MaxMetaspaceSize=256m \  # 元空间256MB
+#    -XX:ReservedCodeCacheSize=128m \  # JIT缓存128MB
+#    -XX:MaxDirectMemorySize=256m \    # 堆外内存256MB
+#    -XX:+UseContainerSupport \    # 容器感知
+#    -XX:+UseG1GC \                # G1垃圾回收器
+#    -XX:MaxGCPauseMillis=200 \    # GC暂停目标200ms
+#    -Djava.security.egd=file:/dev/./urandom \
+#    -jar /app.jar
+
 CMD java \
-    -Xms128m \
-    -Xmx1024m \
+    -Xms512m \
+    -Xmx1536m \
+    -XX:MaxMetaspaceSize=256m \
+    -XX:ReservedCodeCacheSize=128m \
+    -XX:MaxDirectMemorySize=256m \
+    -XX:+UseContainerSupport \
+    -XX:+UseG1GC \
+    -XX:MaxGCPauseMillis=200 \
     -Djava.security.egd=file:/dev/./urandom \
     -Djdk.internal.platform.disable=true  \
     -jar /app.jar
