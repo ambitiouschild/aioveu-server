@@ -18,17 +18,17 @@ public class aioveu_LssApplication {
 
 
         System.out.println("Hello, World!");
-        SpringApplication.run(aioveu_LssApplication.class, args);
 
-        // 打印当前配置
-        System.out.println("=== 调试信息 ===");
+
         // 创建应用
         SpringApplication app = new SpringApplication(aioveu_LssApplication.class);
 
-        // 添加初始化器查看配置
+        // 添加初始化器以查看配置（仅在应用启动前执行）
         app.addInitializers((ApplicationContextInitializer<ConfigurableApplicationContext>) context -> {
             ConfigurableEnvironment env = context.getEnvironment();
 
+            // 打印当前配置
+            System.out.println("\n=== 调试信息（应用启动前）===");
             System.out.println("Nacos Config Server Addr: " +
                     env.getProperty("spring.cloud.nacos.config.server-addr"));
             System.out.println("Nacos Discovery Server Addr: " +
@@ -45,6 +45,7 @@ public class aioveu_LssApplication {
             }
         });
 
+        // 运行应用（只运行一次！）
         app.run(args);
 
     }
