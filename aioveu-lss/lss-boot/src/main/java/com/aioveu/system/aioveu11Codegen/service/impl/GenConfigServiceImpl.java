@@ -24,6 +24,7 @@ import com.aioveu.system.aioveu11Codegen.service.GenFieldConfigService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +42,7 @@ import java.util.Objects;
  * @Version 1.0
  **/
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GenConfigServiceImpl extends ServiceImpl<GenConfigMapper, GenConfig> implements GenConfigService {
@@ -187,6 +189,9 @@ public class GenConfigServiceImpl extends ServiceImpl<GenConfigMapper, GenConfig
         if (parentMenuId != null && !EnvEnum.PROD.getValue().equals(springProfilesActive)) {
             menuService.addMenuForCodegen(parentMenuId, genConfig);
         }
+        log.info("【Codegen 代码生成】如果选择上级菜单且当前环境不是生产环境，则保存菜单");
+        log.info("【Codegen 代码生成】生产环境禁止直接生成菜单，可转为变更申请");
+
 
         List<GenFieldConfig> genFieldConfigs = codegenConverter.toGenFieldConfig(formData.getFieldConfigs());
 
