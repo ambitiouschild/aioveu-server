@@ -2,7 +2,19 @@
 FROM aioveu-17-jdk-slim
 
 # 维护者信息
+# 基础元数据（可复用在多个版本）
 LABEL maintainer="ambitiouschild@qq.com"
+LABEL project="aioveu-sms"
+
+# 版本 1.0.0：初始化首页配置功能
+LABEL version="v3.1.2"
+LABEL release-notes="初始化首页分类/广告配置模块，支持基础跳转路径"
+LABEL changelog="新增 home_category,home_advert表，分离主页分类/广告配置逻辑"
+
+# 版本 3.1.2：修复分类跳转 Bug
+# LABEL version="v3.1.2"
+# LABEL release-notes="修复分类跳转路径丢失问题，优化 SQL 查询性能"
+# LABEL changelog="修改 CodegenServiceImpl，修复 TemplateUtil 依赖缺失问题"
 
 #方案一：如果您使用的是 Debian/Ubuntu 基础镜像
 # 替换为 apt-get 命令

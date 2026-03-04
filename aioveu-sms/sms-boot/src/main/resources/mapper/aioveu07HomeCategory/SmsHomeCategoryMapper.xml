@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.sms.aioveu07HomeCategory.mapper.SmsHomeCategoryMapper">
+
+    <!-- 获取首页分类配置分页列表 -->
+    <select id="getSmsHomeCategoryPage" resultType="com.aioveu.sms.aioveu07HomeCategory.model.vo.SmsHomeCategoryVO">
+        SELECT
+                id,
+                category_id,
+                home_icon,
+                home_name,
+                jump_path,
+                jump_type,
+                sort,
+                status,
+                remark,
+                create_time,
+                update_time,
+                deleted,
+                version
+        FROM
+            sms_home_category
+        <where>
+            <if test="queryParams.categoryId != null">
+                AND category_id LIKE CONCAT(#{queryParams.categoryId}, '%')
+            </if>
+            <if test="queryParams.homeName != null and queryParams.homeName != ''">
+                AND home_name LIKE CONCAT(#{queryParams.homeName}, '%')
+            </if>
+            <if test="queryParams.status != null">
+                AND status LIKE CONCAT(#{queryParams.status}, '%')
+            </if>
+            <if test="queryParams.deleted != null">
+                AND deleted LIKE CONCAT(#{queryParams.deleted}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

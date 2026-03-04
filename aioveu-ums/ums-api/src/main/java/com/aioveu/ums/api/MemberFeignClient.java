@@ -5,6 +5,7 @@ import com.aioveu.pms.model.vo.ProductHistoryVO;
 import com.aioveu.ums.dto.MemberAddressDTO;
 import com.aioveu.ums.dto.MemberAuthDTO;
 import com.aioveu.ums.dto.MemberRegisterDto;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +29,7 @@ public interface MemberFeignClient {
      * @return
      */
     @PostMapping("/app-api/v1/members")
+    @Operation(summary= "新增会员")
     Result<Long> registerMember(@RequestBody MemberRegisterDto member);
 
     /**

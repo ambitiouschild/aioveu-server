@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.sms.aioveu08HomeAdvert.mapper.SmsHomeAdvertMapper">
+
+    <!-- 获取首页广告配置（增加跳转路径）分页列表 -->
+    <select id="getSmsHomeAdvertPage" resultType="com.aioveu.sms.aioveu08HomeAdvert.model.vo.SmsHomeAdvertVO">
+        SELECT
+                id,
+                advert_id,
+                home_advert_icon,
+                home_advert_name,
+                height,
+                image_mode,
+                jump_path,
+                jump_type,
+                jump_params,
+                sort,
+                status,
+                remark,
+                create_time,
+                update_time,
+                deleted,
+                version
+        FROM
+            sms_home_advert
+        <where>
+            <if test="queryParams.advertId != null">
+                AND advert_id LIKE CONCAT(#{queryParams.advertId}, '%')
+            </if>
+            <if test="queryParams.homeAdvertName != null and queryParams.homeAdvertName != ''">
+                AND home_advert_name LIKE CONCAT(#{queryParams.homeAdvertName}, '%')
+            </if>
+            <if test="queryParams.imageMode != null and queryParams.imageMode != ''">
+                AND image_mode LIKE CONCAT(#{queryParams.imageMode}, '%')
+            </if>
+            <if test="queryParams.jumpType != null and queryParams.jumpType != ''">
+                AND jump_type LIKE CONCAT(#{queryParams.jumpType}, '%')
+            </if>
+            <if test="queryParams.sort != null">
+                AND sort LIKE CONCAT(#{queryParams.sort}, '%')
+            </if>
+            <if test="queryParams.status != null">
+                AND status LIKE CONCAT(#{queryParams.status}, '%')
+            </if>
+            <if test="queryParams.deleted != null">
+                AND deleted LIKE CONCAT(#{queryParams.deleted}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
