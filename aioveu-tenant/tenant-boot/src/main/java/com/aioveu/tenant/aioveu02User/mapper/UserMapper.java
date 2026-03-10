@@ -44,12 +44,12 @@ public interface UserMapper  extends BaseMapper<User> {
     UserForm getUserFormData(Long userId);
 
     /**
-     * 根据用户名获取认证信息
+     * 根据用户名和租户ID获取认证信息
      *
      * @param username 用户名
      * @return 认证信息
      */
-    UserAuthInfoWithTenantId getAuthInfoByUsername(String username);
+    UserAuthInfoWithTenantId getAuthInfoByUsernameAndTenantId(String username, Long tenantId);
 
     /**
      * 根据微信openid获取用户认证信息

@@ -28,8 +28,8 @@ public interface TenantMapper extends BaseMapper<Tenant> {
         INNER JOIN sys_tenant t ON u.tenant_id = t.id
         WHERE u.username = #{username}
           AND u.status = 1  -- 用户状态正常
-          AND u.isDeleted = 0
-        ORDER BY t.name
+          AND u.is_deleted = 0
+        ORDER BY t.tenant_id
     """)
     List<TenantVO> selectTenantsByUsername(@Param("username") String username);
 

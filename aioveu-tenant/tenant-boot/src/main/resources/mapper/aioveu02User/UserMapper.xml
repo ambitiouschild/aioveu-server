@@ -211,7 +211,7 @@
     </resultMap>
 
     <!-- 根据用户名获取用户的认证信息 -->
-    <select id="getAuthInfoByUsername" resultMap="AuthCredentialsMap">
+    <select id="getAuthInfoByUsernameAndTenantId" resultMap="AuthCredentialsMap">
         SELECT
             t1.id userId,
             t1.username,
@@ -226,7 +226,8 @@
                 LEFT JOIN sys_user_role t2 ON t2.user_id = t1.id
                 LEFT JOIN sys_role t3 ON t3.id = t2.role_id
         WHERE
-            t1.username = #{username} AND t1.is_deleted = 0
+            t1.username = #{username} AND t1.tenant_id = #{tenantId} AND t1.is_deleted = 0
+
     </select>
 
     <!-- 根据微信openid获取用户的认证信息  -->

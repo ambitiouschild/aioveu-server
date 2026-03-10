@@ -112,6 +112,7 @@ public class SysUserDetailsService implements UserDetailsService {
      * 使用场景：
      * - 密码模式认证时，Spring Security会调用此方法验证用户
      * - 其他需要获取用户详情的认证流程
+     * Spring Security 的 UserDetailsService.loadUserByUsername方法只能传一个参数（用户名）。这是 Spring Security 的设计约束。
      */
     @Override
     public UserDetails loadUserByUsername(String username) {
@@ -127,7 +128,7 @@ public class SysUserDetailsService implements UserDetailsService {
         log.info("正在查询用户认证信息trimmedUsername: {}", trimmedUsername);
 
         Long currentTenantId = TenantContextHolder.getTenantId();
-        log.info("当前租户currentTenantId:{}",currentTenantId);
+        log.info("加载用户，用户名: {}, 租户ID: {}", username, currentTenantId);
 
         // 直接声明 SysUserDetails 变量
         SysUserDetails sysUserDetails = null;
@@ -140,8 +141,9 @@ public class SysUserDetailsService implements UserDetailsService {
         // 方案1：按优先级依次尝试
         try {
             // 1. 优先使用tenant微服务（多租户模式）
+            // 查询逻辑（根据tenantId是否为空决定查询方式）
             if (currentTenantId != null) {
-                log.info("尝试从tenant微服务查询用户: {}", trimmedUsername);
+                log.info("尝试使用租户ID从tenant微服务查询用户: {},租户currentTenantId：{}", trimmedUsername,currentTenantId);
                 UserAuthInfoWithTenantId userAuthInfoWithTenantId = tenantFeignClient.getUserAuthInfoWithTenantId(trimmedUsername, currentTenantId);
                 if (userAuthInfoWithTenantId != null) {
                     // 构建Spring Security所需的UserDetails实现对象

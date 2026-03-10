@@ -57,6 +57,14 @@ public interface TenantService extends IService<Tenant> {
      */
     TenantVO getTenantById(Long tenantId);
 
+//    /**
+//     * 根据用户ID查询租户ID
+//     *
+//     * @param userId 用户ID
+//     * @return 租户ID
+//     */
+//    Long getTenantIdByUserId(Long userId);
+
     /**
      * 根据域名查询租户ID
      *

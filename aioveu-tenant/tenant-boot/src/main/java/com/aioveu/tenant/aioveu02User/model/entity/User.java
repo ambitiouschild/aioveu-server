@@ -83,5 +83,5 @@ public class User extends BaseEntityWithTenantId {
     /**
      * 微信 OpenID
      */
-    private String openid;
+    private String openId;
 }

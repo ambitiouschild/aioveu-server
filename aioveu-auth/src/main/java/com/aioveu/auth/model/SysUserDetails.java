@@ -41,6 +41,22 @@ public class SysUserDetails implements UserDetails, CredentialsContainer {
     private Long userId;
 
     /**
+     * 默认字段
+     */
+    /**
+     * 用户名
+     */
+    private String username;
+    /**
+     * 密码
+     */
+    private String password;
+    /**
+     * 账号是否启用(true:启用 false:禁用)
+     */
+    private Boolean enabled;
+
+    /**
      * 扩展字段：部门ID
      */
     private Long deptId;
@@ -52,6 +68,8 @@ public class SysUserDetails implements UserDetails, CredentialsContainer {
 
     /**
      * 数据权限列表
+     * <p>
+     * 存储用户所有角色的数据权限范围，用于实现多角色权限合并（并集策略）
      */
     private List<RoleDataScope> dataScopes;
 
@@ -61,11 +79,14 @@ public class SysUserDetails implements UserDetails, CredentialsContainer {
     private Long tenantId;
 
     /**
-     * 默认字段
+     * 租户切换权限（true 可切换租户）
      */
-    private String username;
-    private String password;
-    private Boolean enabled;
+    private Boolean canSwitchTenant;
+
+
+    /**
+     * 用户角色权限集合
+     */
     private Collection<GrantedAuthority> authorities;
 
     private boolean accountNonExpired;
@@ -80,6 +101,7 @@ public class SysUserDetails implements UserDetails, CredentialsContainer {
     //=================================================================================
     /**
      * 系统管理用户  使用UserAuthInfo构建
+     * 构造函数：根据用户认证信息初始化用户详情对象
      */
     public SysUserDetails(UserAuthInfo user) {
         log.info("调用systemFeignClient微服务的UserAuthInfo构建Spring Security所需的UserDetails实现对象");
@@ -134,7 +156,7 @@ public class SysUserDetails implements UserDetails, CredentialsContainer {
      */
     public SysUserDetails(UserAuthInfoWithTenantId user) {
 
-        log.info("调用lssFeignClient微服务的UserAuthCredentials构建Spring Security所需的UserDetails实现对象");
+        log.info("调用tenant微服务的UserAuthInfoWithTenantId构建Spring Security所需的UserDetails实现对象");
         this.userId = user.getUserId();
         this.username = user.getUsername();
 //        this.password = user.getPassword();
@@ -143,6 +165,7 @@ public class SysUserDetails implements UserDetails, CredentialsContainer {
         this.deptId = user.getDeptId();
         this.dataScopes = user.getDataScopes();
         this.tenantId = user.getTenantId();
+        this.canSwitchTenant = user.getCanSwitchTenant();
 
         // 初始化角色权限集合
         this.authorities = CollectionUtil.isNotEmpty(user.getRoles())

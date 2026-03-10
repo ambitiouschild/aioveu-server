@@ -38,6 +38,7 @@ import com.aioveu.tenant.aioveu13Mail.service.MailService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -159,6 +160,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .filter(Objects::nonNull)
                 .anyMatch(perm -> PatternMatchUtils.simpleMatch(perm, SystemConstants.TENANT_SWITCH_PERMISSION));
     }
+
+    /**
+     * 根据用户ID查询租户ID
+     *
+     * @param userId 用户ID
+     * @return 租户ID
+     */
+    @Override
+    public Long getTenantIdByUserId(Long userId) {
+
+        // 获取原用户信息
+        User user = this.getById(userId);
+        Assert.notNull(user, "用户不存在");
+
+        Long tenantId = user.getTenantId();
+        log.info("根据用户ID:{}查询租户ID:{}",userId,tenantId);
+        return tenantId;
+
+    }
+
 
     /**
      * 新增用户
@@ -284,14 +305,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     /**
-     * 根据用户名获取认证凭证信息
+     * 根据用户名和租户ID获取认证凭证信息  修改为返回单个用户（推荐）
      *
      * @param username 用户名
      * @return 用户认证凭证信息 {@link UserAuthInfoWithTenantId}
      */
     @Override
-    public UserAuthInfoWithTenantId getAuthInfoByUsername(String username) {
-        UserAuthInfoWithTenantId userAuthInfoWithTenantId = this.baseMapper.getAuthInfoByUsername(username);
+    public UserAuthInfoWithTenantId getAuthInfoByUsernameAndTenantId(String username, Long tenantId) {
+
+        log.info("根据用户名和租户ID获取认证凭证信息: username={}, tenantId={}", username, tenantId);
+        UserAuthInfoWithTenantId userAuthInfoWithTenantId =
+                this.baseMapper.getAuthInfoByUsernameAndTenantId(username,tenantId);
+
+        if (userAuthInfoWithTenantId == null) {
+            log.warn("用户不存在: username={}, tenantId={}", username, tenantId);
+            return null;
+        }
+
         if (userAuthInfoWithTenantId != null) {
             Set<String> roles = userAuthInfoWithTenantId.getRoles();
             // 获取角色的数据权限列表（支持多角色并集）
@@ -311,11 +341,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public UserAuthInfoWithTenantId getAuthInfoByUsernameInTenant(String username, Long tenantId) {
+        log.info("查询用户认证信息: username={}, tenantId={}", username, tenantId);
+
         Long oldTenantId = TenantContextHolder.getTenantId();
         boolean oldIgnoreTenant = TenantContextHolder.isIgnoreTenant();
         // 临时忽略租户过滤，查询指定租户下的用户
         TenantContextHolder.setIgnoreTenant(true);
+
         try {
+
             // 先查询用户
             User user = this.getOne(
                     new LambdaQueryWrapper<User>()
@@ -327,12 +361,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             if (user == null) {
                 return null;
             }
-            log.info("已经根据tenantId：{}进行了过滤，这里的用户User”{}唯一", tenantId, user);
-//            已经进行了过滤，这里的
+            log.info("已经根据tenantId：{}进行了过滤，这里的唯一用户User：{}", tenantId, user);
             // 设置租户上下文，然后查询认证信息（这样会包含该租户下的角色）
             TenantContextHolder.setIgnoreTenant(false);
             TenantContextHolder.setTenantId(tenantId);
-            return getAuthInfoByUsername(username);
+
+            return getAuthInfoByUsernameAndTenantId(username,tenantId);
         } finally {
             if (oldTenantId != null) {
                 TenantContextHolder.setTenantId(oldTenantId);
@@ -419,7 +453,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 查询是否已存在该openId的用户
         User existUser = this.getOne(
                 new LambdaQueryWrapper<User>()
-                        .eq(User::getOpenid, openId)
+                        .eq(User::getOpenId, openId)
         );
 
         if (existUser != null) {
@@ -431,7 +465,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User newUser = new User();
         newUser.setNickname("微信用户");  // 默认昵称
         newUser.setUsername(openId);      // TODO 后续替换为手机号
-        newUser.setOpenid(openId);
+        newUser.setOpenId(openId);
         newUser.setGender(0); // 保密
         newUser.setUpdateBy(SecurityUtils.getUserId());
         newUser.setPassword(SystemConstants.DEFAULT_PASSWORD);
@@ -468,11 +502,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         if (existingUser != null) {
             // 如果存在用户但没绑定openId，则绑定openId
-            if (StrUtil.isBlank(existingUser.getOpenid())) {
+            if (StrUtil.isBlank(existingUser.getOpenId())) {
                 return bindUserOpenId(existingUser.getId(), openId);
             }
             // 如果已经绑定了其他openId，则判断是否需要更新
-            else if (!openId.equals(existingUser.getOpenid())) {
+            else if (!openId.equals(existingUser.getOpenId())) {
                 return bindUserOpenId(existingUser.getId(), openId);
             }
             // 如果已经绑定了相同的openId，则不需要任何操作
@@ -482,7 +516,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 不存在用户，创建新用户
         User newUser = new User();
         newUser.setMobile(mobile);
-        newUser.setOpenid(openId);
+        newUser.setOpenId(openId);
         newUser.setUsername(mobile); // 使用手机号作为用户名
         newUser.setNickname("微信用户_" + mobile.substring(mobile.length() - 4)); // 使用手机号后4位作为昵称
         newUser.setPassword(SystemConstants.DEFAULT_PASSWORD); // 使用加密的openId作为初始密码
@@ -515,7 +549,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 检查是否已有其他用户绑定了此openId
         User existingUser = this.getOne(
                 new LambdaQueryWrapper<User>()
-                        .eq(User::getOpenid, openId)
+                        .eq(User::getOpenId, openId)
                         .ne(User::getId, userId)
         );
 
@@ -528,7 +562,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         boolean updated = this.update(
                 new LambdaUpdateWrapper<User>()
                         .eq(User::getId, userId)
-                        .set(User::getOpenid, openId)
+                        .set(User::getOpenId, openId)
                         .set(User::getUpdateTime, LocalDateTime.now())
         );
         return updated ;
@@ -582,18 +616,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public CurrentUserDTO getCurrentUserInfo() {
 
         String username = SecurityUtils.getUsername();
+        log.info("获取登录用户名：{}",username);
 
         boolean canSwitchTenant = SecurityUtils.canSwitchTenant();
+
+        log.info("是否可切换租户：{}",canSwitchTenant);
         Long oldTenantId = TenantContextHolder.getTenantId();
+
+        log.info("获取当前租户id：{}",oldTenantId);
+
         boolean oldIgnoreTenant = TenantContextHolder.isIgnoreTenant();
+        log.info("是否忽略租户：{}",oldIgnoreTenant);
+
         User user;
         try {
             if (canSwitchTenant) {
                 TenantContextHolder.setIgnoreTenant(false);
                 TenantContextHolder.setTenantId(SystemConstants.PLATFORM_TENANT_ID);
             }
+            //增加租户ID筛选
+            log.info("增加租户ID筛选：{}",oldTenantId);
             user = this.getOne(new LambdaQueryWrapper<User>()
                     .eq(User::getUsername, username)
+                    .eq(User::getTenantId, oldTenantId)
                     .select(
                             User::getId,
                             User::getUsername,

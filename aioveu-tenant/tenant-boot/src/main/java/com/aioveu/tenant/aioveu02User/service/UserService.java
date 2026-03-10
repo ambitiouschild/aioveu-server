@@ -50,6 +50,15 @@ public interface UserService extends IService<User> {
 
 
     /**
+     * 根据用户ID查询租户ID
+     *
+     * @param userId 用户ID
+     * @return 租户ID
+     */
+    Long getTenantIdByUserId(Long userId);
+
+
+    /**
      * 新增用户
      *
      * @param userForm 用户表单对象
@@ -82,7 +91,7 @@ public interface UserService extends IService<User> {
      * @param username 用户名
      * @return {@link UserAuthInfoWithTenantId}
      */
-    UserAuthInfoWithTenantId getAuthInfoByUsername(String username);
+    UserAuthInfoWithTenantId getAuthInfoByUsernameAndTenantId(String username, Long tenantId);
 
     /**
      * 根据用户名和租户ID获取认证信息（用于多租户登录）

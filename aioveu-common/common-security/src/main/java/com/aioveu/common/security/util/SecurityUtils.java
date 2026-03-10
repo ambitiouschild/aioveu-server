@@ -218,8 +218,40 @@ public class SecurityUtils {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         // 检查是否为JWT认证令牌
 
+
+        // 检查是否为JWT认证令牌
         if (authentication instanceof JwtAuthenticationToken jwtAuthenticationToken) {
-            return jwtAuthenticationToken.getTokenAttributes();
+            log.info("✅ 是JwtAuthenticationToken");
+
+            // 获取token属性
+            Map<String, Object> tokenAttributes = jwtAuthenticationToken.getTokenAttributes();
+
+            // 调试：打印所有属性
+            log.info("Token Attributes 数量: {}", tokenAttributes != null ? tokenAttributes.size() : 0);
+
+            if (tokenAttributes != null && !tokenAttributes.isEmpty()) {
+                log.info("=== Token Attributes 详情 ===");
+                for (Map.Entry<String, Object> entry : tokenAttributes.entrySet()) {
+                    log.info("  {} = {} (类型: {})",
+                            entry.getKey(),
+                            entry.getValue(),
+                            entry.getValue() != null ? entry.getValue().getClass().getSimpleName() : "null");
+                }
+                log.info("=== 详情结束 ===");
+
+                // 特别检查 can_switch_tenant
+                Object canSwitchTenant = tokenAttributes.get("can_switch_tenant");
+                log.info("特别检查 - can_switch_tenant: {} (存在: {})",
+                        canSwitchTenant,
+                        tokenAttributes.containsKey("can_switch_tenant"));
+            } else {
+                log.info("Token Attributes 为空或null");
+            }
+
+            return tokenAttributes;
+        }else {
+            log.info("❌ 不是JwtAuthenticationToken，实际类型: {}",
+                    authentication != null ? authentication.getClass().getName() : "null");
         }
         return null;
     }
@@ -333,9 +365,45 @@ public class SecurityUtils {
      *
      * @return true 表示可切换租户
      */
-    public static boolean canSwitchTenant() {
+    public static boolean canSwitchTenant2() {
+
         return getUser().map(SysUserDetails::getCanSwitchTenant).orElse(false);
     }
+
+    public static boolean canSwitchTenant() {
+
+        try {
+            Map<String, Object> tokenAttributes = getTokenAttributes();
+
+            if (tokenAttributes != null) {
+
+                Object  canSwitchTenant = tokenAttributes.get("can_switch_tenant");
+
+                log.info("SecurityUtils获取当前用户是否可切换租户:{}", canSwitchTenant);
+
+                // 安全转换
+                if (canSwitchTenant instanceof Boolean) {
+                    return (Boolean) canSwitchTenant;
+                } else if (canSwitchTenant instanceof String) {
+                    return Boolean.parseBoolean((String) canSwitchTenant);
+                } else if (canSwitchTenant instanceof Number) {
+                    return ((Number) canSwitchTenant).intValue() != 0;
+                }
+
+
+                return false;
+            }
+
+
+        } catch (Exception e) {
+            log.error("检查租户切换权限失败", e);
+            return false;
+        }
+
+        return false;
+    }
+
+
 
     /**
      * 判断当前用户是否为超级管理员（最高权限角色）

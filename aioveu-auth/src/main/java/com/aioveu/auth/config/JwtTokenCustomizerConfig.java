@@ -45,6 +45,15 @@ public class JwtTokenCustomizerConfig {
                         claims.claim(JwtClaimConstants.DEPT_ID, userDetails.getDeptId());
                         claims.claim(JwtClaimConstants.DATA_SCOPE, userDetails.getDataScope());
 
+                        //数据权限列表
+                        claims.claim(JwtClaimConstants.DATA_SCOPES, userDetails.getDataScopes());
+                        //租户ID
+                        claims.claim(JwtClaimConstants.TENANT_ID, userDetails.getTenantId());
+
+                        //是否可以切换租户
+                        claims.claim(JwtClaimConstants.CAN_SWITCH_TENANT, userDetails.getCanSwitchTenant());
+
+
                         // 这里存入角色至JWT，解析JWT的角色用于鉴权的位置: ResourceServerConfig#jwtAuthenticationConverter
                         var authorities = AuthorityUtils.authorityListToSet(context.getPrincipal().getAuthorities())
                                 .stream()

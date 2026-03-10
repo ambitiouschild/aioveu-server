@@ -101,20 +101,24 @@ public class UserController {
                 allTenants.addAll(userTenants);
             }
         }
+
+        log.info("根据用户ID列表获取所有用户的可访问租户（去重）:{}",allTenants);
         // 3. 转换为列表并排序（按租户名或ID）
         List<TenantVO> tenantList = new ArrayList<>(allTenants);
         tenantList.sort(Comparator.comparing(TenantVO::getName));
-        log.debug("用户名 '{}' 可访问 {} 个租户", username, tenantList.size());
+        log.info("用户名 '{}' 可访问 {} 个租户", username, tenantList.size());
 
 
-        //优化版本（一次查询）
-        // 直接调用优化的Service方法
-        List<TenantVO> tenantList2 = tenantService.getAccessibleTenantsByUsername(username);
-
-        if (CollectionUtils.isEmpty(tenantList2)) {
-            log.info("用户名 '{}' 不存在任何可用租户中", username);
-            return Result.success(Collections.emptyList());
-        }
+//        //优化版本（一次查询）
+//        // 直接调用优化的Service方法
+//        List<TenantVO> tenantList2 = tenantService.getAccessibleTenantsByUsername(username);
+//
+//        if (CollectionUtils.isEmpty(tenantList2)) {
+//            log.info("用户名 '{}' 不存在任何可用租户中", username);
+//            return Result.success(Collections.emptyList());
+//        }
+//
+//        log.debug("优化版本（一次查询）用户名 '{}' 可访问 {} 个租户", username, tenantList2.size());
 
         return Result.success(tenantList);
     }

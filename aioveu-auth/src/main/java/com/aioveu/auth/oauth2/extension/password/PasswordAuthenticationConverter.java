@@ -2,6 +2,7 @@ package com.aioveu.auth.oauth2.extension.password;
 
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.auth.util.OAuth2EndpointUtils;
+import com.aioveu.common.tenant.TenantContextHolder;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -143,6 +144,27 @@ public class PasswordAuthenticationConverter implements AuthenticationConverter 
                 .filter(e -> !e.getKey().equals(OAuth2ParameterNames.GRANT_TYPE) && // 排除grant_type
                         !e.getKey().equals(OAuth2ParameterNames.SCOPE)  // 排除scope
                 ).collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get(0)));// 转换为单值Map
+
+
+        //方案1：在Converter中设置租户上下文  提取租户ID并设置到上下文 步骤1：修改Converter（添加租户提取）
+        // ✅ 新增：提取租户ID
+        //最简单的就是最好的！在Converter中一次提取设置，在整个线程生命周期中都能访问。
+        Long tenantId = null;
+        String tenantIdStr = parameters.getFirst("tenantId");
+        if (StringUtils.hasText(tenantIdStr)) {
+            try {
+                tenantId = Long.parseLong(tenantIdStr);
+                log.info("✅ 从OAuth2登录请求提取租户ID: {}", tenantId);
+                // 设置租户上下文
+                TenantContextHolder.setTenantId(tenantId);
+                log.info("已设置租户上下文: {}", tenantId);
+
+            } catch (NumberFormatException e) {
+                log.warn("租户ID格式错误: {}", tenantIdStr);
+            }
+        } else {
+            log.info("登录请求中未提供租户ID，将使用全局查询");
+        }
 
 
         // 步骤8: 构建密码模式认证令牌

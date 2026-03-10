@@ -29,6 +29,9 @@ public class PasswordAuthenticationToken extends OAuth2AuthorizationGrantAuthent
      */
     private final Set<String> scopes;
 
+    //方案2：修改PasswordAuthenticationToken包含租户ID
+//    private final Long tenantId;  // 新增字段
+
     /**
      * 密码模式身份验证令牌
      *

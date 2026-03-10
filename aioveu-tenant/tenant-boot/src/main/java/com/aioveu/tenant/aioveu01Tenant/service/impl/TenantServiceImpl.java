@@ -34,6 +34,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,6 +70,7 @@ public class TenantServiceImpl extends ServiceImpl<TenantMapper, Tenant> impleme
     private final TenantConverter tenantConverter;
 
     private final TenantMapper tenantMapper;
+
 
     /**
      * 是否具备租户切换权限
@@ -161,7 +163,7 @@ public class TenantServiceImpl extends ServiceImpl<TenantMapper, Tenant> impleme
     }
 
     /**
-     * 获取当前用户可访问的租户列表
+     * 根据用户ID获取当前用户可访问的租户列表
      * 还是根据租户id进行查找
      *
      * @param userId 用户ID
@@ -169,13 +171,17 @@ public class TenantServiceImpl extends ServiceImpl<TenantMapper, Tenant> impleme
      */
     @Override
     public List<TenantVO> getAccessibleTenants(Long userId) {
+
+        log.info("根据用户ID获取当前用户可访问的租户列表");
         if (userId == null) {
             return List.of();
         }
 
+        log.info("先获取租户ID");
         Long currentTenantId = TenantContextHolder.getTenantId();
         if (currentTenantId == null) {
-            return List.of();
+            log.info("如果租户ID为空，根据用户ID获取租户ID");
+            currentTenantId = userService.getTenantIdByUserId(userId);
         }
 
         boolean canSwitchTenant = hasTenantSwitchPermission();
@@ -227,6 +233,8 @@ public class TenantServiceImpl extends ServiceImpl<TenantMapper, Tenant> impleme
         BeanUtils.copyProperties(tenant, vo);
         return vo;
     }
+
+
 
     /**
      * 根据域名获取租户ID

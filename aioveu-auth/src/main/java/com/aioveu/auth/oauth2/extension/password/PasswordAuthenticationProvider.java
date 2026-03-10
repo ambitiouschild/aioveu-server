@@ -186,6 +186,7 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
         log.info("步骤4: 验证和确定权限范围(Scope)");
         log.info("获取客户端允许的权限范围和用户请求的权限范围");
         Set<String> authorizedScopes = registeredClient.getScopes();
+
         Set<String> requestedScopes = passwordAuthenticationToken.getScopes();
 
         // 如果用户请求了特定的权限范围，进行验证
@@ -217,7 +218,14 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
                 .authorizedScopes(authorizedScopes)    // 授权的权限范围
                 .authorizationGrantType(AuthorizationGrantType.PASSWORD) // 授权类型为密码模式
                 .authorizationGrant(passwordAuthenticationToken)   // 授权授予对象
+
+
                 ;
+
+        // ✅ 添加租户信息到令牌上下文
+
+
+
 
         // 生成访问令牌(Access Token)
         log.info("生成访问令牌(Access Token)");
