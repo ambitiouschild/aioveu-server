@@ -3,9 +3,12 @@ package com.aioveu.pay.aioveu00Payment.service.impl;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.Result;
 import com.aioveu.common.result.ResultCode;
+import com.aioveu.order.api.OrderFeignClient;
+import com.aioveu.order.model.OmsOrder;
 import com.aioveu.pay.aioveu00Payment.service.PaymentService;
 import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
+import com.aioveu.pay.aioveu01PayOrder.model.form.PayOrderForm;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
 import com.aioveu.pay.aioveu06PayFlow.service.PayFlowService;
 import com.aioveu.pay.aioveu07PayNotify.service.PayNotifyService;
@@ -15,6 +18,7 @@ import com.aioveu.pay.aioveuModule.PaymentStrategy.impl.PaymentStrategyFactory;
 //import com.aioveu.pay.aioveuModule.channelRouter.ChannelRouter;
 import com.aioveu.pay.aioveuModule.enums.PaymentStatusEnum;
 import com.aioveu.pay.aioveuModule.model.vo.*;
+import com.aioveu.pay.aioveuModule.service.WechatPay.service.WeChatPayService;
 import com.alibaba.fastjson.JSON;
 import com.wechat.pay.java.service.refund.RefundService;
 import lombok.RequiredArgsConstructor;
@@ -66,13 +70,20 @@ public class PaymentServiceImpl implements PaymentService {
     //使用构造器注入（推荐）
     private final PayFlowService payFlowService;
 
+    @Autowired
     private PayNotifyService payNotifyService;
+
+    @Autowired
+    private WeChatPayService wechatPayService;
 
 //    @Autowired
 //    private ChannelRouter channelRouter;
 
     @Autowired
     private PaymentStrategyFactory strategyFactory;  // 策略工厂
+
+    @Autowired
+    private OrderFeignClient orderFeignClient;
 
 
     @Autowired
@@ -119,6 +130,80 @@ public class PaymentServiceImpl implements PaymentService {
             throw new BusinessException("支付系统异常");
         }
     }
+
+
+    /**
+     * 前端调用：查询支付状态
+     *
+     * @return
+     */
+    @Override
+    public PaymentStatusVO queryPaymentStatus(String orderNo){
+
+        PaymentStatusVO paymentStatusVO =new PaymentStatusVO();
+
+        // 1. 查询本地数据库
+
+        log.info("【前端调用：查询支付状态】调用orderFeignClient，查询本地oms数据库");
+
+        OmsOrder order = orderFeignClient.getOrderDetailByOrderNo(orderNo);
+        if (order == null) {
+            paymentStatusVO.setErrorMessage("订单不存在");
+            paymentStatusVO.setPaymentStatus(-1); // 特殊状态：订单不存在
+            log.info("【前端调用：查询支付状态】订单不存在");
+            return paymentStatusVO;
+        }
+
+        // 2. 如果订单已支付，直接返回
+        if (order.getStatus() == 2 ||order.getStatus() == 3 ||order.getStatus() == 4) {
+            paymentStatusVO.setPaymentNo(orderNo);
+            paymentStatusVO.setPaymentStatus(order.getStatus());
+            paymentStatusVO.setErrorMessage("订单已支付");
+            log.info("【前端调用：查询支付状态】本地订单已支付，状态: {}", order.getStatus());
+            return paymentStatusVO;
+        }else{
+
+            log.info("【前端调用：查询支付状态】订单状态: {}，调用微信查询接口", order.getStatus());
+            // 3. 如果订单未支付，调用微信查询接口
+            try {
+                paymentStatusVO = wechatPayService.queryPayment(orderNo);
+                log.info("【wechatPayService】微信支付状态返回结果:{}",paymentStatusVO);
+
+                Integer weChatPaymentStatus =  paymentStatusVO.getPaymentStatus();
+
+                log.info("【wechatPayService】更新本地订单状态为:{}",weChatPaymentStatus);
+                // 4. 查询成功后，直接更新本地订单状态
+                log.info("【前端调用：查询支付状态】开始更新本地订单状态");
+
+
+                // 4. 根据微信返回结果更新本地状态
+                //支付状态：0-待支付 1-支付中 2-支付成功 3-支付失败 4-已关闭 5-已退款
+                try {
+                    boolean updateResult = orderFeignClient.updateOrderStatusByWechatPay(orderNo, weChatPaymentStatus);
+                    log.info("【前端调用：查询支付状态】更新订单状态结果: {}", updateResult);
+
+                    if (updateResult) {
+                        paymentStatusVO.setErrorMessage("订单状态已更新,状态已同步");
+                    } else {
+                        paymentStatusVO.setErrorMessage("更新订单状态失败,状态同步失败");
+                    }
+                } catch (Exception e) {
+                    log.error("【前端调用：查询支付状态】更新订单状态异常", e);
+                    paymentStatusVO.setErrorMessage("更新订单异常: " + e.getMessage());
+                }
+
+                return paymentStatusVO;
+
+            } catch (Exception e) {
+                paymentStatusVO.setErrorMessage("错误");
+                return paymentStatusVO;
+            }
+
+
+        }
+
+    }
+
 
     /**
      * 处理支付回调

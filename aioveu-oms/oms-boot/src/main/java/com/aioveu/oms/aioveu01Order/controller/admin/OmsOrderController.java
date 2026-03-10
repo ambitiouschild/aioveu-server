@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +34,7 @@ import java.util.Optional;
  * @author 可我不敌可爱
  * @since 2026-01-07 18:11
  */
-
+@Slf4j
 @Tag(name  = "Admin-订单详情接口")
 @RestController
 //@RequestMapping("/api/v1/orders")
@@ -53,6 +54,37 @@ public class OmsOrderController {
         IPage<OmsOrderPageVO> page = omsOrderService.getOmsOrderPage(queryParams);
         return PageResult.success(page);
     }
+
+    //在Spring MVC看来，{orderNo}和 {orderId}是相同的路径模式，都是路径变量
+    @Operation(summary = "根据订单编号查询订单详情")
+    @GetMapping("/orderNo/{orderNo}")
+    @Log( value = "根据订单编号查询订单详情",module = LogModuleEnum.OMS)
+    public OmsOrder getOrderDetailByOrderNo(
+            @Parameter(name ="订单ID") @PathVariable String orderNo
+    ) {
+
+        log.info("根据订单编号查询订单详情");
+
+        OmsOrder omsOrder = omsOrderService.getOrderDetailByOrderNo(orderNo);
+
+        log.info("根据订单编号查询订单详情omsOrder:{}", omsOrder);
+
+        return omsOrder;
+    }
+
+    @Operation(summary = "根据微信返回结果更新订单状态操作")
+    @PutMapping("/{orderNo}/{status}")
+    @Log( value = "根据微信返回结果更新订单状态操作",module = LogModuleEnum.OMS)
+    boolean updateOrderStatusByWechatPay(
+            @Parameter(name ="订单编号") @PathVariable String orderNo,
+            @Parameter(description = "微信返回结果") @PathVariable Integer status
+    ) {
+        boolean result = omsOrderService.updateOrderStatusByWechatPay(orderNo, status);
+
+        log.info("根据微信返回结果更新订单状态操作:{}",result);
+        return result;
+    }
+
 
     @Operation(summary = "订单详情")
     @GetMapping("/{orderId}")

@@ -43,17 +43,25 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
 #    restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
     environment:
       # 数据库连接配置  使用内置数据库配置方式
-      MODE: standalone  #虽然设置了 MODE=standalone，但未配置 MySQL 连接信息
+      # ✅ 正确的方案2：使用standalone模式+嵌入式数据库
+      MODE: standalone
+      # 不配置MySQL相关环境变量
+
+      # ✅ 正确的方案1：使用cluster模式+MySQL
+#      MODE: cluster  #集群模式
       #如果不需要持久化存储，可以完全移除 MySQL 依赖:这样 Nacos 会使用内置的 Derby 数据库，避免了外部依赖问题
       # 认证配置
-      NACOS_AUTH_ENABLE: true   # 启动认证
-      NACOS_AUTH_SERVER_IDENTITY_KEY: aioveu  #们启用了认证（nacos.core.auth.enabled=true），但没有配置服务器身份标识
-      NACOS_AUTH_SERVER_IDENTITY_VALUE: 775825
-
+      NACOS_AUTH_ENABLE: true   # 启动认证 # 确保这里是 true
+      NACOS_AUTH_TOKEN: 1AMyB1gaUTJpEmrykSwTafudw6xhcF+XpdP009HTTH4FlCCvB+yLGhZwNsfCOOmoUgWy3Rsq1yYqC/ydgeDcJg==
+#      NACOS_AUTH_IDENTITY_ENABLE: false
+      NACOS_AUTH_IDENTITY_KEY: aioveu  #启用了认证（nacos.core.auth.enabled=true），但没有配置服务器身份标识
+      NACOS_AUTH_IDENTITY_VALUE: 775825 #注意：Nacos 2.x 使用的是 NACOS_AUTH_IDENTITY_*而不是 NACOS_AUTH_SERVER_IDENTITY_*
+      # 可选：允许浏览器User-Agent绕过此检查，方便控制台访问
+      NACOS_AUTH_ENABLE_USERAGENT_AUTH_WHITE: true
       # 安全配置
       NACOS_AUTH_TOKEN_EXPIRE_SECONDS: 18000
-      NACOS_AUTH_TOKEN: SecretKey012345678901234567890123456789012345678901234567890123456789
 
+      # ✅ 正确的方案1：使用cluster模式+MySQL
       # 数据库配置
       SPRING_DATASOURCE_PLATFORM: mysql
       MYSQL_SERVICE_HOST: mysql
@@ -61,21 +69,46 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       MYSQL_SERVICE_PORT: 3306
       MYSQL_SERVICE_USER: root
       MYSQL_SERVICE_PASSWORD: 775825
-      MYSQL_SERVICE_DB_PARAM: "characterEncoding=utf8&useSSL=false"
-       # 添加关键环境变量
-       # 解决 db.num is null # 错误：值被引号包裹，会导致值变成字符串 ""1""
+      MYSQL_SERVICE_DB_PARAM: "characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true"
+
+
+
+
+        # 添加关键环境变量
+      # 解决 db.num is null # 错误：值被引号包裹，会导致值变成字符串 ""1""
       JVM_XMS: 512m #-Xms 512m 中空格导致 JVM 无法识别 Xms2g -Xmx2g 对于开发环境过大
       JVM_XMX: 512m #JVM 内存参数格式应为 -Xms2g（无空格）
+      JVM_XMN: 256m
 
       #由于我们使用的是docker，环境变量更方便
       #因为环境变量可能因为各种原因没有生效，直接在配置文件中设置更加可靠
       #为了确保其他配置正确，我们也可以将必要的配置都写在application.properties中
       #由于我们之前已经在docker-compose中配置了环境变量，但为了避免遗漏，将关键配置也写在配置文件中
-      JVM_OPT: "-Xms2g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m -XX:MaxDirectMemorySize=256m"
+      #      JVM_OPT: "-Xms2g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m -XX:MaxDirectMemorySize=256m"
 
       # Seata 集成关键配置
       NACOS_APPLICATION_PORT: 8848
       NACOS_SERVERS: nacos:8848
+      # 集群配置
+      #      NACOS_SERVERS: nacos1:8848 nacos2:8848 nacos3:8848
+      #      NACOS_APPLICATION_PORT: 8848
+      #      PREFER_HOST_MODE: hostname   # 使用主机名模式
+
+      #      # 垃圾收集器优化
+      #      JVM_GC_PARAMS: >-
+      #        -XX:+UseG1GC
+      #        -XX:MaxGCPauseMillis=200
+      #        -Xlog:gc*:file=/home/nacos/logs/nacos_gc.log:time
+
+
+
+      #Nacos也在容器内：如果Nacos也在同一个Docker网络中，那么Seata容器使用nacos:8848访问Nacos是没问题的，
+      #但OMS在宿主机需要通过host.docker.internal:8848访问Nacos（同样需要在Nacos容器的端口映射中暴露8848端口）
+
+      #在单机模式下，Nacos使用内置数据库（Derby）而不是MySQL。所以，如果你希望使用MySQL，那么必须配置MySQL，并且不能使用单机模式？
+      #实际上，在单机模式下也可以使用MySQL，但需要配置。而你的环境变量中并没有配置MySQL，所以Nacos会使用内置数据库。
+      #
+      #如果你想要使用MySQL，那么需要配置以下环境变量（在standalone模式下也可以使用MySQL）
 
       # 垃圾收集器优化
       JVM_GC_PARAMS: >-
@@ -94,7 +127,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
 
     volumes: # 挂载关键配置文件
       - ./nacos/datadir:/home/nacos/data  #删除挂载的./nacos/datadir目录（或者确保目录为空）非常重要。
-#      - ./nacos/conf:/home/nacos/conf #./nacos/conf目录中有正确的配置（如果之前没有配置，可以暂时不挂载，让Nacos使用默认配置启动）
+#      - ./nacos/conf:/home/nacos/conf/application.properties:/home/nacos/application.properties:ro  #./nacos/conf/application.properties目录中有正确的配置（如果之前没有配置，可以暂时不挂载，让Nacos使用默认配置启动）
       - ./nacos/logs:/home/nacos/logs
       - ./nacos/wait-for-mysql.sh:/wait-for-mysql.sh  # 挂载等待脚本
     ports:
@@ -106,10 +139,12 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
     networks:
       - aioveu-server # 加入 "aioveu-server" 网络
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://nacos:8848/nacos/v1/ns/service/list" ]
+      #-u "nacos:nacos123"：格式为用户名:密码
+      test: [ "CMD", "nc", "-z", "localhost", "8848" ]
       interval: 30s
       timeout: 10s
       retries: 5
+      start_period: 60s # 容器启动后给予60秒的初始化时间，期间检查失败不计入重试
     depends_on:
       mysql:
         condition: service_healthy # 保证 MySQL 服务先启动
@@ -126,6 +161,8 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
 
 
   seata:
+    # 升级到 2.0.0
+#    image: seataio/seata-server:2.0.0  # 使用 2.0.0
     image: seataio/seata-server:1.7.1
     container_name: aioveu-seata-server
 #    restart: unless-stopped #  指定了容器的重启策略，除了手动停止容器，其他情况都自动重启容器
@@ -135,9 +172,9 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       # 确保使用宿主机可访问的IP  当Seata注册到Nacos时，注册的IP地址决定微服务的连接方式  #强制指定注册IP
       # 关键1：注册到Nacos的IP（微服务可访问的地址）
       #更改seata注册配置顺序
-      SEATA_IP: 192.168.1.2  # 替换为你的宿主机IP  ,注意顺序，要先把id改为宿主机，顺序很重要  宿主机公网IP或内网可达IP   直接连接宿主机IP
+      SEATA_IP: 192.168.1.5  # 替换为你的宿主机IP  ,注意顺序，要先把id改为宿主机，顺序很重要  宿主机公网IP或内网可达IP   直接连接宿主机IP
       SEATA_PORT: 8091
-      SEATA_REGISTRY_NACOS_NAMESPACE: public  # 确保命名空间匹配
+
 
 
     #如果Nacos也在同一个Docker Compose中，那么NACOS_SERVER_ADDR可以使用服务名，比如nacos:8848，
@@ -170,10 +207,11 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       SEATA_REGISTRY_TYPE: nacos   # 注意这里改为SEATA_REGISTRY_TYPE（注册类型）
       SEATA_REGISTRY_NACOS_APPLICATION: aioveu-seata-server
       SEATA_REGISTRY_NACOS_SERVER_ADDR: nacos:8848   # Seata连接Nacos的地址 注册到Nacos的IP  # 容器内通信
+      SEATA_REGISTRY_NACOS_NAMESPACE: a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef  # 确保命名空间匹配
       SEATA_REGISTRY_NACOS_GROUP: SEATA_GROUP
-      SEATA_REGISTRY_NACOS_CLUSTER: default
+#      SEATA_REGISTRY_NACOS_CLUSTER: default
       SEATA_REGISTRY_NACOS_USERNAME: nacos
-      SEATA_REGISTRY_NACOS_PASSWORD: nacos
+      SEATA_REGISTRY_NACOS_PASSWORD: 775825
 
 #       Nacos 配置中心配置
       SEATA_CONFIG_TYPE: nacos     # 配置中心类型
@@ -181,7 +219,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       SEATA_CONFIG_NACOS_GROUP: SEATA_GROUP
       SEATA_CONFIG_NACOS_DATA_ID: seataServer.properties
       SEATA_CONFIG_NACOS_USERNAME: nacos
-      SEATA_CONFIG_NACOS_PASSWORD: nacos
+      SEATA_CONFIG_NACOS_PASSWORD: 775825
 
       #使用注册中心  不配置grouplist，配置registry.conf
       #重要提醒：在容器化部署时，确保服务端暴露的端口（8091）与客户端配置一致，且容器间网络互通。
@@ -240,103 +278,105 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
 
     #我们更希望使用服务注册与发现（通过Nacos），所以OMS应该从Nacos中获取Seata服务的地址。而Nacos中注册的Seata地址应该是宿主机的IP:8091。
 
-  seata-prod:
-    image: seataio/seata-server:1.7.1
-    container_name: aioveu-seata-prod
-    #    restart: unless-stopped #  指定了容器的重启策略，除了手动停止容器，其他情况都自动重启容器
-    environment:
-      # 使用宿主机网络模式
-      #这是一个混合部署网络连接问题。你的Seata Server在Docker容器内，但微服务在宿主机上运行，导致网络不通。
-      # 确保使用宿主机可访问的IP  当Seata注册到Nacos时，注册的IP地址决定微服务的连接方式  #强制指定注册IP
-      # 关键1：注册到Nacos的IP（微服务可访问的地址）
-      #更改seata注册配置顺序
-#      SEATA_IP: 192.168.1.5  # 替换为你的宿主机IP  ,注意顺序，要先把id改为宿主机，顺序很重要  宿主机公网IP或内网可达IP   直接连接宿主机IP
-      SEATA_PORT: 8091
-
-
-
-      #如果Nacos也在同一个Docker Compose中，那么NACOS_SERVER_ADDR可以使用服务名，比如nacos:8848，
-      #但需要确保Seata容器能够解析这个服务名。同时，由于Seata注册到Nacos的IP是宿主机的IP，所以OMS（在宿主机上）可以通过宿主机的IP访问。
-      #Seata注册到Nacos的地址是容器内部IP
-      #OMS从Nacos获取的是不可达地址
-
-      #我们面对的是混合部署环境：Seata Server和Nacos都在容器内，而微服务在容器外。需要解决两个关键问题：
-      #1.容器内的Seata Server需要正确注册到容器内的Nacos，且注册的地址需要能被容器外的微服务访问到。
-      #2.容器外的微服务需要能够通过Nacos发现Seata Server的地址，并且这个地址必须是微服务可访问的。
-
-      #配置Seata Server注册的IP（重要）
-      #1.由于Seata Server运行在容器内，默认会使用容器内部的IP（如172.17.0.x）注册到Nacos。这个IP在容器外部是不可访问的。
-      #因此，我们需要在启动Seata Server容器时，通过环境变量SEATA_IP指定一个宿主机IP（或者外部可访问的IP）。
-      #确保容器网络互通
-      #1.如果Nacos也在容器内，需要确保Seata Server和Nacos在同一个Docker网络，这样它们才能相互通信。
-      #同时，宿主机（运行外部微服务）需要能够访问到Nacos和Seata Server暴露的端口。
-
-      #外部微服务需要配置Nacos的地址，这个地址应该是宿主机IP（如果Nacos端口映射到了宿主机）或者Nacos容器的宿主机映射IP和端口。
-
-      #重要解释：
-      #- 外部微服务通过宿主机IP（192.168.0.107）和映射的端口8848访问Nacos。
-      #- 当微服务从Nacos获取Seata Server的地址时，Nacos返回的是Seata Server注册的IP（即我们在启动容器时指定的SEATA_IP=192.168.0.107）和端口8091。
-      #- 微服务就会向192.168.0.107:8091发送请求，这个请求会被路由到宿主机的8091端口，再由宿主机映射到Seata Server容器的8091端口。
-
-      #我们需要让Seata在注册到Nacos时，使用一个容器外微服务能够访问到的地址（即宿主机的地址+映射的端口）。
-      #同时，确保宿主机上的微服务能够访问到Nacos服务（因为Nacos也在容器内，所以同样需要暴露端口到宿主机）。
-
-      # Nacos 注册中心配置
-      SEATA_REGISTRY_TYPE: nacos   # 注意这里改为SEATA_REGISTRY_TYPE（注册类型）
-      SEATA_REGISTRY_NACOS_APPLICATION: aioveu-seata-prod
-      SEATA_REGISTRY_NACOS_SERVER_ADDR: nacos:8848   # Seata连接Nacos的地址 注册到Nacos的IP  # 容器内通信
-      SEATA_REGISTRY_NACOS_NAMESPACE: a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef  # 确保命名空间匹配
-      SEATA_REGISTRY_NACOS_GROUP: SEATA_GROUP
-      SEATA_REGISTRY_NACOS_CLUSTER: default
-      SEATA_REGISTRY_NACOS_USERNAME: nacos
-      SEATA_REGISTRY_NACOS_PASSWORD: nacos
-
-      #       Nacos 配置中心配置
-      SEATA_CONFIG_TYPE: nacos     # 配置中心类型
-      SEATA_CONFIG_NACOS_SERVER_ADDR: nacos:8848   #注册到Nacos的IP  # 容器内通信
-      SEATA_CONFIG_NACOS_NAMESPACE: a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef  # 确保命名空间匹配
-      SEATA_CONFIG_NACOS_GROUP: SEATA_GROUP
-      SEATA_CONFIG_NACOS_DATA_ID: seataServer.properties
-      SEATA_CONFIG_NACOS_USERNAME: nacos
-      SEATA_CONFIG_NACOS_PASSWORD: nacos
-
-      #使用注册中心  不配置grouplist，配置registry.conf
-      #重要提醒：在容器化部署时，确保服务端暴露的端口（8091）与客户端配置一致，且容器间网络互通。
-
-      # 添加宿主机IP映射
-      #      EXTRA_HOSTS: "host.docker.internal:host-gateway"
-
-      #OMS服务尝试直接连接Docker内部IP 172.19.0.4:8091，而OMS在宿主机运行，无法访问Docker网络。
-      #      SEATA_IP : host.docker.internal  # 关键设置
-
-      # 数据库驱动类路径设置
-      JAVA_OPTS: >-
-        -Dloader.path=/seata-server/lib
-        -Dlog.home=/root/logs/seata
-        -Xmx512m -Xms256m
-      #
-      #      # 等待依赖服务
-      WAIT_FOR_SERVICES: "mysql:3306 nacos:8848"
-      WAIT_TIMEOUT: 180
-
-    volumes:
-      #       挂载registry.conf，这样Seata会使用这个配置连接Nacos
-      - ./seata-prod/config/registry.conf:/seata-server/resources/registry.conf
-      #      - ./seata/config:/seata-server/resources  # 挂载自定义配置文件  # 挂载配置文件，其中包含registry.conf和file.conf
-      # 挂载MySQL驱动
-      #      - ./lib/mysql-connector-j-8.0.33.jar:/seata-server/lib/mysql-connector-java.jar
-      #       挂载日志目录
-      - ./seata-prod/logs:/root/logs/seata
-    ports:
-      - 8191:8091   # Seata服务端口  # 将宿主机的8092映射到容器的8091
-      - 7191:7091  # Seata控制台端口（1.7.1版本开始有控制台）
-    networks:
-      - aioveu-server
-    depends_on:
-      mysql:
-        condition: service_healthy
-      nacos:
-        condition: service_healthy
+#  seata-prod:
+#    # 升级到 2.0.0
+#    image: seataio/seata-server:2.0.0
+##    image: seataio/seata-server:1.7.1
+#    container_name: aioveu-seata-prod
+#    #    restart: unless-stopped #  指定了容器的重启策略，除了手动停止容器，其他情况都自动重启容器
+#    environment:
+#      # 使用宿主机网络模式
+#      #这是一个混合部署网络连接问题。你的Seata Server在Docker容器内，但微服务在宿主机上运行，导致网络不通。
+#      # 确保使用宿主机可访问的IP  当Seata注册到Nacos时，注册的IP地址决定微服务的连接方式  #强制指定注册IP
+#      # 关键1：注册到Nacos的IP（微服务可访问的地址）
+#      #更改seata注册配置顺序
+##      SEATA_IP: 192.168.1.5  # 替换为你的宿主机IP  ,注意顺序，要先把id改为宿主机，顺序很重要  宿主机公网IP或内网可达IP   直接连接宿主机IP
+#      SEATA_PORT: 8091
+#
+#
+#
+#      #如果Nacos也在同一个Docker Compose中，那么NACOS_SERVER_ADDR可以使用服务名，比如nacos:8848，
+#      #但需要确保Seata容器能够解析这个服务名。同时，由于Seata注册到Nacos的IP是宿主机的IP，所以OMS（在宿主机上）可以通过宿主机的IP访问。
+#      #Seata注册到Nacos的地址是容器内部IP
+#      #OMS从Nacos获取的是不可达地址
+#
+#      #我们面对的是混合部署环境：Seata Server和Nacos都在容器内，而微服务在容器外。需要解决两个关键问题：
+#      #1.容器内的Seata Server需要正确注册到容器内的Nacos，且注册的地址需要能被容器外的微服务访问到。
+#      #2.容器外的微服务需要能够通过Nacos发现Seata Server的地址，并且这个地址必须是微服务可访问的。
+#
+#      #配置Seata Server注册的IP（重要）
+#      #1.由于Seata Server运行在容器内，默认会使用容器内部的IP（如172.17.0.x）注册到Nacos。这个IP在容器外部是不可访问的。
+#      #因此，我们需要在启动Seata Server容器时，通过环境变量SEATA_IP指定一个宿主机IP（或者外部可访问的IP）。
+#      #确保容器网络互通
+#      #1.如果Nacos也在容器内，需要确保Seata Server和Nacos在同一个Docker网络，这样它们才能相互通信。
+#      #同时，宿主机（运行外部微服务）需要能够访问到Nacos和Seata Server暴露的端口。
+#
+#      #外部微服务需要配置Nacos的地址，这个地址应该是宿主机IP（如果Nacos端口映射到了宿主机）或者Nacos容器的宿主机映射IP和端口。
+#
+#      #重要解释：
+#      #- 外部微服务通过宿主机IP（192.168.0.107）和映射的端口8848访问Nacos。
+#      #- 当微服务从Nacos获取Seata Server的地址时，Nacos返回的是Seata Server注册的IP（即我们在启动容器时指定的SEATA_IP=192.168.0.107）和端口8091。
+#      #- 微服务就会向192.168.0.107:8091发送请求，这个请求会被路由到宿主机的8091端口，再由宿主机映射到Seata Server容器的8091端口。
+#
+#      #我们需要让Seata在注册到Nacos时，使用一个容器外微服务能够访问到的地址（即宿主机的地址+映射的端口）。
+#      #同时，确保宿主机上的微服务能够访问到Nacos服务（因为Nacos也在容器内，所以同样需要暴露端口到宿主机）。
+#
+#      # Nacos 注册中心配置
+#      SEATA_REGISTRY_TYPE: nacos   # 注意这里改为SEATA_REGISTRY_TYPE（注册类型）
+#      SEATA_REGISTRY_NACOS_APPLICATION: aioveu-seata-prod
+#      SEATA_REGISTRY_NACOS_SERVER_ADDR: nacos:8848   # Seata连接Nacos的地址 注册到Nacos的IP  # 容器内通信
+#      SEATA_REGISTRY_NACOS_NAMESPACE: a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef  # 确保命名空间匹配
+#      SEATA_REGISTRY_NACOS_GROUP: SEATA_GROUP
+#      SEATA_REGISTRY_NACOS_CLUSTER: default
+#      SEATA_REGISTRY_NACOS_USERNAME: nacos
+#      SEATA_REGISTRY_NACOS_PASSWORD: nacos
+#
+#      #       Nacos 配置中心配置
+#      SEATA_CONFIG_TYPE: nacos     # 配置中心类型
+#      SEATA_CONFIG_NACOS_SERVER_ADDR: nacos:8848   #注册到Nacos的IP  # 容器内通信
+#      SEATA_CONFIG_NACOS_NAMESPACE: a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef  # 确保命名空间匹配
+#      SEATA_CONFIG_NACOS_GROUP: SEATA_GROUP
+#      SEATA_CONFIG_NACOS_DATA_ID: seataServer.properties
+#      SEATA_CONFIG_NACOS_USERNAME: nacos
+#      SEATA_CONFIG_NACOS_PASSWORD: nacos
+#
+#      #使用注册中心  不配置grouplist，配置registry.conf
+#      #重要提醒：在容器化部署时，确保服务端暴露的端口（8091）与客户端配置一致，且容器间网络互通。
+#
+#      # 添加宿主机IP映射
+#      #      EXTRA_HOSTS: "host.docker.internal:host-gateway"
+#
+#      #OMS服务尝试直接连接Docker内部IP 172.19.0.4:8091，而OMS在宿主机运行，无法访问Docker网络。
+#      #      SEATA_IP : host.docker.internal  # 关键设置
+#
+#      # 数据库驱动类路径设置
+#      JAVA_OPTS: >-
+#        -Dloader.path=/seata-server/lib
+#        -Dlog.home=/root/logs/seata
+#        -Xmx512m -Xms256m
+#      #
+#      #      # 等待依赖服务
+#      WAIT_FOR_SERVICES: "mysql:3306 nacos:8848"
+#      WAIT_TIMEOUT: 180
+#
+#    volumes:
+#      #       挂载registry.conf，这样Seata会使用这个配置连接Nacos
+#      - ./seata-prod/config/registry.conf:/seata-server/resources/registry.conf
+#      #      - ./seata/config:/seata-server/resources  # 挂载自定义配置文件  # 挂载配置文件，其中包含registry.conf和file.conf
+#      # 挂载MySQL驱动
+#      #      - ./lib/mysql-connector-j-8.0.33.jar:/seata-server/lib/mysql-connector-java.jar
+#      #       挂载日志目录
+#      - ./seata-prod/logs:/root/logs/seata
+#    ports:
+#      - 8191:8091   # Seata服务端口  # 将宿主机的8092映射到容器的8091
+#      - 7191:7091  # Seata控制台端口（1.7.1版本开始有控制台）
+#    networks:
+#      - aioveu-server
+#    depends_on:
+#      mysql:
+#        condition: service_healthy
+#      nacos:
+#        condition: service_healthy
 
   redis:
     image: redis:7.2.3
@@ -431,133 +471,133 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
 #      mysql:
 #        condition: service_healthy
 ##
-  gateway:
-    image: aioveu-gateway:v1.1.1
-    container_name: aioveu-gateway
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-    ports:
-      - 6699:6666
-    networks:
-      - aioveu-server
-    depends_on:
-      - mysql
-      - redis
-      - nacos
+#  gateway:
+#    image: aioveu-gateway:v1.1.1
+#    container_name: aioveu-gateway
+##    build:
+##      context: .
+##      dockerfile: Dockerfile
+#    ports:
+#      - 6699:6666
+#    networks:
+#      - aioveu-server
+#    depends_on:
+#      - mysql
+#      - redis
+#      - nacos
 ##
-  auth:
-    image: aioveu-auth:v1.1.1
-    container_name: aioveu-auth
-    #    build:
-    #      context: .
-    #      dockerfile: Dockerfile
-#    ports:
-#      - 9898:9000
-    networks:
-      - aioveu-server
-    depends_on:
-      - mysql
-      - redis
-      - nacos
-      - gateway
+#  auth:
+#    image: aioveu-auth:v1.1.1
+#    container_name: aioveu-auth
+#    #    build:
+#    #      context: .
+#    #      dockerfile: Dockerfile
+##    ports:
+##      - 9898:9000
+#    networks:
+#      - aioveu-server
+#    depends_on:
+#      - mysql
+#      - redis
+#      - nacos
+#      - gateway
 #
-  lss:
-    image: aioveu-lss:v1.1.1
-    container_name: aioveu-lss
-    #    build:
-    #      context: .
-    #      dockerfile: Dockerfile
-#    ports:
-#      - 9999:9999
-    networks:
-      - aioveu-server
-    depends_on:
-      - mysql
-      - redis
-      - nacos
-      - gateway
-      - auth
+#  lss:
+#    image: aioveu-lss:v1.1.1
+#    container_name: aioveu-lss
+#    #    build:
+#    #      context: .
+#    #      dockerfile: Dockerfile
+##    ports:
+##      - 9999:9999
+#    networks:
+#      - aioveu-server
+#    depends_on:
+#      - mysql
+#      - redis
+#      - nacos
+#      - gateway
+#      - auth
 #
-  oms:
-    image: aioveu-oms:v1.1.1
-    container_name: aioveu-oms
-#    ports:
-#      - 8813:8803
-    networks:
-      - aioveu-server
-    depends_on:
-      - mysql
-      - redis
-      - nacos
-      - gateway
-      - auth
-      - lss
+#  oms:
+#    image: aioveu-oms:v1.1.1
+#    container_name: aioveu-oms
+##    ports:
+##      - 8813:8803
+#    networks:
+#      - aioveu-server
+#    depends_on:
+#      - mysql
+#      - redis
+#      - nacos
+#      - gateway
+#      - auth
+#      - lss
 #
-  pms:
-    image: aioveu-pms:v1.1.1
-    container_name: aioveu-pms
-#    ports:
-#      - 8812:8802
-    networks:
-      - aioveu-server
-    depends_on:
-      - mysql
-      - redis
-      - nacos
-      - gateway
-      - auth
-      - lss
-  sms:
-    image: aioveu-sms:v1.1.1
-    container_name: aioveu-sms
-#    ports:
-#      - 8814:8804
-    networks:
-      - aioveu-server
-    depends_on:
-      - mysql
-      - redis
-      - nacos
-      - gateway
-      - auth
-      - lss
+#  pms:
+#    image: aioveu-pms:v1.1.1
+#    container_name: aioveu-pms
+##    ports:
+##      - 8812:8802
+#    networks:
+#      - aioveu-server
+#    depends_on:
+#      - mysql
+#      - redis
+#      - nacos
+#      - gateway
+#      - auth
+#      - lss
+#  sms:
+#    image: aioveu-sms:v1.1.1
+#    container_name: aioveu-sms
+##    ports:
+##      - 8814:8804
+#    networks:
+#      - aioveu-server
+#    depends_on:
+#      - mysql
+#      - redis
+#      - nacos
+#      - gateway
+#      - auth
+#      - lss
 #
-  ums:
-    image: aioveu-ums:v1.1.1
-    container_name: aioveu-ums
-#    ports:
-#      - 8811:8801
-    networks:
-      - aioveu-server
-    depends_on:
-      - mysql
-      - redis
-      - nacos
-      - gateway
-      - auth
-      - lss
-#      - system
+#  ums:
+#    image: aioveu-ums:v1.1.1
+#    container_name: aioveu-ums
+##    ports:
+##      - 8811:8801
+#    networks:
+#      - aioveu-server
+#    depends_on:
+#      - mysql
+#      - redis
+#      - nacos
+#      - gateway
+#      - auth
+#      - lss
+##      - system
 
 
-  nginx-app:
-    image: nginx:1.24.0-alpine  # 使用具体版本
-    container_name: aioveu-nginx-app
-    #    restart: unless-stopped
-    volumes:
-            - ./aioveu-nginx-app/conf/nginx.conf:/etc/nginx/nginx.conf   #挂载主配置文件
-            - ./aioveu-nginx-app/html:/usr/share/nginx/html         #挂载网站文件
-            - ./aioveu-nginx-app/logs:/var/log/nginx/               #持久化存储日志
-            - ./aioveu-nginx-app/ssl:/etc/nginx/ssl                 #挂载SSL证书
-    ports:
-      - 1314:80 #表示将nginx容器的80端口映射到宿主机的1314端口。格式为宿主机端口:容器端口
-    networks:
-      - aioveu-server
-    depends_on:
-      - mysql
-      - redis
-      - nacos
-      - gateway
-      - auth
-      - lss
-#      - system
+#  nginx-app:
+#    image: nginx:1.24.0-alpine  # 使用具体版本
+#    container_name: aioveu-nginx-app
+#    #    restart: unless-stopped
+#    volumes:
+#            - ./aioveu-nginx-app/conf/nginx.conf:/etc/nginx/nginx.conf   #挂载主配置文件
+#            - ./aioveu-nginx-app/html:/usr/share/nginx/html         #挂载网站文件
+#            - ./aioveu-nginx-app/logs:/var/log/nginx/               #持久化存储日志
+#            - ./aioveu-nginx-app/ssl:/etc/nginx/ssl                 #挂载SSL证书
+#    ports:
+#      - 1314:80 #表示将nginx容器的80端口映射到宿主机的1314端口。格式为宿主机端口:容器端口
+#    networks:
+#      - aioveu-server
+#    depends_on:
+#      - mysql
+#      - redis
+#      - nacos
+#      - gateway
+#      - auth
+#      - lss
+##      - system

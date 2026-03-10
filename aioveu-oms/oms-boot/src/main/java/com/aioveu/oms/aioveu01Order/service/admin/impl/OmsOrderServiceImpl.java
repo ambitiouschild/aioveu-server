@@ -4,7 +4,11 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.model.form.OmsOrderForm;
+import com.aioveu.oms.aioveu01Order.model.vo.OrderDTO;
 import com.aioveu.oms.aioveu01Order.service.admin.OmsOrderService;
+import com.aioveu.oms.aioveu02OrderItem.model.entity.OmsOrderItem;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -14,10 +18,13 @@ import com.aioveu.oms.aioveu01Order.model.vo.OrderBO;
 import com.aioveu.oms.aioveu01Order.model.query.OrderPageQuery;
 import com.aioveu.oms.aioveu01Order.model.vo.OmsOrderPageVO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @Description: TODO Admin-订单业务实现类
@@ -27,6 +34,7 @@ import java.util.List;
  * @return:
  **/
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OmsOrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> implements OmsOrderService {
@@ -47,6 +55,47 @@ public class OmsOrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> i
                 queryParams);
 
         return omsOrderConverter.toVoPage(boPage);
+    }
+
+
+    /**
+     * 根据订单编号查询订单详情
+     *
+     * @param orderNo {@link }
+     * @return
+     */
+    @Override
+    public OmsOrder getOrderDetailByOrderNo(String orderNo) {
+
+        // 订单明细
+        OmsOrder order = this.getOne(new LambdaQueryWrapper<OmsOrder>()
+                .eq(OmsOrder::getOrderSn, orderNo)
+        );
+        return order;
+    }
+
+    /**
+     * 根据微信返回结果更新订单状态
+     *
+     * @param orderNo
+     * @param status
+     * @return
+     */
+    @Override
+    public boolean updateOrderStatusByWechatPay(String orderNo, Integer status) {
+
+        log.info("更新订单状态, orderNo: {}, status: {}", orderNo, status);
+
+        // 使用UpdateWrapper
+        UpdateWrapper<OmsOrder> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("order_sn", orderNo)  // WHERE条件
+                .set("status", status);
+
+        // 执行更新
+        boolean result = this.update(updateWrapper);
+        log.info("更新结果: {}", result);
+
+        return result;
     }
 
     /**

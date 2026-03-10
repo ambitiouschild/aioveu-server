@@ -7,6 +7,7 @@ import com.aioveu.pay.aioveu00Payment.service.PaymentService;
 import com.aioveu.pay.aioveuModule.model.vo.PaymentParamsVO;
 import com.aioveu.pay.aioveuModule.model.vo.PaymentRequestDTO;
 import com.aioveu.pay.aioveuModule.model.vo.PaymentResultVO;
+import com.aioveu.pay.aioveuModule.model.vo.PaymentStatusVO;
 import com.alibaba.fastjson.JSON;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -50,8 +51,22 @@ public class PaymentController {
     }
 
     /**
+     * 前端调用：查询支付状态 使用路径参数（推荐）
+     */
+    @Operation(summary ="前端调用：查询支付状态")
+    @GetMapping("/query/{orderNo}")
+    @Log( value = "前端调用：查询支付状态",module = LogModuleEnum.PAY)
+    public Result<PaymentStatusVO> queryPaymentStatus(@PathVariable String orderNo) {
+
+        PaymentStatusVO paymentStatusVO= paymentService.queryPaymentStatus(orderNo);
+        return Result.success(paymentStatusVO);
+    }
+
+    /**
      * 微信支付回调
+     * 微信回调：支付结果通知
      * 微信回调是XML格式
+     * 注意：这是微信主动调用的，不是前端调用的
      */
     @Operation(summary ="微信支付回调")
     @PostMapping("/callback/wechat")
@@ -77,6 +92,11 @@ public class PaymentController {
             return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[系统异常]]></return_msg></xml>";
         }
     }
+
+
+
+
+
 
     /**
      * 支付宝回调

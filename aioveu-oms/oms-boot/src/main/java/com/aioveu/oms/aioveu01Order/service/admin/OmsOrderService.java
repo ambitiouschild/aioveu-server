@@ -2,6 +2,7 @@ package com.aioveu.oms.aioveu01Order.service.admin;
 
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.model.form.OmsOrderForm;
+import com.aioveu.oms.aioveu01Order.model.vo.OrderDTO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.aioveu.oms.aioveu01Order.model.query.OrderPageQuery;
@@ -23,6 +24,25 @@ public interface OmsOrderService extends IService<OmsOrder> {
      * @return
      */
     IPage<OmsOrderPageVO> getOmsOrderPage(OrderPageQuery queryParams);
+
+    /**
+     * 根据订单编号查询订单详情
+     *
+     * @param orderNo {@link OrderPageQuery}
+     * @return
+     */
+    OmsOrder getOrderDetailByOrderNo(String orderNo);
+
+
+    /**
+     * 根据微信返回结果更新订单状态
+     *
+     * @param orderNo
+     * @param status
+     * @return
+     */
+    boolean updateOrderStatusByWechatPay(String orderNo, Integer status);
+
 
     /**
      * 获取订单详情表单数据

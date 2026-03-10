@@ -96,16 +96,16 @@ public class aioveuWeChatPayGeneratePayParamsUtil {
      */
     public String sign(String message) throws Exception {
         // 1. Mock环境判断
-        if (isMockEnvironment()) {
-            log.info("【Mock】生成模拟签名");
-            return generateMockSign(message);
-        }
-
-        // 2. 开发环境判断
-        if (isDevEnvironment() && !hasRealPrivateKey()) {
-            log.warn("【开发环境】使用测试私钥");
-            return generateTestSign(message);
-        }
+//        if (isMockEnvironment()) {
+//            log.info("【Mock】生成模拟签名");
+//            return generateMockSign(message);
+//        }
+//
+//        // 2. 开发环境判断
+//        if (isDevEnvironment() && !hasRealPrivateKey()) {
+//            log.warn("【开发环境】使用测试私钥");
+//            return generateTestSign(message);
+//        }
 
         // 3. 生产环境
         log.debug("【生产环境】生成真实签名");

@@ -39,7 +39,7 @@ public interface PayFeignClient {
      * 查询支付状态
      */
     @GetMapping("/query/{orderNo}")
-    Result<PaymentStatusVO> queryPayment(@PathVariable("orderNo") String orderNo);
+    Result<PaymentStatusVO> queryPaymentStatus(@PathVariable("orderNo") String orderNo);
 
     /**
      * 关闭支付

@@ -55,6 +55,13 @@ public interface PaymentService {
     Result<PaymentParamsVO> unifiedPayment(PaymentRequestDTO request);
 
     /**
+     * 前端调用：查询支付状态
+     *
+     * @return
+     */
+    PaymentStatusVO queryPaymentStatus(String orderNo);
+
+    /**
      * 处理支付回调
      *
      * @return

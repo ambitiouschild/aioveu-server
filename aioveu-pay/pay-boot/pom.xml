@@ -72,6 +72,11 @@
 
         <dependency>
             <groupId>com.aioveu</groupId>
+            <artifactId>oms-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
             <artifactId>common-mybatis</artifactId>
         </dependency>
 
@@ -125,6 +130,7 @@
             <artifactId>weixin-java-pay</artifactId>
 <!--            <version>4.5.0</version>-->
         </dependency>
+
 
     </dependencies>
 

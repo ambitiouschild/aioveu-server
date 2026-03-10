@@ -1,6 +1,7 @@
 package com.aioveu;
 
 
+import com.aioveu.order.api.OrderFeignClient;
 import com.aioveu.pms.api.SkuFeignClient;
 import com.aioveu.ums.api.MemberFeignClient;
 import org.springframework.boot.SpringApplication;
@@ -21,7 +22,11 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @SpringBootApplication
 @EnableDiscoveryClient
 @ConfigurationPropertiesScan
-@EnableFeignClients(basePackageClasses = { MemberFeignClient.class, SkuFeignClient.class})
+@EnableFeignClients(basePackageClasses = {
+        MemberFeignClient.class,
+        OrderFeignClient.class,
+        SkuFeignClient.class
+})
 public class aioveu_PayApplication {
     public static void main(String[] args) {
 

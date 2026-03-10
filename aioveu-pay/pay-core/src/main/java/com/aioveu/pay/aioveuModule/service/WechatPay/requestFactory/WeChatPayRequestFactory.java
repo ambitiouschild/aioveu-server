@@ -28,7 +28,8 @@ import java.math.BigDecimal;
 public class WeChatPayRequestFactory {
 
 
-    private static final int AMOUNT_MULTIPLIER = 100;
+    //如果前端已经传了分，那么AMOUNT_MULTIPLIER应该是1而不是100：
+    private static final int AMOUNT_MULTIPLIER = 1;
 
     /**
      * 创建JSAPI支付请求  构建JSAPI预支付请求
@@ -38,11 +39,15 @@ public class WeChatPayRequestFactory {
         com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest prepayRequest =
                 new com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest();
 
+        //微信支付新版SDK的Amount对象只有setTotal()方法，没有setCurrency()方法。这是因为新版本微信支付SDK（v0.2.7+）的设计有所不同。
         // 设置金额
         com.wechat.pay.java.service.payments.jsapi.model.Amount amount =
                 new com.wechat.pay.java.service.payments.jsapi.model.Amount();
         amount.setTotal(convertAmountToFen(request.getAmount()));
         prepayRequest.setAmount(amount);
+
+        // totalFee 单位是分（从数据库读取的）
+
 
         // 设置支付者（JSAPI特有）
         com.wechat.pay.java.service.payments.jsapi.model.Payer payer =
@@ -155,6 +160,12 @@ public class WeChatPayRequestFactory {
      * 金额转换：元转分
      */
     private int convertAmountToFen(BigDecimal amount) {
+
+
+        if (amount == null) {
+            throw new IllegalArgumentException("金额不能为空");
+        }
+
         return amount.multiply(BigDecimal.valueOf(AMOUNT_MULTIPLIER)).intValue();
     }
 

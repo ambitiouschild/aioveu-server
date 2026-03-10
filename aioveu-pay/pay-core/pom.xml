@@ -72,7 +72,7 @@
         <dependency>
             <groupId>com.github.wechatpay-apiv3</groupId>
             <artifactId>wechatpay-java</artifactId>
-            <version>0.2.17</version>
+            <version>0.2.17</version>  <!-- 推荐使用最新稳定版 -->
         </dependency>
 
 
