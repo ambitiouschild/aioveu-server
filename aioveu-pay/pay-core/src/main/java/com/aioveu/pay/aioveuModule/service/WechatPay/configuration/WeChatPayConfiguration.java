@@ -26,13 +26,14 @@ import java.util.Base64;
  *                      创建微信支付的服务客户端
  *                      处理支付回调、签名验证等
  *                      作用：Spring配置，创建和管理Bean
+ *                      弃用，不要生效
  * @Author 可我不敌可爱
  * @Author 雒世松
  * @Date 2026/2/10 18:36
  * @Version 1.0
  **/
 
-@Configuration
+//@Configuration
 @Slf4j
 public class WeChatPayConfiguration {
 
@@ -206,6 +207,23 @@ public class WeChatPayConfiguration {
                             .merchantSerialNumber(merchantSerialNumber)
                             .apiV3Key(wechatPayConfig.getApiV3Key())
                             .build();
+
+            //微信支付 V3 版本自 2025 年起‌不再支持新商户申请平台证书‌，而是强制或推荐使用‌微信支付公钥‌进行验签和敏感信息解密
+//            return new com.wechat.pay.java.core.RSAPublicKeyConfig.Builder()
+//                    .merchantId(mchId)     // 商户号
+//
+//                    //----------------------
+////                    .privateKeyFromPath(privateKeyPath) // 商户私钥路径
+//                    .privateKey(privateKey)   // 商户私钥
+//
+//                    //----------------------
+//                    .publicKeyId(wechatpayPublicKeyId)          // 公钥ID
+////                    .publicKeyFromPath(wechatpayPublicKeyPath)   // 微信支付公钥路径
+//                    .publicKey(wechatpayPublicKey)    // 公钥
+//                    //----------------------
+//                    .merchantSerialNumber(mchSerialNo)  //（商户证书序列号）为空
+//                    .apiV3Key(apiV3Key)   //apiV3Key
+//                    .build();
 
             return config;
         } catch (Exception e) {
