@@ -22,6 +22,22 @@ public interface JwtClaimConstants {
      */
     String DATA_SCOPE = "dataScope";
 
+
+    /**
+     * 数据权限
+     */
+    String DATA_SCOPES = "dataScopes";
+
+    /**
+     * 租户ID
+     */
+    String TENANT_ID= "tenant_id";
+
+    /**
+     * 是否可以切换租户
+     */
+    String CAN_SWITCH_TENANT= "can_switch_tenant";
+
     /**
      * 权限(角色Code)集合
      */

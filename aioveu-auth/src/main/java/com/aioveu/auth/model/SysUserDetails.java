@@ -163,6 +163,7 @@ public class SysUserDetails implements UserDetails, CredentialsContainer {
         this.setPassword("{bcrypt}" + user.getPassword());
         this.enabled = ObjectUtil.equal(user.getStatus(), 1);
         this.deptId = user.getDeptId();
+        this.dataScope = user.getDataScope();
         this.dataScopes = user.getDataScopes();
         this.tenantId = user.getTenantId();
         this.canSwitchTenant = user.getCanSwitchTenant();

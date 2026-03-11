@@ -217,6 +217,8 @@ public class UserController {
     @GetMapping("/me")
     @Log(value = "获取当前登录用户信息", module = LogModuleEnum.USER)
     public Result<CurrentUserDTO> getCurrentUser() {
+
+        log.info("获取当前登录用户信息：{}");
         CurrentUserDTO currentUserDto = userService.getCurrentUserInfo();
         return Result.success(currentUserDto);
     }

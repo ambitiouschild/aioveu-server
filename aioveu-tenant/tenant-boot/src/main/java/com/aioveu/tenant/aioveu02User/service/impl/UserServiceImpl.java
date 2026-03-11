@@ -322,13 +322,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return null;
         }
 
+        //这里的userAuthInfoWithTenantId是唯一的
+        log.info("这里的userAuthInfoWithTenantId是唯一的");
+
         if (userAuthInfoWithTenantId != null) {
             Set<String> roles = userAuthInfoWithTenantId.getRoles();
             // 获取角色的数据权限列表（支持多角色并集）
             List<RoleDataScope> dataScopes = roleService.getRoleDataScopes(roles);
+
+            // 注意：这里假设所有角色的dataScope是一致的，如果不一致需要根据业务逻辑调整
+            if (dataScopes != null && !dataScopes.isEmpty()) {
+                // 获取dataScope属性值
+                // 这里假设RoleDataScope有getDataScope()方法
+                Integer dataScopeValue = dataScopes.get(0).getDataScope();
+                userAuthInfoWithTenantId.setDataScope(dataScopeValue);
+            }
             userAuthInfoWithTenantId.setDataScopes(dataScopes);
             userAuthInfoWithTenantId.setCanSwitchTenant(resolveCanSwitchTenant(roles));
         }
+
+        log.info("构建的租户认证信息：{}",userAuthInfoWithTenantId);
         return userAuthInfoWithTenantId;
     }
 
@@ -621,10 +634,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         boolean canSwitchTenant = SecurityUtils.canSwitchTenant();
 
         log.info("是否可切换租户：{}",canSwitchTenant);
+
         Long oldTenantId = TenantContextHolder.getTenantId();
+        log.info("TenantContextHolder获取当前租户id：{}",oldTenantId);
 
-        log.info("获取当前租户id：{}",oldTenantId);
-
+        Long tenantId = SecurityUtils.getTenantId();
+        log.info("SecurityUtils 获取当前租户id：{}",tenantId);
         boolean oldIgnoreTenant = TenantContextHolder.isIgnoreTenant();
         log.info("是否忽略租户：{}",oldIgnoreTenant);
 
@@ -638,7 +653,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             log.info("增加租户ID筛选：{}",oldTenantId);
             user = this.getOne(new LambdaQueryWrapper<User>()
                     .eq(User::getUsername, username)
-                    .eq(User::getTenantId, oldTenantId)
+                    .eq(User::getTenantId, tenantId)
                     .select(
                             User::getId,
                             User::getUsername,

@@ -221,29 +221,29 @@ public class SecurityUtils {
 
         // 检查是否为JWT认证令牌
         if (authentication instanceof JwtAuthenticationToken jwtAuthenticationToken) {
-            log.info("✅ 是JwtAuthenticationToken");
+//            log.info("✅ 是JwtAuthenticationToken");
 
             // 获取token属性
             Map<String, Object> tokenAttributes = jwtAuthenticationToken.getTokenAttributes();
 
             // 调试：打印所有属性
-            log.info("Token Attributes 数量: {}", tokenAttributes != null ? tokenAttributes.size() : 0);
+//            log.info("Token Attributes 数量: {}", tokenAttributes != null ? tokenAttributes.size() : 0);
 
             if (tokenAttributes != null && !tokenAttributes.isEmpty()) {
-                log.info("=== Token Attributes 详情 ===");
+//                log.info("=== Token Attributes 详情 ===");
                 for (Map.Entry<String, Object> entry : tokenAttributes.entrySet()) {
-                    log.info("  {} = {} (类型: {})",
-                            entry.getKey(),
-                            entry.getValue(),
-                            entry.getValue() != null ? entry.getValue().getClass().getSimpleName() : "null");
+//                    log.info("  {} = {} (类型: {})",
+//                            entry.getKey(),
+//                            entry.getValue(),
+//                            entry.getValue() != null ? entry.getValue().getClass().getSimpleName() : "null");
                 }
-                log.info("=== 详情结束 ===");
+//                log.info("=== 详情结束 ===");
 
                 // 特别检查 can_switch_tenant
                 Object canSwitchTenant = tokenAttributes.get("can_switch_tenant");
-                log.info("特别检查 - can_switch_tenant: {} (存在: {})",
-                        canSwitchTenant,
-                        tokenAttributes.containsKey("can_switch_tenant"));
+//                log.info("特别检查 - can_switch_tenant: {} (存在: {})",
+//                        canSwitchTenant,
+//                        tokenAttributes.containsKey("can_switch_tenant"));
             } else {
                 log.info("Token Attributes 为空或null");
             }
@@ -345,6 +345,20 @@ public class SecurityUtils {
             Long deptId = (Long) tokenAttributes.get("deptId");
             log.info("SecurityUtils获取当前用户所属的部门ID:{}", deptId);
             return Convert.toLong(tokenAttributes.get("deptId"));
+        }
+        return null;
+    }
+
+    /*
+    * 获取租户ID
+    * */
+    public static Long getTenantId() {
+        Map<String, Object> tokenAttributes = getTokenAttributes();
+        if (tokenAttributes != null) {
+
+            Long tenantId = (Long) tokenAttributes.get("tenant_id");
+            log.info("SecurityUtils获取当前租户ID:{}", tenantId);
+            return tenantId;
         }
         return null;
     }

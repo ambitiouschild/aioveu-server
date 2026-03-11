@@ -3,6 +3,8 @@ package com.aioveu.auth.config;
 import com.aioveu.auth.model.MemberDetails;
 import com.aioveu.common.constant.JwtClaimConstants;
 import com.aioveu.auth.model.SysUserDetails;
+import com.alibaba.nacos.common.utils.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
  * @return:
  **/
 
+@Slf4j
 @Configuration
 public class JwtTokenCustomizerConfig {
 
@@ -40,18 +43,72 @@ public class JwtTokenCustomizerConfig {
                     JwtClaimsSet.Builder claims = context.getClaims();
                     if (principal instanceof SysUserDetails userDetails) { // 系统用户添加自定义字段
 
-                        claims.claim(JwtClaimConstants.USER_ID, userDetails.getUserId());
-                        claims.claim(JwtClaimConstants.USERNAME, userDetails.getUsername());
-                        claims.claim(JwtClaimConstants.DEPT_ID, userDetails.getDeptId());
-                        claims.claim(JwtClaimConstants.DATA_SCOPE, userDetails.getDataScope());
+                        // 调试日志
+                        log.info("用户详情字段值: userId={}, username={}, deptId={}, dataScope={}, dataScopes={}, tenantId={}, canSwitchTenant={}",
+                                userDetails.getUserId(),
+                                userDetails.getUsername(),
+                                userDetails.getDeptId(),
+                                userDetails.getDataScope(),
+                                userDetails.getDataScopes(),
+                                userDetails.getTenantId(),
+                                userDetails.getCanSwitchTenant());
 
-                        //数据权限列表
-                        claims.claim(JwtClaimConstants.DATA_SCOPES, userDetails.getDataScopes());
-                        //租户ID
-                        claims.claim(JwtClaimConstants.TENANT_ID, userDetails.getTenantId());
+                        log.info("建议使用第一个方案（简单直接的if判断），因为它最清晰易懂，也最容易调试。");
+                        // 用户ID - 必须有值
+                        if (userDetails.getUserId() != null) {
+                            claims.claim(JwtClaimConstants.USER_ID, userDetails.getUserId());
+                        } else {
+                            log.info("用户ID为空，跳过添加到JWT");
+                        }
 
-                        //是否可以切换租户
-                        claims.claim(JwtClaimConstants.CAN_SWITCH_TENANT, userDetails.getCanSwitchTenant());
+                        // 用户名 - 必须有值
+                        if (StringUtils.hasText(userDetails.getUsername())) {
+                            claims.claim(JwtClaimConstants.USERNAME, userDetails.getUsername());
+                        } else {
+                            log.info("用户名为空，跳过添加到JWT");
+                        }
+
+                        // 部门ID - 可以为空
+                        if (userDetails.getDeptId() != null) {
+                            claims.claim(JwtClaimConstants.DEPT_ID, userDetails.getDeptId());
+                        }
+
+                        // 数据权限 - 可以为空，但建议设置默认值
+                        if (userDetails.getDataScope() != null) {
+                            claims.claim(JwtClaimConstants.DATA_SCOPE, userDetails.getDataScope());
+                        } else {
+                            // 如果业务允许，可以设置默认值
+//                            claims.claim(JwtClaimConstants.DATA_SCOPE, 0);
+                            log.info("dataScope为空，跳过添加到JWT,或者使用默认值: 0");
+                        }
+
+                        // 数据权限列表 - 可以为空
+                        if (userDetails.getDataScopes() != null && !userDetails.getDataScopes().isEmpty()) {
+                            claims.claim(JwtClaimConstants.DATA_SCOPES, userDetails.getDataScopes());
+                        }else {
+                            // 如果业务允许，可以设置默认值
+//                            claims.claim(JwtClaimConstants.DATA_SCOPE, 0);
+                            log.info("数据权限列表为空，跳过添加到JWT");
+                        }
+
+
+                        // 租户ID - 必须要有值，但可以是默认值
+                        if (userDetails.getTenantId() != null) {
+                            claims.claim(JwtClaimConstants.TENANT_ID, userDetails.getTenantId());
+                        } else {
+                            // 设置默认租户ID
+//                            claims.claim(JwtClaimConstants.TENANT_ID, 0L);
+                            log.info("tenantId为空，跳过添加到JWT,或者使用默认值: 0");
+                        }
+
+                        // 是否可以切换租户 - 可以为空
+                        if (userDetails.getCanSwitchTenant() != null) {
+                            claims.claim(JwtClaimConstants.CAN_SWITCH_TENANT, userDetails.getCanSwitchTenant());
+                        } else {
+                            // 默认不能切换租户
+//                            claims.claim(JwtClaimConstants.CAN_SWITCH_TENANT, false);
+                            log.info("canSwitchTenant为空，跳过添加到JWT,或者使用默认值: false");
+                        }
 
 
                         // 这里存入角色至JWT，解析JWT的角色用于鉴权的位置: ResourceServerConfig#jwtAuthenticationConverter
