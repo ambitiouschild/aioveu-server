@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/aioveu-sms/sms-boot/src/main/resources/sql/1add.aioveu_Mall_Lss_sms.sms_home_category.20260304.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/aioveu-sms/sms-boot/src/main/resources/sql/2add.aioveu_Mall_Lss_sms.sms_home_advert.20260304.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/aioveuMallLss/260310.sys_user_ADD_open_id.sql" dialect="MySQL" />
+  </component>
+</project>

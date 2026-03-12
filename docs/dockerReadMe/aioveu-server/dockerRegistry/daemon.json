@@ -1,0 +1,23 @@
+
+
+{
+  "registry-mirrors": [
+
+    "https://registry.cn-hangzhou.aliyuncs.com",  //阿里云镜像源 (registry.cn-hangzhou.aliyuncs.com) 是私有仓库地址，不是公共镜像加速器！
+    "https://registry.huaweicloud.com",
+    "https://c1r17879.mirror.aliyuncs.com",
+    "https://mirror.ccs.tencentyun.com",
+    "https://hub-mirror.c.163.com",
+    "https://mirror.baidubce.com",
+    "https://registry.docker-cn.com",
+    "https://docker.mirrors.ustc.edu.cn"
+  ],
+  "builder": {
+    "gc": {
+      "defaultKeepStorage": "5GB",
+      "enabled": true
+    }
+  },
+  "experimental": false
+}
+
