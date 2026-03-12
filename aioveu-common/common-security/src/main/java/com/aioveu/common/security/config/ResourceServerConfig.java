@@ -20,6 +20,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -82,11 +83,18 @@ import java.util.List;
  * @return:
  **/
 
+/*
+* 冲突原因：
+@ConfigurationProperties：用于属性绑定，将 application.yml中的属性注入到类中
+@Configuration：用于配置类，定义 Spring Beans
+这两个注解的目的不同，不应该同时用在同一个类上。
+*
+* */
 
 // 从application.yml中读取security前缀的配置
-@ConfigurationProperties(prefix = "security")
+@ConfigurationProperties(prefix = "security")   // ❌ 属性绑定类
 // 翻译：类被标记为@ConstructorBinding，但又被定义为Spring组件
-@Configuration   // 标记为配置类
+//@Configuration   // 标记为配置类 // ❌ 配置类
 @EnableWebSecurity   // 启用Spring Security Web安全支持
 @EnableMethodSecurity    // 启用方法级安全注解（如@PreAuthorize）
 @RequiredArgsConstructor   // Lombok注解，自动注入final字段
@@ -101,7 +109,14 @@ public class ResourceServerConfig {
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
 
-    private TokenManagerService tokenManagerService;
+    /**
+     * 创建黑名单检查过滤器  集成到 Spring Security
+     * 方案A：让 Spring 自动管理过滤器（推荐）
+     * 步骤1：移除 @Bean配置，让 Spring 自动管理
+     *
+     */
+    //步骤3：在 SecurityConfig中注入过滤器
+    private final JwtBlacklistFilter jwtBlacklistFilter;  // ✅ 自动注入
 
     /**
      * 白名单路径列表 - 从配置文件动态注入
@@ -141,6 +156,7 @@ public class ResourceServerConfig {
         log.info("whitelist path:{}", JSONUtil.toJsonStr(whitelistPaths));
 
         // 配置HTTP请求授权规则
+        //在 Spring Security 配置中，授权规则的顺序很重要
         http.authorizeHttpRequests((requests) ->
                         {
                             // 配置白名单路径 - 这些路径不需要认证即可访问
@@ -157,6 +173,10 @@ public class ResourceServerConfig {
                 )
                 // 禁用CSRF防护 - 对于REST API通常不需要CSRF保护
                 .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtBlacklistFilter, BearerTokenAuthenticationFilter.class);  // ✅ 使用注入的过滤器
+
+
         ;
         // 配置OAuth2资源服务器（JWT令牌认证）
         // 你的代码中没有显式配置JwtDecoder
@@ -171,6 +191,7 @@ public class ResourceServerConfig {
                                 .accessDeniedHandler(accessDeniedHandler)
                 // 没有配置issuer-uri或jwk-set-uri
         );
+
         return http.build();
     }
 
@@ -320,35 +341,9 @@ public class ResourceServerConfig {
 
     //------------------------验证JWT时检查黑名单！----集成到 Spring Security------------------------------------
 
-    /*
-    *  创建自定义 JWT 验证器
-    * */
-    @Bean
-    public SecurityFilterChain resourceServerFilterChain(HttpSecurity http) throws Exception {
-
-        // 添加黑名单检查过滤器
-        http.addFilterBefore(jwtBlacklistFilter(), BearerTokenAuthenticationFilter.class);
-
-        http.authorizeHttpRequests(authz -> authz
-                        .anyRequest().authenticated()
-                )
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter()) //自定义JWT认证转换器
-                        )
-                );
-
-        return http.build();
-    }
 
 
-    /**
-     * 创建黑名单检查过滤器  集成到 Spring Security
-     */
-    @Bean
-    public JwtBlacklistFilter jwtBlacklistFilter() {
-        return new JwtBlacklistFilter(tokenManagerService);
-    }
+
 
 
 }

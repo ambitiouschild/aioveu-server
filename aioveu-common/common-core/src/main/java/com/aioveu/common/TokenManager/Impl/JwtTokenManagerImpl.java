@@ -61,7 +61,7 @@ public class JwtTokenManagerImpl implements TokenManagerService {
         if (token.startsWith(SecurityConstants.BEARER_TOKEN_PREFIX)) {
             token = token.substring(SecurityConstants.BEARER_TOKEN_PREFIX.length());
         }
-        log.info("【JWT Token管理器】1. 令牌吊销功能 ✅");
+        log.info("【JWT Token管理器】令牌吊销功能 ✅");
 
 
         try {
@@ -71,9 +71,9 @@ public class JwtTokenManagerImpl implements TokenManagerService {
             Integer expirationAt = payloads.getInt(JWTPayload.EXPIRES_AT);
 
             revokeTokenByJti(jti, expirationAt);
-            log.info("【JWT Token 管理器】将令牌加入黑名单, jti={}", jti);
+            log.info("【JWT Token管理器】将令牌加入黑名单, jti={}", jti);
         } catch (Exception e) {
-            log.error("吊销令牌失败", e);
+            log.error("【JWT Token管理器】吊销令牌失败", e);
         }
     }
 
@@ -131,7 +131,7 @@ public class JwtTokenManagerImpl implements TokenManagerService {
     private void revokeTokenByJti(String jti, Integer expirationAt) {
         // ✅ 正确：检查是否没有内容
         if (!StringUtils.hasText(jti)) {
-            log.warn("jti为空，无法加入黑名单");
+            log.warn("【JWT Token管理器】jti为空，无法加入黑名单");
             return;
         }
 
@@ -140,18 +140,18 @@ public class JwtTokenManagerImpl implements TokenManagerService {
         if (expirationAt != null) {
             int currentTimeSeconds = Convert.toInt(System.currentTimeMillis() / 1000);
             if (expirationAt < currentTimeSeconds) {
-                log.info("令牌已过期，无需加入黑名单: jti={}", jti);
+                log.info("【JWT Token管理器】令牌已过期，无需加入黑名单: jti={}", jti);
                 return;  // 已过期，不需要加入黑名单
             }
             int expirationIn = expirationAt - currentTimeSeconds;
             redisTemplate.opsForValue().set(revokedJtiKey, Boolean.TRUE, expirationIn, TimeUnit.SECONDS);
 
-            log.info("令牌加入黑名单，设置TTL: jti={}, TTL={}秒", jti, expirationIn);
+            log.info("【JWT Token管理器】令牌加入黑名单，设置TTL: jti={}, TTL={}秒", jti, expirationIn);
 
         } else {
             redisTemplate.opsForValue().set(revokedJtiKey, Boolean.TRUE);
 
-            log.info("令牌加入黑名单，无TTL: jti={}", jti);
+            log.info("【JWT Token管理器】令牌加入黑名单，无TTL: jti={}", jti);
         }
     }
 
