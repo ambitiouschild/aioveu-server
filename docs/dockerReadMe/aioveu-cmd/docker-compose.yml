@@ -14,9 +14,9 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - LANG= en_US.UTF-8
       - MYSQL_ROOT_PASSWORD=775825 #设置 root 用户的密码
     volumes:  #这是因为MySQL出于安全考虑，忽略全局可写的配置文件。 chmod 644 mysql/conf/my.cnf
-      - ./mysql/conf/my.cnf:/etc/mysql/conf.d/my.cnf # 挂载 my.cnf 文件到容器的指定路径  # 确保宿主机上的配置文件权限是644
-      - ./mysql/data:/var/lib/mysql # 持久化 MySQL 数据
-      - ../sql/mysql8:/docker-entrypoint-initdb.d # 初始化 SQL 脚本目录
+      - ../../docker/mysql/conf/my.cnf:/etc/mysql/conf.d/my.cnf # 挂载 my.cnf 文件到容器的指定路径  # 确保宿主机上的配置文件权限是644
+      - ../../docker/mysql/data:/var/lib/mysql # 持久化 MySQL 数据
+#      - ../sql/mysql8:/docker-entrypoint-initdb.d # 初始化 SQL 脚本目录
     ports:
       - 3308:3306 # 暴露 3306 端口
     networks:
@@ -126,10 +126,10 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       #如果你想要使用MySQL，那么需要配置以下环境变量（在standalone模式下也可以使用MySQL）
 
     volumes: # 挂载关键配置文件
-      - ./nacos/datadir:/home/nacos/data  #删除挂载的./nacos/datadir目录（或者确保目录为空）非常重要。
-#      - ./nacos/conf:/home/nacos/conf/application.properties:/home/nacos/application.properties:ro  #./nacos/conf/application.properties目录中有正确的配置（如果之前没有配置，可以暂时不挂载，让Nacos使用默认配置启动）
-      - ./nacos/logs:/home/nacos/logs
-      - ./nacos/wait-for-mysql.sh:/wait-for-mysql.sh  # 挂载等待脚本
+      - ../../docker/nacos/datadir:/home/nacos/data  #删除挂载的./nacos/datadir目录（或者确保目录为空）非常重要。
+#      - ../../docker/nacos/conf:/home/nacos/conf/application.properties:/home/nacos/application.properties:ro  #./nacos/conf/application.properties目录中有正确的配置（如果之前没有配置，可以暂时不挂载，让Nacos使用默认配置启动）
+      - ../../docker/nacos/logs:/home/nacos/logs
+      - ../../docker/nacos/wait-for-mysql.sh:/wait-for-mysql.sh  # 挂载等待脚本
     ports:
       - 8848:8848
       - 9848:9848  # 必须暴露9848端口
@@ -242,12 +242,12 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
 
     volumes:
 #       挂载registry.conf，这样Seata会使用这个配置连接Nacos
-#      - ./seata/config/registry.conf:/seata-server/resources/registry.conf
-#      - ./seata/config:/seata-server/resources  # 挂载自定义配置文件  # 挂载配置文件，其中包含registry.conf和file.conf
+#      - ../../docker/seata/config/registry.conf:/seata-server/resources/registry.conf
+#      - ../../docker/seata/config:/seata-server/resources  # 挂载自定义配置文件  # 挂载配置文件，其中包含registry.conf和file.conf
       # 挂载MySQL驱动
-#      - ./lib/mysql-connector-j-8.0.33.jar:/seata-server/lib/mysql-connector-java.jar
+#      - ../../docker/lib/mysql-connector-j-8.0.33.jar:/seata-server/lib/mysql-connector-java.jar
 #       挂载日志目录
-      - ./seata/logs:/root/logs/seata
+      - ../../docker/seata/logs:/root/logs/seata
     ports:
       - 8091:8091   # Seata服务端口  # 将宿主机的8092映射到容器的8091
       - 7091:7091  # Seata控制台端口（1.7.1版本开始有控制台）
@@ -386,8 +386,8 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
     environment:
       - TZ=Asia/Shanghai
     volumes:
-      - ./redis/data:/data
-      - ./redis/config/redis.conf:/etc/redis/redis.conf
+      - ../../docker/redis/data:/data
+      - ../../docker/redis/config/redis.conf:/etc/redis/redis.conf
     ports:
       - 6380:6379
     networks:
@@ -420,8 +420,8 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - MINIO_ROOT_USER=minioadminlss
       - MINIO_ROOT_PASSWORD=minioadminlss
     volumes:
-      - ./minio/data:/data
-      - ./minio/config:/root/.minio
+      - ../../docker/minio/data:/data
+      - ../../docker/minio/config:/root/.minio
     networks:
       - aioveu-server
 
