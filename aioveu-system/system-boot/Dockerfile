@@ -1,6 +1,12 @@
 # 基础镜像
 FROM aioveu-17-jdk-slim
 
+
+# 设置 UTF-8 编码环境 方案一：在 Dockerfile 中显式指定 UTF-8 环境（推荐）
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8
+
 # 维护者信息
 LABEL maintainer="ambitiouschild@qq.com"
 
@@ -8,6 +14,7 @@ LABEL maintainer="ambitiouschild@qq.com"
 # 替换为 apt-get 命令
 RUN apt-get update \
     && apt-get install -y --no-install-recommends tzdata fonts-dejavu fontconfig \
+    && apt-get install -y locales && locale-gen en_US.UTF-8 \
     && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && echo "Asia/Shanghai" > /etc/timezone \
     && apt-get clean \

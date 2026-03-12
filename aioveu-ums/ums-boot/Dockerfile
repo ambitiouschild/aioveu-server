@@ -1,13 +1,24 @@
 # 基础镜像
 FROM aioveu-17-jdk-slim
 
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8
+
 # 维护者信息
 LABEL maintainer="ambitiouschild@qq.com"
+LABEL project="aioveu-ums"
+
+# 版本 5.2.0：支持小程序上架
+LABEL version="v5.2.0"
+LABEL release-notes="支持小程序上架"
+LABEL changelog="支持小程序上架"
 
 #方案一：如果您使用的是 Debian/Ubuntu 基础镜像
 # 替换为 apt-get 命令
 RUN apt-get update \
     && apt-get install -y --no-install-recommends tzdata fonts-dejavu fontconfig \
+    && apt-get install -y locales && locale-gen en_US.UTF-8 \
     && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && echo "Asia/Shanghai" > /etc/timezone \
     && apt-get clean \

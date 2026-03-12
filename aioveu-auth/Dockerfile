@@ -27,7 +27,23 @@ FROM aioveu-17-jdk-slim
 
 # 维护者信息 替换弃用的 MAINTAINER
 #MAINTAINER aioveu <ambitiouschild@qq.com>
+# 设置 UTF-8 编码环境 方案一：在 Dockerfile 中显式指定 UTF-8 环境（推荐）
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8
+
 LABEL maintainer="ambitiouschild@qq.com"
+LABEL project="aioveu-auth"
+
+# 版本 5.2.0：支持小程序上架
+LABEL version="v5.2.0"
+LABEL release-notes="支持小程序上架"
+LABEL changelog="支持小程序上架"
+
+# 版本 3.1.2：修复分类跳转 Bug
+# LABEL version="v3.1.2"
+# LABEL release-notes="修复分类跳转路径丢失问题，优化 SQL 查询性能"
+# LABEL changelog="修改 CodegenServiceImpl，修复 TemplateUtil 依赖缺失问题"
 
 
 #Dockerfile 中 RUN 指令使用 \ 续行符时，后续行不能为空行**（或仅含空格）。您的命令中可能在 && 和下一行之间存在多余空行。
@@ -61,8 +77,10 @@ LABEL maintainer="ambitiouschild@qq.com"
 #----------------------------------------------------------
 #方案一：如果您使用的是 Debian/Ubuntu 基础镜像
 # 替换为 apt-get 命令
+# 如果是 Debian/Ubuntu 基础镜像，可能需要安装 locales 包
 RUN apt-get update \
     && apt-get install -y --no-install-recommends tzdata fonts-dejavu fontconfig \
+    && apt-get install -y locales && locale-gen en_US.UTF-8 \
     && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && echo "Asia/Shanghai" > /etc/timezone \
     && apt-get clean \
