@@ -3,16 +3,15 @@ package com.aioveu.tenant.aioveu02User.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.common.TokenManager.TokenManagerService;
 import com.aioveu.common.constant.RedisConstants;
 import com.aioveu.common.constant.SystemConstants;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.model.Option;
 import com.aioveu.common.security.model.RoleDataScope;
-import com.aioveu.common.security.model.UserAuthCredentials;
 import com.aioveu.common.security.model.UserAuthInfoWithTenantId;
 import com.aioveu.common.security.service.PermissionService;
 import com.aioveu.common.security.util.SecurityUtils;
-import com.aioveu.common.security.validator.ServiceTokenValidator;
 import com.aioveu.common.sms.enmus.SmsTypeEnum;
 import com.aioveu.common.sms.service.SmsService;
 import com.aioveu.common.tenant.TenantContextHolder;
@@ -38,8 +37,6 @@ import com.aioveu.tenant.aioveu13Mail.service.MailService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -82,7 +79,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     private final StringRedisTemplate redisTemplate;
 
-    private final ServiceTokenValidator serviceTokenValidator;
+    private final TokenManagerService tokenManagerService;
 
     private final DictItemService dictItemService;
 
@@ -772,7 +769,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         if (result) {
             // 密码变更后，使当前用户的所有会话失效，强制重新登录
-            serviceTokenValidator.invalidateUserSessions(userId);
+            tokenManagerService.invalidateUserSessions(userId);
         }
         return result;
     }
@@ -792,7 +789,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         );
         if (result) {
             // 管理员重置用户密码后，使该用户的所有会话失效
-            serviceTokenValidator.invalidateUserSessions(userId);
+            tokenManagerService.invalidateUserSessions(userId);
         }
         return result;
     }

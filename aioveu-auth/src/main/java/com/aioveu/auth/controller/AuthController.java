@@ -1,6 +1,7 @@
 package com.aioveu.auth.controller;
 
 import com.aioveu.auth.model.CaptchaResult;
+import com.aioveu.auth.model.SysUserDetails;
 import com.aioveu.auth.service.AuthService;
 import com.aioveu.common.annotation.Log;
 import com.aioveu.common.enums.LogModuleEnum;
@@ -11,8 +12,12 @@ import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
 import com.alibaba.nacos.client.naming.utils.CollectionUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -27,6 +32,7 @@ import java.util.*;
  **/
 @Slf4j
 @RestController  // 标识该类为RESTful Web服务控制器，所有方法返回数据直接写入HTTP响应体
+@Tag(name = "01.认证中心")
 @RequestMapping("/api/v1/auth")   // 定义控制器的基础请求映射路径，所有接口都以/api/v1/auth开头
 @RequiredArgsConstructor   // Lombok注解，为所有final字段生成构造函数，实现依赖注入
 public class AuthController {
@@ -94,6 +100,36 @@ public class AuthController {
         return Result.judge(result);
     }
 
+//    @Operation(summary = "切换租户")
+//    @PostMapping("/switch-tenant")
+//    public Result<AuthenticationToken> switchTenant(@RequestParam Long tenantId) {
+//        if (!tenantService.hasTenantSwitchPermission()) {
+//            return Result.failed("无权限");
+//        }
+//
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        if (authentication == null || !(authentication.getPrincipal() instanceof SysUserDetails details)) {
+//            return Result.failed(ResultCode.ACCESS_TOKEN_INVALID);
+//        }
+//
+//        boolean canAccess = tenantService.canAccessTenant(details.getUserId(), tenantId);
+//        if (!canAccess) {
+//            return Result.failed("无权限");
+//        }
+//
+//        SysUserDetails newDetails = new SysUserDetails();
+//        newDetails.setUserId(details.getUserId());
+//        newDetails.setUsername(details.getUsername());
+//        newDetails.setDeptId(details.getDeptId());
+//        newDetails.setDataScope(details.getDataScope());
+//        newDetails.setTenantId(tenantId);
+//        newDetails.setCanSwitchTenant(details.getCanSwitchTenant());
+//
+//        Authentication newAuth = new UsernamePasswordAuthenticationToken(newDetails, authentication.getCredentials(), authentication.getAuthorities());
+//        AuthenticationToken token = tokenManager.generateToken(newAuth);
+//        return Result.success(token);
+//    }
+
     /**
      * 获取当前用户的租户列表
      * <p>
@@ -113,6 +149,17 @@ public class AuthController {
         log.info("一次查询获取用户名在所有租户中的可访问租户tenantList:{}",tenantList);
         return Result.success(tenantList);
     }
+
+
+    @Operation(summary = "退出登录")
+    @DeleteMapping("/logout")
+    @Log(value = "退出登录", module = LogModuleEnum.LOGIN)
+    public Result<?> logout() {
+        authService.logout();
+        log.info("【退出登录】退出登录成功");
+        return Result.success();
+    }
+
 
 
 

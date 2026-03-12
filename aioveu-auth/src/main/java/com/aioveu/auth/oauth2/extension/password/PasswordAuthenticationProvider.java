@@ -328,6 +328,16 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
         OAuth2Authorization authorization = authorizationBuilder.build();
         this.authorizationService.save(authorization);
 
+        // ← 这里调用了授权服务的save方法
+        log.info("【令牌存储】: 令牌的实际存储位置取决于 OAuth2AuthorizationService的具体实现");
+        log.info("【令牌存储】: 默认实现：Spring Authorization Server 通常使用 JdbcOAuth2AuthorizationService将授权记录保存到关系型数据库");
+        log.info("【令牌存储】: Redis 实现：如果需要保存到 Redis，需要自定义实现 OAuth2AuthorizationService接口");
+        log.info("【令牌存储】: 开发环境可能使用内存存储");
+        log.info("【令牌存储】: ❌ Redis 存储：当前代码没有直接保存到 Redis，依赖传入的 authorizationService实现");
+        log.info("【令牌存储】: ✅ 扩展性：设计良好，可以通过更换 OAuth2AuthorizationService实现来支持不同存储");
+        log.info("【令牌存储】: 这个 Provider 只负责认证逻辑和令牌生成，令牌的持久化存储是通过 OAuth2AuthorizationService.save()委托实现的。" +
+                "要保存到 Redis，需要提供一个基于 Redis 的 OAuth2AuthorizationService实现\n");
+
         // 步骤10: 准备响应参数（包含ID令牌等）
         log.info("步骤10: 准备响应参数（包含ID令牌等）");
         additionalParameters = (idToken != null)

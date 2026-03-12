@@ -24,4 +24,10 @@ public interface AuthService {
     boolean sendLoginSmsCode(String mobile);
 
 
+    /**
+     * 登出
+     */
+    void logout();
+
+
 }

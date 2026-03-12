@@ -12,6 +12,7 @@ import com.aioveu.tenant.aioveu10Log.service.LogService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
  * @Date 2026/2/23 13:07
  * @Version 1.0
  **/
+@Slf4j
 @Service
 public class LogServiceImpl extends ServiceImpl<LogMapper, Log> implements LogService {
 
@@ -94,6 +96,8 @@ public class LogServiceImpl extends ServiceImpl<LogMapper, Log> implements LogSe
 
         // 访客数统计(UV)
         VisitStatsBO uvStats = this.baseMapper.getUvStats();
+
+        log.info("访客数统计(UV):{}",uvStats);
         if(uvStats!=null){
             result.setTodayUvCount(uvStats.getTodayCount());
             result.setTotalUvCount(uvStats.getTotalCount());
@@ -102,6 +106,8 @@ public class LogServiceImpl extends ServiceImpl<LogMapper, Log> implements LogSe
 
         // 浏览量统计(PV)
         VisitStatsBO pvStats = this.baseMapper.getPvStats();
+
+        log.info("浏览量统计(PV):{}",pvStats);
         if(pvStats!=null){
             result.setTodayPvCount(pvStats.getTodayCount());
             result.setTotalPvCount(pvStats.getTotalCount());

@@ -7,17 +7,21 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.aioveu.auth.config.CaptchaProperties;
 import com.aioveu.auth.model.CaptchaResult;
+import com.aioveu.common.TokenManager.TokenManagerService;
 import com.aioveu.common.constant.RedisConstants;
 import com.aioveu.common.sms.property.AliyunSmsProperties;
 import com.aioveu.common.sms.service.SmsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.aioveu.auth.service.CaptchaService;
 import com.aioveu.auth.service.AuthService;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
+import com.aioveu.auth.util.SecurityUtils;
+
 
 /**
  * @Description: TODO 认证服务   - 处理用户认证相关的业务逻辑，包括验证码生成、短信发送等
@@ -47,6 +51,8 @@ public class AuthServiceImpl implements AuthService {
 
     // Redis模板，用于操作Redis数据库，存储验证码和短信验证码等临时数据
     private final StringRedisTemplate redisTemplate;
+
+    private final TokenManagerService tokenManagerService;
 
 
     /**
@@ -139,5 +145,20 @@ public class AuthServiceImpl implements AuthService {
         }
         return result;
     }
+
+    /**
+     * 注销登录
+     */
+    @Override
+    public void logout() {
+        String token = SecurityUtils.getToken(); //获取token
+        if (StrUtil.isNotBlank(token)) {
+            tokenManagerService.invalidateToken(token);
+            // 清除Security上下文
+            SecurityContextHolder.clearContext();
+        }
+    }
+
+
 
 }

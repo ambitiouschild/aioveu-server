@@ -1,12 +1,12 @@
-package com.aioveu.common.security.util;
+package com.aioveu.auth.util;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.auth.model.SysUserDetails;
 import com.aioveu.common.constant.SecurityConstants;
 import com.aioveu.common.constant.SystemConstants;
-import com.aioveu.common.security.model.RoleDataScope;
-import com.aioveu.common.security.model.SysUserDetails;
+import com.aioveu.tenant.dto.RoleDataScope;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -22,9 +22,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static cn.hutool.core.convert.Convert.toInt;
-
 /**
+ * @ClassName: SecurityUtils
  * @Description: TODO Spring Security 工具类  这个工具类是Spring Security集成中的核心组件，为业务系统提供了统一的安全信息访问入口。
  *                      提供从SecurityContext中获取当前认证用户信息的便捷方法
  *  *                   基于OAuth2 JWT令牌认证，支持获取用户ID、角色、权限范围等信息
@@ -46,14 +45,15 @@ import static cn.hutool.core.convert.Convert.toInt;
  *                          *   - Hutool类型转换工具
  *                          *
  *                          * @线程安全: 是 - 所有方法都是静态方法，无状态操作
- * @Author: 雒世松
- * @Date: 2025/6/5 16:12
- * @param
- * @return:
+ * @Author 可我不敌可爱
+ * @Author 雒世松
+ * @Date 2026/3/12 17:29
+ * @Version 1.0
  **/
-
 @Slf4j
 public class SecurityUtils {
+
+
 
 
     /**
@@ -61,61 +61,61 @@ public class SecurityUtils {
      *
      * @return Optional<SysUserDetails>
      */
-    public static Optional<SysUserDetails> getUser() {
-
-        log.info("开始获取用户信息");
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null) {
-            log.warn("⚠️ Authentication 为 null");
-            return Optional.empty();
-        }
-
-        log.info("Authentication 类型: {}", authentication.getClass().getName());
-        log.info("Authentication 名称: {}", authentication.getName());
-        log.info("是否已认证: {}", authentication.isAuthenticated());
-
-        Object principal = authentication.getPrincipal();
-        log.info("Principal 类型: {}", principal.getClass().getName());
-        log.info("Principal 值: {}", principal);
-
-
-        if (authentication != null) {
-            if (principal instanceof SysUserDetails) {
-                log.info("✅ Principal 是 SysUserDetails 类型");
-                return Optional.of((SysUserDetails) principal);
-            }else if (principal instanceof Jwt) {
-                log.warn("❌ Principal 不是 SysUserDetails 类型，实际是: {}",
-                        principal.getClass().getName());
-                log.info("问题找到了！\u200B 认证信息中的 Principal是 Jwt对象，不是 SysUserDetails。这就是为什么 getUsername()返回 null的原因");
-                log.info("✅ Principal 是 Jwt 类型，从 JWT 构建用户信息");
-
-                Jwt jwt = (Jwt) principal;
-
-                // 从 JWT 构建 SysUserDetails
-                SysUserDetails userDetails = new SysUserDetails();
-                // 设置用户名
-                String username = jwt.getSubject();  // JWT 的 "sub" 字段
-                userDetails.setUsername(username);
-
-                // 可选：设置其他字段
-                Map<String, Object> claims = jwt.getClaims();
-                Object userIdObj = claims.get("userId");
-                if (userIdObj instanceof Number) {
-                    userDetails.setUserId(((Number) userIdObj).longValue());
-                }
-
-                // 设置部门ID
-                Object deptIdObj = claims.get("deptId");
-                if (deptIdObj instanceof Number) {
-                    userDetails.setDeptId(((Number) deptIdObj).longValue());
-                }
-                log.info("✅ 从 JWT 成功构建用户: {}", username);
-                return Optional.of((userDetails));
-            }
-        }
-        return Optional.empty();
-    }
+//    public static Optional<SysUserDetails> getUser() {
+//
+//        log.info("开始获取用户信息");
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//
+//        if (authentication == null) {
+//            log.warn("⚠️ Authentication 为 null");
+//            return Optional.empty();
+//        }
+//
+//        log.info("Authentication 类型: {}", authentication.getClass().getName());
+//        log.info("Authentication 名称: {}", authentication.getName());
+//        log.info("是否已认证: {}", authentication.isAuthenticated());
+//
+//        Object principal = authentication.getPrincipal();
+//        log.info("Principal 类型: {}", principal.getClass().getName());
+//        log.info("Principal 值: {}", principal);
+//
+//
+//        if (authentication != null) {
+//            if (principal instanceof SysUserDetails) {
+//                log.info("✅ Principal 是 SysUserDetails 类型");
+//                return Optional.of((SysUserDetails) principal);
+//            }else if (principal instanceof Jwt) {
+//                log.warn("❌ Principal 不是 SysUserDetails 类型，实际是: {}",
+//                        principal.getClass().getName());
+//                log.info("问题找到了！\u200B 认证信息中的 Principal是 Jwt对象，不是 SysUserDetails。这就是为什么 getUsername()返回 null的原因");
+//                log.info("✅ Principal 是 Jwt 类型，从 JWT 构建用户信息");
+//
+//                Jwt jwt = (Jwt) principal;
+//
+//                // 从 JWT 构建 SysUserDetails
+//                SysUserDetails userDetails = new SysUserDetails();
+//                // 设置用户名
+//                String username = jwt.getSubject();  // JWT 的 "sub" 字段
+//                userDetails.setUsername(username);
+//
+//                // 可选：设置其他字段
+//                Map<String, Object> claims = jwt.getClaims();
+//                Object userIdObj = claims.get("userId");
+//                if (userIdObj instanceof Number) {
+//                    userDetails.setUserId(((Number) userIdObj).longValue());
+//                }
+//
+//                // 设置部门ID
+//                Object deptIdObj = claims.get("deptId");
+//                if (deptIdObj instanceof Number) {
+//                    userDetails.setDeptId(((Number) deptIdObj).longValue());
+//                }
+//                log.info("✅ 从 JWT 成功构建用户: {}", username);
+//                return Optional.of((userDetails));
+//            }
+//        }
+//        return Optional.empty();
+//    }
 
     /**
      * 从JWT令牌中获取当前用户ID
@@ -154,9 +154,9 @@ public class SecurityUtils {
      *
      * @return Long
      */
-    public static Long getUserId2() {
-        return getUser().map(SysUserDetails::getUserId).orElse(null);
-    }
+//    public static Long getUserId2() {
+//        return getUser().map(SysUserDetails::getUserId).orElse(null);
+//    }
 
     /**
      * 获取当前认证用户的用户名（通常是登录账号）
@@ -188,9 +188,9 @@ public class SecurityUtils {
      * 是的，你说得对！ 只有当 getUser()返回的 SysUserDetails不为空时，getUsername()才能获取到用户名。
      * @return String 用户账号
      */
-    public static String getUsername2() {
-        return getUser().map(SysUserDetails::getUsername).orElse(null);
-    }
+//    public static String getUsername2() {
+//        return getUser().map(SysUserDetails::getUsername).orElse(null);
+//    }
 
     /**
      * 获取JWT令牌的所有声明属性（Claims）
@@ -317,9 +317,9 @@ public class SecurityUtils {
      *
      * @return 数据权限列表
      */
-    public static List<RoleDataScope> getDataScopes() {
-        return getUser().map(SysUserDetails::getDataScopes).orElse(Collections.emptyList());
-    }
+//    public static List<RoleDataScope> getDataScopes() {
+//        return getUser().map(SysUserDetails::getDataScopes).orElse(Collections.emptyList());
+//    }
 
     /**
      * 获取部门ID
@@ -351,8 +351,8 @@ public class SecurityUtils {
     }
 
     /*
-    * 获取租户ID
-    * */
+     * 获取租户ID
+     * */
     public static Long getTenantId() {
         Map<String, Object> tokenAttributes = getTokenAttributes();
         if (tokenAttributes != null) {
@@ -369,10 +369,10 @@ public class SecurityUtils {
      *
      * @return Long
      */
-    public static Long getDeptId2() {
-
-        return getUser().map(SysUserDetails::getDeptId).orElse(null);
-    }
+//    public static Long getDeptId2() {
+//
+//        return getUser().map(SysUserDetails::getDeptId).orElse(null);
+//    }
 
 
     /**
@@ -380,10 +380,10 @@ public class SecurityUtils {
      *
      * @return true 表示可切换租户
      */
-    public static boolean canSwitchTenant2() {
-
-        return getUser().map(SysUserDetails::getCanSwitchTenant).orElse(false);
-    }
+//    public static boolean canSwitchTenant2() {
+//
+//        return getUser().map(SysUserDetails::getCanSwitchTenant).orElse(false);
+//    }
 
     public static boolean canSwitchTenant() {
 
@@ -685,7 +685,6 @@ public class SecurityUtils {
             return null;
         }
     }
-
 
     /**
      * 获取请求中的 Token

@@ -2,7 +2,9 @@ package com.aioveu.common.security.config;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
+import com.aioveu.common.TokenManager.TokenManagerService;
 import com.aioveu.common.constant.JwtClaimConstants;
+import com.aioveu.common.security.filter.JwtBlacklistFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -98,6 +101,7 @@ public class ResourceServerConfig {
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
 
+    private TokenManagerService tokenManagerService;
 
     /**
      * 白名单路径列表 - 从配置文件动态注入
@@ -313,5 +317,38 @@ public class ResourceServerConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+    //------------------------验证JWT时检查黑名单！----集成到 Spring Security------------------------------------
+
+    /*
+    *  创建自定义 JWT 验证器
+    * */
+    @Bean
+    public SecurityFilterChain resourceServerFilterChain(HttpSecurity http) throws Exception {
+
+        // 添加黑名单检查过滤器
+        http.addFilterBefore(jwtBlacklistFilter(), BearerTokenAuthenticationFilter.class);
+
+        http.authorizeHttpRequests(authz -> authz
+                        .anyRequest().authenticated()
+                )
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter()) //自定义JWT认证转换器
+                        )
+                );
+
+        return http.build();
+    }
+
+
+    /**
+     * 创建黑名单检查过滤器  集成到 Spring Security
+     */
+    @Bean
+    public JwtBlacklistFilter jwtBlacklistFilter() {
+        return new JwtBlacklistFilter(tokenManagerService);
+    }
+
 
 }

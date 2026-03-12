@@ -74,6 +74,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.stereotype.Component;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -317,6 +318,7 @@ public class AuthorizationServerConfig {
      *
      * @return JWKSource JWT密钥源
      */
+    // 1. 保持你的密钥存储（已实现）  // 从Redis加载JWKSet ✅
     @Bean // <5>
     @SneakyThrows   // Lombok注解，自动处理受检异常
     public JWKSource<SecurityContext> jwkSource() {
@@ -427,6 +429,7 @@ public class AuthorizationServerConfig {
      * OAuth2授权服务
      * 管理OAuth2授权的存储和检索（基于数据库）
      */
+    // 2. 优化数据库存储（建议实现）  // 自定义行映射器，不存完整JWT
     @Bean
     public OAuth2AuthorizationService authorizationService(JdbcTemplate jdbcTemplate,
                                                            RegisteredClientRepository registeredClientRepository) {
@@ -460,6 +463,12 @@ public class AuthorizationServerConfig {
         service.setAuthorizationRowMapper(rowMapper);
 
         return service;
+    }
+
+    // 3. 添加Redis黑名单（需要实现）
+    @Component
+    public class TokenBlacklistService {
+        // 管理令牌吊销
     }
 
 
