@@ -45,7 +45,7 @@ public class LocalFileService implements FileService {
      * @return 文件信息
      */
     @Override
-    public FileInfo uploadFile(MultipartFile file) {
+    public FileInfo uploadFile(MultipartFile file, String moduleName) {
         // 获取文件名
         String originalFilename = file.getOriginalFilename();
         // 获取文件后缀

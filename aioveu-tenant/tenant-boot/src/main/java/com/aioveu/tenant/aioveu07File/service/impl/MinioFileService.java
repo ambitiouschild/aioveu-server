@@ -83,7 +83,7 @@ public class MinioFileService implements FileService {
      * @return 文件信息
      */
     @Override
-    public FileInfo uploadFile(MultipartFile file) {
+    public FileInfo uploadFile(MultipartFile file, String moduleName) {
 
         // 创建存储桶(存储桶不存在)，如果有搭建好的minio服务，建议放在init方法中
         createBucketIfAbsent(bucketName);

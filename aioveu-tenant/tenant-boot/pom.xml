@@ -188,6 +188,13 @@
             <version>${xxl-job.version}</version>
         </dependency>
 
+        <!--        oss自动预热使用方案1（自动预热），它最符合后端开发的习惯：-->
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>aliyun-java-sdk-cdn</artifactId>
+            <version>3.0.10</version>
+        </dependency>
+
 
     </dependencies>
 

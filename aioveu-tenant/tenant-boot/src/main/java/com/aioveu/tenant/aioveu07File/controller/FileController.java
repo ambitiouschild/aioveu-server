@@ -3,13 +3,17 @@ package com.aioveu.tenant.aioveu07File.controller;
 import com.aioveu.common.result.Result;
 import com.aioveu.tenant.aioveu07File.model.vo.FileInfo;
 import com.aioveu.tenant.aioveu07File.service.FileService;
+import com.aioveu.tenant.aioveu07File.utils.ModuleResolver;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,6 +25,8 @@ import org.springframework.web.multipart.MultipartFile;
  * @Date 2026/2/23 12:38
  * @Version 1.0
  **/
+
+@Slf4j
 @Tag(name = "07.文件接口")
 @RestController
 @RequestMapping("/api/v1/files")
@@ -28,6 +34,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class FileController {
 
     private final FileService fileService;
+
+    private final ModuleResolver moduleResolver;
 
     @PostMapping
     @Operation(summary = "文件上传")
@@ -39,9 +47,59 @@ public class FileController {
                     in = ParameterIn.DEFAULT,
                     schema = @Schema(name = "file", format = "binary")
             )
-            @RequestPart(value = "file") MultipartFile file
+            @RequestPart(value = "file") MultipartFile file,
+            @RequestParam(value = "module", required = false) String module,
+            HttpServletRequest request // 添加请求对象获取协议信息
     ) {
-        FileInfo fileInfo = fileService.uploadFile(file);
+
+        log.info("====== 开始文件上传 ======");
+        log.info("文件名: {}", file.getOriginalFilename());
+        log.info("文件大小: {} bytes", file.getSize());
+        log.info("Content-Type: {}", file.getContentType());
+        log.info("模块参数: {}", module);
+        log.info("请求URL: {}", request.getRequestURL());
+
+        // 1. 优先使用传入的模块名
+        if (StringUtils.isBlank(module)) {
+            // 2. 自动推断模块名
+            module = moduleResolver.resolveModule(request);
+        }
+
+        // 2. 还可以根据文件类型再次确认
+        if ("common".equals(module)) {
+            module = moduleResolver.resolveModuleByFile(file);
+        }
+
+        // 3. 在Service层添加默认值
+        if (StringUtils.isBlank(module)) {
+            module = "common";  // 默认模块
+        }
+        log.info("模块名：{}",module);
+
+        FileInfo fileInfo = fileService.uploadFile(file,module);
+
+
+
+        /*
+         * 解决返回的 URL 是 HTTP 导致前端 HTTPS 页面无法访问的问题，需要修改上传逻辑，确保返回的 FileInfo 对象中的 URL 是 HTTPS 格式
+         * */
+        // 关键修改：将 HTTP URL 转换为 HTTPS
+
+        if (fileInfo.getUrl() != null && fileInfo.getUrl().startsWith("http://")) {
+            // 方案1：直接替换协议（适用于固定域名）
+            String httpsUrl = fileInfo.getUrl().replace("http://", "https://");
+
+            // 方案2：动态获取当前请求协议（更灵活）
+            String currentProtocol = request.getScheme(); // 获取当前协议（http/https）
+            String domain = fileInfo.getUrl().substring(7); // 移除 http://
+            httpsUrl = currentProtocol + "://" + domain;
+
+            fileInfo.setUrl(httpsUrl);
+        }
+
+
+
+
         return Result.success(fileInfo);
     }
 
