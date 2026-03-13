@@ -38,15 +38,29 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
      */
     @Override
     public void insertFill(MetaObject metaObject) {
+
+        System.out.println("=== MyMetaObjectHandler.insertFill ===");
+        System.out.println("对象: " + metaObject.getOriginalObject().getClass().getName());
+
+        // 填充创建时间
         this.strictInsertFill(metaObject, "createTime", () -> LocalDateTime.now(), LocalDateTime.class);
+        // 填充更新时间
         this.strictUpdateFill(metaObject, "updateTime", () -> LocalDateTime.now(), LocalDateTime.class);
+
+
 
         // 强制多租户：仅当上下文存在 tenantId 时自动填充
         if (tenantProperties != null) {
             Long tenantId = TenantContextHolder.getTenantId();
+            System.out.println("租户ID: " + tenantId);
             if (tenantId != null) {
+                // 有租户ID，填充
                 Long finalTenantId = tenantId;
                 this.strictInsertFill(metaObject, "tenantId", () -> finalTenantId, Long.class);
+                System.out.println("【MyMetaObjectHandler】填充租户ID: " + tenantId);
+            }else {
+                // 没有租户ID，不填充
+                System.out.println("【MyMetaObjectHandler】不填充租户ID");
             }
         }
     }

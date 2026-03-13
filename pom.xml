@@ -51,6 +51,8 @@
         <!-- 数据库 & ORM -->
         <mysql.version>8.0.28</mysql.version>
         <druid.version>1.2.20</druid.version>
+<!--        ✅ >3.5.5升级到 3.5.7+（最简单的方案）-->
+<!--        是的！完全正确！ 改变 MyBatis-Plus 版本很可能导致了 NoClassDefFoundError。-->
         <mybatis-plus.version>3.5.5</mybatis-plus.version>
 
         <!-- 接口文档工具 -->

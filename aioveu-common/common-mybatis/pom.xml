@@ -15,6 +15,12 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+<!--        不要用 3.5.9，接口变化太大。-->
+<!--        ✅ 使用 3.5.8 - 接口兼容，可能修复了bug-->
+<!--        改变 MyBatis-Plus 版本很可能导致了 NoClassDefFoundError-->
+        <mybatis-plus.version>3.5.5</mybatis-plus.version>
+
     </properties>
 
     <dependencies>
@@ -41,6 +47,7 @@
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+            <version>${mybatis-plus.version}</version>
         </dependency>
 
         <dependency>

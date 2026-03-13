@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.inner.DataPermissionIntercepto
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.aioveu.common.mybatis.handler.*;
 import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.mapping.DatabaseIdProvider;
 import org.apache.ibatis.mapping.VendorDatabaseIdProvider;
 import org.apache.ibatis.type.JdbcType;
@@ -28,6 +29,7 @@ import java.util.Properties;
  * @return:
  **/
 
+@Slf4j
 @Configuration
 @EnableTransactionManagement
 public class MybatisPlusConfig {
@@ -35,7 +37,7 @@ public class MybatisPlusConfig {
     @Value("${app.db-type:mysql}")
     private String dbType;
 
-    @Autowired(required = false)
+    @Autowired  //(required = false)
     private MyTenantLineHandler myTenantLineHandler;
 
     /**
@@ -52,9 +54,10 @@ public class MybatisPlusConfig {
         if (myTenantLineHandler != null) {
             interceptor.addInnerInterceptor(new TenantLineInnerInterceptor(myTenantLineHandler));
         }
-
+        log.info("【MyTenantLineHandler】也在处理租户过滤！");
         //数据权限
         interceptor.addInnerInterceptor(new DataPermissionInterceptor(new MyDataPermissionHandler()));
+        log.info("【DataPermissionInterceptor】也在处理租户过滤！");
 
         // 分页插件，根据配置动态选择数据库类型
         DbType mpDbType = DbType.MYSQL;

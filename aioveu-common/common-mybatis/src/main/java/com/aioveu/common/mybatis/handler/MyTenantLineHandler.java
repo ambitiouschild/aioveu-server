@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
 import org.springframework.stereotype.Component;
-
+//import com.baomidou.mybatisplus.extension.plugins.handler.TenantLineHandler;
 import java.util.List;
 import java.util.Set;
 
@@ -23,12 +23,15 @@ import java.util.Set;
  * @Date 2026/3/13 20:31
  * @Version 1.0
  **/
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class MyTenantLineHandler implements TenantLineHandler {
 
     private final TenantProperties tenantProperties;
+
+
 
     /**
      * 获取租户ID表达式
@@ -41,15 +44,31 @@ public class MyTenantLineHandler implements TenantLineHandler {
      */
     @Override
     public Expression getTenantId() {
-        log.debug("getTenantId() 被调用");
+
+        log.info("=== 【MyTenantLineHandler】 被创建 ===");
+
+        log.info("getTenantId() 被调用");
 
         // 获取当前租户ID
         Long tenantId = TenantContextHolder.getTenantId();
-        log.debug("从 TenantContextHolder 获取租户ID: {}", tenantId);
+        log.info("从 TenantContextHolder 获取租户ID: {}", tenantId);
 
+
+        // 如果租户ID为null，不添加租户条件
         if (tenantId == null) {
-            throw new IllegalStateException("TenantId is required but was null. Ensure TenantContextHolder is set (e.g., via token) before DB access.");
+            log.info("【MyTenantLineHandler】租户ID为null，不添加租户过滤条件");
+            log.info("【MyTenantLineHandler】问题根源：TenantLineInnerInterceptor在 getTenantId()返回 null时，还是添加了 AND tenant_id = null。");
+//            return new LongValue(-999L);
+            return null;
         }
+
+//        if (tenantId == null) {
+//            throw new IllegalStateException(
+//                    "TenantId is required but was null. Ensure TenantContextHolder is set (e.g., via token) before DB access.");
+//        }
+
+        // 正常租户ID，添加过滤条件
+        log.info("【MyTenantLineHandler】添加租户过滤条件: tenant_id = " + tenantId);
 
         return new LongValue(tenantId);
     }
@@ -77,6 +96,31 @@ public class MyTenantLineHandler implements TenantLineHandler {
     public boolean ignoreTable(String tableName) {
         if (tableName == null) {
             return false;
+        }
+
+        log.info("检查表是否忽略: {}", tableName);
+
+        // 1. 获取当前租户ID
+        Long tenantId = TenantContextHolder.getTenantId();
+        log.info("当前租户ID: {}", tenantId);
+
+        // 2. 关键逻辑：如果租户ID为null或0，忽略表
+        // 1. 租户ID为null时，只忽略sys_user表
+        if (tenantId == null) {
+
+            log.info("【MyTenantLineHandler】当前是登录查询用户租户列表场景");
+
+            // 这个场景下，sys_user 和 sys_tenant 表都需要特殊处理
+            log.info("【MyTenantLineHandler】这个场景下，sys_user 和 sys_tenant 表都需要特殊处理");
+
+            if ("sys_user".equalsIgnoreCase(tableName)) {
+                log.info("✅ 租户ID为null,✅ 查询用户租户场景，忽略 sys_user 表");
+                return true;
+            }
+            if ("sys_tenant".equalsIgnoreCase(tableName)) {
+                log.info("✅ 租户ID为null,✅ 查询用户租户场景，忽略 sys_tenant 表");
+                return true;
+            }
         }
 
         Set<String> systemTables = Set.of(
