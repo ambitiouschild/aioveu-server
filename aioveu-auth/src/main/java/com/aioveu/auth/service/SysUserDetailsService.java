@@ -151,7 +151,7 @@ public class SysUserDetailsService implements UserDetailsService {
                     sysUserDetails = new SysUserDetails(userAuthInfoWithTenantId);
                     //        sysUserDetails.setSource(source); // 可选：记录用户来源
 
-                    log.info("从tenant微服务找到用户");
+                    log.info("从tenant微服务找到用户,打印认证信息:{}",sysUserDetails);
                 }
             }
 
@@ -166,7 +166,7 @@ public class SysUserDetailsService implements UserDetailsService {
                         sysUserDetails = new SysUserDetails(lssAuthInfo);
                         //        sysUserDetails.setSource(source); // 可选：记录用户来源
 
-                        log.info("从lss微服务找到用户");
+                        log.info("从lss微服务找到用户,打印认证信息:{}",sysUserDetails);
                     }
                 } catch (Exception e) {
                     log.warn("lss微服务查询失败: {}", e.getMessage());
@@ -183,7 +183,7 @@ public class SysUserDetailsService implements UserDetailsService {
                         sysUserDetails = new SysUserDetails(systemAuthInfo);
                         //        sysUserDetails.setSource(source); // 可选：记录用户来源
 
-                        log.info("从system微服务找到用户");
+                        log.info("从system微服务找到用户,打印认证信息:{}",sysUserDetails);
                     }
                 } catch (Exception e) {
                     log.warn("system微服务查询失败: {}", e.getMessage());

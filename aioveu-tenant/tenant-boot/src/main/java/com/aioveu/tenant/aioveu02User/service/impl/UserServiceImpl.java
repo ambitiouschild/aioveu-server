@@ -29,6 +29,7 @@ import com.aioveu.tenant.aioveu02User.model.vo.UserPageVO;
 import com.aioveu.tenant.aioveu02User.model.vo.UserProfileVO;
 import com.aioveu.tenant.aioveu02User.service.UserRoleService;
 import com.aioveu.tenant.aioveu02User.service.UserService;
+import com.aioveu.tenant.aioveu03Role.service.RoleMenuService;
 import com.aioveu.tenant.aioveu03Role.service.RoleService;
 import com.aioveu.tenant.aioveu06Dict.enums.DictCodeEnum;
 import com.aioveu.tenant.aioveu06Dict.model.entity.DictItem;
@@ -87,6 +88,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     private final TenantProperties tenantProperties;
 
+    private final RoleMenuService roleMenuService;
 
     /**
      * 根据用户名查询所有用户ID（跨所有租户）
@@ -145,11 +147,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return this.baseMapper.getUserFormData(userId);
     }
 
+
+    /*
+    *   判断是否可以切换租户
+    * */
     private boolean resolveCanSwitchTenant(Set<String> roles) {
         if (CollectionUtil.isEmpty(roles)) {
             return false;
         }
-        Set<String> perms = permissionService.getRolePermsFormCache(roles);
+
+        log.info("判断是否可以切换租户");
+//        Set<String> perms = permissionService.getRolePermsFormCache(roles);
+
+        Set<String> perms = roleMenuService.getRolePermsByRoleCodes(roles);
+
+        log.info("打印获取到的权限：{}",perms);
+
         if (CollectionUtil.isEmpty(perms)) {
             return false;
         }
@@ -334,8 +347,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 Integer dataScopeValue = dataScopes.get(0).getDataScope();
                 userAuthInfoWithTenantId.setDataScope(dataScopeValue);
             }
+
+            log.info("获取到的角色：{}",roles);
             userAuthInfoWithTenantId.setDataScopes(dataScopes);
+
+
             userAuthInfoWithTenantId.setCanSwitchTenant(resolveCanSwitchTenant(roles));
+            log.info("设置是否可以切换租户:{}",resolveCanSwitchTenant(roles));
         }
 
         log.info("构建的租户认证信息：{}",userAuthInfoWithTenantId);
@@ -353,8 +371,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public UserAuthInfoWithTenantId getAuthInfoByUsernameInTenant(String username, Long tenantId) {
         log.info("查询用户认证信息: username={}, tenantId={}", username, tenantId);
 
+        Long oldTenantId2 = TenantContextHolder.getTenantId();
+        log.info("【Tenant-User】TenantContextHolder查询用户oldTenantId2={}", oldTenantId2);
+
+        TenantContextHolder.setTenantId(tenantId);
+        log.info("【Tenant-User】TenantContextHolder设置请求TenantId={}", tenantId);
         Long oldTenantId = TenantContextHolder.getTenantId();
-        log.info("【Tenant-User】TenantContextHolder查询用户oldTenantId={}", oldTenantId);
+        log.info("【Tenant-User】TenantContextHolder再次查询用户oldTenantId={}", oldTenantId);
 
         boolean oldIgnoreTenant = TenantContextHolder.isIgnoreTenant();
         // 临时忽略租户过滤，查询指定租户下的用户
@@ -382,11 +405,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         } finally {
             if (oldTenantId != null) {
                 TenantContextHolder.setTenantId(oldTenantId);
+                log.info("【Tenant-User】如果上下文租户Id不为空,则确保租户Id为原始租户id");
             } else {
-                TenantContextHolder.setTenantId(oldTenantId);
+                TenantContextHolder.setTenantId(tenantId);
 //                TenantContextHolder.clear();
 //                log.info("【Tenant-User】清除当前线程的租户上下文");
-                log.info("【Tenant-User】如果上下文租户Id为空,则将前端租户Id传递TenantContextHolder");
+                log.info("【Tenant-User】如果上下文租户Id为空,则确保将前端租户Id传递TenantContextHolder");
             }
             TenantContextHolder.setIgnoreTenant(oldIgnoreTenant);
         }

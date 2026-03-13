@@ -14,6 +14,9 @@ import java.util.*;
 
 /**
  * @Description: TODO SpringSecurity 权限校验
+ *                      * <p>
+ *                      * 用于 SpEL 表达式权限校验，如：@PreAuthorize("@ss.hasPerm('sys:user:add')")
+ *                      * <p>
  * @Author: 雒世松
  * @Date: 2025/6/5 16:11
  * @param
@@ -29,6 +32,8 @@ public class PermissionService {
 
     /**
      * 判断当前登录用户是否拥有操作权限
+     * <p>
+     * 支持通配符匹配，如：权限码 "sys:user:*" 可匹配 "sys:user:add"、"sys:user:delete" 等
      *
      * @param requiredPerm 所需权限
      * @return 是否有权限
@@ -60,6 +65,9 @@ public class PermissionService {
         log.info("用户角色：{}", roleCodes);
 
         // 获取当前登录用户的所有角色的权限列表
+
+        // 获取当前登录用户的所有角色的权限列表（从缓存读取）
+
         Set<String> rolePerms = this.getRolePermsFormCache(roleCodes);
         if (CollectionUtil.isEmpty(rolePerms)) {
             log.info("角色没有分配权限，权限检查失败：{}，角色：{}", requiredPerm, roleCodes);

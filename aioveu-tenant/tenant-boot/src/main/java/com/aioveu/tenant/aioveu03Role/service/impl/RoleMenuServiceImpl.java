@@ -187,10 +187,16 @@ public class RoleMenuServiceImpl extends ServiceImpl<RoleMenuMapper, RoleMenu> i
             return Collections.emptySet();
         }
 
+        log.info("【Tenant-RoleMenu】获取角色权限集合（带缓存）:{}",roleCodes);
+
         Long tenantId = TenantContextHolder.getTenantId();
+        //
+        log.info("【Tenant-RoleMenu】上下文租户id:{}",tenantId);
+        log.info("【Tenant-RoleMenu】这里的问题，刚开始构建用户认证信息的时候，每次权限初始化都会清空租户id++++++++");
         if (tenantId == null) {
             return Collections.emptySet();
         }
+
 
         String cacheKey = buildRolePermsCacheKey(tenantId);
         Set<String> perms = new HashSet<>();
