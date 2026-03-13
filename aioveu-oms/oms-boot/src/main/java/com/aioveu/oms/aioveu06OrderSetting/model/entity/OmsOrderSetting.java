@@ -1,5 +1,6 @@
 package com.aioveu.oms.aioveu06OrderSetting.model.entity;
 
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.aioveu.common.base.BaseEntity;
@@ -15,7 +16,7 @@ import lombok.Data;
 
 @Data
 @TableName("oms_order_setting")
-public class OmsOrderSetting extends BaseEntity {
+public class OmsOrderSetting extends BaseEntityWithTenantId {
 
 
 	private static final long serialVersionUID = 1L;

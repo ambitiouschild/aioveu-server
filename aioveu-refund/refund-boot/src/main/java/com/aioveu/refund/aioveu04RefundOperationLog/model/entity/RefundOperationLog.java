@@ -1,6 +1,7 @@
 package com.aioveu.refund.aioveu04RefundOperationLog.model.entity;
 
 import com.aioveu.common.base.BaseEntity;
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,7 +18,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @TableName("refund_operation_log")
-public class RefundOperationLog extends BaseEntity {
+public class RefundOperationLog extends BaseEntityWithTenantId {
 
     private static final long serialVersionUID = 1L;
 

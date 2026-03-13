@@ -1,5 +1,6 @@
 package com.aioveu.oms.aioveu03OrderDelivery.model.entity;
 
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.aioveu.common.base.BaseEntity;
@@ -24,7 +25,7 @@ import java.util.Date;
 @TableName("oms_order_delivery")
 @NoArgsConstructor
 @AllArgsConstructor
-public class OmsOrderDelivery extends BaseEntity {
+public class OmsOrderDelivery extends BaseEntityWithTenantId {
 
 
 	private static final long serialVersionUID = 1L;

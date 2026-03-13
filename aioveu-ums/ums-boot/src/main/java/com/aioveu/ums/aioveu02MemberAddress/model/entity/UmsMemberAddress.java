@@ -1,5 +1,6 @@
 package com.aioveu.ums.aioveu02MemberAddress.model.entity;
 
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.aioveu.common.base.BaseEntity;
@@ -18,7 +19,7 @@ import java.math.BigDecimal;
 
 @Data
 @TableName("ums_member_address")
-public class UmsMemberAddress extends BaseEntity {
+public class UmsMemberAddress extends BaseEntityWithTenantId {
 
     private static final long serialVersionUID = 1L;
 

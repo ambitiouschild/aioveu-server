@@ -1,6 +1,7 @@
 package com.aioveu.pay.aioveu01PayOrder.model.entity;
 
 import com.aioveu.common.base.BaseEntity;
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.math.BigDecimal;  // 必须是java.math.BigDecimal
 import lombok.Getter;
@@ -20,7 +21,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @TableName("pay_order")
-public class PayOrder extends BaseEntity {
+public class PayOrder extends BaseEntityWithTenantId {
 
     private static final long serialVersionUID = 1L;
 

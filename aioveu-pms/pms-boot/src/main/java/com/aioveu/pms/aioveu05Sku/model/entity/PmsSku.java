@@ -1,5 +1,6 @@
 package com.aioveu.pms.aioveu05Sku.model.entity;
 
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.aioveu.common.base.BaseEntity;
@@ -16,7 +17,7 @@ import lombok.Data;
 
 @Data
 @TableName("pms_sku")
-public class PmsSku extends BaseEntity {
+public class PmsSku extends BaseEntityWithTenantId {
 
     private static final long serialVersionUID = 1L;
 

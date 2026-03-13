@@ -1,5 +1,6 @@
 package com.aioveu.oms.aioveu05OrderPay.model.entity;
 
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.aioveu.common.base.BaseEntity;
@@ -20,7 +21,7 @@ import java.util.Date;
 @Data
 @Builder
 @TableName("oms_order_pay")
-public class OmsOrderPay extends BaseEntity {
+public class OmsOrderPay extends BaseEntityWithTenantId {
 
 
 	private static final long serialVersionUID = 1L;

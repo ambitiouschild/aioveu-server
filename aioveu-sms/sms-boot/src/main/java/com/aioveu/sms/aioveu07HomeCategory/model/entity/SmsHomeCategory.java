@@ -1,6 +1,7 @@
 package com.aioveu.sms.aioveu07HomeCategory.model.entity;
 
 import com.aioveu.common.base.BaseEntity;
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +17,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @TableName("sms_home_category")
-public class SmsHomeCategory extends BaseEntity {
+public class SmsHomeCategory extends BaseEntityWithTenantId {
 
     private static final long serialVersionUID = 1L;
 

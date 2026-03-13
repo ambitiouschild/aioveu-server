@@ -1,6 +1,7 @@
 package com.aioveu.pay.aioveu08PayAccount.model.entity;
 
 import com.aioveu.common.base.BaseEntity;
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,7 +20,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @TableName("pay_account")
-public class PayAccount extends BaseEntity {
+public class PayAccount extends BaseEntityWithTenantId {
 
     private static final long serialVersionUID = 1L;
 

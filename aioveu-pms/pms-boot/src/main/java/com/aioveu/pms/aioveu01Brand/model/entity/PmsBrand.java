@@ -1,5 +1,6 @@
 package com.aioveu.pms.aioveu01Brand.model.entity;
 
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.aioveu.common.base.BaseEntity;
@@ -18,7 +19,7 @@ import lombok.Data;
 
 @Data
 @TableName("pms_brand")
-public class PmsBrand extends BaseEntity {
+public class PmsBrand extends BaseEntityWithTenantId {
 
     private static final long serialVersionUID = 1L;
 

@@ -1,6 +1,7 @@
 package com.aioveu.refund.aioveu02RefundItem.model.entity;
 
 import com.aioveu.common.base.BaseEntity;
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.ibm.icu.math.BigDecimal;
 import lombok.Getter;
@@ -18,7 +19,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @TableName("refund_item")
-public class RefundItem extends BaseEntity {
+public class RefundItem extends BaseEntityWithTenantId {
 
     private static final long serialVersionUID = 1L;
 

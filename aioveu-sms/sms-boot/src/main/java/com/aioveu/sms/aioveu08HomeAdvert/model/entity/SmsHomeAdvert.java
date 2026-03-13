@@ -2,6 +2,7 @@ package com.aioveu.sms.aioveu08HomeAdvert.model.entity;
 
 
 import com.aioveu.common.base.BaseEntity;
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -15,7 +16,7 @@ import lombok.Data;
  **/
 @Data
 @TableName("sms_home_advert")
-public class SmsHomeAdvert extends BaseEntity {
+public class SmsHomeAdvert extends BaseEntityWithTenantId {
 
     private static final long serialVersionUID = 1L;
 

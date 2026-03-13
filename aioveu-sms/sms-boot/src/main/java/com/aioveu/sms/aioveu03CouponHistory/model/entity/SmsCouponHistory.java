@@ -1,6 +1,7 @@
 package com.aioveu.sms.aioveu03CouponHistory.model.entity;
 
 import com.aioveu.common.base.BaseEntity;
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -20,7 +21,7 @@ import java.util.Date;
 
 @TableName(value ="sms_coupon_history")
 @Data
-public class SmsCouponHistory extends BaseEntity {
+public class SmsCouponHistory extends BaseEntityWithTenantId {
 
     private static final long serialVersionUID = 1L;
 

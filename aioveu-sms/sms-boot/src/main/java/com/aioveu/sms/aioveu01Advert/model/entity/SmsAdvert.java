@@ -1,5 +1,6 @@
 package com.aioveu.sms.aioveu01Advert.model.entity;
 
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.aioveu.common.base.BaseEntity;
@@ -18,7 +19,7 @@ import java.util.Date;
 
 @Data
 @TableName("sms_advert")
-public class SmsAdvert extends BaseEntity {
+public class SmsAdvert extends BaseEntityWithTenantId {
 
     private static final long serialVersionUID = 1L;
 

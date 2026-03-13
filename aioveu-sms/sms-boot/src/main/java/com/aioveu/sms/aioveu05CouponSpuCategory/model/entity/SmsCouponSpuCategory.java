@@ -1,5 +1,6 @@
 package com.aioveu.sms.aioveu05CouponSpuCategory.model.entity;
 
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -21,7 +22,7 @@ import java.io.Serializable;
 @TableName(value ="sms_coupon_spu_category")
 @Data
 @Accessors(chain = true)
-public class SmsCouponSpuCategory implements Serializable {
+public class SmsCouponSpuCategory extends BaseEntityWithTenantId {
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

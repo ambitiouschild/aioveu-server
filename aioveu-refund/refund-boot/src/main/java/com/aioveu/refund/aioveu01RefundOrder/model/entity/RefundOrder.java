@@ -1,6 +1,7 @@
 package com.aioveu.refund.aioveu01RefundOrder.model.entity;
 
 import com.aioveu.common.base.BaseEntity;
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.ibm.icu.math.BigDecimal;
 import lombok.Getter;
@@ -20,7 +21,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @TableName("refund_order")
-public class RefundOrder extends BaseEntity {
+public class RefundOrder extends BaseEntityWithTenantId {
 
     private static final long serialVersionUID = 1L;
 

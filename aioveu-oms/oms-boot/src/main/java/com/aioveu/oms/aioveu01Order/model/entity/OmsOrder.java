@@ -1,6 +1,7 @@
 package com.aioveu.oms.aioveu01Order.model.entity;
 
 import com.aioveu.common.base.BaseEntity;
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.aioveu.oms.aioveu02OrderItem.model.entity.OmsOrderItem;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
@@ -20,7 +21,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @TableName("oms_order")
-public class OmsOrder extends BaseEntity {
+public class OmsOrder extends BaseEntityWithTenantId {
 
 
 	private static final long serialVersionUID = 1L;

@@ -1,6 +1,7 @@
 package com.aioveu.pay.aioveu06PayFlow.model.entity;
 
 import com.aioveu.common.base.BaseEntity;
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,7 +23,7 @@ import java.time.LocalDateTime;
 @Setter
 @Builder
 @TableName("pay_flow")
-public class PayFlow extends BaseEntity {
+public class PayFlow extends BaseEntityWithTenantId {
 
     private static final long serialVersionUID = 1L;
 

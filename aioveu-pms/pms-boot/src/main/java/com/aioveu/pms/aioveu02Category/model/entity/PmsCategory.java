@@ -1,5 +1,6 @@
 package com.aioveu.pms.aioveu02Category.model.entity;
 
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -18,7 +19,7 @@ import lombok.Data;
 
 @Data
 @TableName("pms_category")
-public class PmsCategory extends BaseEntity {
+public class PmsCategory extends BaseEntityWithTenantId {
 
     private static final long serialVersionUID = 1L;
 

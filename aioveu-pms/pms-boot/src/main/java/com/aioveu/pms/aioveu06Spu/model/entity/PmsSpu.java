@@ -1,5 +1,6 @@
 package com.aioveu.pms.aioveu06Spu.model.entity;
 
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.aioveu.pms.aioveu05Sku.model.entity.PmsSku;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.aioveu.common.base.BaseEntity;
@@ -20,7 +21,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @TableName("pms_spu")
-public class PmsSpu extends BaseEntity {
+public class PmsSpu extends BaseEntityWithTenantId {
 
 //    @TableId(type = IdType.AUTO)
 //    private Long id;

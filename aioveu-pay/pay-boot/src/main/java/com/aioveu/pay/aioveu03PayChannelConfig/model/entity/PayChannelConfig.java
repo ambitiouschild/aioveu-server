@@ -1,6 +1,7 @@
 package com.aioveu.pay.aioveu03PayChannelConfig.model.entity;
 
 import com.aioveu.common.base.BaseEntity;
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,7 +18,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @TableName("pay_channel_config")
-public class PayChannelConfig extends BaseEntity {
+public class PayChannelConfig extends BaseEntityWithTenantId {
 
     private static final long serialVersionUID = 1L;
 

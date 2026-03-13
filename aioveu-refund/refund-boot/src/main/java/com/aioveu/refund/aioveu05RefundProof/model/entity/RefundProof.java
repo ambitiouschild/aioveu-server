@@ -1,6 +1,7 @@
 package com.aioveu.refund.aioveu05RefundProof.model.entity;
 
 import com.aioveu.common.base.BaseEntity;
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,7 +18,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @TableName("refund_proof")
-public class RefundProof extends BaseEntity {
+public class RefundProof extends BaseEntityWithTenantId {
 
     private static final long serialVersionUID = 1L;
 

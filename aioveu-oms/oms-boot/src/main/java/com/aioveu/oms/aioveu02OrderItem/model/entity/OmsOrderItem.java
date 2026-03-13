@@ -1,5 +1,6 @@
 package com.aioveu.oms.aioveu02OrderItem.model.entity;
 
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.aioveu.common.base.BaseEntity;
@@ -16,7 +17,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class OmsOrderItem extends BaseEntity {
+public class OmsOrderItem extends BaseEntityWithTenantId {
 
     private static final long serialVersionUID = 1L;
 

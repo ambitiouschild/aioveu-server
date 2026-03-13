@@ -1,5 +1,6 @@
 package com.aioveu.sms.aioveu02Coupon.model.entity;
 
+import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
@@ -21,7 +22,7 @@ import java.util.Date;
 
 @TableName(value ="sms_coupon")
 @Data
-public class SmsCoupon extends BaseEntity {
+public class SmsCoupon extends BaseEntityWithTenantId {
 
 
     private static final long serialVersionUID = 1L;
