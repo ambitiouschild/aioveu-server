@@ -1,4 +1,4 @@
-package com.aioveu.tenant.aioveu01Tenant.config.property;
+package com.aioveu.common.mybatis.config.property;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -9,10 +9,10 @@ import java.util.List;
 
 /**
  * @ClassName: TenantProperties
- * @Description TODO 多租户配置属性
+ * @Description TODO  多租户配置属性
  * @Author 可我不敌可爱
  * @Author 雒世松
- * @Date 2026/2/23 14:20
+ * @Date 2026/3/13 20:35
  * @Version 1.0
  **/
 @Data

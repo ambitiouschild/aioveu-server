@@ -8,6 +8,7 @@ import com.aioveu.common.constant.RedisConstants;
 import com.aioveu.common.constant.SystemConstants;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.model.Option;
+import com.aioveu.common.mybatis.config.property.TenantProperties;
 import com.aioveu.common.security.model.RoleDataScope;
 import com.aioveu.common.security.model.UserAuthInfoWithTenantId;
 import com.aioveu.common.security.service.PermissionService;
@@ -15,7 +16,6 @@ import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.common.sms.enmus.SmsTypeEnum;
 import com.aioveu.common.sms.service.SmsService;
 import com.aioveu.common.tenant.TenantContextHolder;
-import com.aioveu.tenant.aioveu01Tenant.config.property.TenantProperties;
 import com.aioveu.tenant.aioveu02User.converter.UserConverter;
 import com.aioveu.tenant.aioveu02User.mapper.UserMapper;
 import com.aioveu.tenant.aioveu02User.model.bo.UserBO;
@@ -85,8 +85,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private final DictItemService dictItemService;
 
     private final UserConverter userConverter;
-
-    private final TenantProperties tenantProperties;
 
     private final RoleMenuService roleMenuService;
 
