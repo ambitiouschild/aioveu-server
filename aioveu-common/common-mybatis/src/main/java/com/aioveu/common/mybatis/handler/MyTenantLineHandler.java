@@ -121,6 +121,14 @@ public class MyTenantLineHandler implements TenantLineHandler {
                 log.info("✅ 租户ID为null,✅ 查询用户租户场景，忽略 sys_tenant 表");
                 return true;
             }
+        }else{
+
+            if ("sys_user".equalsIgnoreCase(tableName)) {
+                log.info("✅ 租户ID不为null,✅ 查询用户租户场景，不忽略 sys_user 表");
+                return false;
+            }
+
+            return true;
         }
 
         Set<String> systemTables = Set.of(
