@@ -5,6 +5,7 @@ import cn.hutool.json.JSONUtil;
 import com.aioveu.common.TokenManager.TokenManagerService;
 import com.aioveu.common.constant.JwtClaimConstants;
 import com.aioveu.common.security.filter.JwtBlacklistFilter;
+import com.aioveu.common.security.filter.TenantFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ import org.springframework.security.oauth2.server.resource.web.authentication.Be
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
@@ -118,6 +120,8 @@ public class ResourceServerConfig {
     //步骤3：在 SecurityConfig中注入过滤器
     private final JwtBlacklistFilter jwtBlacklistFilter;  // ✅ 自动注入
 
+    private final TenantFilter tenantFilter;  // 注入你的租户过滤器
+
     /**
      * 白名单路径列表 - 从配置文件动态注入
      * 配置示例：
@@ -174,8 +178,20 @@ public class ResourceServerConfig {
                 // 禁用CSRF防护 - 对于REST API通常不需要CSRF保护
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtBlacklistFilter, BearerTokenAuthenticationFilter.class);  // ✅ 使用注入的过滤器
+                // 注册过滤器 - 注意顺序很重要！  //在Security配置类中直接注册（推荐）
+                .addFilterBefore(tenantFilter, UsernamePasswordAuthenticationFilter.class)  // 在认证过滤器之前 // 租户过滤器最先
+                .addFilterBefore(jwtBlacklistFilter, BearerTokenAuthenticationFilter.class);  // ✅ 使用注入的过滤器 // 然后是JWT黑名单
 
+
+        /*
+                    Todo   过滤器执行顺序（重要
+        *                   1. TenantFilter (租户过滤器)        ← 最先执行，设置租户上下文
+                            2. JwtBlacklistFilter (JWT黑名单)  ← 检查Token是否在黑名单
+                            3. JwtAuthenticationFilter (JWT认证) ← 认证用户
+                            4. BearerTokenAuthenticationFilter ← Spring Security的Bearer Token认证
+                            5. UsernamePasswordAuthenticationFilter ← 用户名密码认证
+        *
+        * */
 
         ;
         // 配置OAuth2资源服务器（JWT令牌认证）
