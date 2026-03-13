@@ -84,6 +84,7 @@ public class RoleMenuServiceImpl extends ServiceImpl<RoleMenuMapper, RoleMenu> i
             total += list.size();
         }
         TenantContextHolder.clear();
+//        log.info("权限缓存初始化完成（强制多租户），不清空上下文租户ID");
         log.info("权限缓存初始化完成（强制多租户），共{}条数据", total);
     }
 

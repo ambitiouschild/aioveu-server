@@ -33,6 +33,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
@@ -48,6 +49,8 @@ import java.util.stream.Collectors;
  * @Date 2026/2/21 22:19
  * @Version 1.0
  **/
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements MenuService {
@@ -70,6 +73,8 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
      */
     @Override
     public List<MenuVO> listMenus(MenuQuery queryParams) {
+
+        log.info("【Tenant-Menu】菜单列表:{}");
         List<Menu> menus = this.list(new LambdaQueryWrapper<Menu>()
                 .like(StrUtil.isNotBlank(queryParams.getKeywords()), Menu::getName, queryParams.getKeywords())
                 .orderByAsc(Menu::getSort)
@@ -169,22 +174,46 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
      */
     @Override
     public List<RouteVO> listCurrentUserRoutes() {
+        log.info("【Tenant-Menu】获取当前用户的菜单路由列表=====================");
+
+
         Set<String> roleCodes = SecurityUtils.getRoles();
+        log.info("【Tenant-Menu】获取角色,roleCodes：{}",roleCodes);
+
 
         if (CollectionUtil.isEmpty(roleCodes)) {
             return Collections.emptyList();
         }
 
-        Long originalTenantId = TenantContextHolder.getTenantId();
+        Long originalTenantId2 = TenantContextHolder.getTenantId();
+        log.info("【Tenant-Menu】测试===TenantContextHolder获取租户ID：{}",originalTenantId2);
+
+        Long originalTenantId = SecurityUtils.getTenantId();
+        log.info("【Tenant-Menu】SecurityUtils 获取当前租户id：{}",originalTenantId);
+
+        TenantContextHolder.setTenantId(originalTenantId);
+        log.info("【Tenant-Menu】在这里为租户上下文赋值");
+
+        Long originalTenantId3 = TenantContextHolder.getTenantId();
+        log.info("【Tenant-Menu】测试===赋值后获取租户ID：{}",originalTenantId3);
+
         boolean originalIgnoreTenant = TenantContextHolder.isIgnoreTenant();
+        log.info("【Tenant-Menu】是否忽略租户：{}",originalIgnoreTenant);
+
         boolean canSwitchTenant = SecurityUtils.canSwitchTenant();
+        log.info("【Tenant-Menu】是否可切换租户：{}",canSwitchTenant);
 
         if (originalTenantId == null) {
             return Collections.emptyList();
         }
 
         Long roleTenantId = canSwitchTenant ? SystemConstants.PLATFORM_TENANT_ID : originalTenantId;
+
+        log.info("【Tenant-Menu】平台租户ID（与默认租户一致）roleTenantId：{}",roleTenantId);
+
         Long targetTenantId = originalTenantId;
+
+        log.info("【Tenant-Menu】目标租户ID：{}",targetTenantId);
 
         List<Menu> menuList;
         try {

@@ -149,6 +149,9 @@ public class PasswordAuthenticationConverter implements AuthenticationConverter 
         //方案1：在Converter中设置租户上下文  提取租户ID并设置到上下文 步骤1：修改Converter（添加租户提取）
         // ✅ 新增：提取租户ID
         //最简单的就是最好的！在Converter中一次提取设置，在整个线程生命周期中都能访问。
+
+        log.info("==============================================");
+        log.info(" 使用AuthenticationManager执行实际的用户名密码认证,用户名和密码认证的时候，需要提供租户ID去查询对应的用户");
         Long tenantId = null;
         String tenantIdStr = parameters.getFirst("tenantId");
         if (StringUtils.hasText(tenantIdStr)) {
@@ -158,6 +161,7 @@ public class PasswordAuthenticationConverter implements AuthenticationConverter 
                 // 设置租户上下文
                 TenantContextHolder.setTenantId(tenantId);
                 log.info("已设置租户上下文: {}", tenantId);
+                log.info("这里从请求参数获取租户ID，并设置到上下文，是为了根据用户名获取租户Id列表");
 
             } catch (NumberFormatException e) {
                 log.warn("租户ID格式错误: {}", tenantIdStr);

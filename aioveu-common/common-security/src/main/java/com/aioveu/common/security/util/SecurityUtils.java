@@ -215,7 +215,7 @@ public class SecurityUtils {
      */
     public static Map<String, Object> getTokenAttributes() {
 
-        log.info("SecurityUtils获取当前的安全上下文（SecurityContext）中的认证信息（Authentication）");
+//        log.info("SecurityUtils获取当前的安全上下文（SecurityContext）中的认证信息（Authentication）");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         // 检查是否为JWT认证令牌
 
@@ -358,7 +358,7 @@ public class SecurityUtils {
         if (tokenAttributes != null) {
 
             Long tenantId = (Long) tokenAttributes.get("tenant_id");
-            log.info("SecurityUtils获取当前租户ID:{}", tenantId);
+//            log.info("SecurityUtils获取当前租户ID:{}", tenantId);
             return tenantId;
         }
         return null;

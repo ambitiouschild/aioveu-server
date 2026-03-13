@@ -354,34 +354,39 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         log.info("查询用户认证信息: username={}, tenantId={}", username, tenantId);
 
         Long oldTenantId = TenantContextHolder.getTenantId();
+        log.info("【Tenant-User】TenantContextHolder查询用户oldTenantId={}", oldTenantId);
+
         boolean oldIgnoreTenant = TenantContextHolder.isIgnoreTenant();
         // 临时忽略租户过滤，查询指定租户下的用户
         TenantContextHolder.setIgnoreTenant(true);
 
         try {
 
-            // 先查询用户
-            User user = this.getOne(
-                    new LambdaQueryWrapper<User>()
-                            .eq(User::getUsername, username)
-                            .eq(User::getTenantId, tenantId)
-                            .eq(User::getIsDeleted, 0)
-                            .last("LIMIT 1")
-            );
-            if (user == null) {
-                return null;
-            }
-            log.info("已经根据tenantId：{}进行了过滤，这里的唯一用户User：{}", tenantId, user);
-            // 设置租户上下文，然后查询认证信息（这样会包含该租户下的角色）
-            TenantContextHolder.setIgnoreTenant(false);
-            TenantContextHolder.setTenantId(tenantId);
+//            // 先查询用户
+//            User user = this.getOne(
+//                    new LambdaQueryWrapper<User>()
+//                            .eq(User::getUsername, username)
+//                            .eq(User::getTenantId, tenantId)
+//                            .eq(User::getIsDeleted, 0)
+//                            .last("LIMIT 1")
+//            );
+//            if (user == null) {
+//                return null;
+//            }
+//            log.info("已经根据tenantId：{}进行了过滤，这里的唯一用户User：{}", tenantId, user);
+//            // 设置租户上下文，然后查询认证信息（这样会包含该租户下的角色）
+//            TenantContextHolder.setIgnoreTenant(false);
+//            TenantContextHolder.setTenantId(tenantId);
 
             return getAuthInfoByUsernameAndTenantId(username,tenantId);
         } finally {
             if (oldTenantId != null) {
                 TenantContextHolder.setTenantId(oldTenantId);
             } else {
-                TenantContextHolder.clear();
+                TenantContextHolder.setTenantId(oldTenantId);
+//                TenantContextHolder.clear();
+//                log.info("【Tenant-User】清除当前线程的租户上下文");
+                log.info("【Tenant-User】如果上下文租户Id为空,则将前端租户Id传递TenantContextHolder");
             }
             TenantContextHolder.setIgnoreTenant(oldIgnoreTenant);
         }
