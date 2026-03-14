@@ -34,7 +34,12 @@ import java.util.Properties;
 @EnableTransactionManagement
 public class MybatisPlusConfig {
 
-    @Value("${app.db-type:mysql}")
+    /*
+    * 配置了 @Value("${app.db-type:mysql}")，但 Spring 在启动时会初始化这个配置类，
+    * 需要从配置文件中读取 app.db-type属性。如果配置文件中没有这个属性，
+    * 可能会导致配置类初始化失败。
+    * */
+//    @Value("${app.db-type:mysql}")
     private String dbType;
 
     @Autowired  //(required = false)
@@ -48,6 +53,9 @@ public class MybatisPlusConfig {
      */
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor() {
+
+        log.info("【mybatis-plus 配置类】开始工作！==================");
+
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
 
         // 多租户插件（强制启用，必须在最前面）

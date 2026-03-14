@@ -66,10 +66,12 @@ public class MyTenantLineHandler implements TenantLineHandler {
             return null;
         }
 
-//        if (tenantId == null) {
-//            throw new IllegalStateException(
-//                    "TenantId is required but was null. Ensure TenantContextHolder is set (e.g., via token) before DB access.");
-//        }
+        if (tenantId == 0) {
+            // 租户ID=0可能是超级管理员，可以查看所有数据
+            // 根据业务需求决定是否忽略租户过滤
+            log.info("租户ID=0，作为超级管理员处理，忽略租户过滤");
+            return new LongValue(tenantId);  // 或者 return false; 根据业务需求
+        }
 
         // 正常租户ID，添加过滤条件
         log.info("【MyTenantLineHandler】添加租户过滤条件: tenant_id = " + tenantId);
@@ -126,14 +128,6 @@ public class MyTenantLineHandler implements TenantLineHandler {
                 log.info("✅ 租户ID为null,✅ 查询用户租户场景，忽略 sys_tenant 表");
                 return true;
             }
-        }else{
-
-            if ("sys_user".equalsIgnoreCase(tableName)) {
-                log.info("✅ 租户ID不为null,✅ 查询用户租户场景，不忽略 sys_user 表");
-                return false;
-            }
-
-            return true;
         }
 
         Set<String> systemTables = Set.of(
@@ -158,6 +152,11 @@ public class MyTenantLineHandler implements TenantLineHandler {
 
         List<String> ignoreTables = tenantProperties.getIgnoreTables();
         if (ignoreTables == null || ignoreTables.isEmpty()) {
+            return false;
+        }
+
+        if ("sys_user".equalsIgnoreCase(tableName)) {
+            log.info("✅ 租户ID不为null,✅ 查询用户租户场景，不忽略 sys_user 表");
             return false;
         }
 

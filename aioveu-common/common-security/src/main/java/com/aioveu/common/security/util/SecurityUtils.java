@@ -249,10 +249,11 @@ public class SecurityUtils {
                 log.info("Token Attributes 为空或null");
             }
 
+            log.info("获取JWT令牌的所有声明属性");
             return tokenAttributes;
         }else {
-            log.info("❌ 不是JwtAuthenticationToken，实际类型: {}",
-                    authentication != null ? authentication.getClass().getName() : "null");
+//            log.info("❌ 不是JwtAuthenticationToken，实际类型: {}",
+//                    authentication != null ? authentication.getClass().getName() : "null");
         }
         return null;
     }
@@ -358,7 +359,7 @@ public class SecurityUtils {
         if (tokenAttributes != null) {
 
             Long tenantId = (Long) tokenAttributes.get("tenant_id");
-//            log.info("SecurityUtils获取当前租户ID:{}", tenantId);
+            log.info("SecurityUtils获取当前租户ID:{}", tenantId);
             return tenantId;
         }
         return null;

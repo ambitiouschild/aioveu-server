@@ -7,7 +7,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.aioveu.auth.config.CaptchaProperties;
 import com.aioveu.auth.model.CaptchaResult;
-import com.aioveu.common.TokenManager.TokenManagerService;
+import com.aioveu.common.TokenManager.service.TokenManagerService;
 import com.aioveu.common.constant.RedisConstants;
 import com.aioveu.common.sms.property.AliyunSmsProperties;
 import com.aioveu.common.sms.service.SmsService;

@@ -38,7 +38,7 @@ public class TenantFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        log.info("=== 调试SecurityUtils.getTenantId() ===");
+        log.info("=== 租户过滤器工作===");
 
         try {
             // 直接从SecurityUtils获取当前用户的租户ID

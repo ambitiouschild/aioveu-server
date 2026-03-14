@@ -51,8 +51,12 @@ spring:
           env: prod
           zone: zone1
 
+
 logging:
   level:
+#    com.aioveu.tenant.aioveu02User.mapper: DEBUG
+#    org.apache.ibatis: TRACE
+#    com.baomidou.mybatisplus: DEBUG
     com.aioveu.tenant.aioveu10Log.mapper: debug
 
 # 多租户配置
@@ -70,6 +74,7 @@ tenant:
     - sys_config # 系统配置表（通常共享）
     - gen_table # 代码生成表（平台共用）
     - gen_table_column # 代码生成字段表（平台共用）
+    - sys_user #无租户id登录忽略，有租户id不忽略
 # ============================================
 
 #  🎉 恭喜！

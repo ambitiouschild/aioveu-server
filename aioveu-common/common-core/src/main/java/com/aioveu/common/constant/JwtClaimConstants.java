@@ -2,6 +2,12 @@ package com.aioveu.common.constant;
 
 public interface JwtClaimConstants {
 
+
+    /**
+     * 令牌类型
+     */
+    String TOKEN_TYPE = "tokenType";
+
     /**
      * 用户ID
      */
@@ -24,9 +30,14 @@ public interface JwtClaimConstants {
 
 
     /**
-     * 数据权限
+     * 数据权限列表（多角色）
      */
     String DATA_SCOPES = "dataScopes";
+
+    /**
+     * 权限(角色Code)集合
+     */
+    String AUTHORITIES = "authorities";
 
     /**
      * 租户ID
@@ -38,13 +49,18 @@ public interface JwtClaimConstants {
      */
     String CAN_SWITCH_TENANT= "can_switch_tenant";
 
-    /**
-     * 权限(角色Code)集合
-     */
-    String AUTHORITIES = "authorities";
+
 
     /**
      * 会员ID
      */
     String MEMBER_ID = "memberId";
+
+    /**
+     * Token 版本号
+     * <p>
+     * 用于用户级会话失效，当用户修改密码、被禁用、强制下线时递增版本号，
+     * 使该用户之前签发的所有 Token 失效。
+     */
+    String TOKEN_VERSION = "tokenVersion";
 }

@@ -196,10 +196,19 @@ public class TenantController {
             return Result.failed("租户已禁用");
         }
 
+
+
+        Long oldTenantId = TenantContextHolder.getTenantId();
+        log.info("切换前租户上下文ID:{}", oldTenantId);
+
         // 设置新的租户上下文
         TenantContextHolder.setTenantId(tenantId);
 
+
         log.info("用户 {} 成功切换租户：{} -> {}", userId, fromTenantId, tenantId);
+
+        Long currentTenantId = TenantContextHolder.getTenantId();
+        log.info("当前租户上下文ID:{}", currentTenantId);
 
         return Result.success(tenant);
     }
@@ -224,6 +233,22 @@ public class TenantController {
     {
 
         return tenantService.canAccessTenant(userId, tenantId);
+    }
+
+
+    /**
+     * 检查是否具备租户切换权限
+     * <p>
+     * 验证是否具备租户切换权限
+     * </p>
+     * @return true-可切换，false-不可切换
+     */
+    @Operation(summary = "检查是否具备租户切换权限")
+    @GetMapping("/hasTenantSwitchPermission")
+    @Log(value = "检查是否具备租户切换权限）", module = LogModuleEnum.TENANT)
+    public boolean hasTenantSwitchPermission()
+    {
+        return tenantService.hasTenantSwitchPermission();
     }
 
 }

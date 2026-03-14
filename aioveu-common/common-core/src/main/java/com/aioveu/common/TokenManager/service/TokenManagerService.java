@@ -1,5 +1,8 @@
-package com.aioveu.common.TokenManager;
+package com.aioveu.common.TokenManager.service;
 
+
+import com.aioveu.common.model.AuthenticationToken;
+import org.springframework.security.core.Authentication;
 
 /**
  * @ClassName: TokenManagerService

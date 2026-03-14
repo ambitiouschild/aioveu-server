@@ -2,7 +2,6 @@ package com.aioveu.common.security.config;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
-import com.aioveu.common.TokenManager.TokenManagerService;
 import com.aioveu.common.constant.JwtClaimConstants;
 import com.aioveu.common.security.filter.JwtBlacklistFilter;
 import com.aioveu.common.security.filter.TenantFilter;
@@ -10,10 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -32,7 +29,6 @@ import org.springframework.security.oauth2.server.resource.web.authentication.Be
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
@@ -179,9 +175,9 @@ public class ResourceServerConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 注册过滤器 - 注意顺序很重要！  //在Security配置类中直接注册（推荐）
-                .addFilterBefore(tenantFilter, UsernamePasswordAuthenticationFilter.class)  // 在认证过滤器之前 // 租户过滤器最先
-                .addFilterBefore(jwtBlacklistFilter, BearerTokenAuthenticationFilter.class);  // ✅ 使用注入的过滤器 // 然后是JWT黑名单
-
+                //方案1：将租户过滤器移到认证之后（推荐）
+                .addFilterBefore(jwtBlacklistFilter, BearerTokenAuthenticationFilter.class)  // ✅ 使用注入的过滤器 // 然后是JWT黑名单
+                .addFilterAfter(tenantFilter, BearerTokenAuthenticationFilter.class) ; // 在认证过滤器之后 // 租户过滤器最先
 
         /*
                     Todo   过滤器执行顺序（重要

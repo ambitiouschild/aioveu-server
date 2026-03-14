@@ -1,7 +1,9 @@
 package com.aioveu.auth.controller;
 
+import com.aioveu.auth.TokenManager.service.AuthTokenManagerService;
 import com.aioveu.auth.model.CaptchaResult;
 import com.aioveu.auth.model.SysUserDetails;
+import com.aioveu.common.model.AuthenticationToken;
 import com.aioveu.auth.service.AuthService;
 import com.aioveu.auth.util.SecurityUtils;
 import com.aioveu.common.annotation.Log;
@@ -11,7 +13,6 @@ import com.aioveu.common.result.ResultCode;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.TenantVO;
 import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
-import com.alibaba.nacos.client.naming.utils.CollectionUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,16 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.security.oauth2.core.OAuth2Token;
-import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
-import org.springframework.security.oauth2.server.authorization.authentication.OAuth2AccessTokenAuthenticationToken;
-import org.springframework.security.oauth2.server.authorization.authentication.OAuth2ClientAuthenticationToken;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
-import org.springframework.security.oauth2.server.authorization.context.AuthorizationServerContextHolder;
 import org.springframework.security.oauth2.server.authorization.token.DefaultOAuth2TokenContext;
-import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,9 +43,9 @@ import java.util.*;
 public class AuthController {
 
 
-    DefaultOAuth2TokenContext.Builder tokenContextBuilder;
 
-    OAuth2TokenGenerator<?> tokenGenerator;            // 令牌生成器
+
+    private final AuthTokenManagerService authTokenManagerService;// 令牌生成器
 
     // 注入认证服务层实例，用于处理业务逻辑
     private final AuthService authService;
@@ -119,55 +111,44 @@ public class AuthController {
 
     @Operation(summary = "切换租户")
     @PostMapping("/switch-tenant")
-    public Result<Map<String, Object>> switchTenant(@RequestParam Long tenantId) {
+    public Result<AuthenticationToken> switchTenant(@RequestParam Long tenantId) {
 
         try {
                 // 1. 权限校验
-
-        //        if (!tenantService.hasTenantSwitchPermission()) {
-        //            return Result.failed("无权限");
-        //        }
-
-                if (!SecurityUtils.canSwitchTenant()) {
-                    return Result.failed("无租户切换权限");
+                if (!tenantFeignClient.hasTenantSwitchPermission()) {
+                    return Result.failed("无权限切换租户");
                 }
 
+                // 1. 获取当前认证信息
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
                 if (authentication == null || !(authentication.getPrincipal() instanceof SysUserDetails details)) {
                     return Result.failed(ResultCode.ACCESS_TOKEN_INVALID);
                 }
 
-                // 3. 校验用户是否能访问该租户
+                // 2. 校验用户是否能访问该租户
                 boolean canAccess = tenantFeignClient.canAccessTenant(details.getUserId(), tenantId);
                 if (!canAccess) {
                     return Result.failed("无权限访问该租户");
                 }
 
-                // 获取用户在新租户下的权限信息（可选，如果需要更新权限）
-        //        UserAuthInfoWithTenantId userAuthInfoWithTenantId = tenantFeignClient.getUserAuthInfoWithTenantId
-        //                (details.getUsername(), tenantId);
+                // 获取用户在新租户下的权限信息（可选，如果需要更新权限） 创建包含新租户ID的用户详情
+                UserAuthInfoWithTenantId userAuthInfoWithTenantId = tenantFeignClient.getUserAuthInfoWithTenantId
+                        (details.getUsername(), tenantId);
 
+                SysUserDetails newDetails = new SysUserDetails(userAuthInfoWithTenantId);
+                newDetails.setUserId(details.getUserId());
+                newDetails.setUsername(details.getUsername());
+                newDetails.setDeptId(details.getDeptId());
+                newDetails.setDataScopes(details.getDataScopes());
+                newDetails.setTenantId(tenantId);
+                newDetails.setCanSwitchTenant(details.getCanSwitchTenant());
 
-                // ✅ 3. 最简单的方法：不生成新Token，返回原Token + 新租户ID
-                // 前端存储两个东西：Token + 当前租户ID
-                String currentToken = SecurityUtils.getToken();
-
-                if (currentToken == null) {
-                    return Result.failed("无法获取当前Token");
-                }
-                // 6. 返回结果
-                Map<String, Object> result = new HashMap<>();
-                result.put("access_token", currentToken);      // 原Token不变
-                result.put("token_type", "Bearer");
-                result.put("tenant_id", tenantId);             // 新租户ID
-                result.put("user_id", details.getUserId());
-                result.put("username", details.getUsername());
-                result.put("success", true);
-                result.put("timestamp", System.currentTimeMillis());
+                Authentication newAuth = new UsernamePasswordAuthenticationToken(newDetails, authentication.getCredentials(), authentication.getAuthorities());
+                AuthenticationToken token = authTokenManagerService.generateToken(newAuth);
 
                 log.info("用户 {} 切换到租户 {} 成功", details.getUsername(), tenantId);
 
-                return Result.success(result);
+                return Result.success(token);
 
         } catch (Exception e) {
             log.error("切换租户失败", e);

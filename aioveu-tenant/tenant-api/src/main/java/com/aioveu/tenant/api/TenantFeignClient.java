@@ -94,4 +94,16 @@ public interface TenantFeignClient {
             @Parameter(description = "租户ID") @RequestParam Long tenantId
     );
 
+    /**
+     * 检查是否具备租户切换权限
+     * <p>
+     * 验证是否具备租户切换权限
+     * </p>
+     * @return true-可切换，false-不可切换
+     */
+    @Operation(summary = "检查是否具备租户切换权限")
+    @GetMapping("/hasTenantSwitchPermission")
+    @Log(value = "检查是否具备租户切换权限）", module = LogModuleEnum.TENANT)
+    boolean hasTenantSwitchPermission();
+
 }
