@@ -5,6 +5,7 @@ import com.aioveu.common.tenant.TenantContextHolder;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,7 @@ import java.io.IOException;
  * @Date 2026/3/13 21:33
  * @Version 1.0
  **/
+@Slf4j
 @Component
 //因为 OncePerRequestFilter本身是一个抽象类，你需要用 extends而不是 implements。
 public class TenantFilter extends OncePerRequestFilter {
@@ -36,40 +38,42 @@ public class TenantFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        System.out.println("=== 调试SecurityUtils.getTenantId() ===");
+        log.info("=== 调试SecurityUtils.getTenantId() ===");
 
         try {
             // 直接从SecurityUtils获取当前用户的租户ID
             // 调试1：直接调用
             Long tenantId = SecurityUtils.getTenantId();
-            System.out.println("SecurityUtils.getTenantId() 结果: " + tenantId);
+            log.info("SecurityUtils.getTenantId() 结果: " + tenantId);
 
             // 调试2：查看Spring Security上下文
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            System.out.println("Spring Security认证: " + authentication);
+            log.info("Spring Security认证: " + authentication);
             if (authentication != null) {
-                System.out.println("Principal: " + authentication.getPrincipal());
-                System.out.println("是否认证: " + authentication.isAuthenticated());
+                log.info("Principal: " + authentication.getPrincipal());
+                log.info("是否认证: " + authentication.isAuthenticated());
             }
 
             // 调试3：查看请求Header
-            System.out.println("Authorization Header: " + request.getHeader("Authorization"));
-            System.out.println("租户过滤器执行，URI: " + request.getRequestURI());
-            System.out.println("请求Header: " + request.getHeaderNames());
+            log.info("Authorization Header: " + request.getHeader("Authorization"));
+            log.info("租户过滤器执行，URI: " + request.getRequestURI());
+            log.info("请求Header: " + request.getHeaderNames());
 
             if (tenantId != null) {
                 // 设置到租户上下文
                 TenantContextHolder.setTenantId(tenantId);
-                System.out.println("过滤器✅ 从SecurityUtils设置租户ID: " + tenantId);
+                log.info("过滤器✅ 从SecurityUtils设置租户ID: " + tenantId);
             } else {
                 // 没有租户ID，不设置
-                System.out.println("⚠️ 没有租户ID，跳过设置");
+                log.info("⚠️ 没有租户ID，跳过设置");
             }
 
             filterChain.doFilter(request, response);
         } finally {
             // 清理租户上下文
-            TenantContextHolder.clear();
+//            TenantContextHolder.clear();
+            // 清理租户上下文
+            log.info("⚠️ 过滤后不清理租户上下文");
         }
     }
 

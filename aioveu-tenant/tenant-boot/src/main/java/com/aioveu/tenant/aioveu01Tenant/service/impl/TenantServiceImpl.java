@@ -473,11 +473,16 @@ public class TenantServiceImpl extends ServiceImpl<TenantMapper, Tenant> impleme
      */
     @Override
     public boolean canAccessTenant(Long userId, Long tenantId) {
+
+        log.info("校验用户是否可访问指定租户");
+
         if (userId == null || tenantId == null) {
             return false;
         }
 
-        Long currentTenantId = TenantContextHolder.getTenantId();
+//        Long currentTenantId = TenantContextHolder.getTenantId();
+        Long currentTenantId = SecurityUtils.getTenantId();
+        log.info("从SecurityUtils校验currentTenantId:{}",currentTenantId);
         if (currentTenantId == null) {
             return false;
         }

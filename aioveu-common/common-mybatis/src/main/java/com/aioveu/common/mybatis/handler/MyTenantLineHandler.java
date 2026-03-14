@@ -1,6 +1,7 @@
 package com.aioveu.common.mybatis.handler;
 
 import com.aioveu.common.mybatis.config.property.TenantProperties;
+import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.common.tenant.TenantContextHolder;
 import com.baomidou.mybatisplus.extension.plugins.handler.TenantLineHandler;
 import lombok.RequiredArgsConstructor;
@@ -49,10 +50,13 @@ public class MyTenantLineHandler implements TenantLineHandler {
 
         log.info("getTenantId() 被调用");
 
-        // 获取当前租户ID
-        Long tenantId = TenantContextHolder.getTenantId();
-        log.info("从 TenantContextHolder 获取租户ID: {}", tenantId);
+        // 通过token获取当前租户ID
+        Long tenantId = SecurityUtils.getTenantId();
+        log.info("【MyTenantLineHandler】从SecurityUtils的token获取租户ID: {}", tenantId);
 
+        //如果有就赋值到租户上下文工具类
+        TenantContextHolder.setTenantId(tenantId);
+        log.info("【MyTenantLineHandler】如果有租户id就赋值到租户上下文工具类: {}", tenantId);
 
         // 如果租户ID为null，不添加租户条件
         if (tenantId == null) {
@@ -101,8 +105,9 @@ public class MyTenantLineHandler implements TenantLineHandler {
         log.info("检查表是否忽略: {}", tableName);
 
         // 1. 获取当前租户ID
-        Long tenantId = TenantContextHolder.getTenantId();
-        log.info("当前租户ID: {}", tenantId);
+        // 通过token获取当前租户ID
+        Long tenantId = SecurityUtils.getTenantId();
+        log.info("【MyTenantLineHandler】判断表是否忽略多租户过滤,从SecurityUtils的token获取租户ID: {}", tenantId);
 
         // 2. 关键逻辑：如果租户ID为null或0，忽略表
         // 1. 租户ID为null时，只忽略sys_user表

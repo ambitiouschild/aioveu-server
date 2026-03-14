@@ -192,10 +192,10 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
         log.info("【Tenant-Menu】SecurityUtils 获取当前租户id：{}",originalTenantId);
 
         TenantContextHolder.setTenantId(originalTenantId);
-        log.info("【Tenant-Menu】在这里为租户上下文赋值");
+        log.info("【Tenant-Menu】在这里为租户上下文赋值:{}");
 
         Long originalTenantId3 = TenantContextHolder.getTenantId();
-        log.info("【Tenant-Menu】测试===赋值后获取租户ID：{}",originalTenantId3);
+        log.info("【Tenant-Menu】测试TenantContextHolder===赋值后获取租户ID：{}",originalTenantId3);
 
         boolean originalIgnoreTenant = TenantContextHolder.isIgnoreTenant();
         log.info("【Tenant-Menu】是否忽略租户：{}",originalIgnoreTenant);

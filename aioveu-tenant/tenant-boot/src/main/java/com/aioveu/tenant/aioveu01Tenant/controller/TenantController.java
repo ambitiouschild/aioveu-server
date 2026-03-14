@@ -175,7 +175,7 @@ public class TenantController {
             HttpServletRequest request
     ) {
         Long userId = SecurityUtils.getUserId();
-        Long fromTenantId = TenantContextHolder.getTenantId();
+        Long fromTenantId = SecurityUtils.getTenantId();
 
         log.info("用户 {} 请求切换租户：{} -> {}", userId, fromTenantId, tenantId);
 
@@ -203,4 +203,27 @@ public class TenantController {
 
         return Result.success(tenant);
     }
+
+
+    /**
+     * 检查用户是否可以访问指定租户
+     * <p>
+     * 验证该用户名在目标租户下是否存在账户
+     * </p>
+     *
+     * @param userId   用户ID
+     * @param tenantId 租户ID
+     * @return true-可访问，false-不可访问
+     */
+    @Operation(summary = "检查用户是否可以访问指定租户")
+    @GetMapping("/canAccessTenant")
+    @Log(value = "检查用户是否可以访问指定租户）", module = LogModuleEnum.TENANT)
+    public boolean canAccessTenant(
+            @Parameter(description = "用户ID") @RequestParam Long userId,
+            @Parameter(description = "租户ID") @RequestParam Long tenantId)
+    {
+
+        return tenantService.canAccessTenant(userId, tenantId);
+    }
+
 }

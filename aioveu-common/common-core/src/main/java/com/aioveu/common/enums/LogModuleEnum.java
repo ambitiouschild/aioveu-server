@@ -31,6 +31,10 @@ public enum LogModuleEnum {
 
     GATEWAY("网关服务"),
 
+    LSS("lss系统服务"),
+
+    TENANT("多租户服务"),
+
     OMS("订单服务"),
     PMS("商品服务"),
     SMS("营销服务"),

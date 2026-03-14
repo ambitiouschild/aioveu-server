@@ -81,6 +81,6 @@ public class TenantContextHolder {
     public static void clear() {
         TENANT_ID_HOLDER.remove();
         IGNORE_TENANT_HOLDER.remove();
-        log.debug("清除租户上下文");
+        log.info("清除租户上下文");
     }
 }
