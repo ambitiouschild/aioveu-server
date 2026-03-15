@@ -1,6 +1,9 @@
 package com.aioveu.auth.service;
 
 import com.aioveu.auth.model.*;
+import com.aioveu.auth.model.AuthenticationToken;
+import com.aioveu.common.result.Result;
+import org.springframework.security.core.Authentication;
 
 /**
  * @ClassName: AuthService
@@ -28,6 +31,17 @@ public interface AuthService {
      * 登出
      */
     void logout();
+
+
+    /*
+    * 切换租户
+    * */
+    Result<AuthenticationToken> switchTenantWithJwt(Long tenantId);
+
+    /**
+     * 切换租户 - 复用登录的 Token 生成器
+     */
+    Result<Authentication> switchTenant(Long tenantId);
 
 
 }

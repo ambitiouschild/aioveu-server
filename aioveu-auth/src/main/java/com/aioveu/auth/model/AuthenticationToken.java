@@ -1,4 +1,4 @@
-package com.aioveu.common.model;
+package com.aioveu.auth.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;

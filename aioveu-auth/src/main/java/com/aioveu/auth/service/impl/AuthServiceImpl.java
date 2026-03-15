@@ -5,22 +5,39 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.aioveu.auth.TokenManager.service.AuthTokenManagerService;
 import com.aioveu.auth.config.CaptchaProperties;
 import com.aioveu.auth.model.CaptchaResult;
+import com.aioveu.auth.model.SysUserDetails;
+import com.aioveu.auth.oauth2.extension.password.PasswordAuthenticationConverter;
+import com.aioveu.auth.oauth2.extension.password.PasswordAuthenticationProvider;
 import com.aioveu.common.TokenManager.service.TokenManagerService;
 import com.aioveu.common.constant.RedisConstants;
+import com.aioveu.auth.model.AuthenticationToken;
+import com.aioveu.common.result.Result;
+import com.aioveu.common.result.ResultCode;
 import com.aioveu.common.sms.property.AliyunSmsProperties;
 import com.aioveu.common.sms.service.SmsService;
+import com.aioveu.tenant.api.TenantFeignClient;
+import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.aioveu.auth.service.CaptchaService;
 import com.aioveu.auth.service.AuthService;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import com.aioveu.auth.util.SecurityUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 
 /**
@@ -53,6 +70,16 @@ public class AuthServiceImpl implements AuthService {
     private final StringRedisTemplate redisTemplate;
 
     private final TokenManagerService tokenManagerService;
+
+    private final TenantFeignClient tenantFeignClient;
+
+    private final AuthTokenManagerService authTokenManagerService;// 令牌生成器
+
+    private final PasswordAuthenticationConverter passwordAuthenticationConverter;
+
+    // 直接注入登录用的 tokenGenerator
+    private final PasswordAuthenticationProvider passwordAuthenticationProvider;
+
 
 
     /**
@@ -158,6 +185,176 @@ public class AuthServiceImpl implements AuthService {
             SecurityContextHolder.clearContext();
         }
     }
+
+
+
+    /*
+     * 切换租户
+     * */
+    @Override
+    public Result<AuthenticationToken> switchTenantWithJwt(Long tenantId) {
+
+
+        try {
+            // 1. 权限校验
+            if (!tenantFeignClient.hasTenantSwitchPermission()) {
+                return Result.failed("无权限切换租户");
+            }
+
+            // 1. 获取当前认证信息
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !(authentication.getPrincipal() instanceof SysUserDetails details)) {
+                return Result.failed(ResultCode.ACCESS_TOKEN_INVALID);
+            }
+
+            // 2. 校验用户是否能访问该租户
+            boolean canAccess = tenantFeignClient.canAccessTenant(details.getUserId(), tenantId);
+            if (!canAccess) {
+                return Result.failed("无权限访问该租户");
+            }
+
+            // 获取用户在新租户下的权限信息（可选，如果需要更新权限） 创建包含新租户ID的用户详情
+            UserAuthInfoWithTenantId userAuthInfoWithTenantId = tenantFeignClient.getUserAuthInfoWithTenantId
+                    (details.getUsername(), tenantId);
+
+            SysUserDetails newDetails = new SysUserDetails(userAuthInfoWithTenantId);
+            newDetails.setUserId(details.getUserId());
+            newDetails.setUsername(details.getUsername());
+            newDetails.setDeptId(details.getDeptId());
+            newDetails.setDataScopes(details.getDataScopes());
+            newDetails.setTenantId(tenantId);
+            newDetails.setCanSwitchTenant(details.getCanSwitchTenant());
+
+            Authentication newAuth = new UsernamePasswordAuthenticationToken(newDetails, authentication.getCredentials(), authentication.getAuthorities());
+            AuthenticationToken token = authTokenManagerService.generateToken(newAuth);
+
+            log.info("用户 {} 切换到租户 {} 成功", details.getUsername(), tenantId);
+
+            return Result.success(token);
+
+        } catch (Exception e) {
+            log.error("切换租户失败", e);
+            return Result.failed("切换失败: " + e.getMessage());
+        }
+
+    }
+
+    /**
+     * 切换租户 - 复用登录的 Token 生成器
+     */
+    @Override
+    public Result<Authentication> switchTenant(Long tenantId) {
+
+
+        try {
+            // 1. 权限校验
+            if (!tenantFeignClient.hasTenantSwitchPermission()) {
+                return Result.failed("无权限切换租户");
+            }
+
+            // 1. 获取当前认证信息
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !(authentication.getPrincipal() instanceof SysUserDetails details)) {
+                return Result.failed(ResultCode.ACCESS_TOKEN_INVALID);
+            }
+
+            // 2. 校验用户是否能访问该租户
+            boolean canAccess = tenantFeignClient.canAccessTenant(details.getUserId(), tenantId);
+            if (!canAccess) {
+                return Result.failed("无权限访问该租户");
+            }
+
+            // 获取用户在新租户下的权限信息（可选，如果需要更新权限） 创建包含新租户ID的用户详情
+            UserAuthInfoWithTenantId userAuthInfoWithTenantId = tenantFeignClient.getUserAuthInfoWithTenantId
+                    (details.getUsername(), tenantId);
+
+
+            SysUserDetails newDetails = new SysUserDetails(userAuthInfoWithTenantId);
+            newDetails.setUserId(details.getUserId());
+            newDetails.setUsername(details.getUsername());
+            newDetails.setDeptId(details.getDeptId());
+            newDetails.setDataScopes(details.getDataScopes());
+            newDetails.setTenantId(tenantId);
+            newDetails.setCanSwitchTenant(details.getCanSwitchTenant());
+
+
+            // 6. 模拟登录请求
+            HttpServletRequest request = buildLoginRequest(newDetails);
+
+            // 7. 通过 Converter 创建认证令牌
+            Authentication passwordAuth  = passwordAuthenticationConverter.convert(request);
+
+            if (passwordAuth == null) {
+                throw new RuntimeException("构建认证请求失败");
+            }
+
+            // 8. 调用认证提供者（复用登录流程）
+            Authentication tokenResult = passwordAuthenticationProvider.authenticate(passwordAuth);
+
+            log.info("用户 {} 切换到租户 {} 成功", details.getUsername(), tenantId);
+
+            return Result.success(tokenResult);
+
+        } catch (Exception e) {
+            log.error("切换租户失败", e);
+            return Result.failed("切换失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 构建模拟的登录 HTTP 请求
+     */
+    private HttpServletRequest buildLoginRequest(SysUserDetails userDetails) {
+        // 获取当前请求上下文
+        ServletRequestAttributes attributes = (ServletRequestAttributes)
+                RequestContextHolder.getRequestAttributes();
+
+        if (attributes == null) {
+            throw new RuntimeException("无法获取请求上下文");
+        }
+
+        HttpServletRequest originalRequest = attributes.getRequest();
+
+        // 创建包装请求，修改参数
+        return new HttpServletRequestWrapper(originalRequest) {
+            private final Map<String, String[]> modifiedParams = new HashMap<>();
+
+            {
+                // 复制原参数
+                Map<String, String[]> originalParams = originalRequest.getParameterMap();
+                modifiedParams.putAll(originalParams);
+
+                // 修改登录参数
+                modifiedParams.put("grant_type", new String[]{"password"});
+                modifiedParams.put("username", new String[]{userDetails.getUsername()});
+                modifiedParams.put("password", new String[]{"[TENANT_SWITCH]"}); // 特殊标记
+                modifiedParams.put("tenant_id", new String[]{String.valueOf(userDetails.getTenantId())});
+
+                // 添加客户端认证（从配置读取）
+//                modifiedParams.put("client_id", new String[]{"your-client-id"});
+//                modifiedParams.put("client_secret", new String[]{"your-client-secret"});
+            }
+
+            @Override
+            public String getParameter(String name) {
+                String[] values = modifiedParams.get(name);
+                return values != null && values.length > 0 ? values[0] : null;
+            }
+
+            @Override
+            public Map<String, String[]> getParameterMap() {
+                return modifiedParams;
+            }
+
+            @Override
+            public String[] getParameterValues(String name) {
+                return modifiedParams.get(name);
+            }
+        };
+    }
+
+
+
 
 
 

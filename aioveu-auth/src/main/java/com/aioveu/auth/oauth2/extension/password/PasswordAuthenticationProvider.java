@@ -2,6 +2,8 @@ package com.aioveu.auth.oauth2.extension.password;
 
 
 import cn.hutool.core.lang.Assert;
+import com.aioveu.auth.model.SysUserDetails;
+import com.aioveu.auth.service.SysUserDetailsService;
 import com.aioveu.auth.util.OAuth2AuthenticationProviderUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -9,6 +11,8 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.*;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
@@ -28,10 +32,7 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Toke
 import org.springframework.util.CollectionUtils;
 
 import java.security.Principal;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -70,6 +71,12 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
     // OAuth2令牌生成器，用于生成访问令牌、刷新令牌等
     private final OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator;
 
+    // 添加特殊密码标记
+    private static final String TENANT_SWITCH_PASSWORD = "[TENANT_SWITCH]";
+
+    // 添加 UserDetailsService 依赖
+    private final SysUserDetailsService sysUserDetailsService;
+
     /**
      * Constructs an {@code OAuth2ResourceOwnerPasswordAuthenticationProviderNew} using the provided parameters.
      * 构造函数：依赖注入所需的组件
@@ -80,7 +87,8 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
      */
     public PasswordAuthenticationProvider(AuthenticationManager authenticationManager,
                                           OAuth2AuthorizationService authorizationService,
-                                          OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator
+                                          OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator,
+                                          SysUserDetailsService sysUserDetailsService
     ) {
 
         // 参数非空校验，确保依赖组件正确注入
@@ -89,6 +97,7 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
         this.authenticationManager = authenticationManager;
         this.authorizationService = authorizationService;
         this.tokenGenerator = tokenGenerator;
+        this.sysUserDetailsService = sysUserDetailsService;
     }
 
 
@@ -156,29 +165,42 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
 
         String username = (String) additionalParameters.get(OAuth2ParameterNames.USERNAME);
         String password = (String) additionalParameters.get(OAuth2ParameterNames.PASSWORD);
+        String tenantId = (String) additionalParameters.get("tenant_id");
         log.info("从参数中提取用户名:{} 和 密码:{}",username,password);
 
-        // 创建Spring Security标准的用户名密码认证令牌
-        log.info("创建Spring Security标准的用户名密码认证令牌");
-        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                new UsernamePasswordAuthenticationToken(username, password);
-
-        // 用户名密码身份验证，成功后返回带有权限的认证信息
-
-        // 使用AuthenticationManager执行实际的用户名密码认证
-        // 这里会委托给SysUserDetailsService.loadUserByUsername进行用户验证
-        log.info("使用AuthenticationManager执行实际的用户名密码认证");
-        log.info("=====调用用户服务=====");
-        log.info("这里会委托给SysUserDetailsService.loadUserByUsername进行用户验证");
         Authentication usernamePasswordAuthentication;
-        try {
-            usernamePasswordAuthentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
-        } catch (Exception e) {
-            // 需要将其他类型的异常转换为 OAuth2AuthenticationException
-            // 才能被自定义异常捕获处理，逻辑源码 OAuth2TokenEndpointFilter#doFilterInternal
-            // 这样可以被OAuth2TokenEndpointFilter统一处理并返回标准错误响应
-            throw new OAuth2AuthenticationException(e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
+
+
+        // ✅ 新增：检查是否为租户切换请求
+        if (TENANT_SWITCH_PASSWORD.equals(password)) {
+            log.info("检测到租户切换请求，用户名: {}, 租户ID: {}", username, tenantId);
+
+            // 租户切换：跳过密码验证，直接加载用户
+            usernamePasswordAuthentication = authenticateForTenantSwitch(username, tenantId);
+        } else {
+            // 正常登录流程
+            // 创建Spring Security标准的用户名密码认证令牌
+            log.info("创建Spring Security标准的用户名密码认证令牌");
+            UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
+                    new UsernamePasswordAuthenticationToken(username, password);
+
+            try {
+                // 用户名密码身份验证，成功后返回带有权限的认证信息
+                // 使用AuthenticationManager执行实际的用户名密码认证
+                // 这里会委托给SysUserDetailsService.loadUserByUsername进行用户验证
+                log.info("使用AuthenticationManager执行实际的用户名密码认证");
+                log.info("=====调用用户服务=====");
+                log.info("这里会委托给SysUserDetailsService.loadUserByUsername进行用户验证");
+                usernamePasswordAuthentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+            } catch (Exception e) {
+
+                // 需要将其他类型的异常转换为 OAuth2AuthenticationException
+                // 才能被自定义异常捕获处理，逻辑源码 OAuth2TokenEndpointFilter#doFilterInternal
+                // 这样可以被OAuth2TokenEndpointFilter统一处理并返回标准错误响应
+                throw new OAuth2AuthenticationException(e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
+            }
         }
+
 
         // 验证申请访问范围(Scope)
         // 步骤4: 验证和确定权限范围(Scope)
@@ -232,6 +254,7 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
         OAuth2TokenContext tokenContext = tokenContextBuilder.tokenType((OAuth2TokenType.ACCESS_TOKEN)).build();
 
         // 检查令牌生成是否成功
+        //这个 tokenGenerator就是实际生成 JWT 的组件。你需要找到它的配置。
         OAuth2Token generatedAccessToken = this.tokenGenerator.generate(tokenContext);
         if (generatedAccessToken == null) {
             OAuth2Error error = new OAuth2Error(OAuth2ErrorCodes.SERVER_ERROR,
@@ -362,6 +385,69 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
     @Override
     public boolean supports(Class<?> authentication) {
         return PasswordAuthenticationToken.class.isAssignableFrom(authentication);
+    }
+
+
+    /**
+     * ✅ 新增：租户切换认证（免密码）
+     */
+    private Authentication authenticateForTenantSwitch(String username, String tenantId) {
+        try {
+            // 1. 加载用户基本信息
+            UserDetails userDetails = sysUserDetailsService.loadUserByUsername(username);
+
+            if (userDetails == null) {
+                throw new OAuth2AuthenticationException("用户不存在: " + username);
+            }
+
+            // 2. 如果是 SysUserDetails，设置租户ID
+            if (userDetails instanceof SysUserDetails sysUserDetails) {
+                if (tenantId != null) {
+                    sysUserDetails.setTenantId(Long.valueOf(tenantId));
+                }
+
+                // 3. 重新加载该租户下的权限（如果需要）
+                // 这里可以调用你的权限服务重新加载权限
+                List<GrantedAuthority> authorities = loadPermissionsForTenant(username, tenantId);
+                if (authorities != null && !authorities.isEmpty()) {
+                    sysUserDetails.setAuthorities(authorities);
+                }
+            }
+
+            // 4. 创建认证对象
+            return new UsernamePasswordAuthenticationToken(
+                    userDetails,
+                    null,  // 凭证为空
+                    userDetails.getAuthorities()
+            );
+
+        } catch (Exception e) {
+            log.error("租户切换认证失败", e);
+            throw new OAuth2AuthenticationException("租户切换失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * ✅ 新增：加载租户下的权限
+     */
+    private List<GrantedAuthority> loadPermissionsForTenant(String username, String tenantId) {
+        // 这里需要根据你的实际情况实现
+        // 例如：调用权限服务接口获取该租户下的权限
+
+        try {
+            // 示例：从 FeignClient 获取权限
+            // List<String> permissions = permissionFeignClient.getPermissions(username, tenantId);
+            // return permissions.stream()
+            //     .map(SimpleGrantedAuthority::new)
+            //     .collect(Collectors.toList());
+
+            // 暂时返回空列表，你可以根据实际情况实现
+            return Collections.emptyList();
+
+        } catch (Exception e) {
+            log.warn("加载租户权限失败，使用默认权限", e);
+            return Collections.emptyList();
+        }
     }
 
 }

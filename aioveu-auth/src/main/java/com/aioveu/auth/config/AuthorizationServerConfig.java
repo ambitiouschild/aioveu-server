@@ -5,6 +5,7 @@ import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.hutool.captcha.generator.CodeGenerator;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.auth.filter.CaptchaValidationFilter;
+import com.aioveu.auth.service.SysUserDetailsService;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -183,7 +184,8 @@ public class AuthorizationServerConfig {
             HttpSecurity http,
             AuthenticationManager authenticationManager,    // Spring Security认证管理器
             OAuth2AuthorizationService authorizationService,   // OAuth2授权服务
-            OAuth2TokenGenerator<?> tokenGenerator            // 令牌生成器
+            OAuth2TokenGenerator<?> tokenGenerator,
+            SysUserDetailsService sysUserDetailsService// 令牌生成器
 
     ) throws Exception {
 
@@ -240,7 +242,7 @@ public class AuthorizationServerConfig {
                                         authenticationProviders.addAll(
                                                 List.of(
                                                         // 密码模式：使用用户名密码认证
-                                                        new PasswordAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator),
+                                                        new PasswordAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator,sysUserDetailsService),
                                                         // 验证码模式：验证图形验证码+密码
                                                         new CaptchaAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator, redisTemplate, codeGenerator),
                                                         // 微信模式：使用微信code认证

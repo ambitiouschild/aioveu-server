@@ -1,7 +1,7 @@
 package com.aioveu.auth.TokenManager.service;
 
 
-import com.aioveu.common.model.AuthenticationToken;
+import com.aioveu.auth.model.AuthenticationToken;
 import org.springframework.security.core.Authentication;
 
 /**

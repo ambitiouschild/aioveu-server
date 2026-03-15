@@ -1,30 +1,23 @@
 package com.aioveu.common.TokenManager.service.Impl;
 
 import cn.hutool.core.convert.Convert;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTPayload;
 import cn.hutool.jwt.JWTUtil;
 import com.aioveu.common.TokenManager.service.TokenManagerService;
-import com.aioveu.common.constant.JwtClaimConstants;
 import com.aioveu.common.constant.RedisConstants;
 import com.aioveu.common.constant.SecurityConstants;
 import com.aioveu.common.model.AuthenticationToken;
 import lombok.RequiredArgsConstructor;import lombok.extern.slf4j.Slf4j;
 // ✅ 使用 Spring Framework 自带的
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * @ClassName: JwtTokenManagerImpl
