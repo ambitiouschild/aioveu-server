@@ -5,7 +5,11 @@ import cn.hutool.core.lang.Assert;
 import com.aioveu.auth.model.SysUserDetails;
 import com.aioveu.auth.service.SysUserDetailsService;
 import com.aioveu.auth.util.OAuth2AuthenticationProviderUtils;
+import com.aioveu.common.tenant.TenantContextHolder;
+import com.aioveu.tenant.api.TenantFeignClient;
+import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -76,6 +80,7 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
 
     // 添加 UserDetailsService 依赖
     private final SysUserDetailsService sysUserDetailsService;
+
 
     /**
      * Constructs an {@code OAuth2ResourceOwnerPasswordAuthenticationProviderNew} using the provided parameters.
@@ -177,6 +182,7 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
 
             // 租户切换：跳过密码验证，直接加载用户
             usernamePasswordAuthentication = authenticateForTenantSwitch(username, tenantId);
+            log.info("租户切换：跳过密码验证，直接加载用户,完成");
         } else {
             // 正常登录流程
             // 创建Spring Security标准的用户名密码认证令牌
@@ -393,7 +399,10 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
      */
     private Authentication authenticateForTenantSwitch(String username, String tenantId) {
         try {
-            // 1. 加载用户基本信息
+
+            TenantContextHolder.setTenantId(Long.valueOf(tenantId));
+
+            // 1. 加载用户基本信息（已包含该租户下的权限）
             UserDetails userDetails = sysUserDetailsService.loadUserByUsername(username);
 
             if (userDetails == null) {
@@ -406,12 +415,16 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
                     sysUserDetails.setTenantId(Long.valueOf(tenantId));
                 }
 
+                // 权限已经在 loadUserByUsername 中加载，无需再次加载
+                log.info("用户 {} 在租户 {} 下的权限: {}",
+                        username, tenantId, sysUserDetails.getAuthorities());
+
                 // 3. 重新加载该租户下的权限（如果需要）
                 // 这里可以调用你的权限服务重新加载权限
-                List<GrantedAuthority> authorities = loadPermissionsForTenant(username, tenantId);
-                if (authorities != null && !authorities.isEmpty()) {
-                    sysUserDetails.setAuthorities(authorities);
-                }
+//                List<GrantedAuthority> authorities = loadPermissionsForTenant(username, tenantId);
+//                if (authorities != null && !authorities.isEmpty()) {
+//                    sysUserDetails.setAuthorities(authorities);
+//                }
             }
 
             // 4. 创建认证对象
@@ -440,6 +453,8 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
             // return permissions.stream()
             //     .map(SimpleGrantedAuthority::new)
             //     .collect(Collectors.toList());
+
+//            已经权限了
 
             // 暂时返回空列表，你可以根据实际情况实现
             return Collections.emptyList();
