@@ -11,10 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -31,6 +28,8 @@ import java.util.List;
 @FeignClient(value = "aioveu-tenant",
         fallback = TenantFeignFallbackClient.class,
         configuration = {FeignDecoderConfig.class})
+
+@RequestMapping("/api/v1")  // 添加公共路径前缀
 public interface TenantFeignClient {
 
     /**
@@ -41,7 +40,7 @@ public interface TenantFeignClient {
      * @return {@link UserAuthInfoWithTenantId}
      */
     @Operation(summary = "根据用户名和租户ID获取认证信息（用于多租户登录）", hidden = true)
-    @GetMapping("/api/v1/users/{username}/{tenantId}/authInfo")
+    @GetMapping("/users/{username}/{tenantId}/authInfo")
     @Log(value = "根据用户名和租户ID获取认证信息（用于多租户登录）", module = LogModuleEnum.TENANT)
     UserAuthInfoWithTenantId getUserAuthInfoWithTenantId(@PathVariable String username,@PathVariable Long tenantId);
 
@@ -55,7 +54,7 @@ public interface TenantFeignClient {
      * @return 租户列表
      */
     @Operation(summary = "新增:根据用户名获取可登录的租户列表")
-    @GetMapping("/api/v1/users/tenants/{username}")
+    @GetMapping("/users/tenants/{username}")
     @Log(value = "新增：根据用户名获取可登录的租户列表）", module = LogModuleEnum.TENANT)
     List<TenantVO> getAccessibleTenantsByUsername(@PathVariable String username);
 
@@ -69,7 +68,7 @@ public interface TenantFeignClient {
      * @return 切换结果
      */
     @Operation(summary = "切换租户")
-    @PostMapping("/{tenantId}/switch")
+    @PostMapping("/tenants/{tenantId}/switch")
     @Log(value = "新增：根据用户名获取可登录的租户列表）", module = LogModuleEnum.TENANT)
     Result<TenantVO> switchTenant(
             @Parameter(description = "租户ID") @PathVariable Long tenantId,
@@ -87,7 +86,7 @@ public interface TenantFeignClient {
      * @return true-可访问，false-不可访问
      */
     @Operation(summary = "检查用户是否可以访问指定租户")
-    @GetMapping("/canAccessTenant")
+    @GetMapping("/tenants/canAccessTenant")
     @Log(value = "检查用户是否可以访问指定租户）", module = LogModuleEnum.TENANT)
     boolean canAccessTenant(
             @Parameter(description = "用户ID") @RequestParam Long userId,
@@ -102,7 +101,7 @@ public interface TenantFeignClient {
      * @return true-可切换，false-不可切换
      */
     @Operation(summary = "检查是否具备租户切换权限")
-    @GetMapping("/hasTenantSwitchPermission")
+    @GetMapping("/tenants/hasTenantSwitchPermission")
     @Log(value = "检查是否具备租户切换权限）", module = LogModuleEnum.TENANT)
     boolean hasTenantSwitchPermission();
 
