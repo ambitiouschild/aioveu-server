@@ -9,7 +9,6 @@ import cn.hutool.jwt.JWTUtil;
 import com.aioveu.common.TokenManager.service.TokenManagerService;
 import com.aioveu.common.constant.RedisConstants;
 import com.aioveu.common.constant.SecurityConstants;
-import com.aioveu.common.model.AuthenticationToken;
 import lombok.RequiredArgsConstructor;import lombok.extern.slf4j.Slf4j;
 // ✅ 使用 Spring Framework 自带的
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -39,9 +38,6 @@ import java.util.concurrent.TimeUnit;
 3.编译器认为这个字段可能为 null
 * */
 
-
-
-@ConditionalOnProperty(value = "lss-security.session.type", havingValue = "jwt")
 @Service
 @Slf4j
 @RequiredArgsConstructor

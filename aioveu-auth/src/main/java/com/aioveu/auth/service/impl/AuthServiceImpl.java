@@ -11,6 +11,7 @@ import com.aioveu.auth.model.CaptchaResult;
 import com.aioveu.auth.model.SysUserDetails;
 import com.aioveu.auth.oauth2.extension.password.PasswordAuthenticationConverter;
 import com.aioveu.auth.oauth2.extension.password.PasswordAuthenticationProvider;
+import com.aioveu.auth.service.SysUserDetailsService;
 import com.aioveu.common.TokenManager.service.TokenManagerService;
 import com.aioveu.common.constant.RedisConstants;
 import com.aioveu.auth.model.AuthenticationToken;
@@ -24,10 +25,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.OAuth2Token;
+import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 import org.springframework.stereotype.Service;
 import com.aioveu.auth.service.CaptchaService;
 import com.aioveu.auth.service.AuthService;
@@ -69,18 +75,23 @@ public class AuthServiceImpl implements AuthService {
     // Redis模板，用于操作Redis数据库，存储验证码和短信验证码等临时数据
     private final StringRedisTemplate redisTemplate;
 
-    private final TokenManagerService tokenManagerService;
-
     private final TenantFeignClient tenantFeignClient;
 
     private final AuthTokenManagerService authTokenManagerService;// 令牌生成器
 
-    private final PasswordAuthenticationConverter passwordAuthenticationConverter;
+//    private final PasswordAuthenticationConverter passwordAuthenticationConverter;
 
     // 直接注入登录用的 tokenGenerator
-    private final PasswordAuthenticationProvider passwordAuthenticationProvider;
+//    private final PasswordAuthenticationProvider passwordAuthenticationProvider;
 
-
+    // Spring Security认证管理器，用于执行实际的用户名密码验证
+    private final AuthenticationManager authenticationManager;
+    // OAuth2授权服务，用于持久化授权记录到数据库
+    private final OAuth2AuthorizationService authorizationService;
+    // OAuth2令牌生成器，用于生成访问令牌、刷新令牌等
+    private final OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator;
+    // 添加 UserDetailsService 依赖
+    private final SysUserDetailsService sysUserDetailsService;
 
     /**
      * 生成图形验证码并缓存到Redis
@@ -180,7 +191,7 @@ public class AuthServiceImpl implements AuthService {
     public void logout() {
         String token = SecurityUtils.getToken(); //获取token
         if (StrUtil.isNotBlank(token)) {
-            tokenManagerService.invalidateToken(token);
+            authTokenManagerService.invalidateToken(token);
             // 清除Security上下文
             SecurityContextHolder.clearContext();
         }
@@ -281,15 +292,24 @@ public class AuthServiceImpl implements AuthService {
             // 6. 模拟登录请求
             HttpServletRequest request = buildLoginRequest(newDetails);
 
+            // 1. 手动创建 PasswordAuthenticationConverter
+            PasswordAuthenticationConverter passwordConverter = new PasswordAuthenticationConverter();
             // 7. 通过 Converter 创建认证令牌
-            Authentication passwordAuth  = passwordAuthenticationConverter.convert(request);
+            Authentication passwordAuth  = passwordConverter.convert(request);
 
             if (passwordAuth == null) {
                 throw new RuntimeException("构建认证请求失败");
             }
 
+            PasswordAuthenticationProvider passwordProvider = new PasswordAuthenticationProvider(
+                    authenticationManager,
+                    authorizationService,
+                    tokenGenerator,
+                    sysUserDetailsService
+            );
+
             // 8. 调用认证提供者（复用登录流程）
-            Authentication tokenResult = passwordAuthenticationProvider.authenticate(passwordAuth);
+            Authentication tokenResult = passwordProvider.authenticate(passwordAuth);
 
             log.info("用户 {} 切换到租户 {} 成功", details.getUsername(), tenantId);
 

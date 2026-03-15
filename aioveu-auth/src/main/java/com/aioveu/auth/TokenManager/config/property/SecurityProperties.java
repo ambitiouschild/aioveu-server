@@ -32,14 +32,14 @@ public class SecurityProperties {
      * 安全白名单路径（完全绕过安全过滤器）
      * <p>示例值：/api/v1/auth/login/**, /ws/**
      */
-    @NotEmpty
+//    @NotEmpty
     private String[] ignoreUrls;
 
     /**
      * 非安全端点路径（允许匿名访问的API）
      * <p>示例值：/doc.html, /v3/api-docs/**
      */
-    @NotEmpty
+//    @NotEmpty
     private String[] unsecuredUrls;
 
     /**
