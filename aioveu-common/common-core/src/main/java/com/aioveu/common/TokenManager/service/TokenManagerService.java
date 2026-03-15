@@ -1,7 +1,6 @@
 package com.aioveu.common.TokenManager.service;
 
 
-import com.aioveu.common.model.AuthenticationToken;
 
 /**
  * @ClassName: TokenManagerService
