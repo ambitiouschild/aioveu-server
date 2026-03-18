@@ -207,8 +207,10 @@ public class AuthServiceImpl implements AuthService {
 
 
         try {
+
+            Result<Boolean> permissionResult = tenantFeignClient.hasTenantSwitchPermission();
             // 1. 权限校验
-            if (!tenantFeignClient.hasTenantSwitchPermission()) {
+            if (!Boolean.TRUE.equals(permissionResult)) {
                 return Result.failed("无权限切换租户");
             }
 
@@ -258,42 +260,62 @@ public class AuthServiceImpl implements AuthService {
 
 
         try {
+
+            Result<Boolean> permissionResult = tenantFeignClient.hasTenantSwitchPermission();
+
+            log.info("【Auth】权限校验成功:{}",permissionResult);
             // 1. 权限校验
-            if (!tenantFeignClient.hasTenantSwitchPermission()) {
+            if (!Boolean.TRUE.equals(permissionResult.getData())) {
                 return Result.failed("无权限切换租户");
             }
 
+            log.info("【Auth】权限校验成功");
+
             // 1. 获取当前认证信息
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+            log.info("【Auth】获取当前认证信息:{}",authentication);
+
             if (authentication == null || !(authentication.getPrincipal() instanceof SysUserDetails details)) {
                 return Result.failed(ResultCode.ACCESS_TOKEN_INVALID);
             }
+//            log.info("【Auth】获取当前认证信息:{}",authentication);
+
+            // 1. 获取当前认证信息
+            Long oldTenantId = SecurityUtils.getTenantId();
+            String token = SecurityUtils.getToken();
+            Long userId = SecurityUtils.getUserId();
+
+            log.info("【Auth】获取当前租户ID:{}",oldTenantId);
+            log.info("【Auth】获取当前认证信息:{}",token);
+            log.info("【Auth】获取当前用户ID:{}",userId);
+
 
             // 2. 校验用户是否能访问该租户
-            boolean canAccess = tenantFeignClient.canAccessTenant(details.getUserId(), tenantId);
+            boolean canAccess = tenantFeignClient.canAccessTenant(userId, tenantId);
+
+            log.info("【Auth】校验用户是否能访问该租户:{}",canAccess);
+            log.info("【Auth】获取当前用户名:{}",userId);
+
             if (!canAccess) {
                 return Result.failed("无权限访问该租户");
             }
 
+            log.info("【Auth】校验用户是否能访问该租户");
+
             // 获取用户在新租户下的权限信息（可选，如果需要更新权限） 创建包含新租户ID的用户详情
             UserAuthInfoWithTenantId userAuthInfoWithTenantId = tenantFeignClient.getUserAuthInfoWithTenantId
-                    (details.getUsername(), tenantId);
-
-
-            SysUserDetails newDetails = new SysUserDetails(userAuthInfoWithTenantId);
-            newDetails.setUserId(details.getUserId());
-            newDetails.setUsername(details.getUsername());
-            newDetails.setDeptId(details.getDeptId());
-            newDetails.setDataScopes(details.getDataScopes());
-            newDetails.setTenantId(tenantId);
-            newDetails.setCanSwitchTenant(details.getCanSwitchTenant());
+                    (SecurityUtils.getUsername(), tenantId);
 
 
             // 6. 模拟登录请求
-            HttpServletRequest request = buildLoginRequest(newDetails);
+            HttpServletRequest request = buildLoginRequest(details);
+
+            log.info("【Auth】模拟登录请求");
 
             // 1. 手动创建 PasswordAuthenticationConverter
             PasswordAuthenticationConverter passwordConverter = new PasswordAuthenticationConverter();
+            //更改认证令牌
             // 7. 通过 Converter 创建认证令牌
             Authentication passwordAuth  = passwordConverter.convert(request);
 
@@ -311,7 +333,11 @@ public class AuthServiceImpl implements AuthService {
             // 8. 调用认证提供者（复用登录流程）
             Authentication tokenResult = passwordProvider.authenticate(passwordAuth);
 
-            log.info("用户 {} 切换到租户 {} 成功", details.getUsername(), tenantId);
+            log.info("【Auth】调用认证提供者（复用登录流程）");
+
+            log.info("【Auth】用户 {} 切换到租户 {} 成功", SecurityUtils.getUsername(), tenantId);
+
+            log.info("【Auth】tokenResult:{}",tokenResult);
 
             return Result.success(tokenResult);
 
@@ -324,7 +350,7 @@ public class AuthServiceImpl implements AuthService {
     /**
      * 构建模拟的登录 HTTP 请求
      */
-    private HttpServletRequest buildLoginRequest(SysUserDetails userDetails) {
+    private HttpServletRequest buildLoginRequest(SysUserDetails details) {
         // 获取当前请求上下文
         ServletRequestAttributes attributes = (ServletRequestAttributes)
                 RequestContextHolder.getRequestAttributes();
@@ -346,9 +372,9 @@ public class AuthServiceImpl implements AuthService {
 
                 // 修改登录参数
                 modifiedParams.put("grant_type", new String[]{"password"});
-                modifiedParams.put("username", new String[]{userDetails.getUsername()});
+                modifiedParams.put("username", new String[]{details.getUsername()});
                 modifiedParams.put("password", new String[]{"[TENANT_SWITCH]"}); // 特殊标记
-                modifiedParams.put("tenant_id", new String[]{String.valueOf(userDetails.getTenantId())});
+                modifiedParams.put("tenant_id", new String[]{String.valueOf(details.getTenantId())});
 
                 // 添加客户端认证（从配置读取）
 //                modifiedParams.put("client_id", new String[]{"your-client-id"});

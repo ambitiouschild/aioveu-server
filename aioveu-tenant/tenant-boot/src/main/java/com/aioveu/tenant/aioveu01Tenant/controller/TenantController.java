@@ -246,9 +246,10 @@ public class TenantController {
     @Operation(summary = "检查是否具备租户切换权限")
     @GetMapping("/hasTenantSwitchPermission")
     @Log(value = "检查是否具备租户切换权限）", module = LogModuleEnum.TENANT)
-    public boolean hasTenantSwitchPermission()
+    public Result<Boolean> hasTenantSwitchPermission()
     {
-        return tenantService.hasTenantSwitchPermission();
+        boolean hasPermission = tenantService.hasTenantSwitchPermission();
+        return Result.success(hasPermission);
     }
 
 }

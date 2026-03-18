@@ -83,9 +83,9 @@ public class TenantFeignFallbackClient implements TenantFeignClient {
      * @return true-可切换，false-不可切换
      */
     @Override
-    public boolean hasTenantSwitchPermission(){
+    public Result<Boolean> hasTenantSwitchPermission(){
         log.error("检查是否具备租户切换权限失败");
-        return false;
+        return Result.failed();
     }
 
 }

@@ -105,6 +105,8 @@ public class AuthController {
     @PostMapping("/switch-tenant")
     public Result<Authentication> switchTenant(@RequestParam Long tenantId) {
 
+        log.info("【Auth】切换租户");
+
         return authService.switchTenant(tenantId);
     }
 

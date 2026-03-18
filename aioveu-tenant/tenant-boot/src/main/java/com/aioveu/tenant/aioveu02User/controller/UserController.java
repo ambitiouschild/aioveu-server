@@ -46,6 +46,7 @@ import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: UserController
@@ -94,19 +95,34 @@ public class UserController {
         log.info("根据用户名：{}，获取对应的用户ID列表：{}", username, userIds);
 
         // 2. 获取所有用户的可访问租户（去重）
-        Set<TenantVO> allTenants = new HashSet<>();
-        for (Long userId : userIds) {
-            List<TenantVO> userTenants = tenantService.getAccessibleTenants(userId);
-            if (!CollectionUtils.isEmpty(userTenants)) {
-                allTenants.addAll(userTenants);
-            }
-        }
+//        Set<TenantVO> allTenants = new HashSet<>();
+//        for (Long userId : userIds) {
+//            TenantVO userTenant = tenantService.getTenantById(userId);
+//            if (userTenant != null) {
+//                allTenants.add(userTenant);
+//            }
+//        }
 
-        log.info("根据用户ID列表获取所有用户的可访问租户（去重）:{}",allTenants);
+        // 2. 获取所有用户的可访问租户（去重） 版本3：使用 Stream API 的简洁写法
+        Set<TenantVO> allTenants = userIds.stream()
+                .map(userService::getTenantIdByUserId)  // 获取tenantId
+                .filter(Objects::nonNull)               // 过滤null的tenantId
+                .map(tenantService::getTenantById)  // 或 getTenantsByUserId
+                .filter(Objects::nonNull)  // 过滤null
+//                .flatMap(Collection::stream)  // 如果返回列表，需要扁平化
+                .collect(Collectors.toSet());
+
+        log.info("根据用户ID列表 {} 获取到 {} 个可访问租户（去重后）", userIds, allTenants.size());
+
         // 3. 转换为列表并排序（按租户名或ID）
-        List<TenantVO> tenantList = new ArrayList<>(allTenants);
-        tenantList.sort(Comparator.comparing(TenantVO::getName));
-        log.info("用户名 '{}' 可访问 {} 个租户", username, tenantList.size());
+//        List<TenantVO> tenantList = new ArrayList<>(allTenants);
+//        tenantList.sort(Comparator.comparing(TenantVO::getName));
+        List<TenantVO> tenantList = allTenants.stream()
+                .sorted(Comparator.comparing(TenantVO::getName))
+                .collect(Collectors.toList());
+
+        log.info("用户 '{}' 可访问 {} 个租户: {}", username, tenantList.size(),
+                tenantList.stream().map(TenantVO::getName).collect(Collectors.toList()));
 
 
 //        //优化版本（一次查询）
