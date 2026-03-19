@@ -1,0 +1,593 @@
+# 创建一个名为 "aioveu-server" 的桥接网络，在同一个网络中的容器可以通过容器名互相访问
+networks:
+  aioveu-tenant:
+    driver: bridge
+
+# 镜像image7个 1.mysql 2.nacos 3.seata 4.redis 5.minio 6.rabbitmq 7.xxl-job-admin
+services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket: '/var/lib/mysql/mysql.sock'  port: 3306  MySQL Community Server - GPL.
+  mysql:    #等一等不要着急，创建密码和数据持久化需要时间，直到创数据库完成
+    image: mysql:8.0.29
+    container_name: aioveu-tenant-mysql  # 容器名称，在同一个Docker网络中，其他容器可以通过这个名称访问
+#    restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
+    environment:
+      - TZ=Asia/Shanghai
+      - LANG= en_US.UTF-8
+      - MYSQL_ROOT_PASSWORD=775825 #设置 root 用户的密码
+    volumes:  #这是因为MySQL出于安全考虑，忽略全局可写的配置文件。 chmod 644 mysql/conf/my.cnf
+      - /opt/aioveu-tenant/docker/mysql/conf/my.cnf:/etc/mysql/conf.d/my.cnf # 挂载 my.cnf 文件到容器的指定路径  # 确保宿主机上的配置文件权限是644
+      - /opt/aioveu-tenant/docker/mysql/data:/var/lib/mysql # 持久化 MySQL 数据
+#      - /opt/aioveu-server/docker/sql/mysql8:/docker-entrypoint-initdb.d # 初始化 SQL 脚本目录
+    ports:
+      - 3309:3306 # 暴露 3306 端口
+    networks:
+      - aioveu-tenant # 加入 "aioveu-tenant" 网络
+    healthcheck: # 可以添加健康检查
+      test: ["CMD", "mysqladmin", "ping", "-u", "root", "-p775825"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+      #根据MySQL官方镜像的文档，推荐将自定义配置放在/etc/mysql/conf.d目录下，并且使用.cnf扩展名。这样你就可以避免使用/etc/my.cnf文件，并且可以避免权限问题，因为该目录下的文件通常是容器内部生成的，或者你挂载的文件可以单独设置权限。
+      #
+      #所以，建议做法：
+      #
+      #将配置文件挂载到/etc/mysql/conf.d目录，例如：
+      #./custom-config.cnf:/etc/mysql/conf.d/custom-config.cnf
+      #然后修改宿主机上的custom-config.cnf的权限为644。
+      #这样，MySQL会加载/etc/mysql/conf.d目录下的所有配置文件，同时不会出现权限问题。
+
+  nacos:  #docker exec -it aioveu-server-nacos-server ping mysql
+    image: nacos/nacos-server:v2.3.1  # 升级到2.3.1  Spring Boot 3.x 支持声明式配置, 配置继承
+#    image: nacos/nacos-server:v2.2.3 # 使用 Nacos 2.2.3 镜像  #等一等不要着急，连接容器数据库需要时间，直到连接数据库完成
+    container_name: aioveu-tenant-nacos-server
+#    restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
+    environment:
+      # 数据库连接配置  使用内置数据库配置方式
+      # ✅ 正确的方案2：使用standalone模式+嵌入式数据库
+      MODE: standalone
+      # 不配置MySQL相关环境变量
+
+      # ✅ 正确的方案1：使用cluster模式+MySQL
+      # 1. 核心模式：集群模式，必须使用外部数据库
+#      MODE: cluster  #集群模式
+      #如果不需要持久化存储，可以完全移除 MySQL 依赖:这样 Nacos 会使用内置的 Derby 数据库，避免了外部依赖问题
+      # 认证配置
+      #Nacos对认证配置有特殊处理逻辑。从日志可以看出，认证模块在配置文件解析之后才初始化，此时环境变量可能已经“错过”了替换时机。
+      NACOS_AUTH_ENABLE: true   # 启动认证 # 确保这里是 true
+      NACOS_AUTH_TOKEN: 1AMyB1gaUTJpEmrykSwTafudw6xhcF+XpdP009HTTH4FlCCvB+yLGhZwNsfCOOmoUgWy3Rsq1yYqC/ydgeDcJg==
+
+      NACOS_AUTH_IDENTITY_KEY: aioveu  #启用了认证（nacos.core.auth.enabled=true），但没有配置服务器身份标识
+      NACOS_AUTH_IDENTITY_VALUE: 775825 #注意：Nacos 2.x 使用的是 NACOS_AUTH_IDENTITY_*而不是 NACOS_AUTH_SERVER_IDENTITY_*
+      # 可选：允许浏览器User-Agent绕过此检查，方便控制台访问
+      NACOS_AUTH_ENABLE_USERAGENT_AUTH_WHITE: true
+      # 安全配置
+      NACOS_AUTH_TOKEN_EXPIRE_SECONDS: 18000
+
+      # ✅ 正确的方案1：使用cluster模式+MySQL
+      # 2. MySQL 数据库配置（请确保MySQL容器已启动，且数据库已初始化）
+      # 数据库配置
+      SPRING_DATASOURCE_PLATFORM: mysql
+      MYSQL_SERVICE_HOST: mysql
+      MYSQL_SERVICE_DB_NAME: aioveu_nacos_config
+      MYSQL_SERVICE_PORT: 3306
+      MYSQL_SERVICE_USER: root
+      MYSQL_SERVICE_PASSWORD: 775825
+      MYSQL_SERVICE_DB_PARAM: "characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true"
+
+
+
+
+       # 添加关键环境变量
+       # 解决 db.num is null # 错误：值被引号包裹，会导致值变成字符串 ""1""
+      JVM_XMS: 512m #-Xms 512m 中空格导致 JVM 无法识别 Xms2g -Xmx2g 对于开发环境过大
+      JVM_XMX: 512m #JVM 内存参数格式应为 -Xms2g（无空格）
+      JVM_XMN: 256m
+
+      #由于我们使用的是docker，环境变量更方便
+      #因为环境变量可能因为各种原因没有生效，直接在配置文件中设置更加可靠
+      #为了确保其他配置正确，我们也可以将必要的配置都写在application.properties中
+      #由于我们之前已经在docker-compose中配置了环境变量，但为了避免遗漏，将关键配置也写在配置文件中
+#      JVM_OPT: "-Xms2g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m -XX:MaxDirectMemorySize=256m"
+
+      # Seata 集成关键配置
+      NACOS_APPLICATION_PORT: 8848
+      NACOS_SERVERS: nacos:8848
+      # 集群配置
+      #      NACOS_SERVERS: nacos1:8848 nacos2:8848 nacos3:8848
+      #      NACOS_APPLICATION_PORT: 8848
+      #      PREFER_HOST_MODE: hostname   # 使用主机名模式
+
+#      # 垃圾收集器优化
+#      JVM_GC_PARAMS: >-
+#        -XX:+UseG1GC
+#        -XX:MaxGCPauseMillis=200
+#        -Xlog:gc*:file=/home/nacos/logs/nacos_gc.log:time
+
+
+
+      #Nacos也在容器内：如果Nacos也在同一个Docker网络中，那么Seata容器使用nacos:8848访问Nacos是没问题的，
+      #但OMS在宿主机需要通过host.docker.internal:8848访问Nacos（同样需要在Nacos容器的端口映射中暴露8848端口）
+
+      #在单机模式下，Nacos使用内置数据库（Derby）而不是MySQL。所以，如果你希望使用MySQL，那么必须配置MySQL，并且不能使用单机模式？
+      #实际上，在单机模式下也可以使用MySQL，但需要配置。而你的环境变量中并没有配置MySQL，所以Nacos会使用内置数据库。
+      #
+      #如果你想要使用MySQL，那么需要配置以下环境变量（在standalone模式下也可以使用MySQL）
+
+    volumes: # 挂载关键配置文件  你的Derby中保存了旧的认证配置，即使重建容器，只要挂载了data目录，这些配置就会保留。必须完全清理data目录才能重新开始
+      - /opt/aioveu-tenant/docker/nacos/datadir:/home/nacos/data  #删除挂载的./nacos/datadir目录（或者确保目录为空）非常重要。
+#      - /opt/aioveu-server/docker/nacos/conf/application.properties:/home/nacos/application.properties:ro #./nacos/conf目录中有正确的配置（如果之前没有配置，可以暂时不挂载，让Nacos使用默认配置启动）
+      - /opt/aioveu-tenant/docker/nacos/logs:/home/nacos/logs
+#      - /opt/aioveu-server/docker/nacos/wait-for-mysql.sh:/wait-for-mysql.sh  # 挂载等待脚本
+    ports:
+      - 8849:8848  # HTTP 端口，用于控制台和 HTTP API
+      - 9849:9848   # 新增：gRPC 端口，用于客户端通信
+    networks:
+      - aioveu-tenant # 加入 "aioveu-server" 网络
+    healthcheck:
+      # 测试1：访问控制台根路径（需认证，返回200即表示Web服务就绪）
+      #注意，在容器内部进行健康检查时，应使用 localhost或 127.0.0.1，而不是服务名 nacos。
+#      test: [ "CMD", "curl", "-f", "-u", "nacos:nacos", "http://localhost:8848/nacos/" ]
+      # 或 测试2：使用健康检查API端点（如果可用）
+#       test: [ "CMD", "curl", "-f", "http://localhost:8848/nacos/actuator/health" ]
+      # 使用TCP端口检查，不依赖HTTP状态和认证，最可靠
+      test: [ "CMD", "nc", "-z", "localhost", "8849" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s # 容器启动后给予60秒的初始化时间，期间检查失败不计入重试
+    depends_on:
+      mysql:
+        condition: service_healthy # 保证 MySQL 服务先启动
+      redis:
+        condition: service_healthy # 保证 MySQL 服务先启动
+
+#    # 修复启动命令
+#    command: >
+#      sh -c "
+#      echo '等待 MySQL 准备就绪...';
+#      /wait-for-mysql.sh;
+#      echo '启动 Nacos 服务...';
+#      bash /home/nacos/bin/startup.sh
+#      "
+
+
+  seata:
+    image: seataio/seata-server:1.7.1
+    container_name: aioveu-tenant-seata-server
+#    restart: unless-stopped #  指定了容器的重启策略，除了手动停止容器，其他情况都自动重启容器
+    environment:
+      # 使用宿主机网络模式
+      #这是一个混合部署网络连接问题。你的Seata Server在Docker容器内，但微服务在宿主机上运行，导致网络不通。
+      # 确保使用宿主机可访问的IP  当Seata注册到Nacos时，注册的IP地址决定微服务的连接方式  #强制指定注册IP
+      # 关键1：注册到Nacos的IP（微服务可访问的地址）
+      #更改seata注册配置顺序
+#      SEATA_IP: 192.168.1.5  # 替换为你的宿主机IP  ,注意顺序，要先把id改为宿主机，顺序很重要  宿主机公网IP或内网可达IP   直接连接宿主机IP
+#      SEATA_PORT: 8091
+#      SEATA_REGISTRY_NACOS_NAMESPACE: public  # 确保命名空间匹配
+
+
+    #如果Nacos也在同一个Docker Compose中，那么NACOS_SERVER_ADDR可以使用服务名，比如nacos:8848，
+    #但需要确保Seata容器能够解析这个服务名。同时，由于Seata注册到Nacos的IP是宿主机的IP，所以OMS（在宿主机上）可以通过宿主机的IP访问。
+      #Seata注册到Nacos的地址是容器内部IP
+      #OMS从Nacos获取的是不可达地址
+
+      #我们面对的是混合部署环境：Seata Server和Nacos都在容器内，而微服务在容器外。需要解决两个关键问题：
+      #1.容器内的Seata Server需要正确注册到容器内的Nacos，且注册的地址需要能被容器外的微服务访问到。
+      #2.容器外的微服务需要能够通过Nacos发现Seata Server的地址，并且这个地址必须是微服务可访问的。
+
+      #配置Seata Server注册的IP（重要）
+      #1.由于Seata Server运行在容器内，默认会使用容器内部的IP（如172.17.0.x）注册到Nacos。这个IP在容器外部是不可访问的。
+      #因此，我们需要在启动Seata Server容器时，通过环境变量SEATA_IP指定一个宿主机IP（或者外部可访问的IP）。
+      #确保容器网络互通
+      #1.如果Nacos也在容器内，需要确保Seata Server和Nacos在同一个Docker网络，这样它们才能相互通信。
+      #同时，宿主机（运行外部微服务）需要能够访问到Nacos和Seata Server暴露的端口。
+
+      #外部微服务需要配置Nacos的地址，这个地址应该是宿主机IP（如果Nacos端口映射到了宿主机）或者Nacos容器的宿主机映射IP和端口。
+
+      #重要解释：
+      #- 外部微服务通过宿主机IP（192.168.0.107）和映射的端口8848访问Nacos。
+      #- 当微服务从Nacos获取Seata Server的地址时，Nacos返回的是Seata Server注册的IP（即我们在启动容器时指定的SEATA_IP=192.168.0.107）和端口8091。
+      #- 微服务就会向192.168.0.107:8091发送请求，这个请求会被路由到宿主机的8091端口，再由宿主机映射到Seata Server容器的8091端口。
+
+     #我们需要让Seata在注册到Nacos时，使用一个容器外微服务能够访问到的地址（即宿主机的地址+映射的端口）。
+     #同时，确保宿主机上的微服务能够访问到Nacos服务（因为Nacos也在容器内，所以同样需要暴露端口到宿主机）。
+
+      # Nacos 注册中心配置
+      SEATA_REGISTRY_TYPE: nacos   # 注意这里改为SEATA_REGISTRY_TYPE（注册类型）
+      #把 Seata Server 的注册名改为 pms 查找的名字，是最简单直接的解决方案！
+      SEATA_REGISTRY_NACOS_APPLICATION: aioveu-tenant-seata-server
+      SEATA_REGISTRY_NACOS_SERVER_ADDR: nacos:8848   # Seata连接Nacos的地址 注册到Nacos的IP  # 容器内通信
+      SEATA_REGISTRY_NACOS_NAMESPACE: a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef  # aioveu-tenant 确保命名空间匹配
+      SEATA_REGISTRY_NACOS_GROUP: SEATA_GROUP
+      SEATA_REGISTRY_NACOS_CLUSTER: default
+      SEATA_REGISTRY_NACOS_USERNAME: nacos
+      SEATA_REGISTRY_NACOS_PASSWORD: 775825
+
+#       Nacos 配置中心配置
+      SEATA_CONFIG_TYPE: nacos     # 配置中心类型
+      SEATA_CONFIG_NACOS_SERVER_ADDR: nacos:8848   #注册到Nacos的IP  # 容器内通信
+      SEATA_CONFIG_NACOS_NAMESPACE: a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef  # aioveu-tenant 确保命名空间匹配
+      SEATA_CONFIG_NACOS_GROUP: SEATA_GROUP
+      SEATA_CONFIG_NACOS_DATA_ID: seataServer.properties
+      SEATA_CONFIG_NACOS_USERNAME: nacos
+      SEATA_CONFIG_NACOS_PASSWORD: 775825
+
+      #使用注册中心  不配置grouplist，配置registry.conf
+      #重要提醒：在容器化部署时，确保服务端暴露的端口（8091）与客户端配置一致，且容器间网络互通。
+
+      # 添加宿主机IP映射
+#      EXTRA_HOSTS: "host.docker.internal:host-gateway"
+
+      #OMS服务尝试直接连接Docker内部IP 172.19.0.4:8091，而OMS在宿主机运行，无法访问Docker网络。
+#      SEATA_IP : host.docker.internal  # 关键设置
+
+      # 数据库驱动类路径设置
+#      JAVA_OPTS: >-
+#        -Dloader.path=/seata-server/lib
+#        -Dlog.home=/root/logs/seata
+#        -Xmx512m -Xms256m
+##
+      # 等待依赖服务
+      WAIT_FOR_SERVICES: "mysql:3306 nacos:8848"
+      WAIT_TIMEOUT: 180
+
+    volumes:
+#       挂载registry.conf，这样Seata会使用这个配置连接Nacos
+#      - /opt/aioveu-server/docker/seata/config/registry.conf:/seata-server/resources/registry.conf
+#      - /opt/aioveu-server/docker/seata/conf:/seata-server/resources  # 挂载自定义配置文件  # 挂载配置文件，其中包含registry.conf和file.conf
+      # 挂载MySQL驱动
+#      - ./lib/mysql-connector-j-8.0.33.jar:/seata-server/lib/mysql-connector-java.jar
+#       挂载日志目录
+      - /opt/aioveu-tenant/docker/seata/logs:/root/logs/seata
+    ports:
+      - 8092:8091   # Seata服务端口  # 将宿主机的8092映射到容器的8091
+      - 7092:7091  # Seata控制台端口（1.7.1版本开始有控制台）
+    networks:
+      - aioveu-tenant
+    depends_on:
+      mysql:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+
+    #出现一条警告：discard long time none received connection. , jdbcUrl : jdbc:mysql://mysql:3306/aioveu_seata...
+    #警告原因：数据库连接长时间未收到数据包（174995毫秒，约175秒），连接被丢弃
+    #这通常是由于数据库连接池中的空闲连接超过有效期而被回收，属于正常维护行为，不是错误
+
+    #我们遇到的问题是：OMS服务运行在宿主机上，而Seata和Nacos运行在Docker容器中。OMS通过宿主机的IP（如192.168.0.108）注册到Nacos，但Seata服务在容器内注册到Nacos时使用的是容器内网IP（如172.19.0.4），导致OMS无法通过这个内网IP连接到Seata。
+    #
+    #解决方案：
+    #
+    #让Seata在注册到Nacos时使用宿主机可访问的IP（即宿主机的IP）和端口（8091端口映射到宿主机的8091端口）。
+    #或者，让Seata使用宿主机名（host.docker.internal）或宿主机的IP来注册，这样宿主机上的OMS可以通过这个地址访问到Seata。
+    #具体步骤（以Docker运行Seata为例）：
+    #在启动Seata容器时，通过环境变量指定注册到Nacos的IP和端口。
+
+    #将Nacos容器的8848端口映射到宿主机的8848端口。
+    #将Seata容器以host网络模式运行，这样Seata注册到Nacos的IP就是宿主机的IP，端口就是8091（Seata默认端口）。
+    #OMS服务（在宿主机上）配置Seata的地址为localhost:8091（或者宿主机的IP:8091）。
+
+    #我们更希望使用服务注册与发现（通过Nacos），所以OMS应该从Nacos中获取Seata服务的地址。而Nacos中注册的Seata地址应该是宿主机的IP:8091。
+
+
+  redis:
+    image: redis:7.2.3
+    container_name: aioveu-tenant-redis
+#    restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
+    command: redis-server /etc/redis/redis.conf  --pidfile /data/redis.pid # 启动 Redis 服务并添加密码为--requirepass 775825，默认不开启 Redis AOF 方式持久化配置
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - /opt/aioveu-tenant/docker/redis/data:/data
+      - /opt/aioveu-tenant/docker/redis/config/redis.conf:/etc/redis/redis.conf
+    ports:
+      - 6381:6379
+    networks:
+      - aioveu-tenant
+
+    healthcheck: # 可以添加健康检查
+      # 通过配置文件使用密码
+      test: [ "CMD", "redis-cli", "-a", "$$(grep '^requirepass' /etc/redis/redis.conf | awk '{print $$2}')", "ping" ]
+#      test: [ "CMD", "redis-cli", "-a", "775825", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+        #NOAUTH Authentication required 应用程序未使用密码
+      #WRONGPASS invalid username-password pair  密码不匹配
+      #Connection refused: no further information 连接地址错误
+# docker pull minio/minio:RELEASE.2024-12-18T13-15-44Z.fips
+#  minio:
+#    image: minio/minio:RELEASE.2024-07-16T23-46-41Z
+#    container_name: aioveu-minio
+#    restart: unless-stopped # 重启策略：除非手动停止容器，否则自动重启
+#    command: server /data --console-address ":9090"
+#    #API端口‌用于对象存储操作（如上传、下载文件），默认为‌9000‌；‌控制台端口‌用于访问Web管理界面，默认为‌随机端口‌，但常见配置中常设为‌9001‌。
+#    ports:
+#      - 9002:9000
+#      - 9092:9090
+#    environment:
+#      - TZ=Asia/Shanghai
+#      - LANG=en_US.UTF-8
+#      - MINIO_ROOT_USER=minioadminlss
+#      - MINIO_ROOT_PASSWORD=minioadminlss
+#    volumes:
+#      - /opt/aioveu-server/docker/minio/data:/data
+#      - /opt/aioveu-server/docker/minio/config:/root/.minio
+#    networks:
+#      - aioveu-server
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine #rabbitmq:management
+    container_name: aioveu-tenant-rabbitmq
+#    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+      - RABBITMQ_DEFAULT_USER=adminlss
+      - RABBITMQ_DEFAULT_PASS=adminlss
+    ports:
+      - 5673:5672
+      - 15673:15672
+    networks:
+      - aioveu-tenant # 加入 "mall" 网络
+
+  #XXL-JOB Admin是一款基于Java的分布式任务调度平台，它提供了丰富的功能，如实时监控、任务调度、报警通知和日志管理等。
+  #通过XXL-JOB Admin，我们可以轻松管理和调度各类任务，实现高效的任务执行和监控。
+#  xxl-job-admin:
+#    image: xuxueli/xxl-job-admin:2.4.0   # https://hub.docker.com/r/xuxueli/xxl-job-admin/tags
+#    container_name: aioveu-xxl-job-admin
+#    restart: unless-stopped #  指定了容器的重启策略，除了手动停止容器，其他情况都自动重启容器
+#    environment:
+#      # 登录账号
+#      XXL_JOB_ADMIN_USERNAME: admin
+#      XXL_JOB_ADMIN_PASSWORD: 775825
+#
+#      # 数据库配置
+#      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/aioveu_xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai
+#      SPRING_DATASOURCE_USERNAME: root
+#      SPRING_DATASOURCE_PASSWORD: 775825
+#
+#      #打开浏览器访问：http://localhost:8181/xxl-job-admin
+#
+#
+#
+#    volumes:
+#      #MySQL 8.x 需要特定驱动
+#      - ./xxljob/lib/mysql-connector-j-8.0.33.jar:/usr/local/tomcat/lib/mysql-connector-java.jar
+#      - ./xxljob/logs:/data/applogs
+#    ports:
+#      - 8181:8080
+#    networks:
+#      - aioveu-server
+#    depends_on:
+#      mysql:
+#        condition: service_healthy
+##
+  gateway:
+    image: aioveu-tenant-gateway:v5.2.0
+    container_name: aioveu-tenant-gateway
+    #    build:
+    #      context: .
+    #      dockerfile: Dockerfile
+#    environment:
+#      NACOS_USER: aioveu
+#      NACOS_PASSWORD: 775825
+#      NACOS_SERVER: nacos:8848
+#      NACOS_NAMESPACE: 80147849-cdb8-4b7d-befc-b5aefa0e9ab6
+#      NACOS_GROUP: AIOVEU_GROUP
+    deploy:
+      resources:
+        limits:
+          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
+          cpus: '1'
+        reservations:
+          memory: 1G  # ✅ 保证基本运行  # 容器软保证
+    environment:
+      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
+    ports:
+      - 6799:6699
+    networks:
+      - aioveu-tenant
+    depends_on:
+      - mysql
+      - redis
+      - nacos
+  ##
+  auth:
+    image: aioveu-tenant-auth:v5.2.0
+    container_name: aioveu-tenant-auth
+    #    build:
+    #      context: .
+    #      dockerfile: Dockerfile
+    #    ports:
+    #      - 9898:9000
+    deploy:
+      resources:
+        limits:
+          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
+          cpus: '1'
+        reservations:
+          memory: 1G  # ✅ 保证基本运行  # 容器软保证
+    environment:
+      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
+    networks:
+      - aioveu-tenant
+    depends_on:
+      - mysql
+      - redis
+      - nacos
+      - gateway
+  #
+
+  tenant:
+    image: aioveu-tenant:v5.2.0
+    container_name: aioveu-tenant
+    #    build:
+    #      context: .
+    #      dockerfile: Dockerfile
+    #    ports:
+    #      - 9999:9999
+    deploy:
+      resources:
+        limits:
+          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
+          cpus: '1'
+        reservations:
+          memory: 1G  # ✅ 保证基本运行  # 容器软保证
+    environment:
+      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
+    networks:
+      - aioveu-tenant
+    depends_on:
+      - mysql
+      - redis
+      - nacos
+      - gateway
+      - auth
+
+#  lss:
+#    image: aioveu-lss:v5.2.0
+#    container_name: aioveu-lss
+#    #    build:
+#    #      context: .
+#    #      dockerfile: Dockerfile
+#    #    ports:
+#    #      - 9999:9999
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
+#          cpus: '1'
+#        reservations:
+#          memory: 1G  # ✅ 保证基本运行  # 容器软保证
+#    environment:
+#      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
+#    networks:
+#      - aioveu-tenant
+#    depends_on:
+#      - mysql
+#      - redis
+#      - nacos
+#      - gateway
+#      - auth
+  #
+#  oms:
+#    image: aioveu-oms:v5.2.0
+#    container_name: aioveu-oms
+#    #    ports:
+#    #      - 8813:8803
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
+#          cpus: '1'
+#        reservations:
+#          memory: 1G  # ✅ 保证基本运行  # 容器软保证
+#    environment:
+#      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
+#    networks:
+#      - aioveu-tenant
+#    depends_on:
+#      - mysql
+#      - redis
+#      - nacos
+#      - gateway
+#      - auth
+#      - lss
+  #
+#  pms:
+#    image: aioveu-pms:v5.2.0
+#    container_name: aioveu-pms
+#    #    ports:
+#    #      - 8812:8802
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
+#          cpus: '1'
+#        reservations:
+#          memory: 1G  # ✅ 保证基本运行  # 容器软保证
+#    environment:
+#      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
+#    networks:
+#      - aioveu-tenant
+#    depends_on:
+#      - mysql
+#      - redis
+#      - nacos
+#      - gateway
+#      - auth
+#      - lss
+  sms:
+    image: aioveu-tenant-sms:v5.2.0
+    container_name: aioveu-tenant-sms
+    #    ports:
+    #      - 8814:8804
+    deploy:
+      resources:
+        limits:
+          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
+          cpus: '1'
+        reservations:
+          memory: 1G  # ✅ 保证基本运行  # 容器软保证
+    environment:
+      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
+    networks:
+      - aioveu-tenant
+    depends_on:
+      - mysql
+      - redis
+      - nacos
+      - gateway
+      - auth
+  #
+  ums:
+    image: aioveu-tenant-ums:v5.2.0
+    container_name: aioveu-tenant-ums
+    #    ports:
+    #      - 8811:8801
+    deploy:
+      resources:
+        limits:
+          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
+          cpus: '1'
+        reservations:
+          memory: 1G  # ✅ 保证基本运行  # 容器软保证
+    environment:
+      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
+    networks:
+      - aioveu-tenant
+    depends_on:
+      - mysql
+      - redis
+      - nacos
+      - gateway
+      - auth
+
+#  pay:
+#    image: aioveu-pay:v5.2.0
+#    container_name: aioveu-pay
+#    #    ports:
+#    #      - 8811:8801
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
+#          cpus: '1'
+#        reservations:
+#          memory: 1G  # ✅ 保证基本运行  # 容器软保证
+#    environment:
+#      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
+#    networks:
+#      - aioveu-tenant
+#    depends_on:
+#      - mysql
+#      - redis
+#      - nacos
+#      - gateway
+#      - auth

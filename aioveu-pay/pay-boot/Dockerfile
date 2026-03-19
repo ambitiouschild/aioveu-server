@@ -25,9 +25,8 @@ FROM aioveu-17-jdk-slim
 #FROM openjdk:17-jdk-alpine
 
 # 设置 UTF-8 编码环境 方案一：在 Dockerfile 中显式指定 UTF-8 环境（推荐）
-ENV LANG=en_US.UTF-8 \
-    LANGUAGE=en_US:en \
-    LC_ALL=en_US.UTF-8
+ENV LANG=C.UTF-8 \
+    TZ=Asia/Shanghai
 
 # 维护者信息 替换弃用的 MAINTAINER
 #MAINTAINER aioveu <ambitiouschild@qq.com>
@@ -36,8 +35,6 @@ LABEL project="aioveu-pay"
 
 # 版本 5.2.0：支持小程序上架
 LABEL version="v5.2.0"
-LABEL release-notes="支持小程序上架"
-LABEL changelog="支持小程序上架"
 
 # 版本 3.1.2：修复分类跳转 Bug
 # LABEL version="v3.1.2"
@@ -78,7 +75,6 @@ LABEL changelog="支持小程序上架"
 # 替换为 apt-get 命令
 RUN apt-get update \
     && apt-get install -y --no-install-recommends tzdata fonts-dejavu fontconfig \
-    && apt-get install -y locales && locale-gen en_US.UTF-8 \
     && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && echo "Asia/Shanghai" > /etc/timezone \
     && apt-get clean \

@@ -6,5 +6,17 @@
     <file url="file://$PROJECT_DIR$/docs/sql/mysql8/2aioveuMall_LocalLss/260310.sys_user_ADD_open_id.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/docs/sql/mysql8/3aioveuMall_Local_TenantBack/11aioveu_tenant.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260313_add_tenant_id.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/0.aioveu_Mall_tenant_database.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/10aioveu_pms.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/1aioveu_nacos_config.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/2aioveu_oauth2_server.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/3aioveu_seata.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/4aioveu_tenant.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/5aioveu_pay.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/6aioveu_refund.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/7aioveu_ums.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/8aioveu_sms.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/9aioveu_oms.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260319_add_wx_appid.sql" dialect="MySQL" />
   </component>
 </project>
