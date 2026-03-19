@@ -301,11 +301,12 @@ public class TenantServiceImpl extends ServiceImpl<TenantMapper, Tenant> impleme
 
         Long newTenantId = tenant.getId();
 
-        Long oldTenantId = TenantContextHolder.getTenantId();
+        // 2. 🔥 关键：切换租户上下文
+        Long oldTenantId = TenantContextHolder.getTenantId();   // oldTenantId = 0
         boolean oldIgnoreTenant = TenantContextHolder.isIgnoreTenant();
         try {
             TenantContextHolder.setIgnoreTenant(false);
-            TenantContextHolder.setTenantId(newTenantId);
+            TenantContextHolder.setTenantId(newTenantId);  // 现在设置为新建租户id
 
             // 1) 默认部门
             DeptForm deptForm = new DeptForm();

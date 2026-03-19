@@ -50,13 +50,10 @@ public class MyTenantLineHandler implements TenantLineHandler {
 
         log.info("getTenantId() 被调用");
 
-        // 通过token获取当前租户ID
-        Long tenantId = SecurityUtils.getTenantId();
-        log.info("【MyTenantLineHandler】从SecurityUtils的token获取租户ID: {}", tenantId);
-
         //如果有就赋值到租户上下文工具类
-        TenantContextHolder.setTenantId(tenantId);
+        Long tenantId =  TenantContextHolder.getTenantId();
         log.info("【MyTenantLineHandler】如果有租户id就赋值到租户上下文工具类: {}", tenantId);
+        log.info("【MyTenantLineHandler】过滤器 → 解析Token → 设置租户上下文 → 后续所有组件都从上下文获取");
 
         // 如果租户ID为null，不添加租户条件
         if (tenantId == null) {
@@ -69,7 +66,7 @@ public class MyTenantLineHandler implements TenantLineHandler {
         if (tenantId == 0) {
             // 租户ID=0可能是超级管理员，可以查看所有数据
             // 根据业务需求决定是否忽略租户过滤
-            log.info("租户ID=0，作为超级管理员处理，忽略租户过滤");
+            log.info("【MyTenantLineHandler】租户ID=0，作为超级管理员处理，忽略租户过滤");
             return new LongValue(tenantId);  // 或者 return false; 根据业务需求
         }
 
@@ -104,7 +101,7 @@ public class MyTenantLineHandler implements TenantLineHandler {
             return false;
         }
 
-        log.info("检查表是否忽略: {}", tableName);
+        log.info("【MyTenantLineHandler】检查表是否忽略: {}", tableName);
 
         // 1. 获取当前租户ID
         // 通过token获取当前租户ID
@@ -121,11 +118,11 @@ public class MyTenantLineHandler implements TenantLineHandler {
             log.info("【MyTenantLineHandler】这个场景下，sys_user 和 sys_tenant 表都需要特殊处理");
 
             if ("sys_user".equalsIgnoreCase(tableName)) {
-                log.info("✅ 租户ID为null,✅ 查询用户租户场景，忽略 sys_user 表");
+                log.info("【MyTenantLineHandler】✅ 租户ID为null,✅ 查询用户租户场景，忽略 sys_user 表");
                 return true;
             }
             if ("sys_tenant".equalsIgnoreCase(tableName)) {
-                log.info("✅ 租户ID为null,✅ 查询用户租户场景，忽略 sys_tenant 表");
+                log.info("【MyTenantLineHandler】✅ 租户ID为null,✅ 查询用户租户场景，忽略 sys_tenant 表");
                 return true;
             }
         }
@@ -156,7 +153,7 @@ public class MyTenantLineHandler implements TenantLineHandler {
         }
 
         if ("sys_user".equalsIgnoreCase(tableName)) {
-            log.info("✅ 租户ID不为null,✅ 查询用户租户场景，不忽略 sys_user 表");
+            log.info("【MyTenantLineHandler】✅ 租户ID不为null,✅ 查询用户租户场景，不忽略 sys_user 表");
             return false;
         }
 

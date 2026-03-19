@@ -1,5 +1,6 @@
 package com.aioveu.tenant.aioveu01Tenant.model.form;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -50,6 +51,7 @@ public class TenantCreateForm {
     private String remark;
 
     @Schema(description = "过期时间（NULL表示永不过期）")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime expireTime;
 
     @Schema(description = "租户管理员登录名（为空则系统生成）")

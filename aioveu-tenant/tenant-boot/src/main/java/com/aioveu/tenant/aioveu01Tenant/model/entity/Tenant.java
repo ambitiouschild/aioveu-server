@@ -3,6 +3,7 @@ package com.aioveu.tenant.aioveu01Tenant.model.entity;
 import com.aioveu.common.base.BaseEntity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -73,5 +74,6 @@ public class Tenant extends BaseEntity {
     /**
      * 过期时间（NULL表示永不过期）
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime expireTime;
 }
