@@ -2,7 +2,7 @@ spring:
   application:
     name: aioveu-tenant
   profiles:
-    active: prod  #  prod dev
+    active: dev  #  prod dev
   config:
     import: classpath:codegen.yml
   servlet:

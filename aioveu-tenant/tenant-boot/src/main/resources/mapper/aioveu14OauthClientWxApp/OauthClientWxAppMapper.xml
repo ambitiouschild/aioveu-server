@@ -8,6 +8,8 @@
                 id,
                 client_id,
                 wx_appid,
+                wx_appname,
+                registered_email,
                 is_deleted,
                 create_time,
                 update_time

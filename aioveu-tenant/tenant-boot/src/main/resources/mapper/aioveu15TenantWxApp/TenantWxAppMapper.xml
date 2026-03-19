@@ -8,6 +8,8 @@
                 id,
                 tenant_id,
                 wx_appid,
+                wx_appname,
+                registered_email,
                 is_default,
                 is_deleted,
                 create_time,

@@ -4,6 +4,8 @@ server:
 spring:
   main:
     allow-bean-definition-overriding: true
+  application:
+    name: aioveu-tenant-gateway
   cloud:
     nacos:
       # 配置中心  # 配置中心配置  先获取配置，后执行服务发现”

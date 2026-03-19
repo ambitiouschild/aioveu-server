@@ -5,6 +5,8 @@ spring:
   mvc:
     path-match:
       matching-strategy: ant_path_matcher
+  application:
+    name: aioveu-tenant-auth
   cloud:
     nacos:
       # 配置中心  # 配置中心配置  先获取配置，后执行服务发现”

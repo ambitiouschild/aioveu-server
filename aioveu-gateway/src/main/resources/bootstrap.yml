@@ -2,7 +2,7 @@ spring:
   application:
     name: aioveu-gateway # 确保应用名称设置，这样config的name可以省略，因为默认会使用这个名称   # 应用名称
   profiles:
-    active: prod #prod dev
+    active: dev #prod dev
 
 # 临时添加调试
 logging:

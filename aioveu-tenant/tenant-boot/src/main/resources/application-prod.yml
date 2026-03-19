@@ -69,6 +69,8 @@ tenant:
     - gen_table # 代码生成表（平台共用）
     - gen_table_column # 代码生成字段表（平台共用）
     - sys_user #无租户id登录忽略，有租户id不忽略
+    - sys_oauth_client_wx_app
+    - sys_tenant_wx_app
   # ============================================
 
 #  🎉 恭喜！

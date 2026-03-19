@@ -2,4 +2,4 @@ spring:
   application:
     name: aioveu-auth
   profiles:
-    active: prod  #prod dev
+    active: dev  #prod dev
