@@ -18,7 +18,12 @@ appid 是“租户”和“小程序”之间的桥梁
 SELECT id
 FROM sys_tenant
 WHERE wx_appid = 'wx1234567890abcdef';
+
+✅ 登录时序（你这套表能完美支撑）
+
 */
+
+
 USE aioveu_tenant;
 
 -- 用户表
