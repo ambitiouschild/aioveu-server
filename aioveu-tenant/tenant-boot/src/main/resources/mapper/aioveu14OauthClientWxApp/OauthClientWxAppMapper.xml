@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.tenant.aioveu14OauthClientWxApp.mapper.OauthClientWxAppMapper">
+
+    <!-- 获取OAuth2客户端与微信小程序映射分页列表 -->
+    <select id="getOauthClientWxAppPage" resultType="com.aioveu.tenant.aioveu14OauthClientWxApp.model.vo.OauthClientWxAppVo">
+        SELECT
+                id,
+                client_id,
+                wx_appid,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            sys_oauth_client_wx_app
+        <where>
+            <if test="queryParams.clientId != null and queryParams.clientId != ''">
+                AND client_id LIKE CONCAT(#{queryParams.clientId}, '%')
+            </if>
+            <if test="queryParams.wxAppid != null and queryParams.wxAppid != ''">
+                AND wx_appid LIKE CONCAT(#{queryParams.wxAppid}, '%')
+            </if>
+            <if test="queryParams.wxAppname != null and queryParams.wxAppname != ''">
+                AND wx_appname LIKE CONCAT(#{queryParams.wxAppname}, '%')
+            </if>
+            <if test="queryParams.registeredEmail != null and queryParams.registeredEmail != ''">
+                AND registered_email LIKE CONCAT(#{queryParams.registeredEmail}, '%')
+            </if>
+            <if test="queryParams.isDeleted != null">
+                AND is_deleted LIKE CONCAT(#{queryParams.isDeleted}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
