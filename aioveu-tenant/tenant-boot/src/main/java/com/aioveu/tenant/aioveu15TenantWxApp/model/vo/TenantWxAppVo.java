@@ -1,5 +1,7 @@
 package com.aioveu.tenant.aioveu15TenantWxApp.model.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,7 +33,7 @@ public class TenantWxAppVo {
     /**
      * 微信小程序appname
      */
-    private String wxAppName;
+    private String wxAppname;
 
     /**
      * 微信小程序注册邮箱
@@ -44,7 +46,11 @@ public class TenantWxAppVo {
     @Schema(description = "逻辑删除：0-未删除 1-已删除")
     private Integer isDeleted;
     @Schema(description = "创建时间")
+    @JsonInclude(value = JsonInclude.Include.NON_NULL)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
     @Schema(description = "更新时间")
+    @JsonInclude(value = JsonInclude.Include.NON_NULL)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
 }

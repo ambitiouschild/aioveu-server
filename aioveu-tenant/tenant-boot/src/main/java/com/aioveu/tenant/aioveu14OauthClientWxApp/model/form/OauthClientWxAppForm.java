@@ -41,7 +41,7 @@ public class OauthClientWxAppForm implements Serializable {
     /**
      * 微信小程序appname
      */
-    private String wxAppName;
+    private String wxAppname;
 
     /**
      * 微信小程序注册邮箱

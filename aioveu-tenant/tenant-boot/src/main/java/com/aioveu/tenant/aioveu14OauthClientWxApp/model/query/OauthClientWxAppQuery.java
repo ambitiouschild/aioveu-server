@@ -28,7 +28,7 @@ public class OauthClientWxAppQuery extends BasePageQuery {
     /**
      * 微信小程序appname
      */
-    private String wxAppName;
+    private String wxAppname;
 
     /**
      * 微信小程序注册邮箱
