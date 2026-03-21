@@ -27,9 +27,14 @@ import java.util.List;
 
 
 @FeignClient(value = "aioveu-tenant",
-        fallback = TenantFeignFallbackClient.class
+        fallback = TenantFeignFallbackClient.class,
+        configuration = {FeignDecoderConfig.class}
         )
-//configuration = {FeignDecoderConfig.class}
+//如果服务提供方返回的是 Result<List<TenantVO>>这类包装对象，
+// 那么客户端的 Feign 接口方法返回值也需要改为 Result<List<TenantVO>>，或者定义一个对应的 ResponseEntity。
+//或者必须解构
+//这是一个典型的服务间接口契约不一致导致的序列化/反序列化错误。
+// 需要对比并统一服务提供方和消费方关于 getAccessibleTenantsByUsername接口的返回值类型定义。
 
 //@RequestMapping("/api/v1")  // FeignClient 接口上不允许使用 @RequestMapping注解。需要在每个方法上写完整路径。
 public interface TenantFeignClient {
