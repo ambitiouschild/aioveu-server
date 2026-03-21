@@ -3,6 +3,7 @@ package com.aioveu.common.security.config;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import com.aioveu.common.constant.JwtClaimConstants;
+import com.aioveu.common.security.config.property.SecurityProperties;
 import com.aioveu.common.security.filter.JwtBlacklistFilter;
 import com.aioveu.common.security.filter.TenantFilter;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -90,9 +92,9 @@ import java.util.List;
 * */
 
 // 从application.yml中读取security前缀的配置
-@ConfigurationProperties(prefix = "security")   // ❌ 属性绑定类
+//@ConfigurationProperties(prefix = "security")   // ❌ 属性绑定类
 // 翻译：类被标记为@ConstructorBinding，但又被定义为Spring组件
-//@Configuration   // 标记为配置类 // ❌ 配置类
+@Configuration   // 标记为配置类 // ❌ 配置类   类没有被标记为@Configuration，Spring可能没有正确扫描到这个配置。
 @EnableWebSecurity   // 启用Spring Security Web安全支持
 @EnableMethodSecurity    // 启用方法级安全注解（如@PreAuthorize）
 @RequiredArgsConstructor   // Lombok注解，自动注入final字段
@@ -118,17 +120,7 @@ public class ResourceServerConfig {
 
     private final TenantFilter tenantFilter;  // 注入你的租户过滤器
 
-    /**
-     * 白名单路径列表 - 从配置文件动态注入
-     * 配置示例：
-     * security:
-     *   whitelist-paths:
-     *     - "/api/v1/public/**"
-     *     - "/health"
-     *     - "/actuator/info"
-     */
-    @Setter
-    private List<String> whitelistPaths;
+    private final SecurityProperties securityProperties;
 
 
     /**
@@ -153,15 +145,15 @@ public class ResourceServerConfig {
 
         // 记录白名单路径，便于调试和监控
         log.info("记录白名单路径，便于调试和监控");
-        log.info("whitelist path:{}", JSONUtil.toJsonStr(whitelistPaths));
+        log.info("whitelist path:{}", JSONUtil.toJsonStr(securityProperties.getWhitelistPaths()));
 
         // 配置HTTP请求授权规则
         //在 Spring Security 配置中，授权规则的顺序很重要
         http.authorizeHttpRequests((requests) ->
                         {
                             // 配置白名单路径 - 这些路径不需要认证即可访问
-                            if (CollectionUtil.isNotEmpty(whitelistPaths)) {
-                                for (String whitelistPath : whitelistPaths) {
+                            if (CollectionUtil.isNotEmpty(securityProperties.getWhitelistPaths())) {
+                                for (String whitelistPath : securityProperties.getWhitelistPaths()) {
 
                                     // 使用MVC模式匹配器配置白名单路径为允许所有人访问
                                     requests.requestMatchers(mvcMatcherBuilder.pattern(whitelistPath)).permitAll();
