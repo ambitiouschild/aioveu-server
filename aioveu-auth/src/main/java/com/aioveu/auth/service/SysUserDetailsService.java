@@ -141,7 +141,8 @@ public class SysUserDetailsService implements UserDetailsService {
         // 方案1：按优先级依次尝试
         try {
             // 1. 优先使用tenant微服务（多租户模式）
-            // 查询逻辑（根据tenantId是否为空决定查询方式）
+            // 查询逻辑（根据tenantId是否为空决定查询方式） currentTenantId != null
+            //请求参数已经去掉tenant_id，所以根据 currentTenantId == null ，请求参数不能去掉
             if (currentTenantId != null) {
                 log.info("尝试使用租户ID从tenant微服务查询用户: {},租户currentTenantId：{}", trimmedUsername,currentTenantId);
                 UserAuthInfoWithTenantId userAuthInfoWithTenantId = tenantFeignClient.getUserAuthInfoWithTenantId(trimmedUsername, currentTenantId);

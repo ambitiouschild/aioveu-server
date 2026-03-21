@@ -151,25 +151,25 @@ public class PasswordAuthenticationConverter implements AuthenticationConverter 
         // ✅ 新增：提取租户ID
         //最简单的就是最好的！在Converter中一次提取设置，在整个线程生命周期中都能访问。
 
-//        log.info("==============================================");
-//        log.info(" 使用AuthenticationManager执行实际的用户名密码认证,用户名和密码认证的时候，需要提供租户ID去查询对应的用户");
-//        Long tenantId = null;
-//        String tenantIdStr = parameters.getFirst("tenantId");
-//        if (StringUtils.hasText(tenantIdStr)) {
-//            try {
-//                tenantId = Long.parseLong(tenantIdStr);
-//                log.info("✅ 从OAuth2登录请求提取租户ID: {}", tenantId);
-//                // 设置租户上下文
-//                TenantContextHolder.setTenantId(tenantId);
-//                log.info("已设置租户上下文: {}", tenantId);
-//                log.info("这里从请求参数获取租户ID，并设置到上下文，是为了根据用户名获取租户Id列表");
-//
-//            } catch (NumberFormatException e) {
-//                log.warn("租户ID格式错误: {}", tenantIdStr);
-//            }
-//        } else {
-//            log.info("登录请求中未提供租户ID，将使用全局查询");
-//        }
+        log.info("==============================================");
+        log.info(" 使用AuthenticationManager执行实际的用户名密码认证,用户名和密码认证的时候，需要提供租户ID去查询对应的用户");
+        Long tenantId = null;
+        String tenantIdStr = parameters.getFirst("tenantId");
+        if (StringUtils.hasText(tenantIdStr)) {
+            try {
+                tenantId = Long.parseLong(tenantIdStr);
+                log.info("✅ 从OAuth2登录请求提取租户ID: {}", tenantId);
+                // 设置租户上下文
+                TenantContextHolder.setTenantId(tenantId);
+                log.info("已设置租户上下文: {}", tenantId);
+                log.info("这里从请求参数获取租户ID，并设置到上下文，是为了根据用户名获取租户Id列表");
+
+            } catch (NumberFormatException e) {
+                log.warn("租户ID格式错误: {}", tenantIdStr);
+            }
+        } else {
+            log.info("登录请求中未提供租户ID，将使用全局查询");
+        }
 
 
         // 步骤8: 构建密码模式认证令牌
