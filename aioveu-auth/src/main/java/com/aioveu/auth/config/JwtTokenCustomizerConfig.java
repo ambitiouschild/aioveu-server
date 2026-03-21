@@ -30,6 +30,11 @@ import java.util.stream.Collectors;
 @Configuration
 public class JwtTokenCustomizerConfig {
 
+
+    public JwtTokenCustomizerConfig() {
+        log.info("=== 【JwtTokenCustomizer】JwtTokenCustomizerConfig 被创建 ===");
+    }
+
     /**
      * JWT 自定义字段
      * @see <a href="https://docs.spring.io/spring-authorization-server/reference/guides/how-to-custom-claims-authorities.html">Add custom claims to JWT access tokens</a>
@@ -37,14 +42,25 @@ public class JwtTokenCustomizerConfig {
     @Bean
     public OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer() {
         return context -> {
-            if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType()) && context.getPrincipal() instanceof UsernamePasswordAuthenticationToken) {
+
+            log.info("=== 【JwtTokenCustomizer】JwtTokenCustomizer 被调用 ===");
+            /*
+            * 但在您的WechatAuthenticationProvider中，
+            * context.getPrincipal()确实是UsernamePasswordAuthenticationToken类型，应该能通过。
+            * */
+            if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType()) &&
+                    context.getPrincipal() instanceof UsernamePasswordAuthenticationToken) {
+
+                log.info("【JwtTokenCustomizer】✅ 处理的是ACCESS_TOKEN");
                 // Customize headers/claims for access_token
                 Optional.ofNullable(context.getPrincipal().getPrincipal()).ifPresent(principal -> {
                     JwtClaimsSet.Builder claims = context.getClaims();
-                    if (principal instanceof SysUserDetails userDetails) { // 系统用户添加自定义字段
 
+
+                    if (principal instanceof SysUserDetails userDetails) { // 系统用户添加自定义字段
+                        log.info("【JwtTokenCustomizer】✅ 系统用户SysUserDetails添加自定义字段");
                         // 调试日志
-                        log.info("用户详情字段值: userId={}, username={}, deptId={}, dataScope={}, dataScopes={}, tenantId={}, canSwitchTenant={}",
+                        log.info("【JwtTokenCustomizer】用户详情字段值: userId={}, username={}, deptId={}, dataScope={}, dataScopes={}, tenantId={}, canSwitchTenant={}",
                                 userDetails.getUserId(),
                                 userDetails.getUsername(),
                                 userDetails.getDeptId(),
@@ -117,7 +133,19 @@ public class JwtTokenCustomizerConfig {
                                 .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
                         claims.claim(JwtClaimConstants.AUTHORITIES, authorities);
 
-                    } else if (principal instanceof MemberDetails userDetails) { // 商城会员添加自定义字段
+                    } else if (principal instanceof MemberDetails userDetails) {
+                        log.info("【JwtTokenCustomizer】✅ 会员用户MemberDetails添加自定义字段");
+                        log.info("【JwtTokenCustomizer】✅ 找到MemberDetails，开始添加租户ID");
+                        Long tenantId = userDetails.getTenantId();
+                        log.info("【JwtTokenCustomizer】 租户ID值: {}", tenantId);
+
+                        if (tenantId != null) {
+                            claims.claim(JwtClaimConstants.TENANT_ID, String.valueOf(tenantId));
+                            log.info("【JwtTokenCustomizer】✅ 已添加tenant_id到JWT Claims: {}", tenantId);
+                        }
+
+                        // 商城会员添加自定义字段
+                        //但您的微信登录使用的是MemberDetails，应该走这个分支
                         claims.claim(JwtClaimConstants.MEMBER_ID, String.valueOf(userDetails.getId()));
                     }
                 });

@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 
@@ -59,13 +60,21 @@ public class TenantFilter extends OncePerRequestFilter {
             log.info("【租户过滤器工作】租户过滤器执行，URI: " + request.getRequestURI());
             log.info("【租户过滤器工作】请求Header: " + request.getHeaderNames());
 
+            // 尝试从多种来源获取租户ID
+            Long requestTenantId = getTenantIdFromRequest(request);
+
             if (tenantId != null) {
                 // 设置到租户上下文
                 TenantContextHolder.setTenantId(tenantId);
                 log.info("【租户过滤器工作】过滤器✅ 从SecurityUtils设置租户ID: " + tenantId);
             } else {
-                // 没有租户ID，不设置
                 log.info("【租户过滤器工作】⚠️ 没有租户ID，跳过设置");
+            }
+
+            if (requestTenantId != null) {
+                // 设置到租户上下文
+                TenantContextHolder.setTenantId(requestTenantId);
+                log.info("【租户过滤器工作】过滤器✅ 从request请求Header设置租户ID: " + requestTenantId);
             }
 
             filterChain.doFilter(request, response);
@@ -77,5 +86,27 @@ public class TenantFilter extends OncePerRequestFilter {
         }
     }
 
+    private Long getTenantIdFromRequest(HttpServletRequest request) {
+        // 1. 从Header获取
+        String tenantIdHeader = request.getHeader("X-Tenant-Id");
+        if (StringUtils.hasText(tenantIdHeader)) {
+            return Long.parseLong(tenantIdHeader);
+        }
+
+        // 2. 从参数获取
+        String tenantIdParam = request.getParameter("tenantId");
+        if (StringUtils.hasText(tenantIdParam)) {
+            return Long.parseLong(tenantIdParam);
+        }
+
+        // 3. 从Basic认证解析（如果是mall-app:123456格式）
+        String authHeader = request.getHeader("Authorization");
+        if (StringUtils.hasText(authHeader) && authHeader.startsWith("Basic ")) {
+            // 可以解析Basic认证，看是否包含租户信息
+            // 这取决于您的认证服务设计
+        }
+
+        return null;
+    }
 
 }

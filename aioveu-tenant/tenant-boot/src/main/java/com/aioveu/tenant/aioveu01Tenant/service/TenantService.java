@@ -149,4 +149,13 @@ public interface TenantService extends IService<Tenant> {
      * @return true-可访问，false-不可访问
      */
     boolean canAccessTenant(Long userId, Long tenantId);
+
+
+//    /**
+//     * 检查用户是否可以访问指定租户
+//     * @param userId   用户ID
+//     * @param tenantId 租户ID
+//     * @return true-可访问，false-不可访问
+//     */
+//    boolean canAccessTenant(Long userId, Long tenantId);
 }

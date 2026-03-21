@@ -162,13 +162,44 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
                 )
         );
 
-        log.info("会员不存在时返回null，由调用方处理");
+
         if (entity == null) {
+            log.info("会员不存在时返回null，由调用方处理");
            return null;
         }
 
         log.info("使用转换器将Entity转换为认证DTO");
         return umsMemberConverter.entity2OpenidAuthDTO(entity);
+    }
+
+    /**
+     * 根据 openid 和 tenantId获取会员认证信息
+     *
+     * @param openid
+     * @param tenantId
+     * @return
+     */
+    @Override
+    public MemberAuthDTO getMemberByOpenidAndTenantId(String openid,Long tenantId) {
+
+        log.info("构建查询条件：按openid 和 tenantId精确匹配，只查询必要字段");
+        UmsMember entity = this.getOne(new LambdaQueryWrapper<UmsMember>()
+                .eq(UmsMember::getOpenid, openid)
+                .select(UmsMember::getId,     // 会员ID
+                        UmsMember::getOpenid,  // 微信openid
+                        UmsMember::getTenantId,  // tenantId
+                        UmsMember::getStatus  // 会员状态
+                )
+        );
+
+        log.info("会员不存在时返回null，由调用方处理");
+        if (entity == null) {
+            return null;
+        }
+
+        log.info("使用转换器将Entity转换为认证DTO");
+        return umsMemberConverter.entity2OpenidAuthDTO(entity);
+
     }
 
     /**

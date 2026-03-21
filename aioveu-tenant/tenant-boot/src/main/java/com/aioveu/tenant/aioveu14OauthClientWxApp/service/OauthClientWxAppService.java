@@ -4,6 +4,7 @@ import com.aioveu.tenant.aioveu14OauthClientWxApp.model.entity.OauthClientWxApp;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.model.form.OauthClientWxAppForm;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.model.query.OauthClientWxAppQuery;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.model.vo.OauthClientWxAppVo;
+import com.aioveu.tenant.aioveu14OauthClientWxApp.model.vo.TenantWxAppInfo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -57,4 +58,12 @@ public interface OauthClientWxAppService extends IService<OauthClientWxApp> {
      * @return 是否删除成功
      */
     boolean deleteOauthClientWxApps(String ids);
+
+    /**
+     * 通过 clientId 获取租户和小程序信息
+     *
+     * @param clientId
+     * @return TenantWxAppInfo
+     */
+    TenantWxAppInfo getTenantWxAppInfoByClientId(String clientId);
 }

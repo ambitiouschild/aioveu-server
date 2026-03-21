@@ -4,6 +4,7 @@ import com.aioveu.common.mybatis.config.property.TenantProperties;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.common.tenant.TenantContextHolder;
 import com.baomidou.mybatisplus.extension.plugins.handler.TenantLineHandler;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
@@ -32,7 +33,11 @@ public class MyTenantLineHandler implements TenantLineHandler {
 
     private final TenantProperties tenantProperties;
 
-
+    @PostConstruct
+    public void init() {
+        log.info("=== MyTenantLineHandler 初始化检查 ===");
+        log.info("tenantProperties: {}", tenantProperties);
+    }
 
     /**
      * 获取租户ID表达式

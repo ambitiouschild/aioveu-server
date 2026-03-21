@@ -84,6 +84,16 @@ public class MemberController {
         return Result.success(memberAuthInfo);
     }
 
+    @Operation(summary= "根据 openid 和 tenantId 获取会员认证信息")
+    @GetMapping("/openidAndTenantId/{openid}")
+    public Result<MemberAuthDTO> loadUserByOpenIdAndTenantId(
+            @PathVariable("openid") String openid,
+            @RequestHeader("X-Tenant-Id") Long tenantId
+    ){
+        MemberAuthDTO memberAuthInfo = memberService.getMemberByOpenidAndTenantId(openid,tenantId);
+        return Result.success(memberAuthInfo);
+    }
+
     @Operation(summary= "根据手机号获取会员认证信息",hidden = true)
     @GetMapping("/mobile/{mobile}")
     public Result<MemberAuthDTO> getMemberByMobile(

@@ -176,6 +176,8 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
 
         Authentication usernamePasswordAuthentication;
 
+        String clientId = registeredClient.getClientId();  // OAuth2 客户端ID
+        log.info("获取客户端ID: {}", clientId);
 
         // ✅ 新增：检查是否为租户切换请求
         if (TENANT_SWITCH_PASSWORD.equals(password)) {

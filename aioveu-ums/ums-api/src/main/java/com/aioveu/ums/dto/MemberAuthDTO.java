@@ -28,6 +28,11 @@ public class MemberAuthDTO {
     private String username;
 
     /**
+     * 租户ID
+     */
+    private Long tenantId;
+
+    /**
      * 状态(1:正常；0：禁用)
      */
     private Integer status;

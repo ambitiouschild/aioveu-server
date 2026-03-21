@@ -6,6 +6,7 @@ import com.aioveu.common.result.Result;
 import com.aioveu.common.web.config.FeignDecoderConfig;
 import com.aioveu.tenant.api.fallback.TenantFeignFallbackClient;
 import com.aioveu.tenant.dto.TenantVO;
+import com.aioveu.tenant.dto.TenantWxAppInfo;
 import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,8 +27,9 @@ import java.util.List;
 
 
 @FeignClient(value = "aioveu-tenant",
-        fallback = TenantFeignFallbackClient.class,
-        configuration = {FeignDecoderConfig.class})
+        fallback = TenantFeignFallbackClient.class
+        )
+//configuration = {FeignDecoderConfig.class}
 
 //@RequestMapping("/api/v1")  // FeignClient 接口上不允许使用 @RequestMapping注解。需要在每个方法上写完整路径。
 public interface TenantFeignClient {
@@ -104,5 +106,12 @@ public interface TenantFeignClient {
     @GetMapping("/api/v1/tenants/hasTenantSwitchPermission")
     @Log(value = "检查是否具备租户切换权限）", module = LogModuleEnum.TENANT)
     Result<Boolean> hasTenantSwitchPermission();
+
+    @Operation(summary = "通过 clientId 获取租户和小程序信息")
+    @GetMapping("/api/v1/oauth-client-wx-app/getTenantWxAppInfoByClientId") // ✅ 应该改为GET
+    @Log(value = "通过 clientId 获取租户和小程序信息）", module = LogModuleEnum.TENANT)
+    TenantWxAppInfo getTenantWxAppInfoByClientId(
+            @Parameter(description = "clientId") @RequestParam("clientId") String  clientId
+    );
 
 }

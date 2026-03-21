@@ -17,6 +17,9 @@ public class MemberRegisterDto {
 
     private Integer gender;
 
+
+    private Long tenantId;
+
     private String nickName;
 
     private String mobile;

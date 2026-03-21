@@ -5,6 +5,7 @@ import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.result.Result;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.TenantVO;
+import com.aioveu.tenant.dto.TenantWxAppInfo;
 import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -86,6 +87,15 @@ public class TenantFeignFallbackClient implements TenantFeignClient {
     public Result<Boolean> hasTenantSwitchPermission(){
         log.error("检查是否具备租户切换权限失败");
         return Result.failed();
+    }
+
+    /**
+     * 通过 clientId 获取租户和小程序信息
+     */
+    @Override
+    public TenantWxAppInfo getTenantWxAppInfoByClientId(String  clientId){
+        log.error("通过 clientId 获取租户和小程序信息失败");
+        return null;
     }
 
 }

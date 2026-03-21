@@ -57,4 +57,13 @@ public interface TenantWxAppService extends IService<TenantWxApp> {
      * @return 是否删除成功
      */
     boolean deleteTenantWxApps(String ids);
+
+
+    /**
+     * 通过 wxAppid 获取tenantId
+     *
+     * @param wxAppid
+     * @return tenantId
+     */
+    Long getTenantIdByWxAppid(String wxAppid);
 }

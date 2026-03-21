@@ -356,9 +356,11 @@ public class SecurityUtils {
     * */
     public static Long getTenantId() {
         Map<String, Object> tokenAttributes = getTokenAttributes();
+
+        log.info("SecurityUtils获取tokenAttributes:{}", tokenAttributes);
         if (tokenAttributes != null) {
 
-            Long tenantId = (Long) tokenAttributes.get("tenant_id");
+            Long tenantId = Convert.toLong(tokenAttributes.get("tenant_id"));
             log.info("SecurityUtils获取当前租户ID:{}", tenantId);
             return tenantId;
         }

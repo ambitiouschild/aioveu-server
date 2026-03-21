@@ -2,6 +2,7 @@ package com.aioveu.tenant.aioveu15TenantWxApp.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.tenant.aioveu14OauthClientWxApp.model.entity.OauthClientWxApp;
 import com.aioveu.tenant.aioveu15TenantWxApp.converter.TenantWxAppConverter;
 import com.aioveu.tenant.aioveu15TenantWxApp.mapper.TenantWxAppMapper;
 import com.aioveu.tenant.aioveu15TenantWxApp.model.entity.TenantWxApp;
@@ -9,10 +10,12 @@ import com.aioveu.tenant.aioveu15TenantWxApp.model.form.TenantWxAppForm;
 import com.aioveu.tenant.aioveu15TenantWxApp.model.query.TenantWxAppQuery;
 import com.aioveu.tenant.aioveu15TenantWxApp.model.vo.TenantWxAppVo;
 import com.aioveu.tenant.aioveu15TenantWxApp.service.TenantWxAppService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -26,6 +29,8 @@ import java.util.List;
  * @Date 2026/3/19 17:07
  * @Version 1.0
  **/
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TenantWxAppServiceImpl extends ServiceImpl<TenantWxAppMapper, TenantWxApp> implements TenantWxAppService {
@@ -98,5 +103,29 @@ public class TenantWxAppServiceImpl extends ServiceImpl<TenantWxAppMapper, Tenan
                 .map(Long::parseLong)
                 .toList();
         return this.removeByIds(idList);
+    }
+
+
+    /**
+     * 通过 wxAppid 获取tenantId
+     *
+     * @param wxAppid
+     * @return tenantId
+     */
+    @Override
+    public Long getTenantIdByWxAppid(String wxAppid) {
+        // 获取entity
+        TenantWxApp entity = this.getOne(new LambdaQueryWrapper<TenantWxApp>()
+                .eq(TenantWxApp::getWxAppid, wxAppid)
+                .select(
+                        TenantWxApp::getTenantId,
+                        TenantWxApp::getWxAppname
+                ));
+        Assert.isTrue(entity != null, "通过 wxAppid 获取tenantId不存在");
+
+        Long tenantId = entity.getTenantId();
+        log.info("【Tenant TenantWxApp】通过 wxAppid :{} 获取tenantId:{}",wxAppid,tenantId);
+
+        return tenantId;
     }
 }

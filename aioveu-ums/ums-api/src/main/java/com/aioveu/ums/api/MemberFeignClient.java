@@ -19,7 +19,7 @@ import java.util.List;
  * @return:
  **/
 
-@FeignClient(name = "aioveu-ums", contextId = "member")
+@FeignClient(name = "aioveu-tenant-ums", contextId = "member")
 public interface MemberFeignClient {
 
     /**
@@ -60,6 +60,19 @@ public interface MemberFeignClient {
      */
     @GetMapping("/app-api/v1/members/openid/{openid}")
     Result<MemberAuthDTO> loadUserByOpenId(@PathVariable String openid);
+
+    /**
+     * 根据openId 和 tenantId获取会员认证信息
+     *
+     * @param openid
+     * @param tenantId
+     * @return
+     */
+    @GetMapping("/app-api/v1/members/openidAndTenantId/{openid}")
+    Result<MemberAuthDTO> loadUserByOpenIdAndTenantId(
+            @PathVariable("openid") String openid,
+            @RequestHeader("X-Tenant-Id") Long tenantId
+    );
 
     /**
      * 根据手机号获取会员认证信息

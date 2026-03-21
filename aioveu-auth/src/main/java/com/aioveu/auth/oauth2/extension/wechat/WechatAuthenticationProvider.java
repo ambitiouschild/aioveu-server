@@ -3,6 +3,7 @@ package com.aioveu.auth.oauth2.extension.wechat;
 import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.binarywang.wx.miniapp.bean.WxMaJscode2SessionResult;
 import cn.hutool.core.lang.Assert;
+import com.aioveu.auth.model.MemberDetails;
 import com.aioveu.auth.service.MemberDetailsService;
 import com.aioveu.auth.util.OAuth2AuthenticationProviderUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Toke
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -75,7 +77,9 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
 
     private final MemberDetailsService memberDetailsService;  // 会员详情服务，用于加载用户信息
 
-    private final WxMaService wxMaService;   // 微信小程序服务，用于调用微信API
+    private final WxMaService wxMaService;
+
+    // 微信小程序服务，用于调用微信API
 
 
     /**
@@ -148,6 +152,31 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
         //如果 additionalParameters.get("code")返回的不是字符串，这个强制转换就会出问题。
         String code = (String) additionalParameters.get(OAuth2ParameterNames.CODE);
 
+        //------------------------------------------------
+        // 在获取 code 之后，获取 clientId
+        // 5. ★ 关键修改：获取 clientId
+        String clientId = registeredClient.getClientId();  // OAuth2 客户端ID
+        log.info("获取客户端ID: {}", clientId);
+
+
+        //------------------------------------------------
+        // 7. ★ 动态设置微信配置
+        // 注意：这里需要根据 wxAppid 动态获取对应的 WxMaService
+//        WxMaService wxMaServiceForApp = getWxMaServiceByAppId(wxAppid);
+
+        /**
+         * 根据 wxAppid 获取对应的微信服务
+         */
+//        private WxMaService getWxMaServiceByAppId(String wxAppid) {
+//            // 这里需要你实现多小程序配置
+//            // 方案1：从配置中心动态获取
+//            // 方案2：从数据库读取 appid 和 secret
+//            // 方案3：使用 WxMaService 的工厂模式
+//
+//            // 示例：从内存缓存获取
+//            return wxMaService;  // 暂时返回全局的，实际需要动态获取
+//        }
+
         log.info("Code验证：通过微信code2Session接口验证临时登录凭证");
         WxMaJscode2SessionResult sessionInfo;
         try {
@@ -164,16 +193,44 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
         String openid = sessionInfo.getOpenid();
         log.info("OpenID获取：从微信响应中提取用户唯一标识openid:{}",openid);
 
-        UserDetails userDetails = memberDetailsService.loadUserByOpenid(openid);
+//        UserDetails userDetails = memberDetailsService.loadUserByOpenid(openid);
+
+        MemberDetails userDetails = memberDetailsService.loadUserByOpenidAndClientId(openid,clientId);
+
         // 根据 openid 获取会员信息
         log.info("4. 根据openid加载用户信息:{}", userDetails.getUsername());
+        log.info("4. 根据openid加载用户信息:{}", userDetails);
 
 
+
+
+        //------------------------------------------------
         log.info("5. 构建用户名密码认证令牌（用于后续的令牌生成）");
-        Authentication usernamePasswordAuthentication = new UsernamePasswordAuthenticationToken(
+        //// 使用 UsernamePasswordAuthenticationToken 类型，而不是 Authentication
+        //使用 UsernamePasswordAuthenticationToken具体实现类，而不是 Authentication接口
+        UsernamePasswordAuthenticationToken usernamePasswordAuthentication = new UsernamePasswordAuthenticationToken(
                 userDetails,
                 userDetails.getPassword());  // 密码用于认证验证
 
+//        log.info("userDetails租户ID: {}",userDetails.getTenantId());
+//        // 设置租户ID到details
+//        Map<String, Object> details = new HashMap<>();
+//        details.put("tenant_id", userDetails.getTenantId());
+//        usernamePasswordAuthentication.setDetails(details);
+//
+//        // 验证设置
+//        log.info("设置的租户ID: {}", details.get("tenant_id"));
+//        log.info("设置的详情: {}", usernamePasswordAuthentication.getDetails());
+        /*
+        *      TODO         核心要点总结
+                              1.租户ID传递路径：
+                                从 UserDetails→ Authentication.details→ JWT Claims
+                                使用 TenantContextHolder进行线程上下文传递
+                              2.关键修改点：
+                                在创建 UsernamePasswordAuthenticationToken后设置 details
+                                在 OAuth2TokenCustomizer中将租户ID添加到JWT Claims
+                                使用 TenantContextHolder管理租户上下文
+        * */
         // 访问令牌(Access Token) 构造器
         log.info("6. 构建令牌上下文，准备生成访问令牌");
         DefaultOAuth2TokenContext.Builder tokenContextBuilder = DefaultOAuth2TokenContext.builder()
@@ -181,15 +238,16 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
                 .principal(usernamePasswordAuthentication)  // 用户主体信息
                 .authorizationServerContext(AuthorizationServerContextHolder.getContext())  // 授权服务器上下文
                 .authorizationGrantType(WechatAuthenticationToken.WECHAT_MINI_APP)   // 授权类型：微信小程序
-                .authorizationGrant(wechatAuthenticationToken);  // 授权请求信息
+                .authorizationGrant(wechatAuthenticationToken); // 授权请求信息
 
         // 生成访问令牌(Access Token)
         log.info("7. 生成访问令牌(Access Token)");
         OAuth2TokenContext tokenContext = tokenContextBuilder.tokenType(OAuth2TokenType.ACCESS_TOKEN).build();
         OAuth2Token generatedAccessToken = this.tokenGenerator.generate(tokenContext);
 
-        log.info("令牌生成失败处理");
+
         if (generatedAccessToken == null) {
+            log.info("令牌生成失败处理");
             OAuth2Error error = new OAuth2Error(OAuth2ErrorCodes.SERVER_ERROR,
                     "The token generator failed to generate the access token.", ERROR_URI);
             throw new OAuth2AuthenticationException(error);

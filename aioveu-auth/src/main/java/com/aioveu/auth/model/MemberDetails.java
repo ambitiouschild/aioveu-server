@@ -32,6 +32,16 @@ public class MemberDetails implements UserDetails {
     private String username;
 
     /**
+     * 租户ID  // 新增：租户ID
+     */
+    private Long tenantId;
+
+    /**
+     * // 新增：微信小程序ID
+     */
+    private String wxAppid;
+
+    /**
      * 会员状态
      */
     private Boolean enabled;
@@ -50,6 +60,7 @@ public class MemberDetails implements UserDetails {
     public MemberDetails(MemberAuthDTO memAuthInfo) {
         this.setId(memAuthInfo.getId());
         this.setUsername(memAuthInfo.getUsername());
+        this.setTenantId(memAuthInfo.getTenantId());
         this.setEnabled(GlobalConstants.STATUS_YES.equals(memAuthInfo.getStatus()));
     }
 

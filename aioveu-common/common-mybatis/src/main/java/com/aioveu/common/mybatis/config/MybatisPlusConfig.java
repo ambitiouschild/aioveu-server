@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.inner.DataPermissionIntercepto
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.aioveu.common.mybatis.handler.*;
 import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.mapping.DatabaseIdProvider;
 import org.apache.ibatis.mapping.VendorDatabaseIdProvider;
@@ -44,6 +45,13 @@ public class MybatisPlusConfig {
 
     @Autowired  //(required = false)
     private MyTenantLineHandler myTenantLineHandler;
+
+
+    @PostConstruct
+    public void init() {
+        log.info("=== MybatisPlusConfig 初始化检查 ===");
+        log.info("MyTenantLineHandler: {}", myTenantLineHandler);
+    }
 
     /**
      * 分页插件和数据权限插件

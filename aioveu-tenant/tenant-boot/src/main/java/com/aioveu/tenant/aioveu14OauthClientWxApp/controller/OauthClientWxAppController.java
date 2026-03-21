@@ -1,11 +1,14 @@
 package com.aioveu.tenant.aioveu14OauthClientWxApp.controller;
 
+import com.aioveu.common.annotation.Log;
+import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.Result;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.model.form.OauthClientWxAppForm;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.model.query.OauthClientWxAppQuery;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.model.vo.OauthClientWxAppVo;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.service.OauthClientWxAppService;
+import com.aioveu.tenant.aioveu14OauthClientWxApp.model.vo.TenantWxAppInfo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -77,5 +80,24 @@ public class OauthClientWxAppController {
     ) {
         boolean result = oauthClientWxAppService.deleteOauthClientWxApps(ids);
         return Result.judge(result);
+    }
+
+
+    /*
+    * 建议：保持使用@RequestParam
+    * 接口语义：getTenantWxAppInfoByClientId是一个查询操作，不是资源获取操作
+    * RESTful设计：
+    * 如果是获取资源：GET /api/v1/oauth-client-wx-app/{id}
+    * 如果是查询：GET /api/v1/oauth-client-wx-app?clientId={id}
+    * 参数扩展性：未来可能需要其他查询条件
+    * */
+    @Operation(summary = "通过 clientId 获取租户和小程序信息")
+    @GetMapping("/getTenantWxAppInfoByClientId")  // ✅ 应该改为GET
+    @Log(value = "通过 clientId 获取租户和小程序信息）", module = LogModuleEnum.TENANT)
+    public TenantWxAppInfo getTenantWxAppInfoByClientId(
+            @Parameter(description = "clientId") @RequestParam("clientId") String clientId
+    ) {
+        TenantWxAppInfo tenantWxAppInfo  = oauthClientWxAppService.getTenantWxAppInfoByClientId(clientId);
+        return tenantWxAppInfo;
     }
 }

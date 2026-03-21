@@ -78,4 +78,5 @@ public class TenantWxAppController {
         boolean result = tenantWxAppService.deleteTenantWxApps(ids);
         return Result.judge(result);
     }
+
 }
