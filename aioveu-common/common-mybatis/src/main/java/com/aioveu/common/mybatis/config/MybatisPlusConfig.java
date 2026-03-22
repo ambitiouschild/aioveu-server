@@ -46,11 +46,58 @@ public class MybatisPlusConfig {
     @Autowired  //(required = false)
     private MyTenantLineHandler myTenantLineHandler;
 
+    @Value("${spring.application.name:unknown}")
+    private String applicationName;
 
     @PostConstruct
     public void init() {
         log.info("=== MybatisPlusConfig 初始化检查 ===");
+        log.info("当前服务名称: {}", applicationName);
         log.info("MyTenantLineHandler: {}", myTenantLineHandler);
+
+        // 检查是否是auth服务
+        boolean isAuthService = isAuthService();
+        log.info("当前是否为auth服务: {}", isAuthService);
+    }
+
+    /**
+     * 判断当前是否为auth微服务
+     */
+    private boolean isAuthService() {
+        // 方法1：通过应用名判断（推荐）
+        if (applicationName != null && (applicationName.contains("auth") || applicationName.contains("auth-service"))) {
+            return true;
+        }
+
+        // 方法2：通过检查启动类判断
+        try {
+            String mainClassName = getMainClassName();
+            if (mainClassName != null && mainClassName.toLowerCase().contains("auth")) {
+                return true;
+            }
+        } catch (Exception e) {
+            // 忽略异常
+        }
+
+        return false;
+    }
+
+    /**
+     * 获取主启动类名
+     */
+    private String getMainClassName() {
+        try {
+            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+            for (StackTraceElement element : stackTrace) {
+                String className = element.getClassName();
+                if (className.contains("Application") && !className.startsWith("org.springframework") && !className.contains("$")) {
+                    return className;
+                }
+            }
+        } catch (Exception e) {
+            // 忽略异常
+        }
+        return null;
     }
 
     /**
@@ -66,14 +113,29 @@ public class MybatisPlusConfig {
 
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
 
-        // 多租户插件（强制启用，必须在最前面）
-        if (myTenantLineHandler != null) {
+        boolean isAuthService = isAuthService();
+
+
+        // 多租户插件（强制启用，必须在最前面）// 多租户插件（非auth服务才启用）
+        if (myTenantLineHandler != null && !isAuthService) {
             interceptor.addInnerInterceptor(new TenantLineInnerInterceptor(myTenantLineHandler));
+            log.info("已启用多租户插件（当前非auth服务）");
+        }else if (isAuthService) {
+            log.info("当前为auth服务，跳过多租户插件");
+        } else {
+            log.info("未找到MyTenantLineHandler，跳过多租户插件");
         }
         log.info("【MyTenantLineHandler】也在处理租户过滤！");
+
+
         //数据权限
-        interceptor.addInnerInterceptor(new DataPermissionInterceptor(new MyDataPermissionHandler()));
-        log.info("【DataPermissionInterceptor】也在处理租户过滤！");
+        // 数据权限（非auth服务才启用，如果auth服务也需要可以保留）
+        if (!isAuthService) {
+            interceptor.addInnerInterceptor(new DataPermissionInterceptor(new MyDataPermissionHandler()));
+            log.info("已启用数据权限插件（当前非auth服务）");
+        } else {
+            log.info("当前为auth服务，跳过数据权限插件");
+        }
 
         // 分页插件，根据配置动态选择数据库类型
         DbType mpDbType = DbType.MYSQL;
