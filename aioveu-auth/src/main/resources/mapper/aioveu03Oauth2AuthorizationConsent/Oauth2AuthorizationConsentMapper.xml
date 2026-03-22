@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.auth.aioveu03Oauth2AuthorizationConsent.mapper.Oauth2AuthorizationConsentMapper">
+
+    <!-- 获取OAuth2授权同意，记录用户对每个客户端的授权同意情况分页列表 -->
+    <select id="getOauth2AuthorizationConsentPage" resultType="com.aioveu.auth.aioveu03Oauth2AuthorizationConsent.model.vo.Oauth2AuthorizationConsentVo">
+        SELECT
+                registered_client_id,
+                principal_name,
+                authorities
+        FROM
+            oauth2_authorization_consent
+        <where>
+            <if test="queryParams.registeredClientId != null and queryParams.registeredClientId != ''">
+                AND registered_client_id LIKE CONCAT(#{queryParams.registeredClientId}, '%')
+            </if>
+            <if test="queryParams.principalName != null and queryParams.principalName != ''">
+                AND principal_name LIKE CONCAT(#{queryParams.principalName}, '%')
+            </if>
+            <if test="queryParams.authorities != null and queryParams.authorities != ''">
+                AND authorities LIKE CONCAT(#{queryParams.authorities}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

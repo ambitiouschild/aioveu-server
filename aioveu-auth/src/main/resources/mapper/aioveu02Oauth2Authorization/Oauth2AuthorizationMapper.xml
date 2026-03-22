@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.auth.aioveu02Oauth2Authorization.mapper.Oauth2AuthorizationMapper">
+
+    <!-- 获取OAuth2授权信息，存储所有的授权记录、令牌和状态信息分页列表 -->
+    <select id="getOauth2AuthorizationPage" resultType="com.aioveu.auth.aioveu02Oauth2Authorization.model.vo.Oauth2AuthorizationVo">
+        SELECT
+                id,
+                registered_client_id,
+                principal_name,
+                authorization_grant_type,
+                authorized_scopes,
+                attributes,
+                state,
+                authorization_code_value,
+                authorization_code_issued_at,
+                authorization_code_expires_at,
+                authorization_code_metadata,
+                access_token_value,
+                access_token_issued_at,
+                access_token_expires_at,
+                access_token_metadata,
+                access_token_type,
+                access_token_scopes,
+                oidc_id_token_value,
+                oidc_id_token_issued_at,
+                oidc_id_token_expires_at,
+                oidc_id_token_metadata,
+                refresh_token_value,
+                refresh_token_issued_at,
+                refresh_token_expires_at,
+                refresh_token_metadata,
+                user_code_value,
+                user_code_issued_at,
+                user_code_expires_at,
+                user_code_metadata,
+                device_code_value,
+                device_code_issued_at,
+                device_code_expires_at,
+                device_code_metadata
+        FROM
+            oauth2_authorization
+        <where>
+            <if test="queryParams.id != null and queryParams.id != ''">
+                AND id LIKE CONCAT(#{queryParams.id}, '%')
+            </if>
+            <if test="queryParams.registeredClientId != null and queryParams.registeredClientId != ''">
+                AND registered_client_id LIKE CONCAT(#{queryParams.registeredClientId}, '%')
+            </if>
+            <if test="queryParams.principalName != null and queryParams.principalName != ''">
+                AND principal_name LIKE CONCAT(#{queryParams.principalName}, '%')
+            </if>
+            <if test="queryParams.authorizationGrantType != null and queryParams.authorizationGrantType != ''">
+                AND authorization_grant_type LIKE CONCAT(#{queryParams.authorizationGrantType}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

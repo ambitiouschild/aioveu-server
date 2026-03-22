@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.auth.aioveu04Oauth2RegisteredClient.mapper.Oauth2RegisteredClientMapper">
+
+    <!-- 获取OAuth2注册客户端，存储所有已注册的客户端应用信息分页列表 -->
+    <select id="getOauth2RegisteredClientPage" resultType="com.aioveu.auth.aioveu04Oauth2RegisteredClient.model.vo.Oauth2RegisteredClientVo">
+        SELECT
+                id,
+                client_id,
+                client_id_issued_at,
+                client_secret,
+                client_secret_expires_at,
+                client_name,
+                client_authentication_methods,
+                authorization_grant_types,
+                redirect_uris,
+                post_logout_redirect_uris,
+                scopes,
+                client_settings,
+                token_settings
+        FROM
+            oauth2_registered_client
+        <where>
+            <if test="queryParams.id != null and queryParams.id != ''">
+                AND id LIKE CONCAT(#{queryParams.id}, '%')
+            </if>
+            <if test="queryParams.clientId != null and queryParams.clientId != ''">
+                AND client_id LIKE CONCAT(#{queryParams.clientId}, '%')
+            </if>
+            <if test="queryParams.clientIdIssuedAt != null">
+                AND client_id_issued_at LIKE CONCAT(#{queryParams.clientIdIssuedAt}, '%')
+            </if>
+            <if test="queryParams.clientName != null and queryParams.clientName != ''">
+                AND client_name LIKE CONCAT(#{queryParams.clientName}, '%')
+            </if>
+            <if test="queryParams.authorizationGrantTypes != null and queryParams.authorizationGrantTypes != ''">
+                AND authorization_grant_types LIKE CONCAT(#{queryParams.authorizationGrantTypes}, '%')
+            </if>
+            <if test="queryParams.scopes != null and queryParams.scopes != ''">
+                AND scopes LIKE CONCAT(#{queryParams.scopes}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

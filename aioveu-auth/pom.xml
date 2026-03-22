@@ -97,6 +97,7 @@
             <artifactId>weixin-java-miniapp</artifactId>
         </dependency>
 
+
         <dependency>
             <groupId>com.aioveu</groupId>
             <artifactId>common-mybatis</artifactId>

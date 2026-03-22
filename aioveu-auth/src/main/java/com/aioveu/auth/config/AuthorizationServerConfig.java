@@ -414,14 +414,26 @@ public class AuthorizationServerConfig {
      */
     @Bean
     public RegisteredClientRepository registeredClientRepository(JdbcTemplate jdbcTemplate) {
+        // ① 注入JdbcTemplate
 
+        log.info("【RegisteredClientRepository】@Bean方法参数 JdbcTemplate jdbcTemplate注入了数据库连接");
         // 创建基于JDBC的客户端仓库
-        JdbcRegisteredClientRepository registeredClientRepository = new JdbcRegisteredClientRepository(jdbcTemplate);
+        JdbcRegisteredClientRepository registeredClientRepository =
+                new JdbcRegisteredClientRepository(jdbcTemplate);
+        // ② 使用JdbcTemplate创建客户端仓库
+        log.info("【RegisteredClientRepository】new JdbcRegisteredClientRepository(jdbcTemplate)创建了基于JDBC的客户端仓库");
 
         // 初始化 OAuth2 客户端
         // 初始化系统所需的客户端应用
         initMallAppClient(registeredClientRepository);   // 商城APP客户端
         initMallAdminClient(registeredClientRepository);  // 管理后台客户端
+
+        /*
+        * 所有这三个@Bean方法都通过JdbcTemplate参数注入了数据库连接，
+        * 然后使用它创建相应的Spring Security OAuth2服务。
+        * JdbcTemplate本身是由Spring Boot根据application.yml中的spring.datasource
+        * 配置自动创建和注入的。
+        * */
 
         return registeredClientRepository;
     }
@@ -438,7 +450,11 @@ public class AuthorizationServerConfig {
 
         // 创建基于JDBC的OAuth2授权服务。这个服务使用JdbcTemplate和客户端仓库来存储和检索OAuth2授权数据。
         // 创建基于JDBC的OAuth2授权服务
-        JdbcOAuth2AuthorizationService service = new JdbcOAuth2AuthorizationService(jdbcTemplate, registeredClientRepository);
+        JdbcOAuth2AuthorizationService service =
+                new JdbcOAuth2AuthorizationService(jdbcTemplate, registeredClientRepository);
+
+        log.info("【RegisteredClientRepository】new JdbcOAuth2AuthorizationService" +
+                "(jdbcTemplate, registeredClientRepository)创建了基于JDBC的授权服务");
 
         // 创建并配置用于处理数据库中OAuth2授权数据的行映射器。
         JdbcOAuth2AuthorizationService.OAuth2AuthorizationRowMapper rowMapper = new JdbcOAuth2AuthorizationService.OAuth2AuthorizationRowMapper(registeredClientRepository);
@@ -481,6 +497,10 @@ public class AuthorizationServerConfig {
     @Bean
     public OAuth2AuthorizationConsentService authorizationConsentService(JdbcTemplate jdbcTemplate,
                                                                          RegisteredClientRepository registeredClientRepository) {
+
+        log.info("【RegisteredClientRepository】new JdbcOAuth2AuthorizationConsentService" +
+                "(jdbcTemplate, registeredClientRepository)创建了基于JDBC的同意服务");
+
         // Will be used by the ConsentController
         return new JdbcOAuth2AuthorizationConsentService(jdbcTemplate, registeredClientRepository);
     }
