@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.constant.RedisConstants;
 import com.aioveu.common.security.util.SecurityUtils;
+import com.aioveu.common.tenant.TenantContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -30,6 +31,7 @@ public class PermissionService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
+
     /**
      * 判断当前登录用户是否拥有操作权限
      * <p>
@@ -41,28 +43,28 @@ public class PermissionService {
     public boolean hasPerm(String requiredPerm) {
 
         if (StrUtil.isBlank(requiredPerm)) {
-            log.info("权限检查：权限字符串为空");
+            log.info("【权限校验】权限检查：权限字符串为空");
             return false;
         }
 
         // 记录开始检查
-        log.info("开始检查权限：{}", requiredPerm);
+        log.info("【权限校验】开始检查权限：{}", requiredPerm);
 
 
         // 超级管理员放行
         if (SecurityUtils.isRoot()) {
-            log.info("超级管理员，跳过权限检查：{}", requiredPerm);
+            log.info("【权限校验】超级管理员，跳过权限检查：{}", requiredPerm);
             return true;
         }
 
         // 获取当前登录用户的角色编码集合
         Set<String> roleCodes = SecurityUtils.getRoles();
         if (CollectionUtil.isEmpty(roleCodes)) {
-            log.info("用户没有分配角色，权限检查失败：{}", requiredPerm);
+            log.info("【权限校验】用户没有分配角色，权限检查失败：{}", requiredPerm);
             return false;
         }
 
-        log.info("用户角色：{}", roleCodes);
+        log.info("【权限校验】用户角色：{}", roleCodes);
 
         // 获取当前登录用户的所有角色的权限列表
 
@@ -70,11 +72,11 @@ public class PermissionService {
 
         Set<String> rolePerms = this.getRolePermsFormCache(roleCodes);
         if (CollectionUtil.isEmpty(rolePerms)) {
-            log.info("角色没有分配权限，权限检查失败：{}，角色：{}", requiredPerm, roleCodes);
+            log.info("【权限校验】角色没有分配权限，权限检查失败：{}，角色：{}", requiredPerm, roleCodes);
             return false;
         }
 
-        log.info("用户权限列表（{}个）：{}", rolePerms.size(), rolePerms);
+        log.info("【权限校验】用户权限列表（{}个）：{}", rolePerms.size(), rolePerms);
 
 
         // 判断当前登录用户的所有角色的权限列表中是否包含所需权限
@@ -85,10 +87,10 @@ public class PermissionService {
                 );
 
         if (hasPermission) {
-            log.info("权限检查通过：{}", requiredPerm);
+            log.info("【权限校验】权限检查通过：{}", requiredPerm);
         } else {
             // 记录更详细的失败信息
-            log.info("用户无操作权限，所需权限：{}，用户角色：{}，用户权限：{}",
+            log.info("【权限校验】用户无操作权限，所需权限：{}，用户角色：{}，用户权限：{}",
                     requiredPerm, roleCodes, rolePerms);
         }
         return hasPermission;
@@ -104,20 +106,21 @@ public class PermissionService {
     public Set<String> getRolePermsFormCache(Set<String> roleCodes) {
         // 检查输入是否为空
 
-        log.info("从缓存中获取角色权限列表，步骤1：参数验证");
-        log.info("检查角色编码集合是否为空");
-        log.info("如果为空，返回空的不可修改集合，避免后续空指针异常");
+        log.info("【权限校验】从缓存中获取角色权限列表，步骤1：参数验证：{}",roleCodes);
+
 
         if (CollectionUtil.isEmpty(roleCodes)) {
             // 返回Collections.emptySet()比new HashSet<>()更优，因为：
             // 1. 不可修改，防止调用方意外修改
             // 2. 内存占用更小
             // 3. 明确表示"无权限"的意图
+            log.info("【权限校验】检查角色编码集合是否为空：{}",roleCodes);
+            log.info("【权限校验】如果为空，返回空的不可修改集合，避免后续空指针异常");
             return Collections.emptySet();
         }
 
 
-        log.info("从缓存中获取角色权限列表，步骤2：准备返回结果");
+        log.info("【权限校验】从缓存中获取角色权限列表，步骤2：准备返回结果");
         // 使用HashSet存储合并后的权限，因为：
         // 1. HashSet自动去重，避免同一权限在不同角色中重复
         // 2. 查找效率O(1)，适合后续的权限检查
@@ -125,16 +128,16 @@ public class PermissionService {
         Set<String> perms = new HashSet<>();
 
 
-        log.info("从缓存中获取角色权限列表，步骤3：数据类型转换");
+
         // 将Set<String>转换为Collection<Object>，因为：
         // 1. RedisTemplate.opsForHash().multiGet()要求Collection<Object>类型
         // 2. 需要支持不同类型的序列化器
         // 注意：这里创建了一个新的ArrayList，有一定内存开销
         // 但考虑到角色数量通常不多（一般少于10个），开销可接受
         Collection<Object> roleCodesAsObjects = new ArrayList<>(roleCodes);
+        log.info("【权限校验】从缓存中获取角色权限列表，步骤3：数据类型转换roleCodesAsObjects:{}",roleCodesAsObjects);
 
 
-        log.info("从缓存中获取角色权限列表，步骤4：批量从Redis获取权限");
         // 使用multiGet一次性获取所有角色的权限，优势：
         // 1. 减少网络往返次数，从O(n)降到O(1)
         // 2. 原子性操作，确保数据一致性
@@ -149,12 +152,22 @@ public class PermissionService {
 //                RedisConstants.ROLE_PERMS_PREFIX,   // Redis Hash的key
 //                roleCodesAsObjects);    // 要获取的字段列表
 
+        Long tenantId = TenantContextHolder.getTenantId();
+        if (tenantId == null) {
+            return Collections.emptySet();
+        }
+
+        String cacheKeyLss = RedisConstants.System.ROLE_PERMS;
+
+        String cacheKey = RedisConstants.System.ROLE_PERMS + ":" + tenantId;
         List<Object> rolePermsList = redisTemplate.opsForHash().multiGet(
-                RedisConstants.System.ROLE_PERMS,   // Redis Hash的key
+                cacheKey,   // Redis Hash的key
                 roleCodesAsObjects);    // 要获取的字段列表
+        log.info("【权限校验】从缓存中获取角色权限列表，Redis Hash的key:{}",cacheKey);
+        log.info("【权限校验】从缓存中获取角色权限列表，步骤4：批量从Redis获取权限:{}",rolePermsList);
 
 
-        log.info("从缓存中获取角色权限列表，步骤5：处理返回结果");
+        log.info("【权限校验】从缓存中获取角色权限列表，步骤5：处理返回结果");
         // 遍历获取到的每个角色的权限集合
         for (Object rolePermsObj : rolePermsList) {
 
@@ -180,7 +193,7 @@ public class PermissionService {
         }
 
 
-        log.info("从缓存中获取角色权限列表，步骤6：返回结果：{}", perms);
+        log.info("【权限校验】从缓存中获取角色权限列表，步骤6：返回结果：{}", perms);
         // 返回合并后的权限集合
         // 注意：返回的是可修改的HashSet
         // 如果调用方需要不可修改的视图，可以返回Collections.unmodifiableSet(perms)
