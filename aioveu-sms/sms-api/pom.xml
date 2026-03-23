@@ -25,6 +25,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-web</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
         </dependency>

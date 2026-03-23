@@ -94,10 +94,10 @@ public class OauthClientWxAppController {
     @Operation(summary = "通过 clientId 获取租户和小程序信息")
     @GetMapping("/getTenantWxAppInfoByClientId")  // ✅ 应该改为GET
     @Log(value = "通过 clientId 获取租户和小程序信息）", module = LogModuleEnum.TENANT)
-    public TenantWxAppInfo getTenantWxAppInfoByClientId(
+    public Result<TenantWxAppInfo> getTenantWxAppInfoByClientId(
             @Parameter(description = "clientId") @RequestParam("clientId") String clientId
     ) {
         TenantWxAppInfo tenantWxAppInfo  = oauthClientWxAppService.getTenantWxAppInfoByClientId(clientId);
-        return tenantWxAppInfo;
+        return Result.success(tenantWxAppInfo);
     }
 }

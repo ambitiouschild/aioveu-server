@@ -1,14 +1,17 @@
-package com.aioveu.auth.controller;
+package com.aioveu.auth.controller.app;
 
 import com.aioveu.auth.TokenManager.service.AuthTokenManagerService;
 import com.aioveu.auth.model.CaptchaResult;
-import com.aioveu.auth.model.AuthenticationToken;
 import com.aioveu.auth.service.AuthService;
 import com.aioveu.common.annotation.Log;
 import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.result.Result;
+import com.aioveu.sms.api.app.SmsFeignClient;
+import com.aioveu.sms.dto.SmsHomeAdvertVO;
+import com.aioveu.sms.dto.SmsHomeCategoryVO;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.TenantVO;
+import com.aioveu.tenant.dto.TenantWxAppInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.List;
 
 /**
  * @Description: TODO 认证控制器 获取验证码、退出登录等接口
@@ -30,9 +33,9 @@ import java.util.*;
 @Slf4j
 @RestController  // 标识该类为RESTful Web服务控制器，所有方法返回数据直接写入HTTP响应体
 @Tag(name = "01.认证中心")
-@RequestMapping("/api/v1/auth")   // 定义控制器的基础请求映射路径，所有接口都以/api/v1/auth开头
+@RequestMapping("/app-api/v1/auth")   // 定义控制器的基础请求映射路径，所有接口都以/api/v1/auth开头
 @RequiredArgsConstructor   // Lombok注解，为所有final字段生成构造函数，实现依赖注入
-public class AuthController {
+public class AuthForAppController {
 
 
 
@@ -43,6 +46,8 @@ public class AuthController {
     private final AuthService authService;
 
     private final TenantFeignClient tenantFeignClient;
+
+    private final SmsFeignClient smsFeignClient;
     /**
      * 生成图形验证码接口
      * 用于用户登录或注册时的安全验证，防止机器人恶意请求
@@ -140,5 +145,43 @@ public class AuthController {
         log.info("【退出登录】退出登录成功");
         return Result.success();
     }
+
+    /**
+     * 获取首页分类（公共接口）
+     * GET /api/public/categories?clientId=mall-app
+     */
+    @GetMapping("/categories")
+    public Result<List<SmsHomeCategoryVO>> getHomeCategories(
+            @RequestParam String clientId) {
+
+        // 1. 通过clientId获取tenantId
+        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
+
+         Long tenantId = tenantWxAppInfo.getTenantId();
+
+        // 2. 根据tenantId查询对应的分类数据
+        List<SmsHomeCategoryVO>  categories = smsFeignClient.getSmsHomeCategoryList(tenantId);
+
+        return Result.success(categories);
+    }
+
+    /**
+     * 获取广告轮播图（公共接口）
+     * GET /api/public/banners?clientId=mall-app
+     */
+    @GetMapping("/adverts")
+    public Result<List<SmsHomeAdvertVO>> getHomeBanners(
+            @RequestParam String clientId) {
+
+        // 1. 通过clientId获取tenantId
+        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
+
+        Long tenantId = tenantWxAppInfo.getTenantId();
+
+        List<SmsHomeAdvertVO> adverts = smsFeignClient.getSmsHomeAdvertList(tenantId);
+
+        return Result.success(adverts);
+    }
+
 
 }

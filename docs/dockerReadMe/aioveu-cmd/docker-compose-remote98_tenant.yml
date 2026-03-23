@@ -422,8 +422,8 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - redis
       - nacos
       - gateway
-  #
-
+#  #
+#
   tenant:
     image: aioveu-tenant:v5.2.0
     container_name: aioveu-tenant
@@ -476,53 +476,52 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
 #      - gateway
 #      - auth
   #
-#  oms:
-#    image: aioveu-oms:v5.2.0
-#    container_name: aioveu-oms
-#    #    ports:
-#    #      - 8813:8803
-#    deploy:
-#      resources:
-#        limits:
-#          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
-#          cpus: '1'
-#        reservations:
-#          memory: 1G  # ✅ 保证基本运行  # 容器软保证
-#    environment:
-#      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
-#    networks:
-#      - aioveu-tenant
-#    depends_on:
-#      - mysql
-#      - redis
-#      - nacos
-#      - gateway
-#      - auth
-#      - lss
-  #
-#  pms:
-#    image: aioveu-pms:v5.2.0
-#    container_name: aioveu-pms
-#    #    ports:
-#    #      - 8812:8802
-#    deploy:
-#      resources:
-#        limits:
-#          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
-#          cpus: '1'
-#        reservations:
-#          memory: 1G  # ✅ 保证基本运行  # 容器软保证
-#    environment:
-#      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
-#    networks:
-#      - aioveu-tenant
-#    depends_on:
-#      - mysql
-#      - redis
-#      - nacos
-#      - gateway
-#      - auth
-#      - lss
+  oms:
+    image: aioveu-tenant-oms:v5.2.0
+    container_name: aioveu-tenant-oms
+    #    ports:
+    #      - 8813:8803
+    deploy:
+      resources:
+        limits:
+          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
+          cpus: '1'
+        reservations:
+          memory: 1G  # ✅ 保证基本运行  # 容器软保证
+    environment:
+      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
+    networks:
+      - aioveu-tenant
+    depends_on:
+      - mysql
+      - redis
+      - nacos
+      - gateway
+      - auth
+#  #
+  pms:
+    image: aioveu-tenant-pms:v5.2.0
+    container_name: aioveu-tenant-pms
+    #    ports:
+    #      - 8812:8802
+    deploy:
+      resources:
+        limits:
+          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
+          cpus: '1'
+        reservations:
+          memory: 1G  # ✅ 保证基本运行  # 容器软保证
+    environment:
+      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
+    networks:
+      - aioveu-tenant
+    depends_on:
+      - mysql
+      - redis
+      - nacos
+      - gateway
+      - auth
+#
   sms:
     image: aioveu-tenant-sms:v5.2.0
     container_name: aioveu-tenant-sms
@@ -545,7 +544,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - nacos
       - gateway
       - auth
-  #
+#  #
   ums:
     image: aioveu-tenant-ums:v5.2.0
     container_name: aioveu-tenant-ums
@@ -568,26 +567,49 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - nacos
       - gateway
       - auth
-
-#  pay:
-#    image: aioveu-pay:v5.2.0
-#    container_name: aioveu-pay
-#    #    ports:
-#    #      - 8811:8801
-#    deploy:
-#      resources:
-#        limits:
-#          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
-#          cpus: '1'
-#        reservations:
-#          memory: 1G  # ✅ 保证基本运行  # 容器软保证
-#    environment:
-#      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
-#    networks:
-#      - aioveu-tenant
-#    depends_on:
-#      - mysql
-#      - redis
-#      - nacos
-#      - gateway
-#      - auth
+#
+  pay:
+    image: aioveu-tenant-pay:v5.2.0
+    container_name: aioveu-tenant-pay
+    #    ports:
+    #      - 8811:8801
+    deploy:
+      resources:
+        limits:
+          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
+          cpus: '1'
+        reservations:
+          memory: 1G  # ✅ 保证基本运行  # 容器软保证
+    environment:
+      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
+    networks:
+      - aioveu-tenant
+    depends_on:
+      - mysql
+      - redis
+      - nacos
+      - gateway
+      - auth
+#
+  refund:
+    image: aioveu-tenant-refund:v5.2.0
+    container_name: aioveu-tenant-refund
+    #    ports:
+    #      - 8811:8801
+    deploy:
+      resources:
+        limits:
+          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
+          cpus: '1'
+        reservations:
+          memory: 1G  # ✅ 保证基本运行  # 容器软保证
+    environment:
+      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
+    networks:
+      - aioveu-tenant
+    depends_on:
+      - mysql
+      - redis
+      - nacos
+      - gateway
+      - auth

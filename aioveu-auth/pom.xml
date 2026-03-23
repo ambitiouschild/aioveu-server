@@ -61,6 +61,11 @@
 
         <dependency>
             <groupId>com.aioveu</groupId>
+            <artifactId>sms-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
             <artifactId>system-api</artifactId>
 
         </dependency>

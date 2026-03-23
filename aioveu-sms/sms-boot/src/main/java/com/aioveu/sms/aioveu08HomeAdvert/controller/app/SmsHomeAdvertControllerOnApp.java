@@ -37,7 +37,7 @@ public class SmsHomeAdvertControllerOnApp {
 
     @Operation(summary = "首页广告配置（增加跳转路径）分页列表")
     @GetMapping("/page")
-    public Result<List<SmsHomeAdvertVO>> getSmsHomeCategoryList() {
+    public Result<List<SmsHomeAdvertVO>> getSmsHomeAdvertList() {
         List<SmsHomeAdvertVO> result = smsHomeAdvertService.getSmsHomeAdvertList();
         return Result.success(result);
     }
