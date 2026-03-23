@@ -44,11 +44,11 @@ public interface Oauth2RegisteredClientService extends IService<Oauth2Registered
     /**
      * 修改OAuth2注册客户端，存储所有已注册的客户端应用信息
      *
-     * @param id   OAuth2注册客户端，存储所有已注册的客户端应用信息ID
+     * @param clientId   OAuth2注册客户端，存储所有已注册的客户端应用信息ID
      * @param formData OAuth2注册客户端，存储所有已注册的客户端应用信息表单对象
      * @return 是否修改成功
      */
-    boolean updateOauth2RegisteredClient(Long id, Oauth2RegisteredClientForm formData);
+    boolean updateOauth2RegisteredClient(String clientId, Oauth2RegisteredClientForm formData);
 
     /**
      * 删除OAuth2注册客户端，存储所有已注册的客户端应用信息
@@ -57,4 +57,21 @@ public interface Oauth2RegisteredClientService extends IService<Oauth2Registered
      * @return 是否删除成功
      */
     boolean deleteOauth2RegisteredClients(String ids);
+
+
+    /*
+    * 根据ID获取客户端
+    * */
+    Oauth2RegisteredClientVo getClient(String clientId);
+
+
+    /*
+     * 重置客户端密钥
+     * */
+    Oauth2RegisteredClientVo resetClientSecret(String clientId);
+
+    /*
+     * 修改客户端状态
+     * */
+    void toggleClientStatus(String clientId, boolean enabled);
 }

@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,9 @@ import org.springframework.web.bind.annotation.*;
  * @Date 2026/3/22 15:22
  * @Version 1.0
  **/
-@Tag(name = "OAuth2注册客户端，存储所有已注册的客户端应用信息接口")
+
+@Slf4j
+@Tag(name = "OAuth2注册客户端，存储所有已注册的客户端应用信息接口", description = "OAuth2客户端注册和管理接口")
 @RestController
 @RequestMapping("/api/v1/oauth2-registered-client")
 @RequiredArgsConstructor
@@ -44,6 +47,8 @@ public class Oauth2RegisteredClientController {
     @PostMapping
     @PreAuthorize("@ss.hasPerm('aioveuMallAuthOauth2RegisteredClient:oauth2-registered-client:create')")
     public Result<Void> saveOauth2RegisteredClient(@RequestBody @Valid Oauth2RegisteredClientForm formData ) {
+
+        log.info("注册新客户端: clientId={}", formData.getClientId());
         boolean result = oauth2RegisteredClientService.saveOauth2RegisteredClient(formData);
         return Result.judge(result);
     }
@@ -62,10 +67,10 @@ public class Oauth2RegisteredClientController {
     @PutMapping(value = "/{id}")
     @PreAuthorize("@ss.hasPerm('aioveuMallAuthOauth2RegisteredClient:oauth2-registered-client:update')")
     public Result<Void> updateOauth2RegisteredClient(
-            @Parameter(description = "OAuth2注册客户端，存储所有已注册的客户端应用信息ID") @PathVariable Long id,
+            @Parameter(description = "OAuth2注册客户端，存储所有已注册的客户端应用信息ID") @PathVariable String clientId,
             @RequestBody @Validated Oauth2RegisteredClientForm formData
     ) {
-        boolean result = oauth2RegisteredClientService.updateOauth2RegisteredClient(id, formData);
+        boolean result = oauth2RegisteredClientService.updateOauth2RegisteredClient(clientId, formData);
         return Result.judge(result);
     }
 
@@ -77,5 +82,44 @@ public class Oauth2RegisteredClientController {
     ) {
         boolean result = oauth2RegisteredClientService.deleteOauth2RegisteredClients(ids);
         return Result.judge(result);
+    }
+
+    /**
+     * 根据ID获取客户端
+     */
+    @Operation(summary = "根据ID获取客户端")
+    @GetMapping("/{clientId}")
+    public Result<Oauth2RegisteredClientVo> getClient(
+            @PathVariable @Parameter(description = "客户端ID") String clientId) {
+
+        Oauth2RegisteredClientVo client = oauth2RegisteredClientService.getClient(clientId);
+        return Result.success(client);
+    }
+
+    /**
+     * 重置客户端密钥
+     */
+    @PostMapping("/{clientId}/reset-secret")
+    @Operation(summary = "重置客户端密钥")
+    public Result<Oauth2RegisteredClientVo> resetClientSecret(
+            @PathVariable @Parameter(description = "客户端ID") String clientId) {
+
+        log.info("重置客户端密钥: clientId={}", clientId);
+        Oauth2RegisteredClientVo response = oauth2RegisteredClientService.resetClientSecret(clientId);
+        return Result.success(response);
+    }
+
+    /**
+     * 启用/禁用客户端
+     */
+    @PostMapping("/{clientId}/toggle-status")
+    @Operation(summary = "启用/禁用客户端")
+    public Result<Void> toggleClientStatus(
+            @PathVariable @Parameter(description = "客户端ID") String clientId,
+            @RequestParam @Parameter(description = "是否启用") Boolean enabled) {
+
+        log.info("修改客户端状态: clientId={}, enabled={}", clientId, enabled);
+        oauth2RegisteredClientService.toggleClientStatus(clientId, enabled);
+        return Result.success();
     }
 }

@@ -37,6 +37,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -407,6 +408,31 @@ public class AuthorizationServerConfig {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
+
+    /*
+    * 现在你缺少的是 JdbcRegisteredClientRepositoryBean 的定义。
+    * 在你的 Service 中需要的是 JdbcRegisteredClientRepository类型，
+    * 但你的配置类返回的是 RegisteredClientRepository接口类型。
+    *
+    * 由于 JdbcRegisteredClientRepository实现了 RegisteredClientRepository接口，
+    * Spring 容器会将这两个 Bean 都视为 RegisteredClientRepository类型，导致注入时有两个候选 Bean，无法确定该注入哪一个。
+    * 方案1：使用 @Primary 注解（推荐）
+        在 registeredClientRepository方法上添加 @Primary注解，指定它为首选 Bean：
+    *
+    * */
+    @Bean
+    @Primary
+    public JdbcRegisteredClientRepository jdbcRegisteredClientRepository(JdbcTemplate jdbcTemplate) {
+        log.info("创建JdbcRegisteredClientRepository Bean");
+        JdbcRegisteredClientRepository registeredClientRepository =
+                new JdbcRegisteredClientRepository(jdbcTemplate);
+
+        // 可选：初始化客户端
+        // initMallAppClient(registeredClientRepository);
+        // initMallAdminClient(registeredClientRepository);
+
+        return registeredClientRepository;
+    }
 
     /**
      * 注册客户端仓库

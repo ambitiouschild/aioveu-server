@@ -1,6 +1,8 @@
 package com.aioveu.auth.aioveu04Oauth2RegisteredClient.model.entity;
 
 import com.aioveu.common.base.BaseEntity;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,10 +19,14 @@ import java.time.LocalDateTime;
  **/
 @Getter
 @Setter
-@TableName("oauth2_registered_client")
-public class Oauth2RegisteredClient extends BaseEntity {
+@TableName("oauth2_registered_client") //extends BaseEntity
+public class Oauth2RegisteredClient  {
 
     private static final long serialVersionUID = 1L;
+
+
+    @TableId(type = IdType.AUTO)
+    private String id;
 
     /**
      * 客户端标识符，OAuth2请求中使用的client_id

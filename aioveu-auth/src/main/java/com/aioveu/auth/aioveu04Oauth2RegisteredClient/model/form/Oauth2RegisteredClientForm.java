@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -82,4 +83,39 @@ public class Oauth2RegisteredClientForm implements Serializable {
     @Schema(description = "令牌设置，JSON格式。包含accessTokenTimeToLive、refreshTokenTimeToLive等配置")
     @Size(max=2000, message="令牌设置，JSON格式。包含accessTokenTimeToLive、refreshTokenTimeToLive等配置长度不能超过2000个字符")
     private String tokenSettings;
+
+    //修改你的 DTO 类（添加更多配置项）
+    @Data
+    public static class ClientSettingsDto {
+        @Schema(description = "是否需要授权同意页", example = "false")
+        private Boolean requireAuthorizationConsent = false;
+
+        @Schema(description = "是否需要PKCE", example = "false")
+        private Boolean requireProofKey = false;
+
+        // 可以添加更多配置
+        @Schema(description = "客户端密钥JWT的签名算法", example = "RS256")
+        private String jwkSetUrl;
+
+        @Schema(description = "客户端认证方法签名算法", example = "RS256")
+        private String tokenEndpointAuthenticationSigningAlgorithm;
+    }
+
+    @Data
+    public static class TokenSettingsDto {
+        @Schema(description = "访问令牌有效期(秒)", example = "86400")
+        private Long accessTokenTimeToLiveSeconds = 86400L; // 1天
+
+        @Schema(description = "刷新令牌有效期(秒)", example = "2592000")
+        private Long refreshTokenTimeToLiveSeconds = 2592000L; // 30天
+
+        @Schema(description = "是否重用刷新令牌", example = "true")
+        private Boolean reuseRefreshTokens = true;
+
+        @Schema(description = "访问令牌格式", example = "SELF_CONTAINED")
+        private String accessTokenFormat = "SELF_CONTAINED";
+
+        @Schema(description = "ID Token签名算法", example = "RS256")
+        private String idTokenSignatureAlgorithm = "RS256";
+    }
 }

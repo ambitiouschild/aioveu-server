@@ -28,6 +28,8 @@ public enum ResultCode implements IResultCode, Serializable {
 
     SUCCESS("00000", "一切ok"),
 
+    CLIENT_ALREADY_EXISTS("C00000", "客户端已经存在"),
+    CLIENT_NOT_FOUND("C00001", "客户端不存在"),
     /** 一级宏观错误码  */
     USER_ERROR("A0001", "用户端错误"),
 
