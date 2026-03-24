@@ -5,13 +5,23 @@ import com.aioveu.auth.model.CaptchaResult;
 import com.aioveu.auth.service.AuthService;
 import com.aioveu.common.annotation.Log;
 import com.aioveu.common.enums.LogModuleEnum;
+import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.Result;
+import com.aioveu.pms.api.PmsFeignClient;
+import com.aioveu.pms.api.PmsFeignClientWithoutConfig;
+import com.aioveu.pms.model.query.PmsSpuQuery;
+import com.aioveu.pms.model.vo.CategoryVO;
+import com.aioveu.pms.model.vo.SeckillingSpuVO;
+import com.aioveu.pms.model.vo.SpuDetailVO;
+import com.aioveu.pms.model.vo.SpuPageVO;
 import com.aioveu.sms.api.app.SmsFeignClient;
+import com.aioveu.sms.dto.BannerVO;
 import com.aioveu.sms.dto.SmsHomeAdvertVO;
 import com.aioveu.sms.dto.SmsHomeCategoryVO;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.TenantVO;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -48,6 +58,10 @@ public class AuthForAppController {
     private final TenantFeignClient tenantFeignClient;
 
     private final SmsFeignClient smsFeignClient;
+
+    private final PmsFeignClient pmsFeignClient;
+
+    private final PmsFeignClientWithoutConfig pmsFeignClientWithoutConfig;
     /**
      * 生成图形验证码接口
      * 用于用户登录或注册时的安全验证，防止机器人恶意请求
@@ -147,6 +161,30 @@ public class AuthForAppController {
     }
 
     /**
+     * 获取Banners轮播图（公共接口）
+     * GET /api/public/banners?clientId=mall-app
+     */
+    @GetMapping("/banners")
+    public Result<List<BannerVO>> getHomeBanners(
+            @RequestParam String clientId) {
+
+        log.info("【auth-app-banners】前端传递的客户端clientId:{}",clientId);
+
+        // 1. 通过clientId获取tenantId
+        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
+
+        log.info("【auth-app-banners】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
+
+        Long tenantId = tenantWxAppInfo.getTenantId();
+
+        log.info("【auth-app-banners】通过clientId获取tenantId:{}",tenantId);
+
+        List<BannerVO> banners = smsFeignClient.getSmsHomeBannersList(tenantId);
+        log.info("【auth-app-banners】根据tenantI过滤对应的banners数据:{}",banners);
+        return Result.success(banners);
+    }
+
+    /**
      * 获取首页分类（公共接口）
      * GET /api/public/categories?clientId=mall-app
      */
@@ -154,13 +192,21 @@ public class AuthForAppController {
     public Result<List<SmsHomeCategoryVO>> getHomeCategories(
             @RequestParam String clientId) {
 
+
+        log.info("【auth-app-categories】前端传递的客户端clientId:{}",clientId);
         // 1. 通过clientId获取tenantId
         TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
 
+        log.info("【auth-app-categories】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
+
          Long tenantId = tenantWxAppInfo.getTenantId();
+
+        log.info("【auth-app-categories】通过clientId获取tenantId:{}",tenantId);
 
         // 2. 根据tenantId查询对应的分类数据
         List<SmsHomeCategoryVO>  categories = smsFeignClient.getSmsHomeCategoryList(tenantId);
+
+        log.info("【auth-app-categories】根据tenantI过滤对应的分类数据:{}",categories);
 
         return Result.success(categories);
     }
@@ -170,17 +216,122 @@ public class AuthForAppController {
      * GET /api/public/banners?clientId=mall-app
      */
     @GetMapping("/adverts")
-    public Result<List<SmsHomeAdvertVO>> getHomeBanners(
+    public Result<List<SmsHomeAdvertVO>> getHomeAdverts(
             @RequestParam String clientId) {
+
+        log.info("【auth-app-adverts】前端传递的客户端clientId:{}",clientId);
 
         // 1. 通过clientId获取tenantId
         TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
 
+        log.info("【auth-app-adverts】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
+
         Long tenantId = tenantWxAppInfo.getTenantId();
 
-        List<SmsHomeAdvertVO> adverts = smsFeignClient.getSmsHomeAdvertList(tenantId);
+        log.info("【auth-app-adverts】通过clientId获取tenantId:{}",tenantId);
 
+        List<SmsHomeAdvertVO> adverts = smsFeignClient.getSmsHomeAdvertList(tenantId);
+        log.info("【auth-app-adverts】根据tenantI过滤对应的广告数据:{}",adverts);
         return Result.success(adverts);
+    }
+
+
+    /**
+     * 获取秒杀商品列表
+     * GET /api/public/banners?clientId=mall-app
+     */
+    @GetMapping("/seckilling")
+    public Result<List<SeckillingSpuVO>> getHomeSeckilling(
+            @RequestParam String clientId) {
+
+        log.info("【auth-app-Seckilling】前端传递的客户端clientId:{}",clientId);
+
+        // 1. 通过clientId获取tenantId
+        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
+
+        log.info("【auth-app-Seckilling】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
+
+        Long tenantId = tenantWxAppInfo.getTenantId();
+
+        log.info("【auth-app-Seckilling】通过clientId获取tenantId:{}",tenantId);
+
+        List<SeckillingSpuVO> seckillings = pmsFeignClient.listSeckillingSpu(tenantId);
+        log.info("【auth-app-Seckilling】根据tenantI过滤获取秒杀商品列表:{}",seckillings);
+        return Result.success(seckillings);
+    }
+
+    /**
+     * 获取商品分类
+     * GET /api/public/banners?clientId=mall-app
+     */
+    @GetMapping("/goodsCategories")
+    public Result<List<CategoryVO>> getGoods(
+            @RequestParam String clientId) {
+
+        log.info("【auth-app-goodsCategories】前端传递的客户端clientId:{}",clientId);
+
+        // 1. 通过clientId获取tenantId
+        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
+
+        log.info("【auth-app-goodsCategories】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
+
+        Long tenantId = tenantWxAppInfo.getTenantId();
+
+        log.info("【auth-app-goodsCategories】通过clientId获取tenantId:{}",tenantId);
+
+        List<CategoryVO> goodsCategories = pmsFeignClient.list(null, tenantId);
+        log.info("【auth-app-goodsCategories】根据tenantI过滤获取商品:{}",goodsCategories);
+        return Result.success(goodsCategories);
+    }
+
+    /**
+     * 获取商品列表
+     * GET /api/public/banners?clientId=mall-app
+     */
+    @GetMapping("/spuLists")
+    public PageResult<SpuPageVO> getSpuLists(
+            PmsSpuQuery queryParams,
+            @RequestParam String clientId) {
+
+        log.info("【auth-app-spuLists】前端传递的客户端clientId:{}",clientId);
+
+        // 1. 通过clientId获取tenantId
+        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
+
+        log.info("【auth-app-spuLists】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
+
+        Long tenantId = tenantWxAppInfo.getTenantId();
+
+        log.info("【auth-app-spuLists】通过clientId获取tenantId:{}",tenantId);
+
+        PageResult<SpuPageVO> spuLists = pmsFeignClientWithoutConfig.listPagedSpuForApp(queryParams, tenantId);
+        log.info("【auth-app-spuLists】根据tenantI过滤获取商品:{}",spuLists);
+        return spuLists;
+    }
+
+    /**
+     * 获取商品详情
+     * GET /api/public/banners?clientId=mall-app
+     */
+    @GetMapping("/spuDetail/{spuId}")
+    public Result<SpuDetailVO> getSpuDetail(
+            @Parameter(name ="spu ID") @PathVariable Long spuId,
+            @RequestParam String clientId) {
+
+        log.info("【auth-app-spuDetail】前端传递的客户端clientId:{}",clientId);
+
+        // 1. 通过clientId获取tenantId
+        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
+
+        log.info("【auth-app-spuDetail】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
+
+        Long tenantId = tenantWxAppInfo.getTenantId();
+
+        log.info("【auth-app-spuDetail】通过clientId获取tenantId:{}",tenantId);
+
+        SpuDetailVO spuDetail = pmsFeignClient.getSpuDetail(spuId, tenantId);
+        log.info("【auth-app-spuDetail】根据tenantI过滤获取商品详情:{}",spuDetail);
+        return Result.success(spuDetail);
     }
 
 

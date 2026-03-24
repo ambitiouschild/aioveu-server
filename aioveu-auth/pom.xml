@@ -66,6 +66,11 @@
 
         <dependency>
             <groupId>com.aioveu</groupId>
+            <artifactId>pms-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
             <artifactId>system-api</artifactId>
 
         </dependency>

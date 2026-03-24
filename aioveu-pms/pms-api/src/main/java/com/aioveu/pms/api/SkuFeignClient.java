@@ -1,15 +1,18 @@
 package com.aioveu.pms.api;
 
+import com.aioveu.common.result.Result;
 import com.aioveu.common.web.config.FeignDecoderConfig;
 import com.aioveu.pms.model.dto.LockSkuDTO;
 import com.aioveu.pms.model.dto.SkuInfoDTO;
+import com.aioveu.pms.model.vo.SeckillingSpuVO;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 
-@FeignClient(value = "aioveu-pms", contextId = "sku", configuration = {FeignDecoderConfig.class})
+@FeignClient(value = "aioveu-tenant-pms", contextId = "sku", configuration = {FeignDecoderConfig.class})
 public interface SkuFeignClient {
 
     /**
@@ -50,4 +53,7 @@ public interface SkuFeignClient {
     @PutMapping("/app-api/v1/skus/deduct")
     boolean deductStock(@RequestParam String orderSn);
 
+    @Operation(summary = "获取秒杀商品列表")
+    @GetMapping("/app-api/v1/spu/seckilling")
+    Result<List<SeckillingSpuVO>> listSeckillingSpu();
 }

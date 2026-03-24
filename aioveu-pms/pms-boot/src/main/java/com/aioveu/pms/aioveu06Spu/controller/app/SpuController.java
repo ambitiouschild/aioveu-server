@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Slf4j
 @Tag(name  = "App-商品接口")
 @RestController
 @RequestMapping("/app-api/v1/spu")
@@ -30,6 +32,8 @@ public class SpuController {
     @Operation(summary = "商品分页列表")
     @GetMapping("/pages")
     public PageResult<SpuPageVO> listPagedSpuForApp(PmsSpuQuery queryParams) {
+
+        log.info("✅ 接口被调用: /app-api/v1/spu/pages, query={}", queryParams);
         IPage<SpuPageVO> result = pmsSpuService.listPagedSpuForApp(queryParams);
         return PageResult.success(result);
     }

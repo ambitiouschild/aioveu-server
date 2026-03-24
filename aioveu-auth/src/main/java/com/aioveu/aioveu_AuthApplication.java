@@ -2,6 +2,7 @@ package com.aioveu;
 
 
 import com.aioveu.lss.api.LssFeignClient;
+import com.aioveu.pms.api.PmsFeignClient;
 import com.aioveu.sms.api.app.SmsFeignClient;
 import com.aioveu.system.api.SystemFeignClient;
 import com.aioveu.tenant.api.TenantFeignClient;
@@ -26,6 +27,7 @@ import org.springframework.context.annotation.ComponentScan;
         LssFeignClient.class,
         MemberFeignClient.class,
         SmsFeignClient.class,
+        PmsFeignClient.class,
         TenantFeignClient.class})
 @SpringBootApplication
 @EnableDiscoveryClient

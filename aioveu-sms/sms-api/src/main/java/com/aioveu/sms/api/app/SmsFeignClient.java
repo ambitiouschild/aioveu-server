@@ -2,6 +2,7 @@ package com.aioveu.sms.api.app;
 
 import com.aioveu.common.result.Result;
 import com.aioveu.common.web.config.FeignDecoderConfig;
+import com.aioveu.sms.dto.BannerVO;
 import com.aioveu.sms.dto.SmsHomeAdvertVO;
 import com.aioveu.sms.dto.SmsHomeCategoryVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,4 +50,11 @@ public interface SmsFeignClient {
     List<SmsHomeAdvertVO> getSmsHomeAdvertList(
             @RequestHeader("X-Tenant-Id") Long tenantId
     );
+
+    @Operation(summary = "首页Banners")
+    @GetMapping("/app-api/v1/adverts/banners")
+    List<BannerVO> getSmsHomeBannersList(
+            @RequestHeader("X-Tenant-Id") Long tenantId
+    );
+
 }
