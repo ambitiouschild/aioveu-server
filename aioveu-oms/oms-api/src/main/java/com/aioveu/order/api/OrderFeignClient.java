@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
  **/
 //@FeignClient(value = "aioveu-oms", contextId = "order", configuration = {FeignDecoderConfig.class})
 
-@FeignClient(value = "aioveu-oms")
+@FeignClient(value = "aioveu-tenant-oms")
 public interface OrderFeignClient {
 
     /**

@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
  * @Date 2026/2/11 16:05
  * @Version 1.0
  **/
-@FeignClient(value = "aioveu-pay", contextId = "pay", configuration = {FeignDecoderConfig.class})
+@FeignClient(value = "aioveu-tenant-pay", contextId = "pay", configuration = {FeignDecoderConfig.class})
 public interface PayFeignClient {
 
     /**
