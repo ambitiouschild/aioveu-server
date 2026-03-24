@@ -26,6 +26,7 @@
         <module>aioveu-pay</module>
         <module>aioveu-refund</module>
         <module>aioveu-tenant</module>
+        <module>aioveu-registry</module>
 
     </modules>
 

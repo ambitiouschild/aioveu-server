@@ -20,5 +20,6 @@
     <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260319_1_add_wx_appid.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260319_2_drop_wx_appid.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260319_3_add_sys_oauth_client_wx_app.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/5.aioveuMall_Local_registry/1aioveu_registry.sql" dialect="MySQL" />
   </component>
 </project>
