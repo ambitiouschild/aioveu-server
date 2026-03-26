@@ -11,6 +11,9 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * @Description: TODO 微信小程序配置
+ *
+ * 问题在于您使用的WxMaDefaultConfigImpl类在toString()方法中使用Gson序列化时，
+ * 会尝试反射访问java.io.File的私有字段path，这在JDK 9+的模块系统中被禁止了。
  * @Author: 雒世松
  * @Date: 2025/6/5 17:43
  * @param
