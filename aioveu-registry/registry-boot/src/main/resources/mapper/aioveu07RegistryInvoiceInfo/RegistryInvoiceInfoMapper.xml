@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.registry.aioveu07RegistryInvoiceInfo.mapper.RegistryInvoiceInfoMapper">
+
+    <!-- 获取发票信息分页列表 -->
+    <select id="getRegistryInvoiceInfoPage" resultType="com.aioveu.registry.aioveu07RegistryInvoiceInfo.model.vo.RegistryInvoiceInfoVo">
+        SELECT
+                id,
+                tenant_id,
+                certification_id,
+                invoice_type,
+                invoice_title,
+                tax_identification_no,
+                invoice_remark,
+                invoice_email,
+                receiver_name,
+                receiver_phone,
+                receiver_address,
+                invoice_status,
+                invoice_time,
+                invoice_url,
+                express_no,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            registry_invoice_info
+        <where>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.certificationId != null">
+                AND certification_id LIKE CONCAT(#{queryParams.certificationId}, '%')
+            </if>
+            <if test="queryParams.invoiceType != null">
+                AND invoice_type LIKE CONCAT(#{queryParams.invoiceType}, '%')
+            </if>
+            <if test="queryParams.invoiceTitle != null and queryParams.invoiceTitle != ''">
+                AND invoice_title LIKE CONCAT(#{queryParams.invoiceTitle}, '%')
+            </if>
+            <if test="queryParams.taxIdentificationNo != null and queryParams.taxIdentificationNo != ''">
+                AND tax_identification_no LIKE CONCAT(#{queryParams.taxIdentificationNo}, '%')
+            </if>
+            <if test="queryParams.invoiceStatus != null">
+                AND invoice_status LIKE CONCAT(#{queryParams.invoiceStatus}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

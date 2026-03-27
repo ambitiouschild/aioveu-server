@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.registry.aioveu06RegistryCertificationContact.mapper.RegistryCertificationContactMapper">
+
+    <!-- 获取认证联系人分页列表 -->
+    <select id="getRegistryCertificationContactPage" resultType="com.aioveu.registry.aioveu06RegistryCertificationContact.model.vo.RegistryCertificationContactVo">
+        SELECT
+                id,
+                tenant_id,
+                certification_id,
+                contact_name,
+                contact_id_card,
+                contact_phone,
+                contact_phone_verify_code,
+                contact_landline,
+                contact_wechat_openid,
+                contact_wechat_scanned,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            registry_certification_contact
+        <where>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.certificationId != null">
+                AND certification_id LIKE CONCAT(#{queryParams.certificationId}, '%')
+            </if>
+            <if test="queryParams.contactName != null and queryParams.contactName != ''">
+                AND contact_name LIKE CONCAT(#{queryParams.contactName}, '%')
+            </if>
+            <if test="queryParams.contactIdCard != null and queryParams.contactIdCard != ''">
+                AND contact_id_card LIKE CONCAT(#{queryParams.contactIdCard}, '%')
+            </if>
+            <if test="queryParams.contactPhone != null and queryParams.contactPhone != ''">
+                AND contact_phone LIKE CONCAT(#{queryParams.contactPhone}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

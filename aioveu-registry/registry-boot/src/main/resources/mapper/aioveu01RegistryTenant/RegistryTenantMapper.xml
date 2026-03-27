@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.registry.aioveu01RegistryTenant.mapper.RegistryTenantMapper">
+
+    <!-- 获取租户注册小程序基本信息分页列表 -->
+    <select id="getRegistryTenantPage" resultType="com.aioveu.registry.aioveu01RegistryTenant.model.vo.RegistryTenantVo">
+        SELECT
+                id,
+                tenant_id,
+                tenant_code,
+                tenant_type,
+                business_type,
+                country_region,
+                tenant_registry_status,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            registry_tenant
+        <where>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.tenantCode != null and queryParams.tenantCode != ''">
+                AND tenant_code LIKE CONCAT(#{queryParams.tenantCode}, '%')
+            </if>
+            <if test="queryParams.tenantRegistryStatus != null">
+                AND tenant_registry_status LIKE CONCAT(#{queryParams.tenantRegistryStatus}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

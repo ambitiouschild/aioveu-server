@@ -498,7 +498,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - nacos
       - gateway
       - auth
-#  #
+##  #
   pms:
     image: aioveu-tenant-pms:v5.2.0
     container_name: aioveu-tenant-pms
@@ -521,7 +521,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - nacos
       - gateway
       - auth
-#
+##
   sms:
     image: aioveu-tenant-sms:v5.2.0
     container_name: aioveu-tenant-sms
@@ -544,7 +544,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - nacos
       - gateway
       - auth
-#  #
+##  #
   ums:
     image: aioveu-tenant-ums:v5.2.0
     container_name: aioveu-tenant-ums
@@ -567,7 +567,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - nacos
       - gateway
       - auth
-#
+##
   pay:
     image: aioveu-tenant-pay:v5.2.0
     container_name: aioveu-tenant-pay
@@ -590,7 +590,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - nacos
       - gateway
       - auth
-#
+##
   refund:
     image: aioveu-tenant-refund:v5.2.0
     container_name: aioveu-tenant-refund

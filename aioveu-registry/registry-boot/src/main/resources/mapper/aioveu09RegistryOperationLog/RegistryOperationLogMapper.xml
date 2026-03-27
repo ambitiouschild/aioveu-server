@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.registry.aioveu09RegistryOperationLog.mapper.RegistryOperationLogMapper">
+
+    <!-- 获取操作日志分页列表 -->
+    <select id="getRegistryOperationLogPage" resultType="com.aioveu.registry.aioveu09RegistryOperationLog.model.vo.RegistryOperationLogVo">
+        SELECT
+                id,
+                tenant_id,
+                operator_id,
+                operator_type,
+                operation_type,
+                operation_target,
+                target_id,
+                operation_content,
+                operation_result,
+                error_message,
+                ip_address,
+                user_agent,
+                create_time
+        FROM
+            registry_operation_log
+        <where>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.operatorId != null">
+                AND operator_id LIKE CONCAT(#{queryParams.operatorId}, '%')
+            </if>
+            <if test="queryParams.operatorType != null">
+                AND operator_type LIKE CONCAT(#{queryParams.operatorType}, '%')
+            </if>
+            <if test="queryParams.operationType != null and queryParams.operationType != ''">
+                AND operation_type LIKE CONCAT(#{queryParams.operationType}, '%')
+            </if>
+            <if test="queryParams.operationTarget != null and queryParams.operationTarget != ''">
+                AND operation_target LIKE CONCAT(#{queryParams.operationTarget}, '%')
+            </if>
+            <if test="queryParams.targetId != null">
+                AND target_id LIKE CONCAT(#{queryParams.targetId}, '%')
+            </if>
+            <if test="queryParams.operationContent != null and queryParams.operationContent != ''">
+                AND operation_content LIKE CONCAT(#{queryParams.operationContent}, '%')
+            </if>
+            <if test="queryParams.operationResult != null">
+                AND operation_result LIKE CONCAT(#{queryParams.operationResult}, '%')
+            </if>
+            <if test="queryParams.userAgent != null and queryParams.userAgent != ''">
+                AND user_agent LIKE CONCAT(#{queryParams.userAgent}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

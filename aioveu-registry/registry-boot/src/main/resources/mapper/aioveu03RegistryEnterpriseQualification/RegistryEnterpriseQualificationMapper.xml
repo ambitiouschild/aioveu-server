@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.registry.aioveu03RegistryEnterpriseQualification.mapper.RegistryEnterpriseQualificationMapper">
+
+    <!-- 获取企业资质分页列表 -->
+    <select id="getRegistryEnterpriseQualificationPage" resultType="com.aioveu.registry.aioveu03RegistryEnterpriseQualification.model.vo.RegistryEnterpriseQualificationVo">
+        SELECT
+                id,
+                tenant_id,
+                enterprise_name,
+                business_license_no,
+                business_license_url,
+                other_certificates,
+                verification_type,
+                verification_amount,
+                verification_status,
+                verification_time,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            registry_enterprise_qualification
+        <where>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.enterpriseName != null and queryParams.enterpriseName != ''">
+                AND enterprise_name LIKE CONCAT(#{queryParams.enterpriseName}, '%')
+            </if>
+            <if test="queryParams.businessLicenseNo != null and queryParams.businessLicenseNo != ''">
+                AND business_license_no LIKE CONCAT(#{queryParams.businessLicenseNo}, '%')
+            </if>
+            <if test="queryParams.verificationType != null">
+                AND verification_type LIKE CONCAT(#{queryParams.verificationType}, '%')
+            </if>
+            <if test="queryParams.verificationStatus != null">
+                AND verification_status LIKE CONCAT(#{queryParams.verificationStatus}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

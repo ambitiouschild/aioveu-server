@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.registry.aioveu08RegistryAppFilingRecord.mapper.RegistryAppFilingRecordMapper">
+
+    <!-- 获取小程序备案记录分页列表 -->
+    <select id="getRegistryAppFilingRecordPage" resultType="com.aioveu.registry.aioveu08RegistryAppFilingRecord.model.vo.RegistryAppFilingRecordVo">
+        SELECT
+                id,
+                tenant_id,
+                app_account_id,
+                filing_type,
+                filing_status,
+                filing_no,
+                filing_subject,
+                filing_app_name,
+                filing_domain,
+                filing_ip,
+                filing_certificate_path,
+                apply_time,
+                audit_time,
+                rejection_reason,
+                expire_time,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            registry_app_filing_record
+        <where>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.appAccountId != null">
+                AND app_account_id LIKE CONCAT(#{queryParams.appAccountId}, '%')
+            </if>
+            <if test="queryParams.filingType != null">
+                AND filing_type LIKE CONCAT(#{queryParams.filingType}, '%')
+            </if>
+            <if test="queryParams.filingStatus != null">
+                AND filing_status LIKE CONCAT(#{queryParams.filingStatus}, '%')
+            </if>
+            <if test="queryParams.filingNo != null and queryParams.filingNo != ''">
+                AND filing_no LIKE CONCAT(#{queryParams.filingNo}, '%')
+            </if>
+            <if test="queryParams.filingSubject != null and queryParams.filingSubject != ''">
+                AND filing_subject LIKE CONCAT(#{queryParams.filingSubject}, '%')
+            </if>
+            <if test="queryParams.filingAppName != null and queryParams.filingAppName != ''">
+                AND filing_app_name LIKE CONCAT(#{queryParams.filingAppName}, '%')
+            </if>
+            <if test="queryParams.applyTime != null">
+                AND apply_time LIKE CONCAT(#{queryParams.applyTime}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

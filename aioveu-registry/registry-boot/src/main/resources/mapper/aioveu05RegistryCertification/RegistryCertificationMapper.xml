@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.registry.aioveu05RegistryCertification.mapper.RegistryCertificationMapper">
+
+    <!-- 获取认证记录分页列表 -->
+    <select id="getRegistryCertificationPage" resultType="com.aioveu.registry.aioveu05RegistryCertification.model.vo.RegistryCertificationVo">
+        SELECT
+                id,
+                tenant_id,
+                app_account_id,
+                certification_type,
+                certification_status,
+                apply_time,
+                audit_time,
+                expire_time,
+                certification_fee,
+                payment_status,
+                payment_time,
+                payment_order_no,
+                rejection_reason,
+                audit_remark,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            registry_certification
+        <where>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.appAccountId != null">
+                AND app_account_id LIKE CONCAT(#{queryParams.appAccountId}, '%')
+            </if>
+            <if test="queryParams.certificationStatus != null">
+                AND certification_status LIKE CONCAT(#{queryParams.certificationStatus}, '%')
+            </if>
+            <if test="queryParams.auditTime != null">
+                AND audit_time LIKE CONCAT(#{queryParams.auditTime}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

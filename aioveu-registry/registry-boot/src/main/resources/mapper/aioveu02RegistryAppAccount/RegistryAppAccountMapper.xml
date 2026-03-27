@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.registry.aioveu02RegistryAppAccount.mapper.RegistryAppAccountMapper">
+
+    <!-- 获取小程序账号分页列表 -->
+    <select id="getRegistryAppAccountPage" resultType="com.aioveu.registry.aioveu02RegistryAppAccount.model.vo.RegistryAppAccountVo">
+        SELECT
+                id,
+                app_id,
+                tenant_id,
+                app_secret,
+                original_id,
+                account_name,
+                account_type,
+                email,
+                password,
+                email_verify_code,
+                email_verified,
+                register_status,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            registry_app_account
+        <where>
+            <if test="queryParams.appId != null">
+                AND app_id LIKE CONCAT(#{queryParams.appId}, '%')
+            </if>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.accountName != null and queryParams.accountName != ''">
+                AND account_name LIKE CONCAT(#{queryParams.accountName}, '%')
+            </if>
+            <if test="queryParams.accountType != null">
+                AND account_type LIKE CONCAT(#{queryParams.accountType}, '%')
+            </if>
+            <if test="queryParams.email != null and queryParams.email != ''">
+                AND email LIKE CONCAT(#{queryParams.email}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
