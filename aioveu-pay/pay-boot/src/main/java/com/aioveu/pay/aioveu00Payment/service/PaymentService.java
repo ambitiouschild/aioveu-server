@@ -2,8 +2,7 @@ package com.aioveu.pay.aioveu00Payment.service;
 
 import com.aioveu.common.result.Result;
 
-import com.aioveu.pay.aioveuModule.model.vo.*;
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.aioveu.pay.aioveu01.model.vo.*;
 
 import java.util.Map;
 

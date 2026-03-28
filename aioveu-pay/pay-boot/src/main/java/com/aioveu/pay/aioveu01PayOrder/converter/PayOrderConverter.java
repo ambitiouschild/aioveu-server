@@ -3,10 +3,8 @@ package com.aioveu.pay.aioveu01PayOrder.converter;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu01PayOrder.model.form.PayOrderForm;
 import com.aioveu.pay.aioveu07PayNotify.model.vo.PayNotifyDTO;
-import com.aioveu.pay.aioveuModule.model.vo.PaymentRequestDTO;
-import com.ibm.icu.math.BigDecimal;
+import com.aioveu.pay.aioveu01.model.vo.PaymentRequestDTO;
 import org.mapstruct.Mapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.mapstruct.Mapping;
 
 /**

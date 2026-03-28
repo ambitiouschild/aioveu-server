@@ -5,7 +5,7 @@ import com.aioveu.pay.aioveu06PayFlow.model.entity.PayFlow;
 import com.aioveu.pay.aioveu06PayFlow.model.form.PayFlowForm;
 import com.aioveu.pay.aioveu06PayFlow.model.query.PayFlowQuery;
 import com.aioveu.pay.aioveu06PayFlow.model.vo.PayFlowVO;
-import com.aioveu.pay.aioveuModule.model.vo.PaymentCallbackDTO;
+import com.aioveu.pay.aioveu01.model.vo.PaymentCallbackDTO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 

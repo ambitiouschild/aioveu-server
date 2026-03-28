@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.pay.aioveu03PayConfigWechat.mapper.PayConfigWechatMapper">
+
+    <!-- 获取微信支付配置分页列表 -->
+    <select id="getPayConfigWechatPage" resultType="com.aioveu.pay.aioveu03PayConfigWechat.model.vo.PayConfigWechatVo">
+        SELECT
+                id,
+                config_id,
+                tenant_id,
+                app_id,
+                mch_id,
+                mch_key,
+                api_v3_key,
+                mch_serial_no,
+                private_key,
+                private_key_path,
+                wechatpay_public_key_id,
+                wechatpay_public_key,
+                wechatpay_public_key_path,
+                platform_cert_serial_no,
+                platform_cert_path,
+                api_domain,
+                connect_timeout,
+                read_timeout,
+                notify_url,
+                refund_notify_url,
+                sandbox,
+                sign_type,
+                cert_store_type,
+                auto_download_cert,
+                sub_app_id,
+                sub_mch_id,
+                profit_sharing,
+                is_deleted,
+                create_time,
+                update_time,
+                create_by,
+                update_by
+        FROM
+            pay_config_wechat
+        <where>
+            <if test="queryParams.configId != null">
+                AND config_id LIKE CONCAT(#{queryParams.configId}, '%')
+            </if>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.appId != null and queryParams.appId != ''">
+                AND app_id LIKE CONCAT(#{queryParams.appId}, '%')
+            </if>
+            <if test="queryParams.mchId != null and queryParams.mchId != ''">
+                AND mch_id LIKE CONCAT(#{queryParams.mchId}, '%')
+            </if>
+            <if test="queryParams.mchSerialNo != null and queryParams.mchSerialNo != ''">
+                AND mch_serial_no LIKE CONCAT(#{queryParams.mchSerialNo}, '%')
+            </if>
+            <if test="queryParams.wechatpayPublicKeyId != null and queryParams.wechatpayPublicKeyId != ''">
+                AND wechatpay_public_key_id LIKE CONCAT(#{queryParams.wechatpayPublicKeyId}, '%')
+            </if>
+            <if test="queryParams.createBy != null">
+                AND create_by LIKE CONCAT(#{queryParams.createBy}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

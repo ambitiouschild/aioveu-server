@@ -1,19 +1,14 @@
 package com.aioveu.pay.aioveu07PayNotify.service;
 
-import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.Result;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu07PayNotify.model.entity.PayNotify;
 import com.aioveu.pay.aioveu07PayNotify.model.form.PayNotifyForm;
-import com.aioveu.pay.aioveu07PayNotify.model.query.NotifyQueryDTO;
 import com.aioveu.pay.aioveu07PayNotify.model.query.PayNotifyQuery;
-import com.aioveu.pay.aioveu07PayNotify.model.vo.PayNotifyDTO;
 import com.aioveu.pay.aioveu07PayNotify.model.vo.PayNotifyVO;
-import com.aioveu.pay.aioveuModule.model.vo.PaymentCallbackDTO;
+import com.aioveu.pay.aioveu01.model.vo.PaymentCallbackDTO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.github.binarywang.wxpay.bean.notify.SignatureHeader;
-import com.github.binarywang.wxpay.exception.WxPayException;
 
 /**
  * @ClassName: PayNotifyService

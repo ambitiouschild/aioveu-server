@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.pay.aioveu02PayConfig.mapper.PayConfigMapper">
+
+    <!-- 获取支付配置主表分页列表 -->
+    <select id="getPayConfigPage" resultType="com.aioveu.pay.aioveu02PayConfig.model.vo.PayConfigVo">
+        SELECT
+                id,
+                tenant_id,
+                config_code,
+                config_name,
+                platform_type,
+                pay_type,
+                enabled,
+                is_default,
+                sort,
+                remark,
+                is_deleted,
+                create_time,
+                update_time,
+                create_by,
+                update_by
+        FROM
+            pay_config
+        <where>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.configCode != null and queryParams.configCode != ''">
+                AND config_code LIKE CONCAT(#{queryParams.configCode}, '%')
+            </if>
+            <if test="queryParams.configName != null and queryParams.configName != ''">
+                AND config_name LIKE CONCAT(#{queryParams.configName}, '%')
+            </if>
+            <if test="queryParams.platformType != null and queryParams.platformType != ''">
+                AND platform_type LIKE CONCAT(#{queryParams.platformType}, '%')
+            </if>
+            <if test="queryParams.payType != null and queryParams.payType != ''">
+                AND pay_type LIKE CONCAT(#{queryParams.payType}, '%')
+            </if>
+            <if test="queryParams.enabled != null">
+                AND enabled LIKE CONCAT(#{queryParams.enabled}, '%')
+            </if>
+            <if test="queryParams.isDefault != null">
+                AND is_default LIKE CONCAT(#{queryParams.isDefault}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

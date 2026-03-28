@@ -91,6 +91,21 @@
             <version>5.8.16</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-mybatis</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-web</artifactId>
+        </dependency>
+
 
     </dependencies>
 

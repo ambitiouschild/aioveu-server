@@ -78,9 +78,9 @@ wechat:
 ### 步骤3：修改 WeChatPayConfiguration
 
 ```
-package com.aioveu.pay.aioveuModule.service.WechatPay.configuration;
+package com.aioveu.pay.aioveu01.service.WechatPay.configuration;
 
-import com.aioveu.pay.aioveuModule.service.WechatPay.config.WeChatPayConfig;
+import com.aioveu.pay.aioveu01.service.WechatPay.config.WeChatPayConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.pay.aioveu04PayConfigDummy.mapper.PayConfigDummyMapper">
+
+    <!-- 获取模拟支付配置分页列表 -->
+    <select id="getPayConfigDummyPage" resultType="com.aioveu.pay.aioveu04PayConfigDummy.model.vo.PayConfigDummyVo">
+        SELECT
+                id,
+                config_id,
+                tenant_id,
+                success_rate,
+                mock_delay,
+                callback_url,
+                callback_delay,
+                success_response,
+                fail_response,
+                simulate_error,
+                error_code,
+                error_msg,
+                auto_refund,
+                refund_delay,
+                is_deleted,
+                create_time,
+                update_time,
+                create_by,
+                update_by
+        FROM
+            pay_config_dummy
+        <where>
+            <if test="queryParams.configId != null">
+                AND config_id LIKE CONCAT(#{queryParams.configId}, '%')
+            </if>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.successRate != null">
+                AND success_rate LIKE CONCAT(#{queryParams.successRate}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

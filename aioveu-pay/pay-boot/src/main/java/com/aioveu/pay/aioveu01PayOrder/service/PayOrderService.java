@@ -1,16 +1,10 @@
 package com.aioveu.pay.aioveu01PayOrder.service;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu01PayOrder.model.form.PayOrderForm;
 import com.aioveu.pay.aioveu01PayOrder.model.query.PayOrderQuery;
-import com.aioveu.pay.aioveu01PayOrder.model.query.PayOrderQueryDTO;
 import com.aioveu.pay.aioveu01PayOrder.model.vo.*;
-import com.aioveu.pay.aioveuModule.model.vo.PaymentCallbackDTO;
-import com.aioveu.pay.aioveuModule.model.vo.PaymentParamsVO;
-import com.aioveu.pay.aioveuModule.model.vo.PaymentRequestDTO;
-import com.aioveu.pay.aioveuModule.model.vo.PaymentStatusVO;
+import com.aioveu.pay.aioveu01.model.vo.PaymentCallbackDTO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
