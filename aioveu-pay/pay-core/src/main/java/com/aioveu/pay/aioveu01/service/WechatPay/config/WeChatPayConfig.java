@@ -63,16 +63,29 @@ public class WeChatPayConfig {
      */
     private PayConfigWechat currentConfig;
 
+    // 配置是否已加载
+    private volatile boolean initialized = false;
+
+    // 初始化锁
+    private final Object initLock = new Object();
+
     /**
-     * 初始化配置
+     *   TODO 初始化配置
+     *          问题根源
+     *               1.@PostConstruct在应用启动时执行，此时还没有HTTP请求
+     *               2.租户ID通常从请求头或Token中获取，启动时没有请求
+     *               3.多租户插件在初始化时执行查询，租户ID为null
+     *               在初始化时（@PostConstruct），让多租户插件忽略pay_config_wechat表的租户过滤，这样就能查询到所有租户的配置。
      */
     @PostConstruct
     public void init() {
         try {
+            log.info("【WeChatPayConfig】开始初始化...");
+
             loadConfigFromDatabase();
-            log.info("【微信支付配置】初始化完成，从数据库加载配置");
+            log.info("【WeChatPayConfig】初始化完成，从数据库加载配置");
         } catch (Exception e) {
-            log.error("【微信支付配置】从数据库加载配置失败", e);
+            log.error("【WeChatPayConfig】从数据库加载配置失败", e);
         }
     }
 
@@ -90,7 +103,7 @@ public class WeChatPayConfig {
             log.info("【WeChatPayConfigFromSQL】查询所有启用的微信支付配置：{}",configs);
 
             if (CollectionUtils.isEmpty(configs)) {
-                log.warn("【微信支付配置】数据库中没有启用的微信支付配置");
+                log.warn("【WeChatPayConfig】数据库中没有启用的微信支付配置");
                 enabled = false;
                 return;
             }
@@ -99,7 +112,7 @@ public class WeChatPayConfig {
             for (PayConfigWechat config : configs) {
                 String cacheKey = buildCacheKey(config);
                 configCache.put(cacheKey, config);
-                log.info("【微信支付配置】加载配置: 租户ID={}, 应用ID={}, 商户号={}",
+                log.info("【WeChatPayConfig】加载配置: 租户ID={}, 应用ID={}, 商户号={}",
                         config.getTenantId(), config.getAppId(), config.getMchId());
             }
 
@@ -109,10 +122,10 @@ public class WeChatPayConfig {
 //            currentConfig = configs.getConfig(0);
             enabled = true;
 
-            log.info("【微信支付配置】从数据库加载配置成功，共{}个配置", configs.size());
+            log.info("【WeChatPayConfig】从数据库加载配置成功，共{}个配置", configs.size());
 
         } catch (Exception e) {
-            log.error("【微信支付配置】从数据库加载配置失败", e);
+            log.error("【WeChatPayConfig】从数据库加载配置失败", e);
             enabled = false;
         }
     }
@@ -299,23 +312,23 @@ public class WeChatPayConfig {
     public com.wechat.pay.java.core.Config toSdkConfig() {
         try {
             if (currentConfig == null) {
-                throw new RuntimeException("微信支付配置未初始化");
+                throw new RuntimeException("【WeChatPayConfig】微信支付配置未初始化");
             }
 
-            log.info("【微信支付】创建SDK配置，商户号: {}, 应用ID: {}, APIv3 密钥: {}, 商户证书序列号: {}",
+            log.info("【WeChatPayConfig】创建SDK配置，商户号: {}, 应用ID: {}, APIv3 密钥: {}, 商户证书序列号: {}",
                     getMchId(), getAppId(), getApiV3Key(), getMchSerialNo());
 
             // 验证必要参数
             if (StringUtils.isEmpty(getMchSerialNo())) {
-                throw new IllegalArgumentException("商户证书序列号(mch-serial-no)不能为空");
+                throw new IllegalArgumentException("【WeChatPayConfig】商户证书序列号(mch-serial-no)不能为空");
             }
 
             String privateKey = getPrivateKey();
             if (StringUtils.isBlank(privateKey)) {
-                throw new IllegalArgumentException("商户私钥不能为空");
+                throw new IllegalArgumentException("【WeChatPayConfig】商户私钥不能为空");
             }
 
-            log.debug("【微信支付】私钥内容（前100字符）: {}",
+            log.debug("【WeChatPayConfig】私钥内容（前100字符）: {}",
                     privateKey.substring(0, Math.min(100, privateKey.length())));
 
             // 验证私钥格式
@@ -332,8 +345,8 @@ public class WeChatPayConfig {
                     .build();
 
         } catch (Exception e) {
-            log.error("【微信支付】创建SDK配置失败", e);
-            throw new RuntimeException("创建微信支付SDK配置失败", e);
+            log.error("【WeChatPayConfig】创建SDK配置失败", e);
+            throw new RuntimeException("【WeChatPayConfig】创建微信支付SDK配置失败", e);
         }
     }
 
@@ -344,27 +357,27 @@ public class WeChatPayConfig {
         List<String> errors = new ArrayList<>();
 
         if (currentConfig == null) {
-            errors.add("微信支付配置未初始化");
+            errors.add("【WeChatPayConfig】微信支付配置未初始化");
         } else {
             if (StringUtils.isBlank(currentConfig.getMchId())) {
-                errors.add("商户号(mchId)不能为空");
+                errors.add("【WeChatPayConfig】商户号(mchId)不能为空");
             }
             if (StringUtils.isBlank(currentConfig.getAppId())) {
-                errors.add("应用ID(appId)不能为空");
+                errors.add("【WeChatPayConfig】应用ID(appId)不能为空");
             }
             if (StringUtils.isBlank(currentConfig.getApiV3Key())) {
-                errors.add("APIv3密钥(apiV3Key)不能为空");
+                errors.add("【WeChatPayConfig】APIv3密钥(apiV3Key)不能为空");
             }
             if (StringUtils.isBlank(currentConfig.getMchSerialNo())) {
-                errors.add("商户证书序列号(mchSerialNo)不能为空");
+                errors.add("【WeChatPayConfig】商户证书序列号(mchSerialNo)不能为空");
             }
             if (StringUtils.isBlank(currentConfig.getPrivateKey())) {
-                errors.add("私钥(privateKey)不能为空");
+                errors.add("【WeChatPayConfig】私钥(privateKey)不能为空");
             }
 
             // 检查微信支付公钥
             if (StringUtils.isBlank(currentConfig.getWechatpayPublicKeyId())) {
-                log.warn("微信支付公钥ID未配置，将使用平台证书模式");
+                log.warn("【WeChatPayConfig】微信支付公钥ID未配置，将使用平台证书模式");
             }
         }
 
@@ -374,7 +387,7 @@ public class WeChatPayConfig {
             throw new IllegalArgumentException(errorMsg);
         }
 
-        log.info("✅ 微信支付配置验证通过");
+        log.info("【WeChatPayConfig】✅ 微信支付配置验证通过");
     }
 
     /**
@@ -382,24 +395,24 @@ public class WeChatPayConfig {
      */
     private void validatePrivateKey(String privateKey) {
         if (StringUtils.isBlank(privateKey)) {
-            throw new RuntimeException("私钥内容为空");
+            throw new RuntimeException("【WeChatPayConfig】私钥内容为空");
         }
 
         // 检查是否包含必要的标记
         if (!privateKey.contains("-----BEGIN PRIVATE KEY-----")) {
-            throw new RuntimeException("私钥格式错误：缺少 BEGIN PRIVATE KEY 标记");
+            throw new RuntimeException("【WeChatPayConfig】私钥格式错误：缺少 BEGIN PRIVATE KEY 标记");
         }
 
         if (!privateKey.contains("-----END PRIVATE KEY-----")) {
-            throw new RuntimeException("私钥格式错误：缺少 END PRIVATE KEY 标记");
+            throw new RuntimeException("【WeChatPayConfig】私钥格式错误：缺少 END PRIVATE KEY 标记");
         }
 
         // 检查是否是 PKCS#8 格式
         if (privateKey.contains("-----BEGIN RSA PRIVATE KEY-----")) {
-            throw new RuntimeException("私钥格式错误：检测到PKCS#1格式，需要PKCS#8格式");
+            throw new RuntimeException("【WeChatPayConfig】私钥格式错误：检测到PKCS#1格式，需要PKCS#8格式");
         }
 
-        log.info("【微信支付】私钥格式验证通过，长度: {}", privateKey.length());
+        log.info("【WeChatPayConfig】私钥格式验证通过，长度: {}", privateKey.length());
     }
 
     /**

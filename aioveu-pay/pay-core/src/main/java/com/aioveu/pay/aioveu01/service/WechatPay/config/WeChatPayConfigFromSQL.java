@@ -45,8 +45,19 @@ public class WeChatPayConfigFromSQL {
      */
     private PayConfigWechat currentConfig;
 
+    // 配置是否已加载
+    private volatile boolean initialized = false;
+
+    // 初始化锁
+    private final Object initLock = new Object();
+
     /**
-     * 初始化配置
+     *   TODO 初始化配置
+     *          问题根源
+     *               1.@PostConstruct在应用启动时执行，此时还没有HTTP请求
+     *               2.租户ID通常从请求头或Token中获取，启动时没有请求
+     *               3.多租户插件在初始化时执行查询，租户ID为null
+     *               在初始化时（@PostConstruct），让多租户插件忽略pay_config_wechat表的租户过滤，这样就能查询到所有租户的配置。
      */
     @PostConstruct
     public void init() {
@@ -57,6 +68,8 @@ public class WeChatPayConfigFromSQL {
             log.error("【微信支付配置】从数据库加载配置失败", e);
         }
     }
+
+
 
     /**
      * 从数据库加载配置

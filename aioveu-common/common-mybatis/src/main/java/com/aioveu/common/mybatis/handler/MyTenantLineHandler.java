@@ -130,6 +130,14 @@ public class MyTenantLineHandler implements TenantLineHandler {
                 log.info("【MyTenantLineHandler】✅ 租户ID为null,✅ 查询用户租户场景，忽略 sys_tenant 表");
                 return true;
             }
+            if ("pay_config_wechat".equalsIgnoreCase(tableName)) {
+                log.info("【MyTenantLineHandler】✅ 租户ID为null,✅ 查询用户租户场景，忽略 pay_config_wechat 表");
+                return true;
+            }
+            if ("pay_config_alipay".equalsIgnoreCase(tableName)) {
+                log.info("【MyTenantLineHandler】✅ 租户ID为null,✅ 查询用户租户场景，忽略 pay_config_alipay 表");
+                return true;
+            }
         }
 
         Set<String> systemTables = Set.of(

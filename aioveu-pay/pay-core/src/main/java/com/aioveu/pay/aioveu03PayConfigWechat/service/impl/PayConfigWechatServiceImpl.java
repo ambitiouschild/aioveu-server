@@ -14,6 +14,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -27,6 +28,8 @@ import java.util.List;
  * @Date 2026/3/28 16:18
  * @Version 1.0
  **/
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PayConfigWechatServiceImpl extends ServiceImpl<PayConfigWechatMapper, PayConfigWechat> implements PayConfigWechatService {
@@ -115,7 +118,10 @@ public class PayConfigWechatServiceImpl extends ServiceImpl<PayConfigWechatMappe
 //                .orderByAsc(PayConfigWechat::getSort)  // 按排序
                 .orderByDesc(PayConfigWechat::getCreateTime);  // 创建时间倒序
 
-        return this.list(wrapper);
+        List<PayConfigWechat> configs = this.list(wrapper);
+        log.info("【PayConfigWechat】查询所有启用的微信支付配置：{}",configs);
+
+        return configs;
     }
 
     @Override

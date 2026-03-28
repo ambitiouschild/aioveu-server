@@ -17,7 +17,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Slf4j
 @Data
 //@Component  // ✅ 这里会创建一个Bean
-@ConfigurationProperties(prefix = "pay.mock")
+//@ConfigurationProperties(prefix = "pay.mock")
 public class MockPayConfig {
 
     // 基本配置
