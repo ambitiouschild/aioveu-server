@@ -9,6 +9,7 @@ import com.aioveu.pay.aioveu03PayConfigWechat.model.form.PayConfigWechatForm;
 import com.aioveu.pay.aioveu03PayConfigWechat.model.query.PayConfigWechatQuery;
 import com.aioveu.pay.aioveu03PayConfigWechat.model.vo.PayConfigWechatVo;
 import com.aioveu.pay.aioveu03PayConfigWechat.service.PayConfigWechatService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -100,5 +101,61 @@ public class PayConfigWechatServiceImpl extends ServiceImpl<PayConfigWechatMappe
                 .toList();
         return this.removeByIds(idList);
     }
+
+
+    @Override
+    public List<PayConfigWechat> listEnabledConfigs() {
+        LambdaQueryWrapper<PayConfigWechat> wrapper = new LambdaQueryWrapper<>();
+
+        // 获取租户ID（根据你的业务逻辑）//自动过滤
+        // 假设enabled=1表示启用 eq(PayConfigWechat::getEnabled, 1).
+        wrapper .eq(PayConfigWechat::getIsDeleted, 0)
+//                .eq(PayConfigWechat::getTenantId, tenantId)// 根据租户过滤
+//                .orderByDesc(PayConfigWechat::getIsDefault)  // 默认配置在前
+//                .orderByAsc(PayConfigWechat::getSort)  // 按排序
+                .orderByDesc(PayConfigWechat::getCreateTime);  // 创建时间倒序
+
+        return this.list(wrapper);
+    }
+
+    @Override
+    public PayConfigWechat getConfigByTenantAndApp(Long tenantId, String appId) {
+        LambdaQueryWrapper<PayConfigWechat> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(PayConfigWechat::getTenantId, tenantId)
+                .eq(PayConfigWechat::getAppId, appId)
+//                .eq(PayConfigWechat::getEnabled, 1)
+                .eq(PayConfigWechat::getIsDeleted, 0)
+                .last("LIMIT 1");
+
+        return this.getOne(wrapper);
+    }
+
+    @Override
+    public PayConfigWechat getDefaultConfig() {
+        LambdaQueryWrapper<PayConfigWechat> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(PayConfigWechat::getIsDeleted, 0)
+//                .eq(PayConfigWechat::getEnabled, 1)
+//                .eq(PayConfigWechat::getIsDefault, 1)  // 标记为默认
+                .last("LIMIT 1");
+
+        PayConfigWechat config = this.getOne(wrapper);
+
+        // 如果没有默认配置，返回第一个启用的配置
+        if (config == null) {
+            wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(PayConfigWechat::getIsDeleted, 0)
+//                    .eq(PayConfigWechat::getEnabled, 1)
+                    .eq(PayConfigWechat::getIsDeleted, 0)
+//                    .orderByAsc(PayConfigWechat::getSort)
+                    .orderByDesc(PayConfigWechat::getCreateTime)
+                    .last("LIMIT 1");
+
+            config = this.getOne(wrapper);
+        }
+
+        return config;
+    }
+
+
 
 }

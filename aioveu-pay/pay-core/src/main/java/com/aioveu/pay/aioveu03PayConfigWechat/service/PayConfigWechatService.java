@@ -7,6 +7,8 @@ import com.aioveu.pay.aioveu03PayConfigWechat.model.vo.PayConfigWechatVo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+
 /**
  * @ClassName: PayConfigWechatService
  * @Description TODO 微信支付配置服务类
@@ -57,4 +59,19 @@ public interface PayConfigWechatService extends IService<PayConfigWechat> {
      * @return 是否删除成功
      */
     boolean deletePayConfigWechats(String ids);
+
+    /**
+     * 查询所有启用的微信支付配置
+     */
+    List<PayConfigWechat> listEnabledConfigs();
+
+    /**
+     * 根据租户ID和应用ID查询配置
+     */
+    PayConfigWechat getConfigByTenantAndApp(Long tenantId, String appId);
+
+    /**
+     * 获取默认配置
+     */
+    PayConfigWechat getDefaultConfig();
 }

@@ -2,8 +2,6 @@ package com.aioveu.pay.aioveu01.service.WechatPay.config;
 
 import com.aioveu.pay.aioveu03PayConfigWechat.model.entity.PayConfigWechat;
 import com.aioveu.pay.aioveu03PayConfigWechat.service.PayConfigWechatService;
-import com.alipay.api.internal.util.file.FileUtils;
-import com.alipay.api.internal.util.file.IOUtils;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import jakarta.annotation.PostConstruct;
 import lombok.Data;
@@ -11,41 +9,25 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.ehcache.impl.internal.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * @ClassName: WechatPayConfig
- * @Description TODO 微信支付配置类  作用：读取外部配置文件，封装配置属性
- *                      你可以直接读取配置，但需要转换：
- *                      你的配置类：WeChatPayConfig（自定义的）
- *                      微信SDK需要的配置：com.wechat.pay.java.core.Config
- *                      你需要：
- *                      在 WeChatPayConfig中添加 toSdkConfig()方法
- *                      将你的配置转换为微信 SDK 需要的格式
- *                      使用转换后的配置创建支付服务
- *                      这样既保持了配置的统一管理，又满足了微信 SDK 的要求。
- *
+ * @ClassName: WeChatPayConfigFromSQL
+ * @Description TODO 微信支付配置类 - 改为从数据库获取配置
  * @Author 可我不敌可爱
  * @Author 雒世松
- * @Date 2026/2/10 18:35
+ * @Date 2026/3/28 18:17
  * @Version 1.0
  **/
-
 @Slf4j
-@Configuration
+//@Configuration
 @Data
-public class WeChatPayConfig {
+public class WeChatPayConfigFromSQL {
 
     @Autowired
     private PayConfigWechatService payConfigWechatService;
@@ -431,5 +413,4 @@ public class WeChatPayConfig {
 
         return privateKey;
     }
-
 }

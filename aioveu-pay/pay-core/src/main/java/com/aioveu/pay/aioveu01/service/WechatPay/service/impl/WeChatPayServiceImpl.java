@@ -3,6 +3,7 @@ package com.aioveu.pay.aioveu01.service.WechatPay.service.impl;
 import cn.hutool.core.date.DateUtil;
 import com.aioveu.pay.aioveu01.model.vo.*;
 import com.aioveu.pay.aioveu01.service.WechatPay.config.WeChatPayConfig;
+import com.aioveu.pay.aioveu01.service.WechatPay.config.WeChatPayConfigFromSQL;
 import com.aioveu.pay.aioveu01.service.WechatPay.requestFactory.WeChatPayRequestFactory;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveu01.enums.PaymentStatusEnum;
@@ -72,7 +73,12 @@ public class WeChatPayServiceImpl implements WeChatPayService {
     private static final String CURRENCY_CNY = "CNY";
     private static final int AMOUNT_MULTIPLIER = 100;
 
+
+    //无缝切换：从配置文件切换到数据库，对调用方透明
     private final WeChatPayConfig wechatPayConfig;
+
+
+
     private final WeChatPayRequestFactory requestFactory;
 
     @Autowired
