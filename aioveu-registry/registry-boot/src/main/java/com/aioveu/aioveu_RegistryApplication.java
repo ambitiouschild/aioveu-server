@@ -9,11 +9,11 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-public class aioveu_registryApplication {
+public class aioveu_RegistryApplication {
 
     public static void main(String[] args) {
 
-        SpringApplication.run(aioveu_registryApplication.class, args);
+        SpringApplication.run(aioveu_RegistryApplication.class, args);
         System.out.printf("微信小程序注册备案服务~ Hello and welcome!");
     }
 
