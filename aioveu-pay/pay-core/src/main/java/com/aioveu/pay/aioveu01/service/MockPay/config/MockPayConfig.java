@@ -17,11 +17,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Slf4j
 @Data
 //@Component  // ✅ 这里会创建一个Bean
-//@ConfigurationProperties(prefix = "pay.mock")
+@ConfigurationProperties(prefix = "pay.mock")
 public class MockPayConfig {
 
     // 基本配置
-    private Boolean enabled = true;
+    private Boolean enabled = false;
     private Boolean autoSuccess = true;
     private Integer delay = 1000;
     private Integer successRate = 100;

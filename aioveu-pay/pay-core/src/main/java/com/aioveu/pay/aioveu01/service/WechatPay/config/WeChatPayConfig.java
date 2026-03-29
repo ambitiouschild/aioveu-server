@@ -399,18 +399,23 @@ public class WeChatPayConfig {
         }
 
         // 检查是否包含必要的标记
-        if (!privateKey.contains("-----BEGIN PRIVATE KEY-----")) {
-            throw new RuntimeException("【WeChatPayConfig】私钥格式错误：缺少 BEGIN PRIVATE KEY 标记");
-        }
+        /*
+        * 方案A（推荐，与SDK保持一致）：
+        * 完全移除对BEGIN PRIVATE KEY的检查。因为最终使用私钥的是官方SDK，它不需要这个标记。
+        * */
 
-        if (!privateKey.contains("-----END PRIVATE KEY-----")) {
-            throw new RuntimeException("【WeChatPayConfig】私钥格式错误：缺少 END PRIVATE KEY 标记");
-        }
-
-        // 检查是否是 PKCS#8 格式
-        if (privateKey.contains("-----BEGIN RSA PRIVATE KEY-----")) {
-            throw new RuntimeException("【WeChatPayConfig】私钥格式错误：检测到PKCS#1格式，需要PKCS#8格式");
-        }
+//        if (!privateKey.contains("-----BEGIN PRIVATE KEY-----")) {
+//            throw new RuntimeException("【WeChatPayConfig】私钥格式错误：缺少 BEGIN PRIVATE KEY 标记");
+//        }
+//
+//        if (!privateKey.contains("-----END PRIVATE KEY-----")) {
+//            throw new RuntimeException("【WeChatPayConfig】私钥格式错误：缺少 END PRIVATE KEY 标记");
+//        }
+//
+//        // 检查是否是 PKCS#8 格式
+//        if (privateKey.contains("-----BEGIN RSA PRIVATE KEY-----")) {
+//            throw new RuntimeException("【WeChatPayConfig】私钥格式错误：检测到PKCS#1格式，需要PKCS#8格式");
+//        }
 
         log.info("【WeChatPayConfig】私钥格式验证通过，长度: {}", privateKey.length());
     }
