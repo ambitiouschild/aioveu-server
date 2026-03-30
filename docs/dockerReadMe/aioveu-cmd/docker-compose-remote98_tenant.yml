@@ -613,3 +613,26 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - nacos
       - gateway
       - auth
+
+  registry:
+    image: aioveu-tenant-registry:v5.2.0
+    container_name: aioveu-tenant-registry
+    #    ports:
+    #      - 8811:8801
+    deploy:
+      resources:
+        limits:
+          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
+          cpus: '1'
+        reservations:
+          memory: 1G  # ✅ 保证基本运行  # 容器软保证
+    environment:
+      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
+    networks:
+      - aioveu-tenant
+    depends_on:
+      - mysql
+      - redis
+      - nacos
+      - gateway
+      - auth
