@@ -30,6 +30,27 @@ public class TenantWxAppVo {
     private Long tenantId;
     @Schema(description = "微信小程序ID")
     private String wxAppid;
+
+    /*
+     * 小程序/公众号密钥
+     * */
+    private String appSecret;
+
+    /*
+     * 应用名称
+     * */
+    private String appName;
+
+    /*
+     * 应用类型: MINI_PROGRAM, OFFICIAL_ACCOUNT
+     * */
+    private String appType;
+
+    /*
+     * 状态: 0-禁用, 1-启用
+     * */
+    private Integer status;
+
     /**
      * 微信小程序appname
      */

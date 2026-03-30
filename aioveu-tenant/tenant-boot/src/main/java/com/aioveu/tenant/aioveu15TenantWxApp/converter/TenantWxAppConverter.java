@@ -2,6 +2,7 @@ package com.aioveu.tenant.aioveu15TenantWxApp.converter;
 
 import com.aioveu.tenant.aioveu15TenantWxApp.model.entity.TenantWxApp;
 import com.aioveu.tenant.aioveu15TenantWxApp.model.form.TenantWxAppForm;
+import com.aioveu.tenant.aioveu15TenantWxApp.model.vo.TenantWxAppVo;
 import org.mapstruct.Mapper;
 
 /**
@@ -18,4 +19,6 @@ public interface TenantWxAppConverter {
     TenantWxAppForm toForm(TenantWxApp entity);
 
     TenantWxApp toEntity(TenantWxAppForm formData);
+
+    TenantWxAppVo toVO(TenantWxApp entity);
 }

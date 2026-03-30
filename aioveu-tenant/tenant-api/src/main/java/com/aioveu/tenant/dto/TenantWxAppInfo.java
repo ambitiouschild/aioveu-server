@@ -17,6 +17,9 @@ public class TenantWxAppInfo {
 
     private String wxAppid;      // 微信小程序appid
     private Long tenantId;     // 租户ID
+
+    private String appSecret;  // 微信小程序appSecret
+
     private String clientId;     // 客户端ID（查询条件）
     private String tenantName;   // 租户名称（可选）
 }

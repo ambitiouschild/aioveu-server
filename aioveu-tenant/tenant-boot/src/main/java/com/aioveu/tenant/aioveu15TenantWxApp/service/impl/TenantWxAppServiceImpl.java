@@ -128,4 +128,28 @@ public class TenantWxAppServiceImpl extends ServiceImpl<TenantWxAppMapper, Tenan
 
         return tenantId;
     }
+
+
+    /**
+     * 通过 tenantId 获取租户微信配置
+     *
+     * @param wxAppid
+     * @return TenantWxApp
+     */
+    @Override
+    public TenantWxAppVo  getConfigByWxAppid(String wxAppid) {
+
+        // 获取entity
+        TenantWxApp config = this.getOne(new LambdaQueryWrapper<TenantWxApp>()
+                .eq(TenantWxApp::getWxAppid, wxAppid)
+                .select(
+                        TenantWxApp::getWxAppid,
+                        TenantWxApp::getAppSecret
+                ));
+
+        TenantWxAppVo configVo= tenantWxAppConverter.toVO(config);
+        log.info("【Tenant TenantWxApp】通过 wxAppid :{} 获取租户微信配置:{}",wxAppid,configVo);
+        return configVo;
+
+    }
 }

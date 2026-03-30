@@ -66,4 +66,14 @@ public interface TenantWxAppService extends IService<TenantWxApp> {
      * @return tenantId
      */
     Long getTenantIdByWxAppid(String wxAppid);
+
+
+    /**
+     * 通过 wxAppid 获取租户微信配置
+     *
+     * @param wxAppid
+     * @return TenantWxApp
+     */
+    TenantWxAppVo  getConfigByWxAppid(String wxAppid);
+
 }

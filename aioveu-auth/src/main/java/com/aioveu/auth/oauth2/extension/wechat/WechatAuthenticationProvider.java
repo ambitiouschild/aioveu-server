@@ -3,11 +3,13 @@ package com.aioveu.auth.oauth2.extension.wechat;
 import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.binarywang.wx.miniapp.bean.WxMaJscode2SessionResult;
 import cn.hutool.core.lang.Assert;
+import com.aioveu.auth.config.WxMiniAppConfig;
 import com.aioveu.auth.model.MemberDetails;
 import com.aioveu.auth.service.MemberDetailsService;
 import com.aioveu.auth.util.OAuth2AuthenticationProviderUtils;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -78,6 +80,9 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
     private final MemberDetailsService memberDetailsService;  // 会员详情服务，用于加载用户信息
 
     private final WxMaService wxMaService;
+
+    @Autowired
+    private WxMiniAppConfig wxMiniAppConfig;
 
     // 微信小程序服务，用于调用微信API
 
@@ -182,6 +187,8 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
         try {
 
             log.info("调用微信API，通过code获取session信息（包含openid和session_key）");
+            // 1. 根据客户端ID获取对应的wxMaService
+            WxMaService wxMaService = wxMiniAppConfig.getWxMaServiceByClientId(clientId);
             sessionInfo = wxMaService.getUserService().getSessionInfo(code);
         } catch (WxErrorException e) {
             log.info("微信API调用失败，记录日志并抛出认证异常");

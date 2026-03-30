@@ -12,6 +12,7 @@ import com.aioveu.tenant.aioveu14OauthClientWxApp.model.query.OauthClientWxAppQu
 import com.aioveu.tenant.aioveu14OauthClientWxApp.model.vo.OauthClientWxAppVo;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.model.vo.TenantWxAppInfo;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.service.OauthClientWxAppService;
+import com.aioveu.tenant.aioveu15TenantWxApp.model.vo.TenantWxAppVo;
 import com.aioveu.tenant.aioveu15TenantWxApp.service.TenantWxAppService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -140,6 +141,11 @@ public class OauthClientWxAppServiceImpl extends ServiceImpl<OauthClientWxAppMap
 
         Long tenantId = tenantWxAppService.getTenantIdByWxAppid(wxAppid);
 
+        TenantWxAppVo tenantWxAppVo = tenantWxAppService.getConfigByWxAppid(wxAppid);
+
+        String appSecret = tenantWxAppVo.getAppSecret();
+        log.info("【Tenant OauthClientWxApp】通过 wxAppid 获取小程序配置信息wxAppid:{},appSecret:{}",wxAppid,appSecret);
+
         TenantVO tenant = tenantService.getTenantById(tenantId);
         String tenantName = tenant.getName();
         log.info("【Tenant OauthClientWxApp】通过 wxAppid 获取租户信息tenantId:{},tenantName:{}",tenantId,tenantName);
@@ -147,6 +153,7 @@ public class OauthClientWxAppServiceImpl extends ServiceImpl<OauthClientWxAppMap
         TenantWxAppInfo tenantWxAppInfo =TenantWxAppInfo.builder()
                 .clientId(clientId)
                 .wxAppid(wxAppid)
+                .appSecret(appSecret)
                 .tenantId(tenantId)
                 .tenantName(tenantName)
                 .build();

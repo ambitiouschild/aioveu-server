@@ -2,6 +2,7 @@ package com.aioveu.tenant.aioveu15TenantWxApp.controller;
 
 import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.Result;
+import com.aioveu.tenant.aioveu15TenantWxApp.model.entity.TenantWxApp;
 import com.aioveu.tenant.aioveu15TenantWxApp.model.form.TenantWxAppForm;
 import com.aioveu.tenant.aioveu15TenantWxApp.model.query.TenantWxAppQuery;
 import com.aioveu.tenant.aioveu15TenantWxApp.model.vo.TenantWxAppVo;
@@ -77,6 +78,17 @@ public class TenantWxAppController {
     ) {
         boolean result = tenantWxAppService.deleteTenantWxApps(ids);
         return Result.judge(result);
+    }
+
+
+    @Operation(summary = "通过 tenantId 获取租户微信配置")
+    @GetMapping("/getConfig/{wxAppid}")
+    @PreAuthorize("@ss.hasPerm('aioveuMallTenantWxApp:tenant-wx-app:list')")
+    public Result<TenantWxAppVo> getConfig(
+            @PathVariable String wxAppid ) {
+        TenantWxAppVo result = tenantWxAppService.getConfigByWxAppid(wxAppid);
+
+        return Result.success(result);
     }
 
 }
