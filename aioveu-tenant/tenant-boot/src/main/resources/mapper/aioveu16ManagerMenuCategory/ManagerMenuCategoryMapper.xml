@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.tenant.aioveu16ManagerMenuCategory.mapper.ManagerMenuCategoryMapper">
+
+    <!-- 获取管理端菜单分类（多租户）分页列表 -->
+    <select id="getManagerMenuCategoryPage" resultType="com.aioveu.tenant.aioveu16ManagerMenuCategory.model.vo.ManagerMenuCategoryVo">
+        SELECT
+                id,
+                tenant_id,
+                title,
+                icon,
+                description,
+                sort,
+                status,
+                type,
+                visible_range,
+                is_editable,
+                create_by,
+                update_by,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            manager_menu_category
+        <where>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.title != null and queryParams.title != ''">
+                AND title LIKE CONCAT(#{queryParams.title}, '%')
+            </if>
+            <if test="queryParams.status != null">
+                AND status LIKE CONCAT(#{queryParams.status}, '%')
+            </if>
+            <if test="queryParams.type != null and queryParams.type != ''">
+                AND type LIKE CONCAT(#{queryParams.type}, '%')
+            </if>
+            <if test="queryParams.isEditable != null">
+                AND is_editable LIKE CONCAT(#{queryParams.isEditable}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

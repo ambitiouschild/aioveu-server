@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.mapper.ManagerMenuCategoryItemMapper">
+
+    <!-- 获取管理系统工作台菜单项（多租户支持）分页列表 -->
+    <select id="getManagerMenuCategoryItemPage" resultType="com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.model.vo.ManagerMenuCategoryItemVo">
+        SELECT
+                id,
+                tenant_id,
+                category_id,
+                title,
+                icon,
+                url,
+                path_name,
+                permission,
+                description,
+                sort,
+                status,
+                type,
+                open_type,
+                is_visible,
+                is_system,
+                is_editable,
+                is_deleted,
+                create_time,
+                update_time,
+                create_by,
+                update_by
+        FROM
+            manager_menu_category_item
+        <where>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.categoryId != null">
+                AND category_id LIKE CONCAT(#{queryParams.categoryId}, '%')
+            </if>
+            <if test="queryParams.title != null and queryParams.title != ''">
+                AND title LIKE CONCAT(#{queryParams.title}, '%')
+            </if>
+            <if test="queryParams.pathName != null and queryParams.pathName != ''">
+                AND path_name LIKE CONCAT(#{queryParams.pathName}, '%')
+            </if>
+            <if test="queryParams.permission != null and queryParams.permission != ''">
+                AND permission LIKE CONCAT(#{queryParams.permission}, '%')
+            </if>
+            <if test="queryParams.sort != null">
+                AND sort LIKE CONCAT(#{queryParams.sort}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
