@@ -365,7 +365,7 @@ public class AuthForAppController {
 
 
     /**
-     * 获取首页分类（公共接口）
+     * 获取管理端首页分类（公共接口）
      * GET /api/public/categories?clientId=mall-app
      */
     @GetMapping("/manager-home-categories")
@@ -393,7 +393,7 @@ public class AuthForAppController {
 
 
     /**
-     * 获取首页分类（公共接口）
+     * 获取管理端首页滚播栏
      * GET /api/public/categories?clientId=mall-app
      */
     @GetMapping("/manager-home-banner")
