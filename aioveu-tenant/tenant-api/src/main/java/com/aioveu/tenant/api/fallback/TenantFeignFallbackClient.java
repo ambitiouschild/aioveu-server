@@ -128,4 +128,18 @@ public class TenantFeignFallbackClient implements TenantFeignClient {
 
     }
 
+
+    /**
+     * 根据tenantId查询对应的管理端首页banners数据
+     */
+
+    @Override
+    public List<ManagerMenuHomeBannerVo> getManagerMenuHomeBanners(
+            @RequestHeader("X-Tenant-Id") Long tenantId
+    ) {
+        log.error("根据tenantId查询对应的管理端首页banners数据,失败");
+        return null;
+
+    }
+
 }

@@ -19,10 +19,7 @@ import com.aioveu.sms.dto.BannerVO;
 import com.aioveu.sms.dto.SmsHomeAdvertVO;
 import com.aioveu.sms.dto.SmsHomeCategoryVO;
 import com.aioveu.tenant.api.TenantFeignClient;
-import com.aioveu.tenant.dto.ManagerMenuCategoryWithItemsVO;
-import com.aioveu.tenant.dto.ManagerMenuHomeCategoryVo;
-import com.aioveu.tenant.dto.TenantVO;
-import com.aioveu.tenant.dto.TenantWxAppInfo;
+import com.aioveu.tenant.dto.*;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -392,6 +389,34 @@ public class AuthForAppController {
         log.info("【auth-manager-app-home-categories】根据tenantI过滤对应的分类数据:{}",categories);
 
         return Result.success(categories);
+    }
+
+
+    /**
+     * 获取首页分类（公共接口）
+     * GET /api/public/categories?clientId=mall-app
+     */
+    @GetMapping("/manager-home-banner")
+    public Result<List<ManagerMenuHomeBannerVo>> getManagerMenuHomeBanners(
+            @RequestParam String clientId) {
+
+
+        log.info("【auth-manager-app-home-banner】前端传递的客户端clientId:{}",clientId);
+        // 1. 通过clientId获取tenantId
+        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
+
+        log.info("【auth-manager-app-home-banner】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
+
+        Long tenantId = tenantWxAppInfo.getTenantId();
+
+        log.info("【auth-manager-app-home-banner】通过clientId获取tenantId:{}",tenantId);
+
+        // 2. 根据tenantId查询对应的分类数据
+        List<ManagerMenuHomeBannerVo>  banners = tenantFeignClient.getManagerMenuHomeBanners(tenantId);
+
+        log.info("【auth-manager-app-home-banner】根据tenantI过滤对应的banners数据:{}",banners);
+
+        return Result.success(banners);
     }
 
 

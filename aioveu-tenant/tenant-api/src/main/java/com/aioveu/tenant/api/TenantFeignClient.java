@@ -138,10 +138,16 @@ public interface TenantFeignClient {
 
 
 
-    // 2.
     @Operation(summary = "根据tenantId查询对应的管理端首页分类数据")
     @GetMapping("/api/v1/manager-menu-home-category/page")
     List<ManagerMenuHomeCategoryVo> getManagerMenuHomeCategoryList(
+            @RequestHeader("X-Tenant-Id") Long tenantId
+    );
+
+
+    @Operation(summary = "根据tenantId查询对应的管理端首页banners数据")
+    @GetMapping("/api/v1/manager-menu-home-banner/page")
+    List<ManagerMenuHomeBannerVo> getManagerMenuHomeBanners(
             @RequestHeader("X-Tenant-Id") Long tenantId
     );
 
