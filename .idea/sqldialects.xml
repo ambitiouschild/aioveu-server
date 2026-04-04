@@ -26,5 +26,6 @@
     <file url="file://$PROJECT_DIR$/docs/sql/mysql8/6.aioveuMall_Local_pay_add/1aioveu_pay_add_pay_config.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/docs/sql/mysql8/7.aioveuMall_Local_tenant_add/1aioveu_tenant_add_manager_category.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/docs/sql/mysql8/7.aioveuMall_Local_tenant_add/2aioveu_tenant_add_manager_home_category.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/7.aioveuMall_Local_tenant_add/3aioveu_tenant_add_manager_home_banner.sql" dialect="MySQL" />
   </component>
 </project>

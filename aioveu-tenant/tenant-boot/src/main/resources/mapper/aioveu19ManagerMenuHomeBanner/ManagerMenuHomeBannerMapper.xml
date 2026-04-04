@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.mapper.ManagerMenuHomeBannerMapper">
+
+    <!-- 获取管理端app首页滚播栏分页列表 -->
+    <select id="getManagerMenuHomeBannerPage" resultType="com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.model.vo.ManagerMenuHomeBannerVo">
+        SELECT
+                id,
+                title,
+                image_url,
+                start_time,
+                end_time,
+                status,
+                sort,
+                redirect_url,
+                remark,
+                create_time,
+                update_time,
+                deleted,
+                version,
+                tenant_id
+        FROM
+            manager_menu_home_banner
+        <where>
+            <if test="queryParams.title != null and queryParams.title != ''">
+                AND title LIKE CONCAT(#{queryParams.title}, '%')
+            </if>
+            <if test="queryParams.status != null">
+                AND status LIKE CONCAT(#{queryParams.status}, '%')
+            </if>
+            <if test="queryParams.sort != null">
+                AND sort LIKE CONCAT(#{queryParams.sort}, '%')
+            </if>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

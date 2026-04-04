@@ -20,6 +20,7 @@ import com.aioveu.sms.dto.SmsHomeAdvertVO;
 import com.aioveu.sms.dto.SmsHomeCategoryVO;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.ManagerMenuCategoryWithItemsVO;
+import com.aioveu.tenant.dto.ManagerMenuHomeCategoryVo;
 import com.aioveu.tenant.dto.TenantVO;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -339,11 +340,57 @@ public class AuthForAppController {
     /**
      * 获取用户的工作台菜单（包含分类和菜单项）
      */
-
     @Operation(summary = "获取用户的工作台菜单（包含分类和菜单项）")
-    @GetMapping("/categories-with-items")
-    public Result<List<ManagerMenuCategoryWithItemsVO>> getWorkbenchCategoriesWithItems() {
-        List<ManagerMenuCategoryWithItemsVO> categories = tenantFeignClient.getWorkbenchCategoriesWithItems();
+    @GetMapping("/manager-categories-with-items")
+    public Result<List<ManagerMenuCategoryWithItemsVO>> getWorkbenchCategoriesWithItems(
+            @RequestParam String clientId
+    ) {
+
+
+        log.info("【auth-manager-app-categories】前端传递的客户端clientId:{}",clientId);
+        // 1. 通过clientId获取tenantId
+        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
+
+        log.info("【auth-manager-app-categories】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
+
+        Long tenantId = tenantWxAppInfo.getTenantId();
+
+        log.info("【auth-manager-app-categories】通过clientId获取tenantId:{}",tenantId);
+
+        // 2. 根据tenantId查询对应的分类数据
+        List<ManagerMenuCategoryWithItemsVO>  categories = tenantFeignClient.getWorkbenchCategoriesWithItems(tenantId);
+
+        log.info("【auth-manager-app-categories】根据tenantI过滤对应的分类数据:{}",categories);
+
+        return Result.success(categories);
+
+    }
+
+
+    /**
+     * 获取首页分类（公共接口）
+     * GET /api/public/categories?clientId=mall-app
+     */
+    @GetMapping("/manager-home-categories")
+    public Result<List<ManagerMenuHomeCategoryVo>> getManagerHomeCategories(
+            @RequestParam String clientId) {
+
+
+        log.info("【auth-manager-app-home-categories】前端传递的客户端clientId:{}",clientId);
+        // 1. 通过clientId获取tenantId
+        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
+
+        log.info("【auth-manager-app-home-categories】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
+
+        Long tenantId = tenantWxAppInfo.getTenantId();
+
+        log.info("【auth-manager-app-home-categories】通过clientId获取tenantId:{}",tenantId);
+
+        // 2. 根据tenantId查询对应的分类数据
+        List<ManagerMenuHomeCategoryVo>  categories = tenantFeignClient.getManagerMenuHomeCategoryList(tenantId);
+
+        log.info("【auth-manager-app-home-categories】根据tenantI过滤对应的分类数据:{}",categories);
+
         return Result.success(categories);
     }
 

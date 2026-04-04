@@ -4,19 +4,13 @@ import com.aioveu.common.annotation.Log;
 import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.result.Result;
 import com.aioveu.tenant.api.TenantFeignClient;
-import com.aioveu.tenant.dto.ManagerMenuCategoryWithItemsVO;
-import com.aioveu.tenant.dto.TenantVO;
-import com.aioveu.tenant.dto.TenantWxAppInfo;
-import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
+import com.aioveu.tenant.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -114,9 +108,24 @@ public class TenantFeignFallbackClient implements TenantFeignClient {
      */
 
     @Override
-    public List<ManagerMenuCategoryWithItemsVO> getWorkbenchCategoriesWithItems() {
+    public List<ManagerMenuCategoryWithItemsVO> getWorkbenchCategoriesWithItems(
+            @RequestHeader("X-Tenant-Id") Long tenantId
+    ) {
         log.error("获取用户的工作台菜单（包含分类和菜单项）");
         return null;
+    }
+
+    /**
+     * 根据tenantId查询对应的管理端首页分类数据
+     */
+
+    @Override
+    public List<ManagerMenuHomeCategoryVo> getManagerMenuHomeCategoryList(
+            @RequestHeader("X-Tenant-Id") Long tenantId
+    ) {
+        log.error("根据tenantId查询对应的管理端首页分类数据,失败");
+        return null;
+
     }
 
 }
