@@ -9,10 +9,12 @@ import com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.model.form.ManagerMenuC
 import com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.model.query.ManagerMenuCategoryItemQuery;
 import com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.model.vo.ManagerMenuCategoryItemVo;
 import com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.service.ManagerMenuCategoryItemService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -26,6 +28,8 @@ import java.util.List;
  * @Date 2026/4/3 17:29
  * @Version 1.0
  **/
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ManagerMenuCategoryItemServiceImpl extends ServiceImpl<ManagerMenuCategoryItemMapper, ManagerMenuCategoryItem> implements ManagerMenuCategoryItemService {
@@ -101,6 +105,24 @@ public class ManagerMenuCategoryItemServiceImpl extends ServiceImpl<ManagerMenuC
         return this.removeByIds(idList);
     }
 
+    /**
+     * 获取对应分类下的菜单项
+     */
+    @Override
+    public List<ManagerMenuCategoryItem>  getManagerMenuCategoryItemsWithCategoryIds(List<Long> categoryIds){
+
+        // 3. 查询这些分类下的菜单项
+        LambdaQueryWrapper<ManagerMenuCategoryItem> itemQuery = new LambdaQueryWrapper<>();
+        itemQuery.in(ManagerMenuCategoryItem::getCategoryId, categoryIds)
+                .eq(ManagerMenuCategoryItem::getStatus, 1)
+                .eq(ManagerMenuCategoryItem::getIsDeleted, 0)
+                .orderByAsc(ManagerMenuCategoryItem::getSort);
+
+        List<ManagerMenuCategoryItem> managerMenuCategoryItems = this.list(itemQuery);
+
+        log.info("【ManagerMenuCategoryItem】查询这些分类下的菜单项：{}",managerMenuCategoryItems);
+        return managerMenuCategoryItems;
+    }
 
 
 }

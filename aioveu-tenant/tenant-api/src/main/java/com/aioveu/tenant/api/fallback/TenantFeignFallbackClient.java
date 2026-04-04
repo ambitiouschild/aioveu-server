@@ -4,6 +4,7 @@ import com.aioveu.common.annotation.Log;
 import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.result.Result;
 import com.aioveu.tenant.api.TenantFeignClient;
+import com.aioveu.tenant.dto.ManagerMenuCategoryWithItemsVO;
 import com.aioveu.tenant.dto.TenantVO;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
 import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
@@ -105,6 +106,16 @@ public class TenantFeignFallbackClient implements TenantFeignClient {
     @Override
     public TenantWxAppInfo getTenantWxAppInfoByTenantId(Long  tenantId){
         log.error("通过 tenantId 获取租户和小程序信息失败");
+        return null;
+    }
+
+    /**
+     * 获取用户的工作台菜单（包含分类和菜单项）
+     */
+
+    @Override
+    public List<ManagerMenuCategoryWithItemsVO> getWorkbenchCategoriesWithItems() {
+        log.error("获取用户的工作台菜单（包含分类和菜单项）");
         return null;
     }
 

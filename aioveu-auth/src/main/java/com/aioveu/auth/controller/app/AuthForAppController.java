@@ -19,6 +19,7 @@ import com.aioveu.sms.dto.BannerVO;
 import com.aioveu.sms.dto.SmsHomeAdvertVO;
 import com.aioveu.sms.dto.SmsHomeCategoryVO;
 import com.aioveu.tenant.api.TenantFeignClient;
+import com.aioveu.tenant.dto.ManagerMenuCategoryWithItemsVO;
 import com.aioveu.tenant.dto.TenantVO;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -332,6 +333,18 @@ public class AuthForAppController {
         SpuDetailVO spuDetail = pmsFeignClient.getSpuDetail(spuId, tenantId);
         log.info("【auth-app-spuDetail】根据tenantI过滤获取商品详情:{}",spuDetail);
         return Result.success(spuDetail);
+    }
+
+
+    /**
+     * 获取用户的工作台菜单（包含分类和菜单项）
+     */
+
+    @Operation(summary = "获取用户的工作台菜单（包含分类和菜单项）")
+    @GetMapping("/categories-with-items")
+    public Result<List<ManagerMenuCategoryWithItemsVO>> getWorkbenchCategoriesWithItems() {
+        List<ManagerMenuCategoryWithItemsVO> categories = tenantFeignClient.getWorkbenchCategoriesWithItems();
+        return Result.success(categories);
     }
 
 

@@ -18,4 +18,7 @@ public interface ManagerMenuCategoryItemConverter {
     ManagerMenuCategoryItemForm toForm(ManagerMenuCategoryItem entity);
 
     ManagerMenuCategoryItem toEntity(ManagerMenuCategoryItemForm formData);
+
+
+
 }

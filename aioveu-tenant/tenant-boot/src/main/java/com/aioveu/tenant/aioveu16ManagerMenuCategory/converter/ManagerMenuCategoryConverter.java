@@ -2,6 +2,8 @@ package com.aioveu.tenant.aioveu16ManagerMenuCategory.converter;
 
 import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.entity.ManagerMenuCategory;
 import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.form.ManagerMenuCategoryForm;
+import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.vo.ManagerMenuCategoryWithItemsVO;
+import com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.model.entity.ManagerMenuCategoryItem;
 import org.mapstruct.Mapper;
 
 /**
@@ -18,4 +20,7 @@ public interface ManagerMenuCategoryConverter {
     ManagerMenuCategoryForm toForm(ManagerMenuCategory entity);
 
     ManagerMenuCategory toEntity(ManagerMenuCategoryForm formData);
+
+
+    ManagerMenuCategoryWithItemsVO.MenuItemVO convertToMenuItemVO(ManagerMenuCategoryItem item);
 }

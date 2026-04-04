@@ -4,8 +4,11 @@ import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.entity.ManagerMenuCat
 import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.form.ManagerMenuCategoryForm;
 import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.query.ManagerMenuCategoryQuery;
 import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.vo.ManagerMenuCategoryVo;
+import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.vo.ManagerMenuCategoryWithItemsVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
 
 /**
  * @ClassName: ManagerMenuCategoryService
@@ -57,4 +60,10 @@ public interface ManagerMenuCategoryService extends IService<ManagerMenuCategory
      * @return 是否删除成功
      */
     boolean deleteManagerMenuCategorys(String ids);
+
+
+    /**
+     * 获取用户的工作台菜单（包含分类和菜单项）
+     */
+    List<ManagerMenuCategoryWithItemsVO>  getManagerMenuCategoriesWithItems();
 }

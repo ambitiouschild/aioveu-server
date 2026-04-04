@@ -1,4 +1,4 @@
-package com.aioveu.tenant.aioveu16ManagerMenuCategory.controller;
+package com.aioveu.tenant.aioveu16ManagerMenuCategory.controller.admin;
 
 import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.Result;

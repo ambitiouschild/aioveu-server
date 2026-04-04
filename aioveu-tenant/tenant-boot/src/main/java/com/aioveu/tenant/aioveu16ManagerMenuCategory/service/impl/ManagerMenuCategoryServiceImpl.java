@@ -8,15 +8,22 @@ import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.entity.ManagerMenuCat
 import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.form.ManagerMenuCategoryForm;
 import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.query.ManagerMenuCategoryQuery;
 import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.vo.ManagerMenuCategoryVo;
+import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.vo.ManagerMenuCategoryWithItemsVO;
 import com.aioveu.tenant.aioveu16ManagerMenuCategory.service.ManagerMenuCategoryService;
+import com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.model.entity.ManagerMenuCategoryItem;
+import com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.service.ManagerMenuCategoryItemService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ManagerMenuCategoryServiceImpl
@@ -27,11 +34,14 @@ import java.util.List;
  * @Version 1.0
  **/
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ManagerMenuCategoryServiceImpl extends ServiceImpl<ManagerMenuCategoryMapper, ManagerMenuCategory> implements ManagerMenuCategoryService {
 
     private final ManagerMenuCategoryConverter managerMenuCategoryConverter;
+
+    private final ManagerMenuCategoryItemService managerMenuCategoryItemService;
 
     /**
      * 获取管理端菜单分类（多租户）分页列表
@@ -99,6 +109,64 @@ public class ManagerMenuCategoryServiceImpl extends ServiceImpl<ManagerMenuCateg
                 .map(Long::parseLong)
                 .toList();
         return this.removeByIds(idList);
+    }
+
+
+    /**
+     * 获取用户的工作台菜单（包含分类和菜单项）
+     */
+    @Override
+    public List<ManagerMenuCategoryWithItemsVO>  getManagerMenuCategoriesWithItems() {
+        // 1. 查询启用的分类
+        LambdaQueryWrapper<ManagerMenuCategory> categoryQuery = new LambdaQueryWrapper<>();
+        categoryQuery.eq(ManagerMenuCategory::getStatus, 1)
+                .eq(ManagerMenuCategory::getIsDeleted, 0)
+                .orderByAsc(ManagerMenuCategory::getSort);
+
+        List<ManagerMenuCategory> categories = this.list(categoryQuery);
+
+        log.info("【ManagerMenuCategory】查询启用的分类：{}",categories);
+
+        if (categories.isEmpty()) {
+            return List.of();
+        }
+
+        // 2. 获取分类ID列表
+        List<Long> categoryIds = categories.stream()
+                .map(ManagerMenuCategory::getId)
+                .toList();
+
+        log.info("【ManagerMenuCategory】获取分类ID列表：{}",categoryIds);
+
+        List<ManagerMenuCategoryItem> managerMenuCategoryItems = managerMenuCategoryItemService.getManagerMenuCategoryItemsWithCategoryIds(categoryIds);
+
+        // 4. 按分类ID分组菜单项
+        Map<Long, List<ManagerMenuCategoryItem>> itemsByCategory = managerMenuCategoryItems.stream()
+                .collect(Collectors.groupingBy(ManagerMenuCategoryItem::getCategoryId));
+
+        List<ManagerMenuCategoryWithItemsVO>  managerMenuCategoryWithItems=   categories.stream()
+                .map(category -> {
+                    ManagerMenuCategoryWithItemsVO vo = new ManagerMenuCategoryWithItemsVO();
+                    vo.setId(category.getId());
+                    vo.setTitle(category.getTitle());
+                    vo.setIcon(category.getIcon());
+                    vo.setSort(category.getSort());
+                    vo.setStatus(category.getStatus());
+
+                    // 获取该分类的菜单项
+                    List<ManagerMenuCategoryWithItemsVO.MenuItemVO> itemVOs = itemsByCategory
+                            .getOrDefault(category.getId(), List.of())
+                            .stream()
+                            .map(managerMenuCategoryConverter::convertToMenuItemVO)
+                            .collect(Collectors.toList());
+
+                    vo.setChildren(itemVOs);
+                    return vo;
+                })
+                .filter(category -> !category.getChildren().isEmpty()) // 只返回有菜单项的分类
+                .collect(Collectors.toList());
+
+        return managerMenuCategoryWithItems;
     }
 
 }

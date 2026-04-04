@@ -5,6 +5,7 @@ import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.result.Result;
 import com.aioveu.common.web.config.FeignDecoderConfig;
 import com.aioveu.tenant.api.fallback.TenantFeignFallbackClient;
+import com.aioveu.tenant.dto.ManagerMenuCategoryWithItemsVO;
 import com.aioveu.tenant.dto.TenantVO;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
 import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
@@ -126,5 +127,14 @@ public interface TenantFeignClient {
     TenantWxAppInfo getTenantWxAppInfoByTenantId(
             @Parameter(description = "clientId") @RequestParam("clientId") Long  tenantId
     );
+
+
+    /**
+     * 获取用户的工作台菜单（包含分类和菜单项）
+     */
+
+    @Operation(summary = "获取用户的工作台菜单（包含分类和菜单项）")
+    @GetMapping("/app-api/v1/manager-menu-category/categories-with-items")
+    List<ManagerMenuCategoryWithItemsVO> getWorkbenchCategoriesWithItems();
 
 }

@@ -1,11 +1,14 @@
 package com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.service;
 
+import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.vo.ManagerMenuCategoryWithItemsVO;
 import com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.model.entity.ManagerMenuCategoryItem;
 import com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.model.form.ManagerMenuCategoryItemForm;
 import com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.model.query.ManagerMenuCategoryItemQuery;
 import com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.model.vo.ManagerMenuCategoryItemVo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
 
 /**
  * @ClassName: ManagerMenuCategoryItemService
@@ -57,4 +60,10 @@ public interface ManagerMenuCategoryItemService extends IService<ManagerMenuCate
      * @return 是否删除成功
      */
     boolean deleteManagerMenuCategoryItems(String ids);
+
+
+    /**
+     * 获取对应分类下的菜单项
+     */
+    List<ManagerMenuCategoryItem>  getManagerMenuCategoryItemsWithCategoryIds(List<Long> categoryIds);
 }
