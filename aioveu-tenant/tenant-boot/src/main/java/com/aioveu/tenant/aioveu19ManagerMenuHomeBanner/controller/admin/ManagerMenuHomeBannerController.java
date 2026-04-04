@@ -1,4 +1,4 @@
-package com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.controller;
+package com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.controller.admin;
 
 import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.Result;

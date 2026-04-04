@@ -1,4 +1,4 @@
-package com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.controller;
+package com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.controller.app;
 
 import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.Result;
@@ -26,15 +26,14 @@ import org.springframework.web.bind.annotation.*;
  **/
 @Tag(name = "管理端app首页分类配置接口")
 @RestController
-@RequestMapping("/api/v1/manager-menu-home-category")
+@RequestMapping("/app-api/v1/manager-menu-home-category")
 @RequiredArgsConstructor
-public class ManagerMenuHomeCategoryController {
+public class ManagerMenuHomeCategoryControllerForApp {
 
     private final ManagerMenuHomeCategoryService managerMenuHomeCategoryService;
 
     @Operation(summary = "管理端app首页分类配置分页列表")
     @GetMapping("/page")
-    @PreAuthorize("@ss.hasPerm('aioveuMallManagerMenuHomeCategory:manager-menu-home-category:list')")
     public PageResult<ManagerMenuHomeCategoryVo> getManagerMenuHomeCategoryPage(ManagerMenuHomeCategoryQuery queryParams ) {
         IPage<ManagerMenuHomeCategoryVo> result = managerMenuHomeCategoryService.getManagerMenuHomeCategoryPage(queryParams);
         return PageResult.success(result);
