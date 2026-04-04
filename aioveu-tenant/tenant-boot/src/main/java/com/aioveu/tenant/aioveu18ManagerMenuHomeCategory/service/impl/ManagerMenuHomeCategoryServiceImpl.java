@@ -2,6 +2,7 @@ package com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.common.enums.StatusEnum;
 import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.converter.ManagerMenuHomeCategoryConverter;
 import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.mapper.ManagerMenuHomeCategoryMapper;
 import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.model.entity.ManagerMenuHomeCategory;
@@ -9,6 +10,8 @@ import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.model.form.ManagerMenuH
 import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.model.query.ManagerMenuHomeCategoryQuery;
 import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.model.vo.ManagerMenuHomeCategoryVo;
 import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.service.ManagerMenuHomeCategoryService;
+import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.model.entity.ManagerMenuHomeBanner;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -99,6 +102,22 @@ public class ManagerMenuHomeCategoryServiceImpl extends ServiceImpl<ManagerMenuH
                 .map(Long::parseLong)
                 .toList();
         return this.removeByIds(idList);
+    }
+
+
+    /*
+     * 管理端app首页分类配置分页列表 ForApp
+     * */
+    @Override
+    public List<ManagerMenuHomeCategoryVo> getManagerMenuHomeCategoryForApp() {
+
+        List<ManagerMenuHomeCategory> entities = this.list(new LambdaQueryWrapper<ManagerMenuHomeCategory>().
+                eq(ManagerMenuHomeCategory::getStatus, StatusEnum.ENABLE.getValue())
+                .select(ManagerMenuHomeCategory::getHomeIcon,
+                        ManagerMenuHomeCategory::getHomeName,
+                        ManagerMenuHomeCategory::getJumpPath)
+        );
+        return managerMenuHomeCategoryConverter.entity2HomeCategoryVo(entities);
     }
 
 }

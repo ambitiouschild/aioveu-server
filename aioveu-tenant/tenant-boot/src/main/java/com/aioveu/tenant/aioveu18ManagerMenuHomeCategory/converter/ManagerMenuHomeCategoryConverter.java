@@ -2,7 +2,10 @@ package com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.converter;
 
 import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.model.entity.ManagerMenuHomeCategory;
 import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.model.form.ManagerMenuHomeCategoryForm;
+import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.model.vo.ManagerMenuHomeCategoryVo;
 import org.mapstruct.Mapper;
+
+import java.util.List;
 
 /**
  * @ClassName: ManagerMenuHomeCategoryConverter
@@ -18,4 +21,7 @@ public interface ManagerMenuHomeCategoryConverter {
     ManagerMenuHomeCategoryForm toForm(ManagerMenuHomeCategory entity);
 
     ManagerMenuHomeCategory toEntity(ManagerMenuHomeCategoryForm formData);
+
+
+    List<ManagerMenuHomeCategoryVo> entity2HomeCategoryVo(List<ManagerMenuHomeCategory> entities);
 }

@@ -7,6 +7,8 @@ import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.model.vo.ManagerMenuHomeB
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+
 /**
  * @ClassName: ManagerMenuHomeBannerService
  * @Description TODO 管理端app首页滚播栏服务类
@@ -57,4 +59,12 @@ public interface ManagerMenuHomeBannerService extends IService<ManagerMenuHomeBa
      * @return 是否删除成功
      */
     boolean deleteManagerMenuHomeBanners(String ids);
+
+
+    /**
+     *管理端app首页滚播栏分页列表 ForApp
+     *
+     * @return {@link IPage<ManagerMenuHomeBannerVo>} 管理端app首页滚播栏分页列表
+     */
+    List<ManagerMenuHomeBannerVo> getManagerMenuHomeBannerForApp();
 }

@@ -2,6 +2,7 @@ package com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.common.enums.StatusEnum;
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.converter.ManagerMenuHomeBannerConverter;
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.mapper.ManagerMenuHomeBannerMapper;
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.model.entity.ManagerMenuHomeBanner;
@@ -9,6 +10,7 @@ import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.model.form.ManagerMenuHom
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.model.query.ManagerMenuHomeBannerQuery;
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.model.vo.ManagerMenuHomeBannerVo;
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.service.ManagerMenuHomeBannerService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -99,6 +101,24 @@ public class ManagerMenuHomeBannerServiceImpl extends ServiceImpl<ManagerMenuHom
                 .map(Long::parseLong)
                 .toList();
         return this.removeByIds(idList);
+    }
+
+
+    /**
+     *管理端app首页滚播栏分页列表 ForApp
+     *
+     * @return {@link IPage<ManagerMenuHomeBannerVo>} 管理端app首页滚播栏分页列表
+     */
+    @Override
+    public List<ManagerMenuHomeBannerVo> getManagerMenuHomeBannerForApp() {
+
+        List<ManagerMenuHomeBanner> entities = this.list(new LambdaQueryWrapper<ManagerMenuHomeBanner>().
+                eq(ManagerMenuHomeBanner::getStatus, StatusEnum.ENABLE.getValue())
+                .select(ManagerMenuHomeBanner::getTitle,
+                        ManagerMenuHomeBanner::getImageUrl,
+                        ManagerMenuHomeBanner::getRedirectUrl)
+        );
+        return managerMenuHomeBannerConverter.entity2BannerVo(entities);
     }
 
 

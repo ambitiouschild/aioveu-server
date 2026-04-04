@@ -16,6 +16,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * @ClassName: ManagerMenuHomeBannerController
  * @Description TODO 管理端app首页滚播栏前端控制层
@@ -34,9 +36,9 @@ public class ManagerMenuHomeBannerControllerForApp {
 
     @Operation(summary = "管理端app首页滚播栏分页列表")
     @GetMapping("/page")
-    public PageResult<ManagerMenuHomeBannerVo> getManagerMenuHomeBannerPage(ManagerMenuHomeBannerQuery queryParams ) {
-        IPage<ManagerMenuHomeBannerVo> result = managerMenuHomeBannerService.getManagerMenuHomeBannerPage(queryParams);
-        return PageResult.success(result);
+    public Result<List<ManagerMenuHomeBannerVo>> getManagerMenuHomeBannerPage() {
+        List<ManagerMenuHomeBannerVo> result = managerMenuHomeBannerService.getManagerMenuHomeBannerForApp();
+        return Result.success(result);
     }
 
     @Operation(summary = "新增管理端app首页滚播栏")

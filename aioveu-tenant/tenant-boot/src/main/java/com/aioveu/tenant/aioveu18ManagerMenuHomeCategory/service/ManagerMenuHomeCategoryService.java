@@ -7,6 +7,8 @@ import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.model.vo.ManagerMenuHom
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+
 /**
  * @ClassName: ManagerMenuHomeCategoryService
  * @Description TODO 管理端app首页分类配置服务类
@@ -58,5 +60,10 @@ public interface ManagerMenuHomeCategoryService extends IService<ManagerMenuHome
      */
     boolean deleteManagerMenuHomeCategorys(String ids);
 
+
+    /*
+    * 管理端app首页分类配置分页列表 ForApp
+    * */
+    List<ManagerMenuHomeCategoryVo> getManagerMenuHomeCategoryForApp();
 
 }

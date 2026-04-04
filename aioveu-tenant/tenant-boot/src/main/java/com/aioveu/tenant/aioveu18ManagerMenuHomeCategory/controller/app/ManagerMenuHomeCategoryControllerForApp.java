@@ -16,6 +16,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * @ClassName: ManagerMenuHomeCategoryController
  * @Description TODO 管理端app首页分类配置前端控制层
@@ -34,9 +36,9 @@ public class ManagerMenuHomeCategoryControllerForApp {
 
     @Operation(summary = "管理端app首页分类配置分页列表")
     @GetMapping("/page")
-    public PageResult<ManagerMenuHomeCategoryVo> getManagerMenuHomeCategoryPage(ManagerMenuHomeCategoryQuery queryParams ) {
-        IPage<ManagerMenuHomeCategoryVo> result = managerMenuHomeCategoryService.getManagerMenuHomeCategoryPage(queryParams);
-        return PageResult.success(result);
+    public Result<List<ManagerMenuHomeCategoryVo>> getManagerMenuHomeCategoryPage() {
+        List<ManagerMenuHomeCategoryVo> result = managerMenuHomeCategoryService.getManagerMenuHomeCategoryForApp();
+        return Result.success(result);
     }
 
     @Operation(summary = "新增管理端app首页分类配置")

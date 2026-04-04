@@ -2,7 +2,10 @@ package com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.converter;
 
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.model.entity.ManagerMenuHomeBanner;
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.model.form.ManagerMenuHomeBannerForm;
+import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.model.vo.ManagerMenuHomeBannerVo;
 import org.mapstruct.Mapper;
+
+import java.util.List;
 
 /**
  * @ClassName: ManagerMenuHomeBannerConverter
@@ -18,4 +21,7 @@ public interface ManagerMenuHomeBannerConverter {
     ManagerMenuHomeBannerForm toForm(ManagerMenuHomeBanner entity);
 
     ManagerMenuHomeBanner toEntity(ManagerMenuHomeBannerForm formData);
+
+
+    List<ManagerMenuHomeBannerVo> entity2BannerVo(List<ManagerMenuHomeBanner> entity);
 }
