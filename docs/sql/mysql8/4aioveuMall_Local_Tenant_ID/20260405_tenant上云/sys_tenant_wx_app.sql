@@ -1,0 +1,53 @@
+/*
+ Navicat Premium Data Transfer
+
+ Source Server         : aioveu-boot_Local_3308
+ Source Server Type    : MySQL
+ Source Server Version : 80029
+ Source Host           : localhost:3308
+ Source Schema         : aioveu_tenant
+
+ Target Server Type    : MySQL
+ Target Server Version : 80029
+ File Encoding         : 65001
+
+ Date: 05/04/2026 13:54:18
+*/
+
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for sys_tenant_wx_app
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_tenant_wx_app`;
+CREATE TABLE `sys_tenant_wx_app`  (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `tenant_id` bigint NOT NULL COMMENT '租户ID',
+  `wx_appid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '微信小程序ID',
+  `app_secret` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '小程序/公众号密钥',
+  `app_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '应用名称',
+  `app_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT 'MINI_PROGRAM' COMMENT '应用类型: MINI_PROGRAM-小程序, OFFICIAL_ACCOUNT-公众号',
+  `status` tinyint NULL DEFAULT 1 COMMENT '状态: 0-禁用, 1-启用',
+  `wx_appname` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '微信小程序名称',
+  `registered_email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '微信小程序注册邮箱',
+  `is_default` tinyint NULL DEFAULT 0 COMMENT '是否为默认小程序',
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_tenant_wx`(`tenant_id` ASC, `wx_appid` ASC) USING BTREE,
+  UNIQUE INDEX `uk_wx_appid`(`wx_appid` ASC) USING BTREE,
+  INDEX `idx_wx_appid`(`wx_appid` ASC) USING BTREE,
+  INDEX `idx_tenant_app_type`(`tenant_id` ASC, `app_type` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '租户与微信小程序关联表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of sys_tenant_wx_app
+-- ----------------------------
+INSERT INTO `sys_tenant_wx_app` VALUES (1, 1, 'wxe510ad6d4d60bfa8', '1839111563bcf001bae776543c31829f', NULL, 'MINI_PROGRAM', 1, '可我不敌心动', '1', 0, 0, '2026-03-19 17:56:12', '2026-03-30 16:19:13');
+INSERT INTO `sys_tenant_wx_app` VALUES (2, 0, 'wxda125635c09f641a', NULL, NULL, 'MINI_PROGRAM', 1, '可我不敌心软', '1', 0, 0, '2026-03-19 17:56:25', '2026-04-04 17:52:35');
+INSERT INTO `sys_tenant_wx_app` VALUES (3, 1, 'wxe0e6720ed2db3937', NULL, NULL, 'MINI_PROGRAM', 1, '可我不敌心欢', '1', 0, 0, '2026-03-19 17:56:42', '2026-03-19 17:56:42');
+INSERT INTO `sys_tenant_wx_app` VALUES (4, 1, '2', NULL, NULL, 'MINI_PROGRAM', 1, '2', '2819850488@qq.com', 1, 0, '2026-03-19 19:18:02', '2026-03-19 19:18:02');
+
+SET FOREIGN_KEY_CHECKS = 1;
