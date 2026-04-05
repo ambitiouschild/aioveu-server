@@ -25,6 +25,10 @@ public class OmsOrderItemVO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description="订单项ID")
+    private Long id;
+
+
     @Schema(description = "订单ID")
     private Long orderId;
     @Schema(description = "商品名称")
@@ -49,4 +53,7 @@ public class OmsOrderItemVO implements Serializable {
     private LocalDateTime createTime;
     @Schema(description = "修改时间")
     private LocalDateTime updateTime;
+
+    // 订单信息（联查得到）
+    private String orderSn;           // 订单号
 }

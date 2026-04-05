@@ -27,23 +27,31 @@
             order_id=#{orderId}
     </select>
 
-    <!-- 获取订单商品信息分页列表 -->
+    <!-- 修改： 获取订单商品信息分页列表 （带订单信息） -->
+<!--               deleted字段在两个表中都存在（oms_order_item和oms_order都有deleted字段），-->
+<!--    在WHERE条件中直接写deleted会引起歧义。-->
+<!--               在WHERE条件中给deleted字段加上表名前缀-->
+    <!-- 订单表条件（可以按订单号搜索！） -->
+
     <select id="getOmsOrderItemPage" resultType="com.aioveu.oms.aioveu02OrderItem.model.vo.OmsOrderItemVO">
         SELECT
-        order_id,
-        spu_name,
-        sku_id,
-        sku_sn,
-        sku_name,
-        pic_url,
-        price,
-        quantity,
-        total_amount,
-        deleted,
-        create_time,
-        update_time
+        oi.id,
+        oi.order_id,
+        oi.spu_name,
+        oi.sku_id,
+        oi.sku_sn,
+        oi.sku_name,
+        oi.pic_url,
+        oi.price,
+        oi.quantity,
+        oi.total_amount,
+        oi.deleted,
+        oi.create_time,
+        oi.update_time,
+        o.order_sn                    -- 订单号         <!-- 联查订单表的字段 -->
         FROM
-        oms_order_item
+        oms_order_item oi
+        LEFT JOIN oms_order o ON oi.order_id = o.id
         <where>
             <if test="queryParams.spuName != null and queryParams.spuName != ''">
                 AND spu_name LIKE CONCAT(#{queryParams.spuName}, '%')
@@ -55,9 +63,54 @@
                 AND sku_name LIKE CONCAT(#{queryParams.skuName}, '%')
             </if>
             <if test="queryParams.deleted != null">
-                AND deleted LIKE CONCAT(#{queryParams.deleted}, '%')
+                AND oi.deleted LIKE CONCAT(#{queryParams.deleted}, '%')
+            </if>
+            <if test="queryParams.orderSn != null and queryParams.orderSn != ''">
+                AND o.order_sn LIKE CONCAT(#{queryParams.orderSn}, '%')
             </if>
         </where>
+    </select>
+
+    <!-- 新增：批量查询订单商品（解决N+1问题） -->
+    <select id="batchGetOrderItemsByOrderIds"
+            resultType="com.aioveu.oms.aioveu01Order.model.vo.OrderBO$OrderItem">
+        SELECT
+        oi.id,
+        oi.order_id,
+        oi.spu_name,
+        oi.sku_id,
+        oi.sku_sn,
+        oi.sku_name,
+        oi.pic_url,
+        oi.price,
+        oi.quantity,
+        oi.total_amount,
+        o.order_sn  -- 带上订单号
+        FROM
+        oms_order_item oi
+        LEFT JOIN oms_order o ON oi.order_id = o.id
+        WHERE
+        oi.order_id IN
+        <foreach collection="orderIds" item="orderId" open="(" separator="," close=")">
+            #{orderId}
+        </foreach>
+        ORDER BY oi.order_id, oi.id
+    </select>
+
+
+    <!-- 新增：根据条件查询订单商品（带订单信息） -->
+    <select id="getOrderItemWithOrderInfo"
+            resultType="com.aioveu.oms.aioveu02OrderItem.model.vo.OmsOrderItemVO">
+        SELECT
+            oi.*,
+            o.order_sn,
+            o.customer_name,
+            o.order_status,
+            o.total_amount as order_total_amount
+        FROM
+            oms_order_item oi
+                LEFT JOIN oms_order o ON oi.order_id = o.id
+        WHERE oi.id = #{id}
     </select>
 
 </mapper>

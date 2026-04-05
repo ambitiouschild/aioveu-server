@@ -5,6 +5,8 @@ import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.oms.aioveu01Order.model.form.OmsOrderForm;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderDTO;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
+import com.aioveu.oms.aioveu01Order.model.vo.OrderOptionVO;
+import com.aioveu.oms.aioveu02OrderItem.model.form.OmsOrderItemForm;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.aioveu.common.result.PageResult;
@@ -148,4 +150,18 @@ public class OmsOrderController {
         boolean result = omsOrderService.deleteOmsOrders(ids);
         return Result.judge(result);
     }
+
+
+//    @Operation(summary = "表单选择器搜索接口是按关键词搜索")
+//    @GetMapping("/orders/search")
+//    @Log( value = "表单选择器搜索接口是按关键词搜索",module = LogModuleEnum.OMS)
+//    public Result<List<OrderOptionVO>> searchOrders(
+//            @Parameter(description = "订单商品信息ID") @RequestParam String keyword
+//    ) {
+//
+//
+//        List<OrderOptionVO>  orderOptionVO= omsOrderService.searchOrders(keyword, 20);  // 最多返回20条
+//
+//        return Result.success(orderOptionVO);
+//    }
 }

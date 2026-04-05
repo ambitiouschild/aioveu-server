@@ -86,4 +86,5 @@ public class OmsOrderItemController {
         boolean result = omsOrderItemService.deleteOmsOrderItems(ids);
         return Result.judge(result);
     }
+
 }

@@ -27,4 +27,8 @@ public class OmsOrderItemQuery extends BasePageQuery {
     private String skuName;
     @Schema(description = "逻辑删除标识(1:已删除；0:正常)")
     private Integer deleted;
+
+    // 订单信息（联查得到）
+    @Schema(description = "订单号")
+    private String orderSn;           // 订单号
 }
