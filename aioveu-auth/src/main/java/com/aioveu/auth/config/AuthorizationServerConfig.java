@@ -514,6 +514,14 @@ public class AuthorizationServerConfig {
         objectMapper.registerModule(new OAuth2AuthorizationServerJackson2Module());  // 注册OAuth2授权服务器模块
         // You will need to write the Mixin for your class so Jackson can marshall it.
 
+
+        // ✅ 关键：添加 MemberDetails 的 Mixin
+        objectMapper.addMixIn(
+                com.aioveu.auth.model.MemberDetails.class,  // 你的 MemberDetails 类
+                com.aioveu.auth.oauth2.jackson.MemberDetailsMixin.class  // Mixin 类
+        );
+
+
         // 添加自定义Mixin，用于序列化/反序列化特定的类。
         // Mixin类需要自行实现，以便Jackson可以处理这些类的序列化。
         // 注册自定义Mixin，解决特定类的序列化问题
