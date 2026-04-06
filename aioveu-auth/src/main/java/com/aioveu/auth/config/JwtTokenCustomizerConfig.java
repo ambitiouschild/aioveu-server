@@ -43,11 +43,18 @@ public class JwtTokenCustomizerConfig {
     public OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer() {
         return context -> {
 
-            log.info("=== 【JwtTokenCustomizer】JwtTokenCustomizer 被调用 ===");
+            log.info("=== 【JwtTokenCustomizer】开始处理令牌定制 JwtTokenCustomizer 被调用 ===");
             /*
             * 但在您的WechatAuthenticationProvider中，
             * context.getPrincipal()确实是UsernamePasswordAuthenticationToken类型，应该能通过。
             * */
+            // ✅ 1. 打印所有关键信息
+            log.info("【JwtTokenCustomizer】令牌类型: {}", context.getTokenType().getValue());
+            log.info("【JwtTokenCustomizer】令牌类型Class: {}", context.getTokenType().getClass().getName());
+            log.info("【JwtTokenCustomizer】是否是 ACCESS_TOKEN: {}", OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType()));
+            log.info("【JwtTokenCustomizer】是否是 REFRESH_TOKEN: {}", OAuth2TokenType.REFRESH_TOKEN.equals(context.getTokenType()));
+
+
             if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType()) &&
                     context.getPrincipal() instanceof UsernamePasswordAuthenticationToken) {
 

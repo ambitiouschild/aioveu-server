@@ -127,11 +127,11 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
         // 验证客户端是否支持授权类型(grant_type=wechat_mini_app)
         log.info("2. 验证客户端是否支持刷新令牌授权类型");
         log.info("客户端验证：确保只有注册的客户端可以使用刷新令牌认证流程");
-        if (!registeredClient.getAuthorizationGrantTypes().contains(refreshTokenAuthentication.REFRESH_TOKEN)) {
+        if (!registeredClient.getAuthorizationGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN)) {
             throw new OAuth2AuthenticationException(OAuth2ErrorCodes.UNAUTHORIZED_CLIENT);
         }
 
-        // 微信 code 获取 openid
+
         log.info("前端请求中的附加参数获取");
         Map<String, Object> additionalParameters = refreshTokenAuthentication.getAdditionalParameters();
 
@@ -219,7 +219,7 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
         OAuth2Authorization.Builder authorizationBuilder = OAuth2Authorization.withRegisteredClient(registeredClient)
                 .principalName(authorization.getPrincipalName())  // ✅ 从原有授权信息中获取主体名称
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)  // 授权类型 ✅ 使用标准的刷新令牌授权类型
-                .attribute(Principal.class.getName(), userAuthentication);  // 主体属性   // ✅ 这里可以用 Principal
+                .attribute(Principal.class.getName(), userAuthentication);  // 主体属性
 
         log.info("9. 更新授权信息:{}", authorizationBuilder);
 

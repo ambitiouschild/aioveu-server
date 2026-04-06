@@ -33,7 +33,7 @@ public class CustomRefreshTokenAuthenticationToken extends OAuth2AuthorizationGr
     /**
      * 授权类型：刷新令牌
      */
-    public static final AuthorizationGrantType REFRESH_TOKEN = new AuthorizationGrantType("refresh_token");
+    public static final AuthorizationGrantType REFRESH_TOKEN = new AuthorizationGrantType("aioveu_refresh_token");
 
     private static final AuthorizationGrantType REFRESH_TOKEN2 = AuthorizationGrantType.REFRESH_TOKEN;
 

@@ -2,7 +2,9 @@ package com.aioveu.auth.model;
 
 import com.aioveu.common.constant.GlobalConstants;
 import com.aioveu.ums.dto.MemberAuthDTO;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -17,7 +19,8 @@ import java.util.Collections;
  * @return:
  **/
 
-
+@NoArgsConstructor  // ✅ Lombok 生成无参构造函数
+@AllArgsConstructor // ✅ Lombok 生成全参构造函数
 @Data
 public class MemberDetails implements UserDetails {
 
@@ -51,6 +54,11 @@ public class MemberDetails implements UserDetails {
      *
      */
     private String authenticationIdentity;
+
+
+    // ✅ 添加无参构造函数
+//    public MemberDetails() {
+//    }
 
     /**
      * 会员信息构造
