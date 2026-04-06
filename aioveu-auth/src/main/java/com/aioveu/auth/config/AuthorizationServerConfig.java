@@ -5,6 +5,8 @@ import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.hutool.captcha.generator.CodeGenerator;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.auth.filter.CaptchaValidationFilter;
+import com.aioveu.auth.oauth2.extension.customRefreshToken.CustomRefreshTokenAuthenticationConverter;
+import com.aioveu.auth.oauth2.extension.customRefreshToken.CustomRefreshTokenAuthenticationProvider;
 import com.aioveu.auth.service.SysUserDetailsService;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,6 +63,7 @@ import org.springframework.security.oauth2.server.authorization.JdbcOAuth2Author
 import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
+import org.springframework.security.oauth2.server.authorization.authentication.OAuth2RefreshTokenAuthenticationProvider;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
@@ -72,6 +75,7 @@ import org.springframework.security.oauth2.server.authorization.settings.ClientS
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.*;
 import org.springframework.security.oauth2.server.authorization.web.OAuth2TokenEndpointFilter;
+import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2RefreshTokenAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -158,6 +162,9 @@ public class AuthorizationServerConfig {
     // 验证码生成器，用于图形验证码生成
     private final CodeGenerator codeGenerator;
 
+    boolean reuseRefreshTokens = false; // 设置为 false 表示每次刷新都生成新的 refresh_token
+    // 不重用刷新令牌（每次刷新都生成新的）
+    // 重用刷新令牌
 
     /**
      * 创建验证码过滤器Bean
@@ -225,13 +232,19 @@ public class AuthorizationServerConfig {
                                 authenticationConverters -> // <1>
                                         // 自定义授权模式转换器(Converter)
                                         // 添加四种自定义认证模式的请求转换器
+
+
+
+
                                         authenticationConverters.addAll(
 
                                                 List.of(
                                                         new PasswordAuthenticationConverter(),  // 密码模式转换器  // 密码模式登录入口
                                                         new CaptchaAuthenticationConverter(),   // 图形验证码模式转换器  // 验证码登录入口
                                                         new WechatAuthenticationConverter(),   // 微信登录模式转换器   // 微信登录入口
-                                                        new SmsCodeAuthenticationConverter()    // 短信验证码模式转换器   // 短信登录入口
+                                                        new SmsCodeAuthenticationConverter() ,   // 短信验证码模式转换器   // 短信登录入口
+//                                                        new OAuth2RefreshTokenAuthenticationConverter() //添加Spring Security自带的刷新令牌转换器
+                                                        new CustomRefreshTokenAuthenticationConverter()  // ✅ 添加自定义刷新令牌转换器
                                                 )
                                         )
                         )
@@ -240,7 +253,9 @@ public class AuthorizationServerConfig {
                                 authenticationProviders -> // <2>
                                         // 自定义授权模式提供者(Provider)
                                         // 添加四种自定义认证模式的提供者
+
                                         authenticationProviders.addAll(
+
                                                 List.of(
                                                         // 密码模式：使用用户名密码认证
                                                         new PasswordAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator,sysUserDetailsService),
@@ -250,7 +265,12 @@ public class AuthorizationServerConfig {
                                                         // 微信认证提供者使用WxMaService进行微信登录验证
                                                         new WechatAuthenticationProvider(authorizationService, tokenGenerator, memberDetailsService, wxMaService),
                                                         // 短信模式：使用手机号+短信验证码认证
-                                                        new SmsCodeAuthenticationProvider(authorizationService, tokenGenerator, memberDetailsService, redisTemplate)
+                                                        new SmsCodeAuthenticationProvider(authorizationService, tokenGenerator, memberDetailsService, redisTemplate),
+                                                        // 添加Spring Security自带的刷新令牌提供者
+                                                        // new OAuth2RefreshTokenAuthenticationProvider(authorizationService, tokenGenerator)
+
+                                                        new CustomRefreshTokenAuthenticationProvider(authorizationService, tokenGenerator, reuseRefreshTokens)
+
                                                 )
                                         )
                         )
