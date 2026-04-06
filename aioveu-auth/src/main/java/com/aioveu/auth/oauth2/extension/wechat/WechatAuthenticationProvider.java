@@ -216,8 +216,12 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
         //// 使用 UsernamePasswordAuthenticationToken 类型，而不是 Authentication
         //使用 UsernamePasswordAuthenticationToken具体实现类，而不是 Authentication接口
         UsernamePasswordAuthenticationToken usernamePasswordAuthentication = new UsernamePasswordAuthenticationToken(
-                userDetails,
-                userDetails.getPassword());  // 密码用于认证验证
+//                userDetails,     // ❌ 这里传入了完整的 MemberDetails 对象
+//                userDetails.getPassword());  // 密码用于认证验证
+
+                userDetails.getUsername(),  // 只存用户名
+                null,  // 密码不需要
+                userDetails.getAuthorities());  // 权限
 
 //        log.info("userDetails租户ID: {}",userDetails.getTenantId());
 //        // 设置租户ID到details
@@ -276,6 +280,8 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
                 .principalName(userDetails.getUsername())  // 主体名称
                 .authorizationGrantType(WechatAuthenticationToken.WECHAT_MINI_APP)  // 授权类型
                 .attribute(Principal.class.getName(), usernamePasswordAuthentication);  // 主体属性
+
+        //然后这个认证信息被序列化到数据库。刷新令牌时，Spring Security 尝试反序列化，但 MemberDetails不在 Jackson 白名单中。
 
         log.info("9. 构建授权信息:{}", authorizationBuilder);
 
