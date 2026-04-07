@@ -132,12 +132,14 @@ public class MemberDetailsService {
 
         // 6. ★ 通过 clientId 查询 wxAppid 和 tenantId
 
-        log.info("开始查询clientId: {}", clientId);
+        log.info("=======【Auth MemberDetailsService】根据openId和clientId获取用户信息=======");
+
+        log.info("【Auth MemberDetailsService】开始查询clientId: {}", clientId);
 
         // 这里需要你实现数据库查询
         TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
 
-        log.info("查询到的tenantWxAppInfo: {}", tenantWxAppInfo);
+        log.info("【Auth MemberDetailsService】查询到的tenantWxAppInfo: {}", tenantWxAppInfo);
 
         if (tenantWxAppInfo == null) {
 //            throw new OAuth2AuthenticationException("无效的客户端ID");
@@ -146,7 +148,7 @@ public class MemberDetailsService {
 
         String wxAppid = tenantWxAppInfo.getWxAppid();
         Long tenantId = tenantWxAppInfo.getTenantId();
-        log.info("查询到租户信息 - wxAppid: {}, tenantId: {}", wxAppid, tenantId);
+        log.info("【Auth MemberDetailsService】查询到租户信息 - wxAppid: {}, tenantId: {}", wxAppid, tenantId);
 
         //用户通用
 //        MemberAuthDTO memberAuthInfo = memberFeignClient.loadUserByOpenId(openid).getData();
@@ -156,7 +158,7 @@ public class MemberDetailsService {
         // 首先尝试获取用户
         MemberAuthDTO memberAuthInfo = memberFeignClient.loadUserByOpenIdAndTenantId(openid,tenantId).getData();
 
-        log.info("查询到用户信息 memberAuthInfo {}", memberAuthInfo);
+        log.info("【Auth MemberDetailsService】查询到用户信息 memberAuthInfo {}", memberAuthInfo);
         // 会员不存在，注册成为新会员
         if (memberAuthInfo==null) {
 
@@ -172,7 +174,7 @@ public class MemberDetailsService {
 
             //   注册失败处理----------------------
             if (!Result.isSuccess(registerMemberResult)) {
-                throw new UsernameNotFoundException("会员注册失败: " + registerMemberResult.getMsg());
+                throw new UsernameNotFoundException("【Auth MemberDetailsService】会员注册失败: " + registerMemberResult.getMsg());
             }
 
 
@@ -186,16 +188,20 @@ public class MemberDetailsService {
             if (Result.isSuccess(registerMemberResult) && (memberId = registerMemberResult.getData()) != null) {
                 memberAuthInfo = new MemberAuthDTO(memberId, openid, tenantId,StatusEnum.ENABLE.getValue());
             }
+
+            log.info("【Auth MemberDetailsService】如果会员不存在，注册成为新会员：{}", memberAuthInfo);
         }
 
         // 用户不存在
         if (memberAuthInfo == null) {
+            log.info("【Auth MemberDetailsService】如果会员不存在，且注册成为新会员失败，则报错");
             throw new UsernameNotFoundException(ResultCode.USER_NOT_EXIST.getMsg());
         }
 
 
-        log.info("这里构造用户信息");
+
         MemberDetails userDetails = new MemberDetails(memberAuthInfo);
+        log.info("【Auth MemberDetailsService】这里构造用户信息");
 
 
 
