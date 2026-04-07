@@ -1,6 +1,8 @@
 package com.aioveu.auth.aioveu04Oauth2RegisteredClient.model.form;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -85,6 +87,7 @@ public class Oauth2RegisteredClientForm implements Serializable {
     private String tokenSettings;
 
     //修改你的 DTO 类（添加更多配置项）
+    @JsonIgnoreProperties(ignoreUnknown = true)
     @Data
     public static class ClientSettingsDto {
         @Schema(description = "是否需要授权同意页", example = "false")
@@ -101,6 +104,7 @@ public class Oauth2RegisteredClientForm implements Serializable {
         private String tokenEndpointAuthenticationSigningAlgorithm;
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     @Data
     public static class TokenSettingsDto {
         @Schema(description = "访问令牌有效期(秒)", example = "86400")

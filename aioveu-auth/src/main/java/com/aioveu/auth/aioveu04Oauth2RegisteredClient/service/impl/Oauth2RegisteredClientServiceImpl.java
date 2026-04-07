@@ -120,13 +120,14 @@ public class Oauth2RegisteredClientServiceImpl extends ServiceImpl<Oauth2Registe
         log.info("客户端注册成功: clientId={}", formData.getClientId());
 
 
-        return this.save(entity);
+        return true;  // 不再保存自己的实体
     }
 
     /*
     * 构建客户端
     * */
     private RegisteredClient buildRegisteredClient(Oauth2RegisteredClientForm formData, String encodedSecret) {
+
         return buildRegisteredClient(formData, encodedSecret, UUID.randomUUID().toString());
     }
 
@@ -134,6 +135,9 @@ public class Oauth2RegisteredClientServiceImpl extends ServiceImpl<Oauth2Registe
      * 构建客户端
      * */
     private RegisteredClient buildRegisteredClient(Oauth2RegisteredClientForm formData, String encodedSecret, String id) {
+
+        log.info("生成的随机id: id={}", id);
+
         RegisteredClient.Builder builder = RegisteredClient.withId(id)
                 .clientId(formData.getClientId())
                 .clientSecret(encodedSecret)
