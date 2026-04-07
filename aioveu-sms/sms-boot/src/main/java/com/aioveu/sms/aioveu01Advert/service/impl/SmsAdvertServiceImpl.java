@@ -57,7 +57,12 @@ public class SmsAdvertServiceImpl extends ServiceImpl<SmsAdvertMapper, SmsAdvert
 
         List<SmsAdvert> entities = this.list(new LambdaQueryWrapper<SmsAdvert>().
                 eq(SmsAdvert::getStatus, StatusEnum.ENABLE.getValue())
-                .select(SmsAdvert::getTitle, SmsAdvert::getImageUrl, SmsAdvert::getRedirectUrl)
+                .select(SmsAdvert::getTitle,
+                        SmsAdvert::getStatus,
+                        SmsAdvert::getSort,
+                        SmsAdvert::getImageUrl,
+                        SmsAdvert::getRedirectUrl)
+                .orderByAsc(SmsAdvert::getSort)  // 先按显示顺序 升序
         );
         return smsAdvertConverter.entity2BannerVo(entities);
     }

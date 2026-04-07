@@ -13,6 +13,16 @@ public class BannerVO {
     @Schema(description="横幅图片URL")
     private String imageUrl;
 
+    /**
+     * 状态(1:开启；0:关闭)
+     */
+    private Integer status;
+
+    /**
+     * 排序
+     */
+    private Integer sort;
+
     @Schema(description="跳转URL")
     private String redirectUrl;
 
