@@ -38,6 +38,7 @@
                 AND
                 (
                 t1.order_sn like  concat('%',#{queryParams.keywords},'%')
+                OR CAST(t1.id AS CHAR) LIKE CONCAT('%', #{queryParams.keywords}, '%')
                 )
             </if>
             <if test ='queryParams.status !=null ' >
