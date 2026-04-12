@@ -522,6 +522,13 @@ public class AuthorizationServerConfig {
         );
 
 
+        // ✅ 关键：添加 RoleDataScope 的 Mixin
+        objectMapper.addMixIn(
+                com.aioveu.tenant.dto.RoleDataScope.class,  // 你的 MemberDetails 类
+                com.aioveu.auth.oauth2.jackson.RoleDataScopeMixin.class  // Mixin 类
+        );
+
+
         // 添加自定义Mixin，用于序列化/反序列化特定的类。
         // Mixin类需要自行实现，以便Jackson可以处理这些类的序列化。
         // 注册自定义Mixin，解决特定类的序列化问题
