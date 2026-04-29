@@ -1,8 +1,8 @@
 spring:
   application:
-    name: aioveu-ums   # 会员服务
+    name: aioveu-registry   # 微信小程序注册备案服务
   profiles:
-    active: dev  #dev prod
+    active: prod  #dev prod
 
 # 临时添加调试
 logging:

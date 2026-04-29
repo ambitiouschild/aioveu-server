@@ -4,6 +4,7 @@
 
 FROM aioveu-17-jdk-slim
 
+#qqqq
 
 # Alternative (≈15MB smaller)
 #FROM ubuntu:22.04@sha256:5bd28d4bede2f79312ffd7c4f8de2e5245c3483d73878d9d5c4c0ee055ac209e

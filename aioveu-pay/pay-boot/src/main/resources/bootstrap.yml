@@ -2,5 +2,5 @@ spring:
   application:
     name: aioveu-pay
   profiles:
-    active: prod   #dev prod
+    active: dev   #dev prod
 

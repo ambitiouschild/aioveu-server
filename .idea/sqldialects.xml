@@ -8,24 +8,5 @@
     <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260313_add_tenant_id.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/0.aioveu_Mall_tenant_database.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/10aioveu_pms.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/1aioveu_nacos_config.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/2aioveu_oauth2_server.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/3aioveu_seata.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/4aioveu_tenant.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/5aioveu_pay.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/6aioveu_refund.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/7aioveu_ums.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/8aioveu_sms.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260316_tenant上云/9aioveu_oms.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260319_1_add_wx_appid.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260319_2_drop_wx_appid.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260319_3_add_sys_oauth_client_wx_app.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/4aioveuMall_Local_Tenant_ID/20260329_add_sys_tenant_wx_app.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/5.aioveuMall_Local_registry/0.aioveu_registry_database.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/5.aioveuMall_Local_registry/1aioveu_registry.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/6.aioveuMall_Local_pay_add/1aioveu_pay_add_pay_config.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/7.aioveuMall_Local_tenant_add/1aioveu_tenant_add_manager_category.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/7.aioveuMall_Local_tenant_add/2aioveu_tenant_add_manager_home_category.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/docs/sql/mysql8/7.aioveuMall_Local_tenant_add/3aioveu_tenant_add_manager_home_banner.sql" dialect="MySQL" />
   </component>
 </project>
