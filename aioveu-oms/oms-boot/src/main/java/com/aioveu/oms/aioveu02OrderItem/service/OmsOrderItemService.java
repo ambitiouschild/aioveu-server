@@ -2,6 +2,7 @@ package com.aioveu.oms.aioveu02OrderItem.service;
 
 import com.aioveu.oms.aioveu02OrderItem.model.form.OmsOrderItemForm;
 import com.aioveu.oms.aioveu02OrderItem.model.query.OmsOrderItemQuery;
+import com.aioveu.oms.aioveu02OrderItem.model.vo.OmsOrderDetailVO;
 import com.aioveu.oms.aioveu02OrderItem.model.vo.OmsOrderItemVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -56,6 +57,30 @@ public interface OmsOrderItemService extends IService<OmsOrderItem> {
      * @return 是否删除成功
      */
     boolean deleteOmsOrderItems(String ids);
+
+
+
+
+    /**
+     * 根据订单编号获取订单详情
+     *
+     * @param orderSn 订单编号
+     * @param channel 渠道标识
+     * @return 订单详情VO
+     */
+    OmsOrderDetailVO getOrderDetailBySn(String orderSn, Integer channel);
+
+
+    /**
+     * 根据订单ID获取订单详情
+     *
+     * @param orderId 订单id
+     * @param channel 渠道标识
+     * @return 订单详情VO
+     */
+    OmsOrderDetailVO getOrderDetailById(Long orderId, Integer channel);
+
+
 
 
 }

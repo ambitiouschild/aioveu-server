@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.ToString;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -56,6 +57,10 @@ public class OrderSubmitForm {
     @Schema(description="应付金额(单位：分)")
     @NotNull(message = "应付金额不能为空")
     private Long paymentAmount;
+
+    @Schema(description="支付时间")
+    private LocalDateTime paymentTime;
+
 
     /**
      * 支付方式【1->微信jsapi；2->支付宝；3->余额；4->微信app；】

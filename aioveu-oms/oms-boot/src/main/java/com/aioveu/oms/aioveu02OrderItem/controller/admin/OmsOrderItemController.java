@@ -1,4 +1,4 @@
-package com.aioveu.oms.aioveu02OrderItem.controller;
+package com.aioveu.oms.aioveu02OrderItem.controller.admin;
 
 import com.aioveu.common.annotation.Log;
 import com.aioveu.common.enums.LogModuleEnum;

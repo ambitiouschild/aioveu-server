@@ -68,6 +68,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -75,6 +76,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.hutool.core.util.NumberUtil.toBigDecimal;
+
 
 
 /**
@@ -742,6 +744,14 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             Long  paymentAmount = submitForm.getPaymentAmount() != null ? submitForm.getPaymentAmount() : 0;
             log.info("【创建订单】12.应付总额: {}", paymentAmount);
 
+            // 支付时间
+            LocalDateTime paymentTime= submitForm.getPaymentTime() != null ? submitForm.getPaymentTime() : LocalDateTime.now();
+            log.info("【创建订单】13.支付时间: {}", paymentTime);
+
+            // 支付方式
+            Integer paymentMethod= submitForm.getPaymentMethod() != null ? submitForm.getPaymentMethod() : 1;
+            log.info("【创建订单】14.支付方式: {}", paymentMethod);
+
             log.info("【创建订单】开始赋值===========");
 
             order.setOrderSn(orderSn);
@@ -757,6 +767,9 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             order.setCouponAmount(couponAmount);
             order.setFreightAmount(freightAmount);
             order.setPaymentAmount(paymentAmount);
+            order.setPaymentTime(paymentTime);
+            order.setPaymentMethod(paymentMethod);
+
 
             //支付时间
             //支付方式
@@ -1206,7 +1219,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         log.info("3. 更新订单状态为已支付");
         order.setStatus(OrderStatusEnum.PAID.getValue());
         order.setPaymentMethod(PaymentMethodEnum.BALANCE.getValue());
-        order.setPaymentTime(new Date());
+        order.setPaymentTime(LocalDateTime.now());
         this.updateById(order);
 
 

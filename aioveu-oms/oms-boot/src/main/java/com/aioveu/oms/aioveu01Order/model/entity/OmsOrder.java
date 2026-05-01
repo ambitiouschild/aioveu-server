@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -83,7 +84,7 @@ public class OmsOrder extends BaseEntityWithTenantId {
 	/**
 	 * 支付时间
 	 */
-	private Date paymentTime;
+	private LocalDateTime paymentTime;
 	/**
 	 * 支付方式【1->微信jsapi；2->支付宝；3->余额；4->微信app；】
 	 */
