@@ -34,7 +34,7 @@
         FROM
             oms_order t1
         <where>
-            <if test ='queryParams.keywords !=null and queryParams.keywords.trim() neq ""' >
+            <if test ='queryParams.keyword !=null and queryParams.keyword.trim() neq ""' >
                 AND
                 (
                 t1.order_sn like  concat('%',#{queryParams.keywords},'%')
@@ -64,9 +64,21 @@
                 AND t1.source = #{queryParams.orderType}
             </if>
 
+            <if test="queryParams.minAmount != null">
+                AND t1.total_amount >= #{queryParams.minAmount}
+            </if>
+
+            <if test ='queryParams.maxAmount !=null' >
+                AND t1.create_time &lt;= #{queryParams.maxAmount}
+            </if>
+
+            <if test="queryParams.source != null">
+                AND t1.source = #{queryParams.source}
+            </if>
+
         </where>
-        ORDER BY
-            t1.create_time DESC
+--         ORDER BY
+--             t1.create_time DESC
     </select>
 
 
@@ -79,15 +91,16 @@
             deleted = 0
 
             <!-- 时间范围 -->
-            <if test='queryParams.startTime != null and queryParams.startTime != ""'>
+            <!-- 只检查 null，不检查空字符串 -->
+            <if test='queryParams.startTime != null'>
                 AND create_time >= #{queryParams.startTime}
             </if>
-            <if test='queryParams.endTime != null and queryParams.endTime != ""'>
+            <if test='queryParams.endTime != null'>
                 AND create_time &lt;= #{queryParams.endTime}
             </if>
 
             <!-- 关键词搜索 -->
-            <if test='queryParams.keywords != null and queryParams.keywords.trim() != ""'>
+            <if test='queryParams.keyword != null and queryParams.keyword.trim() != ""'>
                 AND (
                 order_sn LIKE CONCAT('%', #{queryParams.keywords}, '%')
                 OR CAST(id AS CHAR) LIKE CONCAT('%', #{queryParams.keywords}, '%')
@@ -113,15 +126,15 @@
             </if>
 
             <!-- 时间范围 -->
-            <if test='queryParams.startTime  != null and queryParams.startTime  != ""'>
+            <if test='queryParams.startTime  != null'>
                 AND create_time >= #{queryParams.startTime }
             </if>
-            <if test='queryParams.endTime  != null and queryParams.endTime  != ""'>
+            <if test='queryParams.endTime  != null'>
                 AND create_time &lt;= #{queryParams.endTime }
             </if>
 
             <!-- 关键词搜索 -->
-            <if test='queryParams.keywords != null and queryParams.keywords.trim() != ""'>
+            <if test='queryParams.keyword != null and queryParams.keyword.trim() != ""'>
                 AND (
                 order_sn LIKE CONCAT('%', #{queryParams.keywords}, '%')
                 OR CAST(id AS CHAR) LIKE CONCAT('%', #{queryParams.keywords}, '%')
@@ -147,15 +160,15 @@
             </if>
 
             <!-- 时间范围 -->
-            <if test='queryParams.startTime != null and queryParams.startTime != ""'>
+            <if test='queryParams.startTime != null'>
                 AND create_time >= #{queryParams.startTime}
             </if>
-            <if test='queryParams.endTime  != null and queryParams.endTime  != ""'>
+            <if test='queryParams.endTime  != null'>
                 AND create_time &lt;= #{queryParams.endTime}
             </if>
 
             <!-- 关键词搜索 -->
-            <if test='queryParams.keywords != null and queryParams.keywords.trim() != ""'>
+            <if test='queryParams.keyword != null and queryParams.keyword.trim() != ""'>
                 AND (
                 order_sn LIKE CONCAT('%', #{queryParams.keywords}, '%')
                 OR CAST(id AS CHAR) LIKE CONCAT('%', #{queryParams.keywords}, '%')
@@ -178,16 +191,17 @@
                 AND status = #{queryParams.status}
             </if>
 
+            <!-- 只检查 null，不检查空字符串 -->
             <!-- 时间范围 -->
-            <if test='queryParams.startTime != null and queryParams.startTime != ""'>
+            <if test='queryParams.startTime != null'>
                 AND create_time >= #{queryParams.startTime}
             </if>
-            <if test='queryParams.endTime != null and queryParams.endTime != ""'>
+            <if test='queryParams.endTime != null'>
                 AND create_time &lt;= #{queryParams.endTime}
             </if>
 
             <!-- 关键词搜索 -->
-            <if test='queryParams.keywords != null and queryParams.keywords.trim() != ""'>
+            <if test='queryParams.keyword != null and queryParams.keyword.trim() != ""'>
                 AND (
                 order_sn LIKE CONCAT('%', #{queryParams.keywords}, '%')
                 OR CAST(id AS CHAR) LIKE CONCAT('%', #{queryParams.keywords}, '%')

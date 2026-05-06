@@ -1463,9 +1463,11 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             // 6. 返回结果
             result.put("statusCounts", statusCounts);
             result.put("todayOrderCount", todayOrderCount);
-            result.put("pendingCount", pendingCount);
-            result.put("todayIncome", todayIncome);
+            result.put("pendingCount",  pendingCount != null ? pendingCount : 0L);
+            result.put("todayIncome", todayIncome != null ? todayIncome : 0L);
             result.put("total", total);
+
+            log.info("获取订单统计信息: {}", result);
 
         } catch (Exception e) {
             log.error("查询订单统计失败", e);
@@ -1512,14 +1514,28 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
      * 查询今日收入
      */
     private Long getTodayIncome(OrderPageQuery queryParams) {
-        OrderPageQuery todayQuery = new OrderPageQuery();
-        BeanUtils.copyProperties(queryParams, todayQuery);
+        try {
+                OrderPageQuery todayQuery = new OrderPageQuery();
+                BeanUtils.copyProperties(queryParams, todayQuery);
 
-        LocalDate today = LocalDate.now();
-        todayQuery.setStartTime(today.atStartOfDay()); // 今天 00:00:00
-        todayQuery.setEndTime(today.atTime(23, 59, 59));  // 今天 23:59:59
+                LocalDate today = LocalDate.now();
+                todayQuery.setStartTime(today.atStartOfDay()); // 今天 00:00:00
+                todayQuery.setEndTime(today.atTime(23, 59, 59));  // 今天 23:59:59
 
-        return this.baseMapper.selectTodayIncome(todayQuery);
+                log.info("查询今日收入，时间范围: {} - {}", todayQuery.getStartTime(), todayQuery.getEndTime());
+
+                // 调用 Mapper
+                Long todayIncome = this.baseMapper.selectTodayIncome(queryParams);
+
+                log.info("今日收入查询结果: {}", todayIncome);
+
+                // 处理 null 值
+                return todayIncome != null ? todayIncome : 0;
+
+        } catch (Exception e) {
+            log.error("查询今日收入失败", e);
+            throw new BusinessException("查询今日收入失败");
+        }
     }
 
     //-------------------------------------------------------------
