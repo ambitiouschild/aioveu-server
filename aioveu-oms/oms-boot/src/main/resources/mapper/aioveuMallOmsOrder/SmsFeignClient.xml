@@ -41,18 +41,165 @@
                 OR CAST(t1.id AS CHAR) LIKE CONCAT('%', #{queryParams.keywords}, '%')
                 )
             </if>
-            <if test ='queryParams.status !=null ' >
+            <!-- 状态过滤：-1表示查询所有状态，不添加status条件 -->
+            <if test ='queryParams.status !=null and queryParams.status != -1 ' >
                 AND t1.status= #{queryParams.status}
             </if>
-            <if test ='queryParams.beginDate !=null' >
-                AND t1.create_time &gt;= #{queryParams.beginDate}
+            <!-- 时间范围（前端传入的是 startTime 和 endTime） -->
+            <if test ='queryParams.startTime !=null ' >
+                AND t1.create_time &gt;= #{queryParams.startTime}
             </if>
 
-            <if test ='queryParams.endDate !=null' >
-                AND t1.create_time &lt;= #{queryParams.endDate}
+            <if test ='queryParams.endTime !=null' >
+                AND t1.create_time &lt;= #{queryParams.endTime}
             </if>
+
+            <!-- 支付方式 -->
+            <if test='queryParams.payType != null'>
+                AND t1.payment_method = #{queryParams.payType}
+            </if>
+
+            <!-- 订单来源（前端可能是 orderType） -->
+            <if test='queryParams.orderType != null'>
+                AND t1.source = #{queryParams.orderType}
+            </if>
+
         </where>
         ORDER BY
             t1.create_time DESC
     </select>
+
+
+    <select id="getOrderStatusCounts" resultType="java.util.Map">
+        SELECT
+        status,
+        COUNT(*) as count
+        FROM oms_order
+        <where>
+            deleted = 0
+
+            <!-- 时间范围 -->
+            <if test='queryParams.startTime != null and queryParams.startTime != ""'>
+                AND create_time >= #{queryParams.startTime}
+            </if>
+            <if test='queryParams.endTime != null and queryParams.endTime != ""'>
+                AND create_time &lt;= #{queryParams.endTime}
+            </if>
+
+            <!-- 关键词搜索 -->
+            <if test='queryParams.keywords != null and queryParams.keywords.trim() != ""'>
+                AND (
+                order_sn LIKE CONCAT('%', #{queryParams.keywords}, '%')
+                OR CAST(id AS CHAR) LIKE CONCAT('%', #{queryParams.keywords}, '%')
+                OR user_phone LIKE CONCAT('%', #{queryParams.keywords}, '%')
+                )
+            </if>
+
+            <!-- 多租户条件会自动添加 -->
+        </where>
+        GROUP BY status
+    </select>
+
+    <!-- 根据查询条件统计订单数量 -->
+    <select id="selectCountByQuery" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM oms_order
+        <where>
+            deleted = 0
+
+            <!-- 状态过滤 -->
+            <if test='queryParams.status != null and queryParams.status != -1'>
+                AND status = #{queryParams.status}
+            </if>
+
+            <!-- 时间范围 -->
+            <if test='queryParams.startTime  != null and queryParams.startTime  != ""'>
+                AND create_time >= #{queryParams.startTime }
+            </if>
+            <if test='queryParams.endTime  != null and queryParams.endTime  != ""'>
+                AND create_time &lt;= #{queryParams.endTime }
+            </if>
+
+            <!-- 关键词搜索 -->
+            <if test='queryParams.keywords != null and queryParams.keywords.trim() != ""'>
+                AND (
+                order_sn LIKE CONCAT('%', #{queryParams.keywords}, '%')
+                OR CAST(id AS CHAR) LIKE CONCAT('%', #{queryParams.keywords}, '%')
+                OR user_phone LIKE CONCAT('%', #{queryParams.keywords}, '%')
+                )
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据状态列表统计订单数量 -->
+    <select id="selectCountByCondition" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM oms_order
+        <where>
+            deleted = 0
+
+            <!-- 状态列表过滤 -->
+            <if test="statusList != null and statusList.size() > 0">
+                AND status IN
+                <foreach collection="statusList" item="status" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if>
+
+            <!-- 时间范围 -->
+            <if test='queryParams.startTime != null and queryParams.startTime != ""'>
+                AND create_time >= #{queryParams.startTime}
+            </if>
+            <if test='queryParams.endTime  != null and queryParams.endTime  != ""'>
+                AND create_time &lt;= #{queryParams.endTime}
+            </if>
+
+            <!-- 关键词搜索 -->
+            <if test='queryParams.keywords != null and queryParams.keywords.trim() != ""'>
+                AND (
+                order_sn LIKE CONCAT('%', #{queryParams.keywords}, '%')
+                OR CAST(id AS CHAR) LIKE CONCAT('%', #{queryParams.keywords}, '%')
+                OR user_phone LIKE CONCAT('%', #{queryParams.keywords}, '%')
+                )
+            </if>
+        </where>
+    </select>
+
+    <!-- 查询今日收入 -->
+    <select id="selectTodayIncome" resultType="java.lang.Long">
+        SELECT COALESCE(SUM(payment_amount), 0)
+        FROM oms_order
+        <where>
+            deleted = 0
+            AND status IN (2, 3, 4)  <!-- 只统计已支付状态的订单 -->
+
+            <!-- 状态过滤 -->
+            <if test='queryParams.status != null and queryParams.status != -1'>
+                AND status = #{queryParams.status}
+            </if>
+
+            <!-- 时间范围 -->
+            <if test='queryParams.startTime != null and queryParams.startTime != ""'>
+                AND create_time >= #{queryParams.startTime}
+            </if>
+            <if test='queryParams.endTime != null and queryParams.endTime != ""'>
+                AND create_time &lt;= #{queryParams.endTime}
+            </if>
+
+            <!-- 关键词搜索 -->
+            <if test='queryParams.keywords != null and queryParams.keywords.trim() != ""'>
+                AND (
+                order_sn LIKE CONCAT('%', #{queryParams.keywords}, '%')
+                OR CAST(id AS CHAR) LIKE CONCAT('%', #{queryParams.keywords}, '%')
+                OR user_phone LIKE CONCAT('%', #{queryParams.keywords}, '%')
+                )
+            </if>
+        </where>
+    </select>
+
+
+
+
+
+
 </mapper>

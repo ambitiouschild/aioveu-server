@@ -11,7 +11,7 @@ spring:
       max-request-size: 50MB
 # 在 banner.txt 中显示项目版本，使用 @project.version@ 从 pom.xml 获取
 project:
-  version: @project.version@
+  version: '@project.version@'  # 用单引号包裹
 
 
 #  正确的启动流程

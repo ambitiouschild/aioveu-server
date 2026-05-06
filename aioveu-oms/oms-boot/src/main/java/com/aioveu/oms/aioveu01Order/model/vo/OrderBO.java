@@ -6,8 +6,10 @@ import com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum;
 import com.aioveu.oms.aioveu01Order.enums.PaymentMethodEnum;
 import com.aioveu.oms.aioveu02OrderItem.model.entity.OmsOrderItem;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,6 +38,10 @@ public class OrderBO extends BaseEntity {
 	 * 订单总额（分）
 	 */
 	private Long totalAmount;
+
+	@Schema(description="会员id")
+	private Long memberId;
+
 	/**
 	 * 商品总数
 	 */
@@ -84,6 +90,20 @@ public class OrderBO extends BaseEntity {
 	 * 订单商品明细列表
 	 */
 	private List<OrderItem> orderItems;
+
+	/**
+	 * 订单物流信息
+	 */
+	private OrderDelivery orderDelivery;
+
+//	// Getter 和 Setter
+//	public OrderDelivery getOrderDelivery() {
+//		return orderDelivery;
+//	}
+//
+//	public void setOrderDelivery(OrderDelivery orderDelivery) {
+//		this.orderDelivery = orderDelivery;
+//	}
 
 	@Data
 	public static class OrderItem{
@@ -134,6 +154,90 @@ public class OrderBO extends BaseEntity {
 		private Long totalAmount;
 
 
+	}
+
+
+	/**
+	 * 订单物流信息
+	 */
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class OrderDelivery {
+		/**
+		 * id
+		 */
+		private Long id;
+
+		/**
+		 * 订单ID
+		 */
+		private Long orderId;
+
+		/**
+		 * 物流公司(配送方式)
+		 */
+		private String deliveryCompany;
+
+		/**
+		 * 物流单号
+		 */
+		private String deliverySn;
+
+		/**
+		 * 收货人姓名
+		 */
+		private String receiverName;
+
+		/**
+		 * 收货人电话
+		 */
+		private String receiverPhone;
+
+		/**
+		 * 收货人邮编
+		 */
+		private String receiverPostCode;
+
+		/**
+		 * 省份/直辖市
+		 */
+		private String receiverProvince;
+
+		/**
+		 * 城市
+		 */
+		private String receiverCity;
+
+		/**
+		 * 区
+		 */
+		private String receiverRegion;
+
+		/**
+		 * 详细地址
+		 */
+		private String receiverDetailAddress;
+
+		/**
+		 * 备注
+		 */
+		private String remark;
+
+		/**
+		 * 物流状态【0->运输中；1->已收货】
+		 */
+		private Integer deliveryStatus;
+
+		/**
+		 * 发货时间
+		 */
+		private LocalDateTime deliveryTime;
+
+		/**
+		 * 确认收货时间
+		 */
+		private LocalDateTime receiveTime;
 	}
 
 }

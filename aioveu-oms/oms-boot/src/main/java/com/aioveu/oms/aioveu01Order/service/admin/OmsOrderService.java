@@ -77,6 +77,5 @@ public interface OmsOrderService extends IService<OmsOrder> {
      */
     boolean deleteOmsOrders(String ids);
 
-
 }
 

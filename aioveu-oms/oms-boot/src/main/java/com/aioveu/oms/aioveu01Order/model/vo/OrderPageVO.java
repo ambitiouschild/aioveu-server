@@ -62,6 +62,44 @@ public class OrderPageVO {
     private String spuName;  // 商品展示名
     private String picUrl;   // 商品展示图
 
+
+
+    //=========================================
+
+    /**
+     * 收货人姓名
+     */
+    private String receiverName;
+
+    /**
+     * 收货人电话
+     */
+    private String receiverPhone;
+
+    /**
+     * 完整收货地址
+     */
+    private String fullAddress;
+
+    /**
+     * 物流公司
+     */
+    private String deliveryCompany;
+
+    /**
+     * 物流单号
+     */
+    private String deliverySn;
+
+    /**
+     * 物流状态
+     */
+    private Integer deliveryStatus;
+
+    private String deliveryStatusLabel;
+
+    //=========================================
+
     @Schema(description ="订单商品明细")
     @Data
     public static class OrderItem {

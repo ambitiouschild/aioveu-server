@@ -5,9 +5,11 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import com.aioveu.common.exception.BusinessException;
+import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
+import com.aioveu.oms.aioveu01Order.model.vo.*;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
 import com.aioveu.oms.aioveu01Order.utils.OrderNoGenerator;
 import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
@@ -16,6 +18,8 @@ import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
 import com.aioveu.pay.api.PayFeignClient;
 import com.aioveu.pay.model.PaymentParamsVO;
 import com.aioveu.pay.model.PaymentRequestDTO;
+import com.alibaba.nacos.shaded.com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.alibaba.nacos.shaded.io.grpc.netty.shaded.io.netty.handler.codec.DateFormatter;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -36,15 +40,11 @@ import com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum;
 import com.aioveu.oms.aioveu01Order.enums.OrderSourceEnum;
 import com.aioveu.oms.aioveu01Order.enums.PaymentMethodEnum;
 import com.aioveu.oms.aioveu01Order.mapper.OmsOrderMapper;
-import com.aioveu.oms.aioveu01Order.model.vo.OrderBO;
-import com.aioveu.oms.aioveu01Order.model.vo.CartItemDto;
 import com.aioveu.oms.aioveu02OrderItem.model.vo.OrderItemDTO;
 import com.aioveu.oms.aioveu02OrderItem.model.entity.OmsOrderItem;
 import com.aioveu.oms.aioveu05OrderPay.model.form.OrderPaymentForm;
 import com.aioveu.oms.aioveu05OrderPay.model.form.OrderSubmitForm;
 import com.aioveu.oms.aioveu01Order.model.query.OrderPageQuery;
-import com.aioveu.oms.aioveu01Order.model.vo.OrderConfirmVO;
-import com.aioveu.oms.aioveu01Order.model.vo.OrderPageVO;
 import com.aioveu.oms.aioveu01Order.service.CartService;
 import com.aioveu.oms.aioveu02OrderItem.service.OmsOrderItemService;
 import com.aioveu.pms.api.SkuFeignClient;
@@ -59,6 +59,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -68,10 +69,11 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -158,6 +160,8 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
     private final OmsOrderItemService omsOrderItemService;
 
+    private final OmsOrderDeliveryService omsOrderDeliveryService;
+
 
 
     // 开启模拟支付
@@ -173,7 +177,9 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     @Override
     public IPage<OrderPageVO> getOrderPage(OrderPageQuery queryParams) {
 
-        log.info("调用Mapper进行分页查询，返回业务对象分页");
+        log.info("【Oms-Order】分页查询订单列表，查询参数：{}", queryParams);
+
+        log.info("【Oms-Order】调用Mapper进行分页查询，返回业务对象分页");
         Page<OrderBO> boPage = this.baseMapper.getOrderPage(
                 new Page<>(queryParams.getPageNum(), queryParams.getPageSize()),
                 queryParams);
@@ -188,6 +194,14 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             // 批量查询商品
             List<OmsOrderItem> allItems = omsOrderItemService.list(
                     new LambdaQueryWrapper<OmsOrderItem>().in(OmsOrderItem::getOrderId, orderIds));
+
+            // 批量查询物流信息
+            List<OmsOrderDelivery> allDeliveries = omsOrderDeliveryService.list(
+                    new LambdaQueryWrapper<OmsOrderDelivery>()
+                            .in(OmsOrderDelivery::getOrderId, orderIds)
+                            .orderByDesc(OmsOrderDelivery::getCreateTime) // 按创建时间降序，取最新的一条
+            );
+
 
             // 关键步骤：建立订单ID -> 商品列表的映射  OrderBO.OrderItem是内部类
             Map<Long, List<OrderBO.OrderItem>> itemsByOrderId = allItems
@@ -208,6 +222,21 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
                     })
                     .collect(Collectors.groupingBy(OrderBO.OrderItem::getOrderId));
 
+            // 建立订单ID -> 物流信息的映射（每个订单取最新的物流信息）
+            Map<Long, OrderBO.OrderDelivery> deliveryByOrderId = allDeliveries
+                    .stream()
+                    .collect(Collectors.toMap(
+                            OmsOrderDelivery::getOrderId,
+                            delivery -> {
+                                OrderBO.OrderDelivery deliveryBo = new OrderBO.OrderDelivery();
+                                BeanUtils.copyProperties(delivery, deliveryBo);
+                                return deliveryBo;
+                            },
+                            (oldDelivery, newDelivery) -> newDelivery // 如果同一个订单有多个物流记录，取最新的
+                    ));
+
+
+
             // 3. 将商品设置到对应的订单中，并设置展示名
             boPage.getRecords().forEach(order -> {
                 List<OrderBO.OrderItem> items = itemsByOrderId.getOrDefault(order.getId(),
@@ -216,6 +245,19 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
                 log.info("通过映射得到的商品各项: {}", items);
                 // 设置商品列表
                 order.setOrderItems(items);
+
+
+                // 设置物流信息
+                OrderBO.OrderDelivery delivery = deliveryByOrderId.get(order.getId());
+                if (delivery != null) {
+                    order.setOrderDelivery(delivery);
+                    log.info("订单{}的物流信息: {}", order.getId(), delivery);
+                } else {
+                    // 如果没有物流信息，设置默认值或为空
+                    log.info("订单{}暂无物流信息", order.getId());
+                    order.setOrderDelivery(new OrderBO.OrderDelivery());
+                }
+
 
                 log.info("前端展示的订单信息: {}", order);
 
@@ -241,6 +283,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         Page<OrderPageVO> orderPageVO=  omsOrderConverter.toVoPageForApp(boPage);
         log.info("将业务对象分页转换为前端展示的分页VO:{}",orderPageVO);
+        log.info("【Oms-Order】订单分页查询完成，共查询到{}条记录", orderPageVO.getTotal());
 
 
         return orderPageVO;
@@ -1376,6 +1419,188 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         log.info("2. 随机数防止同一毫秒内的冲突");
         log.info("3. 用户ID后5位便于人工识别订单归属");
         return System.currentTimeMillis() + RandomUtil.randomNumbers(3) + fiveDigitsUserId;
+    }
+
+
+    //-------------------------------------------------------------
+
+    /**
+     * 获取订单统计信息
+     */
+    @Override
+    public Map<String, Object>  getOrderStatistics(OrderPageQuery queryParams) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // 1. 查询各状态订单数量
+            Map<Integer, Map<String, Object>> statusCountsMap =
+                    this.baseMapper.getOrderStatusCounts(queryParams);
+
+            // 2. 初始化统计结果
+            Map<String, Integer> statusCounts = new HashMap<>();
+            statusCounts.put("-1", 0);  // 全部
+
+            // 3. 转换结果格式
+            int total = 0;
+            for (Map.Entry<Integer, Map<String, Object>> entry : statusCountsMap.entrySet()) {
+                Integer status = entry.getKey();
+                Map<String, Object> countMap = entry.getValue();
+                Integer count = ((Number) countMap.get("count")).intValue();
+
+                // 状态值转换为字符串
+                statusCounts.put(status.toString(), count);
+                total += count;
+            }
+
+            // 4. 设置总数
+            statusCounts.put("-1", total);
+
+            // 5. 查询今日数据
+            Integer todayOrderCount = getTodayOrderCount(queryParams);
+            Integer pendingCount = getPendingOrderCount(queryParams);
+            Long todayIncome = getTodayIncome(queryParams);
+
+            // 6. 返回结果
+            result.put("statusCounts", statusCounts);
+            result.put("todayOrderCount", todayOrderCount);
+            result.put("pendingCount", pendingCount);
+            result.put("todayIncome", todayIncome);
+            result.put("total", total);
+
+        } catch (Exception e) {
+            log.error("查询订单统计失败", e);
+            throw new BusinessException("统计查询失败");
+        }
+
+        return result;
+    }
+
+    /**
+     * 查询今日订单数量
+     */
+    private Integer getTodayOrderCount(OrderPageQuery queryParams) {
+        // 创建今天的查询条件
+        OrderPageQuery todayQuery = new OrderPageQuery();
+        BeanUtils.copyProperties(queryParams, todayQuery);
+
+        // 设置今天的时间范围
+        LocalDate today = LocalDate.now();
+        todayQuery.setStartTime(today.atStartOfDay()); // 今天 00:00:00
+        todayQuery.setEndTime(today.atTime(23, 59, 59));  // 今天 23:59:59
+
+        return this.baseMapper.selectCountByQuery(todayQuery);
+    }
+
+    /**
+     * 查询待处理订单数量
+     */
+    private Integer getPendingOrderCount(OrderPageQuery queryParams) {
+        // 待处理订单：待付款 + 待发货
+        OrderPageQuery pendingQuery = new OrderPageQuery();
+        BeanUtils.copyProperties(queryParams, pendingQuery);
+
+        // 重置状态，查询特定状态
+        pendingQuery.setStatus(null);
+
+        return this.baseMapper.selectCountByCondition(
+                pendingQuery,
+                Arrays.asList(0, 1)  // 待付款(0)和待发货(1)
+        );
+    }
+
+    /**
+     * 查询今日收入
+     */
+    private Long getTodayIncome(OrderPageQuery queryParams) {
+        OrderPageQuery todayQuery = new OrderPageQuery();
+        BeanUtils.copyProperties(queryParams, todayQuery);
+
+        LocalDate today = LocalDate.now();
+        todayQuery.setStartTime(today.atStartOfDay()); // 今天 00:00:00
+        todayQuery.setEndTime(today.atTime(23, 59, 59));  // 今天 23:59:59
+
+        return this.baseMapper.selectTodayIncome(todayQuery);
+    }
+
+    //-------------------------------------------------------------
+
+    // 创建专门的线程池用于并行查询
+    private static final ExecutorService queryExecutor = Executors.newFixedThreadPool(
+            5,
+            new ThreadFactoryBuilder()
+                    .setNameFormat("order-query-thread-%d")
+                    .build()
+    );
+
+    /**
+     * 获取订单分页和统计信息（业务编排）
+     */
+    @Override
+    public OrderPageWithStatsVO getOrderPageWithStatistics(OrderPageQuery queryParams) {
+        log.info("开始查询订单分页和统计信息，参数：{}", queryParams);
+        OrderPageWithStatsVO result = new OrderPageWithStatsVO();
+
+        // 并行查询分页数据和统计信息
+        CompletableFuture<IPage<OrderPageVO>> pageFuture =
+                CompletableFuture.supplyAsync(() ->
+                        {
+                            log.info("开始查询订单分页数据");
+                            return this.getOrderPage(queryParams);
+                        }, queryExecutor)
+                        .exceptionally(e -> {
+                        log.error("查询订单分页数据失败", e);
+                        return null;
+                });
+
+        CompletableFuture<Map<String, Object>> statsFuture =
+                CompletableFuture.supplyAsync(() ->
+                        {
+                            log.info("开始查询订单统计信息");
+                            return this.getOrderStatistics(queryParams);
+                        }, queryExecutor)
+                        .exceptionally(e -> {
+                        log.error("查询订单统计信息失败", e);
+                        return new HashMap<>();
+                });
+
+        // 等待结果
+        CompletableFuture.allOf(pageFuture, statsFuture)
+                .completeOnTimeout(null, 10, TimeUnit.SECONDS)
+                .join();
+
+        try {
+            IPage<OrderPageVO> pageResult = pageFuture.get(5, TimeUnit.SECONDS);
+            Map<String, Object> statistics = statsFuture.get(5, TimeUnit.SECONDS);
+
+            if (pageResult == null) {
+                log.error("订单分页查询结果为null");
+                throw new BusinessException("订单查询失败");
+            }
+
+            // 设置分页信息
+            result.setList(pageResult.getRecords());
+            result.setPageNum(pageResult.getCurrent());
+            result.setPageSize(pageResult.getSize());
+            result.setTotal(pageResult.getTotal());
+            result.setPages(pageResult.getPages());
+            result.setHasNextPage(pageResult.getCurrent() < pageResult.getPages());
+
+            // 设置统计信息
+            if (statistics != null) {
+                result.setStatusCounts((Map<String, Integer>) statistics.get("statusCounts"));
+                result.setTodayOrderCount(((Number) statistics.getOrDefault("todayOrderCount", 0)).intValue());
+                result.setPendingCount(((Number) statistics.getOrDefault("pendingCount", 0)).intValue());
+                result.setTodayIncome(((Number) statistics.getOrDefault("todayIncome", 0L)).longValue());
+            }
+
+            log.info("订单分页和统计信息查询成功，共{}条记录", result.getTotal());
+
+        } catch (Exception e) {
+            log.error("查询订单分页和统计信息失败", e);
+            throw new BusinessException("查询失败");
+        }
+
+        return result;
     }
 
 }

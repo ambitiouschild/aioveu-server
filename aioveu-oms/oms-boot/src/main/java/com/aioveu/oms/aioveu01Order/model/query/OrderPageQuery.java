@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 /**
@@ -27,10 +28,27 @@ public class OrderPageQuery extends BasePageQuery {
     @Schema(description="关键字(订单编号/商品名称/会员姓名/会员手机号)")
     private String keywords;
 
+    @Schema(description = "订单号")
+    private String orderSn;
+
+    @Schema(description = "用户手机号")
+    private String userPhone;
+
+    @Schema(description = "用户昵称")
+    private String userNickname;
+
+    @Schema(description = "商品名称/货号")
+    private String productKeyword;
+
+
+
+
+
+
     /**
      * 订单状态
      */
-    @Schema(description="订单状态")
+    @Schema(description="订单状态：-1-全部，0-待支付，1-待发货，2-已发货，3-已完成，4-已取消")
     private Integer status;
 
     /**
@@ -38,13 +56,22 @@ public class OrderPageQuery extends BasePageQuery {
      */
     @Schema(description = "开始时间(yyyy-MM-dd)",example = "2023-10-01")
     @DateTimeFormat(pattern = "yyyy-MM-dd 00:00:00") // DateTimeFormat 用于将查询参数或表单参数转换为日期类型
-    private Date beginDate;
+    private LocalDateTime startTime;
 
     /**
      * 截止时间
      */
     @Schema(description = "截止时间(yyyy-MM-dd)",example = "2025-10-01")
     @DateTimeFormat(pattern = "yyyy-MM-dd 23:59:59")
-    private Date endDate;
+    private LocalDateTime endTime;
+
+    @Schema(description = "订单类型")
+    private Integer orderType;
+
+    @Schema(description = "支付方式")
+    private Integer payType;
+
+    @Schema(description = "配送方式")
+    private Integer deliveryType;
 
 }

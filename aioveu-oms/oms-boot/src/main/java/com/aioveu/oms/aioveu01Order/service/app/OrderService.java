@@ -1,6 +1,8 @@
 package com.aioveu.oms.aioveu01Order.service.app;
 
+import com.aioveu.common.result.PageResult;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
+import com.aioveu.oms.aioveu01Order.model.vo.OrderPageWithStatsVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.github.binarywang.wxpay.bean.notify.SignatureHeader;
@@ -10,6 +12,8 @@ import com.aioveu.oms.aioveu05OrderPay.model.form.OrderSubmitForm;
 import com.aioveu.oms.aioveu01Order.model.query.OrderPageQuery;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderConfirmVO;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderPageVO;
+
+import java.util.Map;
 
 /**
  * @Description: TODO 订单业务接口
@@ -66,6 +70,25 @@ public interface OrderService extends IService<OmsOrder> {
      * @return {@link OrderPageVO}
      */
     IPage<OrderPageVO> getOrderPage(OrderPageQuery queryParams);
+
+
+    /**
+     * 获取订单统计信息
+     */
+    Map<String, Object> getOrderStatistics(OrderPageQuery queryParams);
+
+
+
+    /**
+     *   TODO       获取订单分页和统计信息（业务编排）
+                 1.接口目标明确：为App端返回“数据列表” + “全局统计”。
+                 2.数据结构简化：移除所有分页元数据字段，使响应对象纯粹服务于业务数据展示。
+                 3.查询逻辑调整：
+                     列表查询：从分页查询改为列表查询（可通过LIMIT控制首批数据量，后续由App端通过参数请求更多）。
+                     统计查询：保持不变，因为它本就基于全部筛选条件进行计算。
+     *
+     */
+    OrderPageWithStatsVO getOrderPageWithStatistics(OrderPageQuery queryParams);
 
 
 }

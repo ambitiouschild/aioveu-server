@@ -1,7 +1,11 @@
 package com.aioveu.oms.aioveu01Order.controller.app;
 
+import com.aioveu.common.annotation.Log;
+import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.ResultCode;
+import com.aioveu.oms.aioveu01Order.model.vo.OmsOrderPageVO;
+import com.aioveu.oms.aioveu01Order.model.vo.OrderPageWithStatsVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.Result;
@@ -18,6 +22,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @Description: TODO APP-订单控制层
@@ -36,12 +43,42 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    //包含多个筛选条件（如时间范围、订单状态、关键词等）。使用 POST可以通过请求体传递复杂的结构化数据
     @Operation(summary ="订单分页列表")
-    @GetMapping
+    @PostMapping
     public PageResult<OrderPageVO> getOrderPage(OrderPageQuery queryParams) {
-        IPage<OrderPageVO> result = orderService.getOrderPage(queryParams);
-        return PageResult.success(result);
+
+            IPage<OrderPageVO> page = orderService.getOrderPage(queryParams);
+            return PageResult.success(page);
+
+            /*
+            *   TODO 是的，您的理解完全正确。
+                        如果您的 App 端采用上拉加载更多（流式加载）而非传统的分页器点击方式，那么接口的核心任务就变成了：
+                        返回符合条件的完整订单列表（或首批若干条，后续由App端触发加载更多）。
+                        返回基于所有数据的统计信息。
+                        在这种情况下，不需要返回 IPage对象，因为它包含的 pageNum, pageSize, total, pages, hasNextPage等分页元数据对App端已失去意义。
+                        因此，接口可以直接返回一个包含“订单列表”和“统计信息”的聚合对象。
+            *
+            * */
+
     }
+
+
+    @Operation(summary = "获取订单统计信息")
+    @PostMapping("/statistics")
+//    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrder:oms-order:statistics')")
+    @Log( value = "获取订单统计信息",module = LogModuleEnum.OMS)
+    public Result<Map<String, Object>> getOrderStatistics(@RequestBody OrderPageQuery  queryParams ) {
+
+        try {
+            Map<String, Object> statistics = orderService.getOrderStatistics(queryParams);
+            return Result.success(statistics);
+        } catch (Exception e) {
+            log.error("获取订单统计失败：", e);
+            return Result.failed("获取统计信息失败");
+        }
+    }
+
 
     @Operation(summary = "订单确认", description = "进入订单确认页面有两个入口，1：立即购买；2：购物车结算")
     @PostMapping("/confirm")

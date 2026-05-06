@@ -2,14 +2,13 @@ package com.aioveu.oms.aioveu01Order.converter;
 
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.model.form.OmsOrderForm;
+import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderBO;
 import com.aioveu.oms.aioveu05OrderPay.model.form.OrderSubmitForm;
 import com.aioveu.oms.aioveu01Order.model.vo.OmsOrderPageVO;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderPageVO;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
+import org.mapstruct.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,10 +88,86 @@ public interface OmsOrderConverter {
             // 添加这两个映射
             @Mapping(target = "spuName", source = "spuName"),
             @Mapping(target = "picUrl", source = "picUrl"),
+            // 物流信息字段映射
+            @Mapping(target = "receiverName", source = "orderDelivery.receiverName"),
+            @Mapping(target = "receiverPhone", source = "orderDelivery.receiverPhone"),
+            @Mapping(target = "deliveryCompany", source = "orderDelivery.deliveryCompany"),
+            @Mapping(target = "deliverySn", source = "orderDelivery.deliverySn"),
+            @Mapping(target = "deliveryStatus", source = "orderDelivery.deliveryStatus"),
+//            // 完整地址需要通过表达式拼接
+//            @Mapping(
+//                    target = "fullAddress",
+//                    expression = "java(buildFullAddress(bo.getOrderDelivery()))"
+//            )
     })
     OrderPageVO toVoPageForApp(OrderBO bo);
 
+//=================================================
+    /**
+     * 映射后处理
+     */
+    @AfterMapping
+    default void afterMapping(OrderBO bo, @MappingTarget OrderPageVO vo) {
+        // 处理完整地址
+        if (bo != null && bo.getOrderDelivery() != null) {
+            OrderBO.OrderDelivery delivery = bo.getOrderDelivery();
+            String fullAddress = buildFullAddress(delivery);
+            vo.setFullAddress(fullAddress);
+        }
 
+        // 如果需要，可以在这里处理其他字段
+        // 例如：设置物流状态对应的文字描述
+        if (vo.getDeliveryStatus() != null) {
+            String statusLabel = convertDeliveryStatus(vo.getDeliveryStatus());
+            vo.setDeliveryStatusLabel(statusLabel);
+        }
+    }
+
+    /**
+     * 构建完整地址
+     */
+    default String buildFullAddress(OrderBO.OrderDelivery delivery) {
+        if (delivery == null) {
+            return null;
+        }
+
+        String province = delivery.getReceiverProvince();
+        String city = delivery.getReceiverCity();
+        String region = delivery.getReceiverRegion();
+        String detail = delivery.getReceiverDetailAddress();
+
+        StringBuilder sb = new StringBuilder();
+        if (StringUtils.hasText(province)) {
+            sb.append(province);
+        }
+        if (StringUtils.hasText(city)) {
+            sb.append(city);
+        }
+        if (StringUtils.hasText(region)) {
+            sb.append(region);
+        }
+        if (StringUtils.hasText(detail)) {
+            sb.append(detail);
+        }
+
+        return sb.length() > 0 ? sb.toString() : null;
+    }
+
+    /**
+     * 转换物流状态为文字描述
+     */
+    default String convertDeliveryStatus(Integer status) {
+        if (status == null) {
+            return null;
+        }
+        switch (status) {
+            case 0: return "运输中";
+            case 1: return "已收货";
+            default: return "未知状态";
+        }
+    }
+
+//=================================================
 
     // 分页转换使用手动方法
     default Page<OrderPageVO> toVoPageForApp(Page<OrderBO> boPage) {
