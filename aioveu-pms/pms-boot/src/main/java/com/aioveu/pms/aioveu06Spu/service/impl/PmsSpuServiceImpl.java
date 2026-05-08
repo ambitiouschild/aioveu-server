@@ -911,7 +911,12 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
                     .in(PmsSpu::getId, spuIds)
                     .ne(PmsSpu::getStatus, status); // 只更新状态不同的商品
 
-            boolean result = this.update(updateWrapper);
+            // 创建一个实体对象
+            PmsSpu updateEntity = new PmsSpu();
+            updateEntity.setStatus(status);
+            // updateTime 会由 MyBatis Plus 自动填充
+
+            boolean result = this.update(updateEntity, updateWrapper);
 
             // 记录日志
             String action = status == 1 ? "上架" : "下架";
