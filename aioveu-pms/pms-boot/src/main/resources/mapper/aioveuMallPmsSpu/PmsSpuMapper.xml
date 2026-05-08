@@ -75,6 +75,8 @@
         FROM
             `pms_spu`
         <where>
+            <!-- 新增过滤条件：只查询上架商品 -->
+            status = 1
             <if test='queryParams.keywords!=null and queryParams.keywords.trim() neq ""'>
                 AND name like concat('%',#{queryParams.keywords},'%')
             </if>
@@ -83,7 +85,7 @@
             </if>
         </where>
         ORDER BY
-        <if test='queryParams.sortField!=null and queryParams.sortField.trim() neq "" and queryParams.sortField !=null and queryParams.sort.trim() neq ""'>
+        <if test='queryParams.sortField!=null and queryParams.sortField.trim() neq "" and queryParams.sort  !=null and queryParams.sort.trim() neq ""'>
             ${queryParams.sortField} ${queryParams.sort} ,
         </if>
         create_time desc
