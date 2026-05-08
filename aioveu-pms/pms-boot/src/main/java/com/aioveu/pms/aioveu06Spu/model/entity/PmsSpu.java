@@ -96,4 +96,10 @@ public class PmsSpu extends BaseEntityWithTenantId {
 
     @TableField(exist = false)
     private List<PmsSku> skuList;
+
+
+    /**
+     * 逻辑删除标识(1:已删除;0:未删除)
+     */
+//    private Integer deleted;
 }

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.aioveu.pms.aioveu06Spu.model.entity.PmsSpu;
 import com.aioveu.pms.aioveu06Spu.model.form.PmsSpuForm;
 import com.aioveu.pms.aioveu06Spu.model.query.PmsSpuQuery;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -135,4 +136,51 @@ public interface PmsSpuService extends IService<PmsSpu> {
      * @return 是否删除成功
      */
     boolean deletePmsSpus(String ids);
+
+
+    /**
+     * 批量更新商品状态（上架/下架）
+     * @param spuIds 商品ID列表
+     * @param status 目标状态：0=下架，1=上架
+     * @return 是否更新成功
+     */
+    boolean batchUpdateStatus(List<Long> spuIds, Integer status);
+
+
+    /**
+     * 批量上架商品
+     */
+    boolean batchShelf(List<Long> spuIds);
+
+
+    /**
+     * 批量下架商品
+     */
+    boolean batchOffShelf(List<Long> spuIds);
+
+
+
+    /**
+     * 批量删除商品（逻辑删除）
+     * @param spuIds 商品ID列表
+     * @return 是否删除成功
+     */
+    boolean batchRemove(List<Long> spuIds);
+
+    /**
+     * 批量物理删除（慎用）
+     */
+    boolean batchPhysicalRemove(List<Long> spuIds);
+
+    /**
+     * 安全批量更新状态（检查商品是否存在，避免空更新）
+     */
+    boolean safeBatchUpdateStatus(List<Long> spuIds, Integer status);
+
+
+
+    /**
+     * 根据条件批量更新状态
+     */
+    boolean batchUpdateStatusByCondition(Long categoryId, Long brandId, Integer status);
 }

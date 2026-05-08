@@ -179,10 +179,23 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         log.info("【Oms-Order】分页查询订单列表，查询参数：{}", queryParams);
 
+
+        /*
+         *   TODO   1.Java 日志里的 T：
+                         你在日志里看到的 2026-05-07T00:00（带 T），仅仅是 Java 程序在打印日志时，
+                         把 LocalDateTime对象默认转换成了 ISO 8601 标准字符串格式。这只是为了阅读方便，并不是传给数据库的真实值。
+                    2.传给数据库的 ?：
+                         注意看你的 SQL 日志下一行：Parameters: 2026-05-07T00:00(LocalDateTime), ...。
+                         虽然打印出来看着像带 T的字符串，但 JDBC 驱动在底层会自动把它转换成标准的 yyyy-MM-dd HH:mm:ss格式发送给 MySQL。
+        *
+        *
+        * */
         log.info("【Oms-Order】调用Mapper进行分页查询，返回业务对象分页");
         Page<OrderBO> boPage = this.baseMapper.getOrderPage(
                 new Page<>(queryParams.getPageNum(), queryParams.getPageSize()),
                 queryParams);
+
+        log.info("【Oms-Order】返回业务对象分页boPage:{}",boPage);
 
         // 2. 如果订单不为空，查询商品
         if (!CollectionUtils.isEmpty(boPage.getRecords())) {

@@ -64,16 +64,16 @@ public class OrderPageQuery extends BasePageQuery {
      * 开始时间
      */
     @Schema(description = "开始时间(yyyy-MM-dd)",example = "2023-10-01")
-    @DateTimeFormat(pattern = "yyyy-MM-dd 00:00:00") // DateTimeFormat 用于将查询参数或表单参数转换为日期类型
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")  // 修正pattern
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")  // 添加时区
     private LocalDateTime startTime;
 
     /**
      * 截止时间
      */
     @Schema(description = "截止时间(yyyy-MM-dd)",example = "2025-10-01")
-    @DateTimeFormat(pattern = "yyyy-MM-dd 23:59:59")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")  // 修正pattern
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")  // 添加时区
     private LocalDateTime endTime;
 
     @Schema(description = "订单类型")

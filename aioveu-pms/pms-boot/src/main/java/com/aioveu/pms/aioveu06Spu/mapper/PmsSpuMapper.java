@@ -7,6 +7,7 @@ import com.aioveu.pms.aioveu06Spu.model.query.PmsSpuQuery;
 import com.aioveu.pms.aioveu06Spu.model.vo.PmsSpuVO;
 import com.aioveu.pms.aioveu06Spu.model.vo.SpuPageVO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -40,6 +41,31 @@ public interface PmsSpuMapper extends BaseMapper<PmsSpu> {
      * @return {@link Page<PmsSpuVO>} 商品分页列表
      */
     Page<PmsSpuVO> getPmsSpuPage(Page<PmsSpuVO> page, PmsSpuQuery queryParams);
+
+
+    /**
+     * 批量更新商品状态
+     */
+    int batchUpdateStatus(@Param("spuIds") List<Long> spuIds,
+                          @Param("status") Integer status);
+
+    /**
+     * 批量上架
+     */
+    int batchShelf(@Param("spuIds") List<Long> spuIds);
+
+
+    /**
+     * 批量下架
+     */
+    int batchOffShelf(@Param("spuIds") List<Long> spuIds);
+
+
+    /**
+     * 批量逻辑删除商品
+     */
+    int batchRemove(@Param("spuIds") List<Long> spuIds);
+
 
 
 }

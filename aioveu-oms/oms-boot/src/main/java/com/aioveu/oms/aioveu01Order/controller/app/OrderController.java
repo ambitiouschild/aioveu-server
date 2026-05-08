@@ -6,6 +6,7 @@ import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.oms.aioveu01Order.model.vo.OmsOrderPageVO;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderPageWithStatsVO;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.Result;
@@ -44,9 +45,16 @@ public class OrderController {
     private final OrderService orderService;
 
     //包含多个筛选条件（如时间范围、订单状态、关键词等）。使用 POST可以通过请求体传递复杂的结构化数据
+    //前端发送的是JSON请求体（POST + data参数），但后端没有用@RequestBody接收，所以Spring无法将请求体解析为对象。
     @Operation(summary ="订单分页列表")
     @PostMapping
-    public PageResult<OrderPageVO> getOrderPage(OrderPageQuery queryParams) {
+    public PageResult<OrderPageVO> getOrderPage(@RequestBody OrderPageQuery queryParams) {
+
+
+            // 添加日志查看接收到的参数
+            log.info("【订单分页】查询参数: {}", JSON.toJSONString(queryParams));
+            log.info("【订单分页】startTime: {}, endTime: {}",
+                    queryParams.getStartTime(), queryParams.getEndTime());
 
             IPage<OrderPageVO> page = orderService.getOrderPage(queryParams);
             return PageResult.success(page);

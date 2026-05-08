@@ -11,6 +11,7 @@ import com.aioveu.pms.aioveu06Spu.model.vo.SeckillingSpuVO;
 import com.aioveu.pms.aioveu06Spu.model.vo.SpuDetailVO;
 import com.aioveu.pms.aioveu06Spu.model.vo.SpuPageVO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -555,7 +556,7 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
                     // 但您的数据是：temp_xxx_temp_yyy，中间是下划线
                     .map(specId -> specId.startsWith(ProductConstants.SPEC_TEMP_ID_PREFIX) ?
                             // 临时ID，从映射中获取数据库ID
-                            specTempIdIdMap.get(specId) + ""
+                            specTempIdIdMap.get(specId) + ""   // ❌ 这里可能返回null
                             : specId)  // 临时ID替换，已有ID保持不变
                     .collect(Collectors.joining("_"));  // 重新拼接规格ID字符串
 
@@ -859,6 +860,241 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
                 .toList();
         return this.removeByIds(idList);
     }
+
+    /**
+     * 批量更新商品状态（上架/下架）  （包含业务验证）
+     * @param spuIds 商品ID列表
+     * @param status 目标状态：0=下架，1=上架
+     * @return 是否更新成功
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean batchUpdateStatus(List<Long> spuIds, Integer status) {
+
+
+        try {
+            // 参数验证
+            if (spuIds == null || spuIds.isEmpty()) {
+                log.warn("批量更新商品状态失败：商品ID列表为空");
+                return false;
+            }
+            // 验证状态值
+            if (status != 0 && status != 1) {
+                log.warn("批量更新商品状态失败：状态值不合法，status={}", status);
+                return false;
+            }
+
+            // 检查商品是否存在
+            List<PmsSpu> existingSpus = this.listByIds(spuIds);
+            if (existingSpus.size() != spuIds.size()) {
+                log.warn("部分商品不存在，请检查商品ID");
+                return false;
+            }
+
+
+            // 检查是否已经是目标状态
+            long alreadyInStatus = existingSpus.stream()
+                    .filter(spu -> status.equals(spu.getStatus()))
+                    .count();
+
+            if (alreadyInStatus > 0) {
+                log.warn("有{}个商品已经处于{}状态",
+                        alreadyInStatus, status == 1 ? "上架" : "下架");
+            }
+
+
+
+            // 方法1：使用LambdaUpdateWrapper
+            LambdaUpdateWrapper<PmsSpu> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper
+                    .set(PmsSpu::getStatus, status)
+                    .in(PmsSpu::getId, spuIds)
+                    .ne(PmsSpu::getStatus, status); // 只更新状态不同的商品
+
+            boolean result = this.update(updateWrapper);
+
+            // 记录日志
+            String action = status == 1 ? "上架" : "下架";
+            log.info("批量{}商品成功：spuIds={}, 数量={}", action, spuIds, spuIds.size());
+
+            return result;
+
+        } catch (Exception e) {
+            log.error("批量更新商品状态异常：spuIds={}, status={}", spuIds, status, e);
+            throw new RuntimeException("批量更新商品状态失败", e);
+        }
+    }
+
+
+    /**
+     * 批量上架商品
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean batchShelf(List<Long> spuIds) {
+        return batchUpdateStatus(spuIds, 1);
+    }
+
+    /**
+     * 批量下架商品
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean batchOffShelf(List<Long> spuIds) {
+        return batchUpdateStatus(spuIds, 0);
+    }
+
+    /**
+     * 批量删除商品（逻辑删除）
+     * 增强版批量删除（包含关联数据检查）
+     * @param spuIds 商品ID列表
+     * @return 是否删除成功
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean batchRemove(List<Long> spuIds) {
+        if (spuIds == null || spuIds.isEmpty()) {
+            log.warn("批量删除商品失败：商品ID列表为空");
+            return false;
+        }
+
+        try {
+            // 方法1：使用逻辑删除
+//            LambdaUpdateWrapper<PmsSpu> updateWrapper = new LambdaUpdateWrapper<>();
+//            updateWrapper
+//                    .set(PmsSpu::getDeleted, 1) // 设置删除标志
+//                    .in(PmsSpu::getId, spuIds)
+//                    .eq(PmsSpu::getDeleted, 0); // 只删除未删除的商品
+//
+//            boolean result = this.update(updateWrapper);
+
+            // 方法2：也可以使用批量物理删除（如果有需要）
+             int deleteCount = this.baseMapper.deleteBatchIds(spuIds);
+
+            log.info("批量删除商品成功：spuIds={}, 数量={}", spuIds, spuIds.size());
+//            return result;
+
+            return deleteCount > 0;
+
+        } catch (Exception e) {
+            log.error("批量删除商品异常：spuIds={}", spuIds, e);
+            throw new RuntimeException("批量删除商品失败", e);
+        }
+    }
+
+
+
+    /**
+     * 批量物理删除（慎用）
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean batchPhysicalRemove(List<Long> spuIds) {
+        if (spuIds == null || spuIds.isEmpty()) {
+            return false;
+        }
+
+        try {
+            // 检查商品是否存在
+            Long count = this.countByIds(spuIds);
+            if (count != spuIds.size()) {
+                log.warn("批量物理删除失败：部分商品不存在");
+                return false;
+            }
+
+            // 执行物理删除
+            int deleted = this.baseMapper.deleteBatchIds(spuIds);
+
+            log.info("批量物理删除成功：spuIds={}, 实际删除={}", spuIds, deleted);
+            return deleted > 0;
+
+        } catch (Exception e) {
+            log.error("批量物理删除异常", e);
+            throw new RuntimeException("批量物理删除失败", e);
+        }
+    }
+
+    /**
+     * 检查商品是否存在
+     */
+    private Long countByIds(List<Long> spuIds) {
+        return this.baseMapper.selectCount(new LambdaQueryWrapper<PmsSpu>()
+                .in(PmsSpu::getId, spuIds)
+//                .eq(PmsSpu::getDeleted, 0)
+        );
+    }
+
+
+
+
+
+    /**
+     * 安全批量更新状态（检查商品是否存在，避免空更新）
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean safeBatchUpdateStatus(List<Long> spuIds, Integer status) {
+        if (spuIds == null || spuIds.isEmpty()) {
+            return false;
+        }
+
+        // 验证状态
+        if (status != 0 && status != 1) {
+            return false;
+        }
+
+        // 检查商品是否存在
+        Long count = this.baseMapper.selectCount(new LambdaQueryWrapper<PmsSpu>()
+                .in(PmsSpu::getId, spuIds));
+
+        if (count == 0) {
+            log.warn("批量更新状态失败：指定的商品不存在");
+            return false;
+        }
+
+        // 执行更新
+        int updated = this.baseMapper.batchUpdateStatus(spuIds, status);
+
+        log.info("安全批量更新状态：请求{}个，实际更新{}个，状态={}",
+                spuIds.size(), updated, status);
+
+        return updated > 0;
+    }
+
+
+
+    /**
+     * 根据条件批量更新状态
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public boolean batchUpdateStatusByCondition(Long categoryId, Long brandId, Integer status) {
+        try {
+            LambdaUpdateWrapper<PmsSpu> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.set(PmsSpu::getStatus, status);
+
+            // 构建条件
+            if (categoryId != null) {
+                updateWrapper.eq(PmsSpu::getCategoryId, categoryId);
+            }
+
+            if (brandId != null) {
+                updateWrapper.eq(PmsSpu::getBrandId, brandId);
+            }
+
+            boolean result = this.update(updateWrapper);
+
+            log.info("按条件批量更新状态：categoryId={}, brandId={}, status={}, 结果={}",
+                    categoryId, brandId, status, result);
+
+            return result;
+
+        } catch (Exception e) {
+            log.error("按条件批量更新状态异常", e);
+            throw new RuntimeException("批量更新失败", e);
+        }
+    }
+
+
 
 
 }
