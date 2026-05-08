@@ -1,5 +1,6 @@
 package com.aioveu.pms.aioveu06Spu.controller.app;
 
+import com.aioveu.pms.aioveu05Sku.service.PmsSkuService;
 import com.aioveu.pms.aioveu06Spu.mapper.PmsSpuMapper;
 import com.aioveu.pms.aioveu06Spu.model.entity.PmsSpu;
 import com.aioveu.pms.aioveu06Spu.model.form.PmsSpuForm;
@@ -32,6 +33,8 @@ public class SpuController {
     private final PmsSpuService pmsSpuService;
 
     private final PmsSpuMapper pmsSpuMapper;
+
+    private final PmsSkuService pmsSkuService;
 
     @Operation(summary = "商品分页列表")
     @GetMapping("/pages")
@@ -131,8 +134,8 @@ public class SpuController {
             int deletedCount = pmsSpuMapper.batchRemove(spuIds);
 
             if (deletedCount > 0) {
-                // 同时删除关联的SKU数据
-//                pmsSkuService.batchRemoveBySpuIds(spuIds);
+//                 同时删除关联的SKU数据
+                pmsSkuService.batchRemoveBySpuIds(spuIds);
 
                 log.info("批量删除商品成功：spuIds={}, 删除数量={}", spuIds, deletedCount);
                 return Result.success("成功删除 " + deletedCount + " 个商品");

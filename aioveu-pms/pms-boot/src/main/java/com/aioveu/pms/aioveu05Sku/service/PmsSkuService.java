@@ -98,4 +98,11 @@ public interface PmsSkuService extends IService<PmsSku> {
     boolean deletePmsSkus(String ids);
 
 
+    /**
+     * 批量删除指定SPU ID关联的SKU数据
+     * @param spuIds SPU ID列表
+     * @return 是否删除成功
+     */
+    boolean batchRemoveBySpuIds(List<Long> spuIds);
+
 }

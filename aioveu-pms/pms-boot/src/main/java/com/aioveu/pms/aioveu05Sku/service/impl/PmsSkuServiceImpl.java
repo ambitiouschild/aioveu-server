@@ -661,4 +661,49 @@ public class PmsSkuServiceImpl extends ServiceImpl<PmsSkuMapper, PmsSku> impleme
                 .toList();
         return this.removeByIds(idList);
     }
+
+
+    /**
+     * 批量删除指定SPU ID关联的SKU数据
+     * @param spuIds SPU ID列表
+     * @return 是否删除成功
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean batchRemoveBySpuIds(List<Long> spuIds) {
+        if (spuIds == null || spuIds.isEmpty()) {
+            log.warn("批量删除SKU失败：SPU ID列表为空");
+            return false;
+        }
+
+        try {
+            // 1. 构建查询条件
+            LambdaQueryWrapper<PmsSku> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.in(PmsSku::getSpuId, spuIds);
+
+            // 2. 查询要删除的SKU数量
+            long skuCount = this.count(queryWrapper);
+            if (skuCount == 0) {
+                log.info("没有找到关联的SKU数据，SPU IDs: {}", spuIds);
+                return true; // 没有数据可删，也算成功
+            }
+
+            // 3. 执行删除
+            boolean result = this.remove(queryWrapper);
+
+            if (result) {
+                log.info("✅ 批量删除SKU成功：SPU IDs={}, 删除SKU数量={}", spuIds, skuCount);
+            } else {
+                log.error("❌ 批量删除SKU失败：SPU IDs={}", spuIds);
+            }
+
+            return result;
+
+        } catch (Exception e) {
+            log.error("批量删除SKU异常：SPU IDs={}", spuIds, e);
+            throw new RuntimeException("批量删除SKU失败", e);
+        }
+    }
+
+
 }

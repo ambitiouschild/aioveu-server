@@ -858,7 +858,36 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
         List<Long> idList = Arrays.stream(ids.split(","))
                 .map(Long::parseLong)
                 .toList();
-        return this.removeByIds(idList);
+
+        if (idList.isEmpty()) {
+            return false;
+        }
+
+        try {
+            // 1. 先删除关联的SKU数据
+            boolean skuDeleted =  pmsSkuService.batchRemoveBySpuIds(idList);
+
+//            boolean skuDeleted = batchDeleteSkuBySpuIds(idList);
+            if (!skuDeleted) {
+                log.error("删除关联SKU失败，商品ID: {}", idList);
+                throw new RuntimeException("删除关联SKU失败");
+            }
+
+            // 2. 删除商品主数据
+            boolean spuDeleted = this.removeByIds(idList);
+
+            if (spuDeleted) {
+                log.info("✅ 删除商品成功，商品ID: {}, 数量: {}", idList, idList.size());
+            } else {
+                log.error("❌ 删除商品失败，商品ID: {}", idList);
+            }
+
+            return spuDeleted;
+
+        } catch (Exception e) {
+            log.error("删除商品异常，商品ID: {}", idList, e);
+            throw new RuntimeException("删除商品失败: " + e.getMessage(), e);
+        }
     }
 
     /**
