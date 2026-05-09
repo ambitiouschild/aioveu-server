@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.pay.aioveu11MqCompensationTask.mapper.MqCompensationTaskMapper">
+
+    <!-- 获取MQ补偿任务分页列表 -->
+    <select id="getMqCompensationTaskPage" resultType="com.aioveu.pay.aioveu11MqCompensationTask.model.vo.MqCompensationTaskVo">
+        SELECT
+                id,
+                tenant_id,
+                task_type,
+                biz_id,
+                biz_data,
+                status,
+                retry_count,
+                next_execute_time,
+                execute_result,
+                error_msg,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            mq_compensation_task
+        <where>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.taskType != null and queryParams.taskType != ''">
+                AND task_type LIKE CONCAT(#{queryParams.taskType}, '%')
+            </if>
+            <if test="queryParams.bizId != null and queryParams.bizId != ''">
+                AND biz_id LIKE CONCAT(#{queryParams.bizId}, '%')
+            </if>
+            <if test="queryParams.bizData != null and queryParams.bizData != ''">
+                AND biz_data LIKE CONCAT(#{queryParams.bizData}, '%')
+            </if>
+            <if test="queryParams.retryCount != null">
+                AND retry_count LIKE CONCAT(#{queryParams.retryCount}, '%')
+            </if>
+            <if test="queryParams.errorMsg != null and queryParams.errorMsg != ''">
+                AND error_msg LIKE CONCAT(#{queryParams.errorMsg}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

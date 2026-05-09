@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.pay.aioveu10MqSendRecord.mapper.MqSendRecordMapper">
+
+    <!-- 获取MQ消息发送记录分页列表 -->
+    <select id="getMqSendRecordPage" resultType="com.aioveu.pay.aioveu10MqSendRecord.model.vo.MqSendRecordVo">
+        SELECT
+                id,
+                tenant_id,
+                message_id,
+                biz_id,
+                biz_type,
+                topic,
+                tag,
+                sharding_key,
+                message_body,
+                send_status,
+                retry_count,
+                max_retry,
+                next_retry_time,
+                send_time,
+                confirm_time,
+                error_msg,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            mq_send_record
+        <where>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.messageId != null and queryParams.messageId != ''">
+                AND message_id LIKE CONCAT(#{queryParams.messageId}, '%')
+            </if>
+            <if test="queryParams.bizId != null and queryParams.bizId != ''">
+                AND biz_id LIKE CONCAT(#{queryParams.bizId}, '%')
+            </if>
+            <if test="queryParams.bizType != null and queryParams.bizType != ''">
+                AND biz_type LIKE CONCAT(#{queryParams.bizType}, '%')
+            </if>
+            <if test="queryParams.tag != null and queryParams.tag != ''">
+                AND tag LIKE CONCAT(#{queryParams.tag}, '%')
+            </if>
+            <if test="queryParams.sendStatus != null">
+                AND send_status LIKE CONCAT(#{queryParams.sendStatus}, '%')
+            </if>
+            <if test="queryParams.sendTime != null">
+                AND send_time LIKE CONCAT(#{queryParams.sendTime}, '%')
+            </if>
+            <if test="queryParams.confirmTime != null">
+                AND confirm_time LIKE CONCAT(#{queryParams.confirmTime}, '%')
+            </if>
+            <if test="queryParams.errorMsg != null and queryParams.errorMsg != ''">
+                AND error_msg LIKE CONCAT(#{queryParams.errorMsg}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
