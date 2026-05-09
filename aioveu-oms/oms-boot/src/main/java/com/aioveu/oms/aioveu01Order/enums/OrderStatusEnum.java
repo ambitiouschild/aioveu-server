@@ -20,7 +20,7 @@ public enum OrderStatusEnum implements IBaseEnum<Integer> {
     /**
      * 已付款(待发货)
      */
-    PAID(1, "已付款"),
+    PAID(1, "已付款(待发货)"),
     /**
      * 已发货
      */

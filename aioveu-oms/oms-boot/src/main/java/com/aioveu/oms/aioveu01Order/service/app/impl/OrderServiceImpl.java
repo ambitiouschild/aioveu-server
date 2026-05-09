@@ -773,7 +773,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             log.info("【创建订单】4.商品总数: {}", totalAmount);
 
             // 订单来源
-            int source = OrderSourceEnum.APP.getValue();
+            int source = OrderSourceEnum.WX.getValue();
             log.info("【创建订单】5.订单来源: {}", source);
 
             // 订单状态

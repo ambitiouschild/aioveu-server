@@ -98,9 +98,9 @@ public class OrderPageQuery extends BasePageQuery {
     private BigDecimal maxAmount;
 
     /**
-     * 订单来源
+     * 订单来源(1=微信小程序；2=APP,3=H5)
      */
     @Schema(description = "订单来源")
-    private String source;
+    private Integer source;
 
 }

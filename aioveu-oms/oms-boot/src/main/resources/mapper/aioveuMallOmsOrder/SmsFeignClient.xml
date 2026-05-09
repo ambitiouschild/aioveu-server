@@ -37,8 +37,8 @@
             <if test ='queryParams.keyword !=null and queryParams.keyword.trim() neq ""' >
                 AND
                 (
-                t1.order_sn like  concat('%',#{queryParams.keywords},'%')
-                OR CAST(t1.id AS CHAR) LIKE CONCAT('%', #{queryParams.keywords}, '%')
+                t1.order_sn like  concat('%',#{queryParams.keyword},'%')
+                OR CAST(t1.id AS CHAR) LIKE CONCAT('%', #{queryParams.keyword}, '%')
                 )
             </if>
             <!-- 状态过滤：-1表示查询所有状态，不添加status条件 -->
@@ -69,9 +69,10 @@
             </if>
 
             <if test ='queryParams.maxAmount !=null' >
-                AND t1.create_time &lt;= #{queryParams.maxAmount}
+                AND t1.total_amount &lt;= #{queryParams.maxAmount}
             </if>
 
+            <!-- 处理 source 为空字符串的情况 -->
             <if test="queryParams.source != null">
                 AND t1.source = #{queryParams.source}
             </if>
@@ -102,9 +103,9 @@
             <!-- 关键词搜索 -->
             <if test='queryParams.keyword != null and queryParams.keyword.trim() != ""'>
                 AND (
-                order_sn LIKE CONCAT('%', #{queryParams.keywords}, '%')
-                OR CAST(id AS CHAR) LIKE CONCAT('%', #{queryParams.keywords}, '%')
-                OR user_phone LIKE CONCAT('%', #{queryParams.keywords}, '%')
+                order_sn LIKE CONCAT('%', #{queryParams.keyword}, '%')
+                OR CAST(id AS CHAR) LIKE CONCAT('%', #{queryParams.keyword}, '%')
+                OR user_phone LIKE CONCAT('%', #{queryParams.keyword}, '%')
                 )
             </if>
 
@@ -136,9 +137,9 @@
             <!-- 关键词搜索 -->
             <if test='queryParams.keyword != null and queryParams.keyword.trim() != ""'>
                 AND (
-                order_sn LIKE CONCAT('%', #{queryParams.keywords}, '%')
-                OR CAST(id AS CHAR) LIKE CONCAT('%', #{queryParams.keywords}, '%')
-                OR user_phone LIKE CONCAT('%', #{queryParams.keywords}, '%')
+                order_sn LIKE CONCAT('%', #{queryParams.keyword}, '%')
+                OR CAST(id AS CHAR) LIKE CONCAT('%', #{queryParams.keyword}, '%')
+                OR user_phone LIKE CONCAT('%', #{queryParams.keyword}, '%')
                 )
             </if>
         </where>
@@ -170,9 +171,9 @@
             <!-- 关键词搜索 -->
             <if test='queryParams.keyword != null and queryParams.keyword.trim() != ""'>
                 AND (
-                order_sn LIKE CONCAT('%', #{queryParams.keywords}, '%')
-                OR CAST(id AS CHAR) LIKE CONCAT('%', #{queryParams.keywords}, '%')
-                OR user_phone LIKE CONCAT('%', #{queryParams.keywords}, '%')
+                order_sn LIKE CONCAT('%', #{queryParams.keyword}, '%')
+                OR CAST(id AS CHAR) LIKE CONCAT('%', #{queryParams.keyword}, '%')
+                OR user_phone LIKE CONCAT('%', #{queryParams.keyword}, '%')
                 )
             </if>
         </where>
@@ -203,9 +204,9 @@
             <!-- 关键词搜索 -->
             <if test='queryParams.keyword != null and queryParams.keyword.trim() != ""'>
                 AND (
-                order_sn LIKE CONCAT('%', #{queryParams.keywords}, '%')
-                OR CAST(id AS CHAR) LIKE CONCAT('%', #{queryParams.keywords}, '%')
-                OR user_phone LIKE CONCAT('%', #{queryParams.keywords}, '%')
+                order_sn LIKE CONCAT('%', #{queryParams.keyword}, '%')
+                OR CAST(id AS CHAR) LIKE CONCAT('%', #{queryParams.keyword}, '%')
+                OR user_phone LIKE CONCAT('%', #{queryParams.keyword}, '%')
                 )
             </if>
         </where>

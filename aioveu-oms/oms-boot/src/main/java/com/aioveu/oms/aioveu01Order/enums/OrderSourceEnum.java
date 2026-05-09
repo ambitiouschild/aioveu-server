@@ -14,8 +14,10 @@ import lombok.Getter;
 
 public enum OrderSourceEnum implements IBaseEnum<Integer> {
 
-    APP(1, "APP"), // APP订单
-    WEB(2, "WEB"), // 网页
+    WX(1, "WX"), // APP订单
+    APP(2, "APP"),
+    WEB(3, "WEB"), // 网页
+
     ;
 
     OrderSourceEnum(Integer value, String label) {
