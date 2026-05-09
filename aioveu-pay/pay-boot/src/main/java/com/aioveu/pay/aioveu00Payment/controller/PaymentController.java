@@ -67,17 +67,19 @@ public class PaymentController {
      * 注意：这是微信主动调用的，不是前端调用的
      */
     @Operation(summary ="微信支付回调")
-    @PostMapping("/callback/wechat")
+    @PostMapping("/wxpay/notify")
 //    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrder:oms-order:query')")
     @Log( value = "微信支付回调",module = LogModuleEnum.PAY)
-    public String wechatCallback(HttpServletRequest request) {
+    public String wxPayNotify(HttpServletRequest request) {
 
 //        return paymentService.handleCallback(request);
+
+        log.info("接收到微信支付回调");
 
         try {
             // 1. 获取请求体（XML格式）
             String xmlData = getRequestBody(request);
-            log.info("收到微信支付回调: {}", xmlData);
+            log.info("【Pay-notify】微信支付回调原始数据: {}", xmlData);
 
             // 2. 调用service处理
             String result = paymentService.handleWechatCallback(xmlData);
