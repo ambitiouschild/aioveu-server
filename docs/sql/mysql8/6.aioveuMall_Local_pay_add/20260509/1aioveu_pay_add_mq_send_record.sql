@@ -25,6 +25,7 @@ SET NAMES utf8mb4;
 DROP TABLE IF EXISTS `mq_send_record`;
 CREATE TABLE `mq_send_record`  (
        `id` bigint(20) NOT NULL AUTO_INCREMENT,
+       `tenant_id` bigint NOT NULL DEFAULT 0 COMMENT '租户ID，0表示平台默认',
        `message_id` varchar(64) NOT NULL COMMENT '消息ID',
        `biz_id` varchar(64) NOT NULL COMMENT '业务ID(支付单号)',
        `biz_type` varchar(50) NOT NULL COMMENT '业务类型:payment_success',
@@ -47,6 +48,7 @@ CREATE TABLE `mq_send_record`  (
 
        PRIMARY KEY (`id`) USING BTREE,
        UNIQUE KEY `uk_message_id` (`message_id`),
+       KEY `tenant_id` (`tenant_id`),
        KEY `idx_biz_id` (`biz_id`),
        KEY `idx_topic_status` (`topic`,`send_status`),
        KEY `idx_retry_time` (`next_retry_time`),
@@ -61,6 +63,7 @@ CREATE TABLE `mq_send_record`  (
 DROP TABLE IF EXISTS `mq_compensation_task`;
 CREATE TABLE `mq_compensation_task`  (
      `id` bigint(20) NOT NULL AUTO_INCREMENT,
+     `tenant_id` bigint NOT NULL DEFAULT 0 COMMENT '租户ID，0表示平台默认',
      `task_type` varchar(50) NOT NULL COMMENT '任务类型:send_retry',
      `biz_id` varchar(64) NOT NULL COMMENT '业务ID',
      `biz_data` json COMMENT '业务数据',
@@ -76,6 +79,7 @@ CREATE TABLE `mq_compensation_task`  (
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 
   PRIMARY KEY (`id`) USING BTREE,
+     KEY `tenant_id` (`tenant_id`),
      KEY `idx_biz_id` (`biz_id`),
      KEY `idx_status_time` (`status`,`next_execute_time`)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'MQ补偿任务表'

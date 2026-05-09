@@ -25,6 +25,7 @@ SET NAMES utf8mb4;
 DROP TABLE IF EXISTS `mq_consume_record`;
 CREATE TABLE `mq_consume_record`  (
       `id` bigint(20) NOT NULL AUTO_INCREMENT,
+      `tenant_id` bigint NOT NULL DEFAULT 0 COMMENT '租户ID，0表示平台默认',
       `message_id` varchar(64) NOT NULL COMMENT '消息ID',
       `topic` varchar(100) NOT NULL COMMENT 'Topic',
       `tag` varchar(50) DEFAULT NULL COMMENT 'Tag',
@@ -45,6 +46,7 @@ CREATE TABLE `mq_consume_record`  (
 
       PRIMARY KEY (`id`),
       UNIQUE KEY `uk_message_consumer` (`message_id`,`consumer_group`),
+      KEY `tenant_id` (`tenant_id`),
       KEY `idx_biz_id` (`biz_id`),
       KEY `idx_consumer_status` (`consumer_group`,`consume_status`),
       KEY `idx_retry_time` (`next_retry_time`),
@@ -59,6 +61,7 @@ CREATE TABLE `mq_consume_record`  (
 DROP TABLE IF EXISTS `mq_dead_letter`;
 CREATE TABLE `mq_dead_letter`  (
    `id` bigint(20) NOT NULL AUTO_INCREMENT,
+   `tenant_id` bigint NOT NULL DEFAULT 0 COMMENT '租户ID，0表示平台默认',
    `message_id` varchar(64) NOT NULL COMMENT '消息ID',
    `topic` varchar(100) NOT NULL COMMENT 'Topic',
    `tag` varchar(50) DEFAULT NULL COMMENT 'Tag',
@@ -79,6 +82,7 @@ CREATE TABLE `mq_dead_letter`  (
 
    PRIMARY KEY (`id`),
    UNIQUE KEY `uk_message_consumer` (`message_id`,`consumer_group`),
+   KEY `tenant_id` (`tenant_id`),
    KEY `idx_biz_id` (`biz_id`),
    KEY `idx_handle_status` (`handle_status`),
    KEY `idx_create_time` (`create_time`)
@@ -92,6 +96,7 @@ CREATE TABLE `mq_dead_letter`  (
 DROP TABLE IF EXISTS `mq_consume_idempotent`;
 CREATE TABLE `mq_consume_idempotent`  (
                                   `id` bigint(20) NOT NULL AUTO_INCREMENT,
+                                  `tenant_id` bigint NOT NULL DEFAULT 0 COMMENT '租户ID，0表示平台默认',
                                   `biz_unique_key` varchar(128) NOT NULL COMMENT '业务唯一键',
                                   `biz_type` varchar(50) NOT NULL COMMENT '业务类型',
                                   `message_id` varchar(64) NOT NULL COMMENT '消息ID',
@@ -105,6 +110,7 @@ CREATE TABLE `mq_consume_idempotent`  (
 
                                   PRIMARY KEY (`id`),
                                   UNIQUE KEY `uk_biz_key` (`biz_unique_key`,`biz_type`),
+                                  KEY `tenant_id` (`tenant_id`),
                                   KEY `idx_message_id` (`message_id`),
                                   KEY `idx_consume_time` (`consume_time`)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'MQ消费幂等性表'
