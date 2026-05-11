@@ -15,9 +15,11 @@ import com.aioveu.oms.aioveu01Order.utils.OrderNoGenerator;
 import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
+import com.aioveu.oms.aioveu11MqConsumer.model.vo.OrderPaySuccessDTO;
 import com.aioveu.pay.api.PayFeignClient;
 import com.aioveu.pay.model.PaymentParamsVO;
 import com.aioveu.pay.model.PaymentRequestDTO;
+import com.aioveu.pay.model.PaymentSuccessMessage;
 import com.alibaba.nacos.shaded.com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.alibaba.nacos.shaded.io.grpc.netty.shaded.io.netty.handler.codec.DateFormatter;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -65,6 +67,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -1630,6 +1633,45 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         }
 
         return result;
+    }
+
+
+    /**
+     * 更新订单支付状态
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateOrderPaymentStatus(OmsOrder order, PaymentSuccessMessage message) {
+        try {
+            // 更新订单状态
+            order.setStatus(OrderStatusEnum.PAID.getValue());  // 待发货
+//            order.setPayStatus(PayStatusEnum.PAID.getCode());     // 已支付
+            order.setTransactionId(message.getTransactionId());
+
+            order.setPaymentTime(Date.from(message.getPaymentTime()
+                    .atZone(java.time.ZoneId.systemDefault()).toInstant()));
+            order.setUpdateTime(LocalDateTime.now());
+
+            int rows = this.baseMapper.updateById(order);
+
+            if (rows <= 0) {
+                log.error("更新订单状态失败: orderId={}", order.getId());
+                return false;
+            }
+
+            log.info("订单状态更新成功: orderSn={}, status={}->{}, payStatus={}->{}",
+                    order.getOrderSn(),
+                    OrderStatusEnum.UNPAID.getLabel(),
+                    OrderStatusEnum.PAID.getLabel()
+//                    PayStatusEnum.UNPAID.getDesc(),
+//                    PayStatusEnum.PAID.getDesc()
+            );
+
+            return true;
+
+        } catch (Exception e) {
+            log.error("更新订单状态异常: orderNo={}", order.getOrderSn(), e);
+            throw new BusinessException("更新订单状态失败");
+        }
     }
 
 }

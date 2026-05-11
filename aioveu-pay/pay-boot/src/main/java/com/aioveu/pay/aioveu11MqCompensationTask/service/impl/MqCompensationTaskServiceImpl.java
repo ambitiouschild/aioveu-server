@@ -1,8 +1,10 @@
 package com.aioveu.pay.aioveu11MqCompensationTask.service.impl;
 
 
+import cn.binarywang.wx.miniapp.bean.cloud.WxCloudSendSmsV2Result;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu11MqCompensationTask.converter.MqCompensationTaskConverter;
 import com.aioveu.pay.aioveu11MqCompensationTask.mapper.MqCompensationTaskMapper;
 import com.aioveu.pay.aioveu11MqCompensationTask.model.entity.MqCompensationTask;
@@ -13,9 +15,14 @@ import com.aioveu.pay.aioveu11MqCompensationTask.service.MqCompensationTaskServi
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import jakarta.websocket.SendResult;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -100,6 +107,65 @@ public class MqCompensationTaskServiceImpl extends ServiceImpl<MqCompensationTas
                 .map(Long::parseLong)
                 .toList();
         return this.removeByIds(idList);
+    }
+
+
+    /**
+     * 补偿任务 - 处理发送失败的消息
+     */
+    @Scheduled(fixedDelay = 30000)  // 30秒执行一次
+    public void retryFailedMessages() {
+
+
+        try {
+            List<MqSendRecord> failedRecords = messageRecordMapper.selectFailedMessages(100);
+
+            for (MqSendRecord record : failedRecords) {
+                if (record.getNextRetryTime().after(new Date())) {
+                    continue;  // 未到重试时间
+                }
+
+                if (record.getRetryCount() >= 5) {
+                    log.error("消息重试超过5次，进入死信: messageId={}", record.getMessageId());
+                    updateSendStatus(record.getMessageId(), SendStatusEnum.DEAD, "重试超过5次");
+                    continue;
+                }
+
+                try {
+                    // 重新发送消息
+                    Message<byte[]> message = MessageBuilder
+                            .withPayload(record.getMessageBody().getBytes(StandardCharsets.UTF_8))
+                            .setHeader(MessageConst.PROPERTY_KEYS, record.getBizId())
+                            .build();
+
+                    SendResult sendResult = rocketMQTemplate.syncSendOrderly(
+                            record.getTopic() + ":" + record.getTag(),
+                            message,
+                            record.getShardingKey(),
+                            3000
+                    );
+
+                    if (sendResult.getSendStatus() == WxCloudSendSmsV2Result.SendStatus.SEND_OK) {
+                        updateSendStatus(record.getMessageId(), SendStatusEnum.SUCCESS, null);
+                        log.info("补偿发送成功: messageId={}", record.getMessageId());
+                    } else {
+                        updateSendStatus(record.getMessageId(), SendStatusEnum.FAILED, "发送失败");
+                    }
+
+                } catch (Exception e) {
+                    log.error("补偿发送异常: messageId={}", record.getMessageId(), e);
+                    updateSendStatus(record.getMessageId(), SendStatusEnum.FAILED, e.getMessage());
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("重试失败消息异常", e);
+        }
+    }
+
+
+
+
     }
 
 }

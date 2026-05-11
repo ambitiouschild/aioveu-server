@@ -76,5 +76,7 @@ public interface OmsOrderLogService extends IService<OmsOrderLog> {
      * @param detail 描述
      */
     void addOrderLogs(Long orderId, Integer orderStatus, String detail);
+
+
 }
 

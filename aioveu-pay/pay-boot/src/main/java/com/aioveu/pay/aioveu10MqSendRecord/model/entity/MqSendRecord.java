@@ -59,7 +59,7 @@ public class MqSendRecord extends BaseEntityWithTenantId {
      */
     private String messageBody;
     /**
-     * 发送状态:0-未发送,1-发送中,2-发送成功,3-发送失败
+     * 发送状态:0-未发送,1-发送中,2-发送成功,3-发送失败,4-已取消,5-已超时,6-进入死信队列
      */
     private Integer sendStatus;
     /**

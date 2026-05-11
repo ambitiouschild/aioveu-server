@@ -58,4 +58,10 @@ public interface MqCompensationTaskService extends IService<MqCompensationTask> 
      * @return 是否删除成功
      */
     boolean deleteMqCompensationTasks(String ids);
+
+
+    /**
+     * 补偿任务 - 处理发送失败的消息
+     */
+    void retryFailedMessages();
 }

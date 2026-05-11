@@ -79,7 +79,8 @@ public class PaymentController {
         try {
             // 1. 获取请求体（XML格式）
             String xmlData = getRequestBody(request);
-            log.info("【Pay-notify】微信支付回调原始数据: {}", xmlData);
+            log.info("【微信回调】微信支付回调原始数据: {}", xmlData);
+            log.info("【微信回调】开始处理, XML长度: {}", xmlData.length());
 
             // 2. 调用service处理
             String result = paymentService.handleWechatCallback(xmlData);

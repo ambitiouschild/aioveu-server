@@ -1,12 +1,16 @@
 package com.aioveu.oms.aioveu08MqConsumeRecord.service;
 
 
+import com.aioveu.oms.aioveu08MqConsumeRecord.enums.ConsumeStatusEnum;
 import com.aioveu.oms.aioveu08MqConsumeRecord.model.entity.MqConsumeRecord;
 import com.aioveu.oms.aioveu08MqConsumeRecord.model.form.MqConsumeRecordForm;
 import com.aioveu.oms.aioveu08MqConsumeRecord.model.query.MqConsumeRecordQuery;
 import com.aioveu.oms.aioveu08MqConsumeRecord.model.vo.MqConsumeRecordVo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: MqConsumeRecordService
@@ -58,4 +62,58 @@ public interface MqConsumeRecordService extends IService<MqConsumeRecord> {
      * @return 是否删除成功
      */
     boolean deleteMqConsumeRecords(String ids);
+
+
+
+    /**
+     * 保存消费记录
+     */
+    boolean saveConsumeRecord(String messageId, String bizId, String topic, String tag);
+
+
+    /**
+     * 获取消息消费状态
+     */
+    ConsumeStatusEnum getConsumeStatus(String messageId, String consumerGroup);
+
+
+    /**
+     * 记录消息消费
+     */
+    boolean recordConsumeStart(String messageId, String topic, String consumerGroup, String bizId);
+
+    /**
+     * 更新消费状态
+     */
+    boolean updateConsumeStatus(String messageId, String consumerGroup,
+                                ConsumeStatusEnum status, String errorMsg);
+
+    /**
+     * 批量更新消费状态
+     */
+    int batchUpdateStatus(List<String> messageIds, String consumerGroup,
+                          ConsumeStatusEnum status, String errorMsg);
+
+
+    /**
+     * 查询消费记录
+     */
+    ConsumeRecordVO getConsumeRecord(String messageId, String consumerGroup);
+
+    /**
+     * 获取需要重试的消费记录
+     */
+    List<MqConsumeRecordDTO> getNeedRetryRecords(String consumerGroup, Integer maxRetryCount);
+
+
+    /**
+     * 检查消息是否已消费
+     */
+    boolean isMessageConsumed(String messageId, String consumerGroup);
+
+    /**
+     * 获取消费者组的消费统计
+     */
+    Map<String, Object> getConsumerGroupStats(String consumerGroup, Integer days);
+
 }

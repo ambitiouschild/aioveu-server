@@ -18,6 +18,8 @@ import com.aioveu.pay.aioveu01.PaymentStrategy.impl.PaymentStrategyFactory;
 import com.aioveu.pay.aioveu01.enums.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01.model.vo.*;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
+import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
+import com.aioveu.pay.aioveu12MqProducerPayment.producer.MQProducerPayment;
 import com.alibaba.fastjson.JSON;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -82,6 +84,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Autowired
     private OrderFeignClient orderFeignClient;
+
+    @Autowired
+    private MqSendRecordService mqSendRecordService;
 
 
     @Autowired
@@ -271,35 +276,91 @@ public class PaymentServiceImpl implements PaymentService {
         try {
             // 1. 解析XML
             Map<String, String> params = parseWechatXml(xmlData);
-            log.info("【Pay-notify】解析微信回调参数: {}", JSON.toJSONString(params));
+            log.info("【微信回调】解析微信回调参数: {}", JSON.toJSONString(params));
 
             // 2. 验证签名
             if (!verifyWechatSign(params)) {
-                log.error("微信签名验证失败");
+                log.error("【微信回调】微信签名验证失败");
                 return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[签名验证失败]]></return_msg></xml>";
             }
 
-            // 3. 获取订单号
-            String orderNo = params.get("out_trade_no");
-            if (!StringUtils.hasText(orderNo)) {
-                log.error("订单号为空");
+            // 3. 获取支付订单号
+            String paymentNo = params.get("out_trade_no");
+            if (!StringUtils.hasText(paymentNo)) {
+                log.error("支付订单为空");
                 return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[订单号为空]]></return_msg></xml>";
             }
 
+
+
+
+
             // 4. 处理支付结果
+            // 3. 验证业务返回码
+            String returnCode = params.get("return_code");
             String resultCode = params.get("result_code");
             if ("SUCCESS".equals(resultCode)) {
                 // 支付成功逻辑
                 String transactionId = params.get("transaction_id");
                 log.info("订单支付成功: {}, 微信订单号: {}", orderNo, transactionId);
 
-                // TODO: 更新订单状态
-//                 orderService.paySuccess(orderNo, transactionId);
+                //查询支付订单
+                PayOrder payOrder = payOrderService.getByPaymentNo(paymentNo);
+
+                if (payOrder == null) {
+                    log.error("【微信回调】支付订单不存在: paymentNo={}", paymentNo);
+                    return generateWechatFailResponse("订单不存在");
+                }
+
+                // 5. 幂等性检查
+                if (payOrder.getPaymentStatus() != PaymentStatusEnum.PENDING.getValue()
+                        && payOrder.getPaymentStatus() != PaymentStatusEnum.PROCESSING.getValue()) {
+                    log.warn("【微信回调】订单已处理，跳过: paymentNo={}, status={}",
+                            paymentNo, payOrder.getPaymentStatus());
+                    return generateWechatSuccessResponse();
+                }
+
+                // 6. 验证金额
+                BigDecimal callbackAmount = new BigDecimal(params.get("total_fee"))
+                        .divide(new BigDecimal(100), 2, RoundingMode.HALF_UP);
+                if (callbackAmount.compareTo(payOrder.getAmount()) != 0) {
+                    log.error("【微信回调】金额不匹配: paymentNo={}, 订单金额={}, 回调金额={}",
+                            paymentNo, payOrder.getAmount(), callbackAmount);
+                    return generateWechatFailResponse("金额不匹配");
+                }
+
+
+                // TODO: 更新支付订单状态
+                // 7. 更新支付订单
+                boolean success = "SUCCESS".equals(resultCode);
+                payOrderService.updatePaymentStatus(payOrder, success, params);
+
+
+// 8. 发送MQ消息
+                if (success) {
+                    boolean mqResult = MQProducerPayment.sendPaymentSuccessMessageAndSaveSendRecord(payOrder, params);
+                } else {
+                    boolean mqResult = MQProducerPayment.sendPaymentSuccessMessage(payOrder, params);
+
+
+                    // MQ发送失败，记录到补偿表
+                    saveToCompensation(payOrder, params);
+                }
+
+                log.info("发送MQ成功消息: {}");
+
+                // 9. 记录处理时间
+                long costTime = System.currentTimeMillis() - startTime;
+                log.info("【微信回调】处理完成: paymentNo={}, 耗时={}ms", paymentNo, costTime);
+
 
                 return "<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>";
             } else {
                 // 支付失败
                 log.error("支付失败，订单号: {}, 错误码: {}", orderNo, params.get("err_code"));
+                log.error("【微信回调】通信失败: paymentNo={}, msg={}",
+                        paymentNo, params.get("return_msg"));
+
                 return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[支付失败]]></return_msg></xml>";
             }
 

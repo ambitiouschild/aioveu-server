@@ -3,3 +3,57 @@ spring:
     name: aioveu-oms  # 订单服务
   profiles:
     active: dev  #dev prod
+
+
+
+rocketmq:
+  name-server: ${ROCKETMQ_NAMESRV:127.0.0.1:9876}  # NameServer地址
+  # 订单服务不需要 producer 配置
+#  consumer:
+#    order-service-group:
+#      enabled: true
+#      topic: payment_success_topic
+#      tag: wechat_pay || alipay
+#      consume-thread-min: 5
+#      consume-thread-max: 32
+#      pull-batch-size: 32
+#      pull-interval: 0
+#      consume-message-batch-max-size: 1
+#    point-service-group:
+#      enabled: true
+#      topic: payment_success_topic
+#      tag: '*'
+#      consume-thread-min: 5
+#      consume-thread-max: 20
+
+payment:
+  mq:
+    topics:
+      success: payment_success_topic
+      failed: payment_failed_topic
+      refund: payment_refund_topic
+    retry:
+      max-attempts: 5
+      initial-interval: 30s
+      multiplier: 2
+    monitor:
+      enabled: true
+      backlog-threshold: 1000
+      alert-interval: 5m
+
+      #//Prometheus监控配置
+
+      # prometheus.yml
+      scrape_configs:
+        - job_name: 'rocketmq_exporter'
+          static_configs:
+            - targets: [ 'rocketmq-exporter:5557' ]
+              labels:
+                group: 'payment'
+
+        - job_name: 'payment_service'
+          metrics_path: '/actuator/prometheus'
+          static_configs:
+            - targets: [ 'payment-service:8080' ]
+              labels:
+                application: 'payment-service'

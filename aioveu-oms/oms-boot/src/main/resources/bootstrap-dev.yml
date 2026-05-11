@@ -39,3 +39,5 @@ spring:
           version: 1.0
           env: prod
           zone: zone1
+
+

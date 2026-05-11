@@ -49,7 +49,7 @@ public class MqConsumeRecord extends BaseEntityWithTenantId {
      */
     private String bizId;
     /**
-     * 消费状态:0-未消费,1-消费中,2-消费成功,3-消费失败,4-进入死信
+     * 消费状态:0-未消费,1-消费中,2-消费成功,3-消费失败,4-进入死信,5-已重试,6-已超时
      */
     private Integer consumeStatus;
     /**
