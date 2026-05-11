@@ -294,7 +294,7 @@ public class PaymentServiceImpl implements PaymentService {
                 log.info("订单支付成功: {}, 微信订单号: {}", orderNo, transactionId);
 
                 // TODO: 更新订单状态
-                 orderService.paySuccess(orderNo, transactionId);
+//                 orderService.paySuccess(orderNo, transactionId);
 
                 return "<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>";
             } else {

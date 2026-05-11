@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.oms.aioveu10MqConsumeIdempotent.mapper.MqConsumeIdempotentMapper">
+
+    <!-- 获取MQ消费幂等性分页列表 -->
+    <select id="getMqConsumeIdempotentPage" resultType="com.aioveu.oms.aioveu10MqConsumeIdempotent.model.vo.MqConsumeIdempotentVo">
+        SELECT
+                id,
+                tenant_id,
+                biz_unique_key,
+                biz_type,
+                message_id,
+                status,
+                consume_time,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            mq_consume_idempotent
+        <where>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.bizUniqueKey != null and queryParams.bizUniqueKey != ''">
+                AND biz_unique_key LIKE CONCAT(#{queryParams.bizUniqueKey}, '%')
+            </if>
+            <if test="queryParams.bizType != null and queryParams.bizType != ''">
+                AND biz_type LIKE CONCAT(#{queryParams.bizType}, '%')
+            </if>
+            <if test="queryParams.messageId != null and queryParams.messageId != ''">
+                AND message_id LIKE CONCAT(#{queryParams.messageId}, '%')
+            </if>
+            <if test="queryParams.consumeTime != null">
+                AND consume_time LIKE CONCAT(#{queryParams.consumeTime}, '%')
+            </if>
+            <if test="queryParams.updateTime != null">
+                AND update_time LIKE CONCAT(#{queryParams.updateTime}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

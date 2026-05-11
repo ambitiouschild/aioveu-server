@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.oms.aioveu08MqConsumeRecord.mapper.MqConsumeRecordMapper">
+
+    <!-- 获取MQ消息消费记录分页列表 -->
+    <select id="getMqConsumeRecordPage" resultType="com.aioveu.oms.aioveu08MqConsumeRecord.model.vo.MqConsumeRecordVo">
+        SELECT
+                id,
+                tenant_id,
+                message_id,
+                topic,
+                tag,
+                consumer_group,
+                biz_id,
+                consume_status,
+                retry_count,
+                max_retry,
+                next_retry_time,
+                consume_time,
+                finish_time,
+                error_msg,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            mq_consume_record
+        <where>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.messageId != null and queryParams.messageId != ''">
+                AND message_id LIKE CONCAT(#{queryParams.messageId}, '%')
+            </if>
+            <if test="queryParams.topic != null and queryParams.topic != ''">
+                AND topic LIKE CONCAT(#{queryParams.topic}, '%')
+            </if>
+            <if test="queryParams.tag != null and queryParams.tag != ''">
+                AND tag LIKE CONCAT(#{queryParams.tag}, '%')
+            </if>
+            <if test="queryParams.bizId != null and queryParams.bizId != ''">
+                AND biz_id LIKE CONCAT(#{queryParams.bizId}, '%')
+            </if>
+            <if test="queryParams.maxRetry != null">
+                AND max_retry LIKE CONCAT(#{queryParams.maxRetry}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

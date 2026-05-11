@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.oms.aioveu09MqDeadLetter.mapper.MqDeadLetterMapper">
+
+    <!-- 获取MQ死信队列分页列表 -->
+    <select id="getMqDeadLetterPage" resultType="com.aioveu.oms.aioveu09MqDeadLetter.model.vo.MqDeadLetterVo">
+        SELECT
+                id,
+                tenant_id,
+                message_id,
+                topic,
+                tag,
+                consumer_group,
+                biz_id,
+                message_body,
+                consume_times,
+                error_msg,
+                dead_reason,
+                handle_status,
+                handle_time,
+                handle_result,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            mq_dead_letter
+        <where>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.messageId != null and queryParams.messageId != ''">
+                AND message_id LIKE CONCAT(#{queryParams.messageId}, '%')
+            </if>
+            <if test="queryParams.topic != null and queryParams.topic != ''">
+                AND topic LIKE CONCAT(#{queryParams.topic}, '%')
+            </if>
+            <if test="queryParams.tag != null and queryParams.tag != ''">
+                AND tag LIKE CONCAT(#{queryParams.tag}, '%')
+            </if>
+            <if test="queryParams.bizId != null and queryParams.bizId != ''">
+                AND biz_id LIKE CONCAT(#{queryParams.bizId}, '%')
+            </if>
+            <if test="queryParams.errorMsg != null and queryParams.errorMsg != ''">
+                AND error_msg LIKE CONCAT(#{queryParams.errorMsg}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
