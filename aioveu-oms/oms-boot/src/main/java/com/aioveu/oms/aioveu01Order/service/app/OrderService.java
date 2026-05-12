@@ -100,5 +100,11 @@ public interface OrderService extends IService<OmsOrder> {
      */
     boolean updateOrderPaymentStatus(OmsOrder order, PaymentSuccessMessage message);
 
+
+    /**
+     * 根据订单号查询订单
+     */
+    OmsOrder getByOrderNo(String orderNo);
+
 }
 

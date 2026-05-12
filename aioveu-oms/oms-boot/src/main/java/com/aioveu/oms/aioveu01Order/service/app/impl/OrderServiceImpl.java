@@ -20,6 +20,7 @@ import com.aioveu.pay.api.PayFeignClient;
 import com.aioveu.pay.model.PaymentParamsVO;
 import com.aioveu.pay.model.PaymentRequestDTO;
 import com.aioveu.pay.model.PaymentSuccessMessage;
+import com.alibaba.nacos.common.utils.StringUtils;
 import com.alibaba.nacos.shaded.com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.alibaba.nacos.shaded.io.grpc.netty.shaded.io.netty.handler.codec.DateFormatter;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -1673,5 +1674,38 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             throw new BusinessException("更新订单状态失败");
         }
     }
+
+
+    /**
+     * 根据订单号查询订单
+     */
+    @Override
+    public OmsOrder getByOrderNo(String orderNo) {
+        if (!StringUtils.hasText(orderNo)) {
+            log.warn("查询订单：订单号为空");
+            return null;
+        }
+
+        try {
+            // 查询订单
+//            OmsOrder order = this.baseMapper.selectByOrderNo(orderNo);
+
+            OmsOrder order = this.baseMapper.selectByOrderNo(orderNo);
+
+            if (order == null) {
+                log.warn("查询订单：订单不存在，orderNo={}", orderNo);
+                return null;
+            }
+
+            log.debug("查询订单成功：orderNo={}, status={}", orderNo, order.getStatus());
+            return order;
+
+        } catch (Exception e) {
+            log.error("查询订单异常：orderNo={}", orderNo, e);
+            throw new BusinessException("查询订单失败");
+        }
+    }
+
+
 
 }
