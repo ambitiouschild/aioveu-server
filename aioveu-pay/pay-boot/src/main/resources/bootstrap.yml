@@ -17,6 +17,14 @@ rocketmq:
     compress-message-body-threshold: 4096
 # 支付服务不需要 consumer 配置
 
+# 生产端监控配置
+producer:
+  monitor:
+    enabled: true
+    success-rate-threshold: 95.0
+    backlog-threshold: 1000
+    compensation-failed-threshold: 10
+
 payment:
   mq:
     topics:
@@ -27,10 +35,24 @@ payment:
       max-attempts: 5
       initial-interval: 30s
       multiplier: 2
+    # 监控配置
     monitor:
       enabled: true
+      topics: payment_success_topic,payment_failed_topic
+      consumer-groups: order_service_group
       backlog-threshold: 1000
-      alert-interval: 5m
+      delay-threshold: 10000
+
+      metrics:
+        - send_success_rate  # 发送成功率
+        - send_failure_rate  # 发送失败率
+        - send_latency_ms    # 发送延迟
+        - backlog_count      # 积压消息数
+      alerts:
+        - condition: "send_failure_rate > 5%"
+          message: "消息发送失败率过高"
+        - condition: "backlog_count > 1000"
+          message: "消息积压过多"
 
       #//Prometheus监控配置
 

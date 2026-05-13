@@ -1,12 +1,14 @@
 package com.aioveu.pay.aioveu11MqCompensationTask.service;
 
 
+import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu11MqCompensationTask.model.entity.MqCompensationTask;
 import com.aioveu.pay.aioveu11MqCompensationTask.model.form.MqCompensationTaskForm;
 import com.aioveu.pay.aioveu11MqCompensationTask.model.query.MqCompensationTaskQuery;
 import com.aioveu.pay.aioveu11MqCompensationTask.model.vo.MqCompensationTaskVo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.apache.rocketmq.client.producer.SendResult;
 
 /**
  * @ClassName: MqCompensationTaskService
@@ -63,5 +65,9 @@ public interface MqCompensationTaskService extends IService<MqCompensationTask> 
     /**
      * 补偿任务 - 处理发送失败的消息
      */
-    void retryFailedMessages();
+    void compensateFailedMessages();
+
+
+    // 更详细的处理
+    void handleSendResult(SendResult sendResult, MqSendRecord record);
 }

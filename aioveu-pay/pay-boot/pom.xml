@@ -133,12 +133,46 @@
 
 
 
+        <!-- 方案A：RocketMQ 5.x 系列 -->
         <!-- 支付服务和订单服务的pom.xml都添加 Mq消息队列-->
+        <!-- Spring Boot Starter for RocketMQ (如果你在使用) -->
         <dependency>
             <groupId>org.apache.rocketmq</groupId>
             <artifactId>rocketmq-spring-boot-starter</artifactId>
             <version>2.2.3</version>
         </dependency>
+
+        <!-- RocketMQ Tools (包含 DefaultMQAdminExt) -->
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-tools</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+
+        <!-- 如果上面版本不兼容，可以尝试 -->
+        <!-- 方案B：RocketMQ 4.x 系列 -->
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.rocketmq</groupId>-->
+        <!--            <artifactId>rocketmq-spring-boot-starter</artifactId>-->
+        <!--            <version>2.1.1</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.rocketmq</groupId>-->
+        <!--            <artifactId>rocketmq-tools</artifactId>-->
+        <!--            <version>4.9.4</version>-->
+        <!--        </dependency>-->
+
+
+<!--        方案3：使用 Micrometer（推荐，集成 Spring Boot Actuator）-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
 
 
     </dependencies>

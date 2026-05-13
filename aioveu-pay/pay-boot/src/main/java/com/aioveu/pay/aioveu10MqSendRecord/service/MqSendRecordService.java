@@ -7,10 +7,14 @@ import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.model.form.MqSendRecordForm;
 import com.aioveu.pay.aioveu10MqSendRecord.model.query.MqSendRecordQuery;
 import com.aioveu.pay.aioveu10MqSendRecord.model.vo.MqSendRecordVo;
+import com.aioveu.pay.aioveu10MqSendRecord.model.vo.SendRecordStats;
 import com.aioveu.pay.aioveu10MqSendRecord.utils.MessageIdGenerator;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -108,5 +112,42 @@ public interface MqSendRecordService extends IService<MqSendRecord> {
      * 批量调试消息ID
      */
     Map<String, MessageIdGenerator.MessageIdInfo> batchDebugMessages(List<String> messageIds);
+
+    /**
+     * 查询发送失败的记录
+     * @param maxCount 最大查询数量
+     * @return 失败记录列表
+     */
+    List<MqSendRecord> selectFailedMessages(int maxCount);
+
+
+    /**
+     * 查询需要重试的记录
+     */
+
+    List<MqSendRecord> selectNeedRetryRecords(int maxRetryCount, Date beforeTime, int maxCount);
+
+
+    /**
+     * 查询未确认的记录
+     */
+    List<MqSendRecord> selectUnconfirmedMessages(int timeoutMinutes, int maxCount);
+
+
+    /**
+     * 批量更新重试信息
+     */
+    int batchUpdateRetryInfo(List<Long> ids, int retryCount, LocalDateTime nextRetryTime);
+
+
+    /**
+     * 统计各类状态的消息数量
+     */
+    SendRecordStats getSendRecordStats(LocalDateTime startTime, LocalDateTime endTime);
+
+    /**
+     * 获取详细的发送记录统计
+     */
+    SendRecordStats getDetailedSendRecordStats(LocalDateTime startTime, LocalDateTime endTime);
 
 }

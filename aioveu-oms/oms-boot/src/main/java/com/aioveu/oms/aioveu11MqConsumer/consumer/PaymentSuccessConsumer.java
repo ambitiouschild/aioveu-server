@@ -5,6 +5,7 @@ import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
 import com.aioveu.oms.aioveu04OrderLog.service.OmsOrderLogService;
 import com.aioveu.oms.aioveu08MqConsumeRecord.service.MqConsumeRecordService;
+import com.aioveu.oms.aioveu11MqConsumer.MQMonitorConsumer.OrderConsumerMQMonitor;
 import com.aioveu.oms.aioveu11MqConsumer.service.MqConsumerService;
 import com.aioveu.pay.model.PaymentSuccessMessage;
 import lombok.RequiredArgsConstructor;
@@ -53,19 +54,27 @@ public class PaymentSuccessConsumer implements RocketMQListener<PaymentSuccessMe
     // 不需要 @Autowired，Lombok 会自动生成带参构造器
     // Spring 会自动通过构造器注入
 
+
+    //在 PaymentSuccessConsumer 中集成监控
+    private final OrderConsumerMQMonitor orderConsumerMQMonitor;
+
     @Autowired
     private ObjectMapper objectMapper;     // 使用 Jackson 的 ObjectMapper
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void onMessage(PaymentSuccessMessage message) {
+
+        long startTime = System.currentTimeMillis();
+        boolean success = false;
+        String messageId = message.getMessageId();
+        String orderSn = message.getOrderNo();  // 从keys获取订单号
+
         try {
             // 1. 将 PaymentSuccessMessage 对象转为 JSON 字符串
             String messageBody = objectMapper.writeValueAsString(message);
-            String messageId = message.getMessageId();
-            String orderSn = message.getOrderNo();  // 从keys获取订单号
 
-            long startTime = System.currentTimeMillis();
+
             log.info("收到支付成功消息: orderNo={}, messageId={}", orderSn, messageId);
 
             // 2. 调用处理服务
@@ -75,6 +84,8 @@ public class PaymentSuccessConsumer implements RocketMQListener<PaymentSuccessMe
             //更好的设计是让 handlePaymentSuccess直接接收 PaymentSuccessMessage对象
 
             boolean success2 = mqConsumerService.handlePaymentSuccess(message);
+
+            success = true;  // 如果处理成功
 
             if (!success2) {
                 log.error("处理消息失败: orderSn={}", orderSn);
@@ -86,7 +97,14 @@ public class PaymentSuccessConsumer implements RocketMQListener<PaymentSuccessMe
 
         } catch (Exception e) {
             log.error("处理消息异常", e);
+            success = false;
             throw new RuntimeException("处理消息异常", e);
+        }finally {
+            long costTime = System.currentTimeMillis() - startTime;
+
+            // 记录监控指标
+            orderConsumerMQMonitor.recordConsumeResult(orderSn, messageId,
+                    success, costTime, success ? null : "处理异常");
         }
 
     }

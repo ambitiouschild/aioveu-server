@@ -1,8 +1,12 @@
 package com.aioveu.oms.aioveu11MqConsumer.consumer;
 
 
+import com.aioveu.pay.model.PaymentSuccessMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.spring.annotation.ConsumeMode;
+import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
+import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,13 +34,13 @@ import java.math.RoundingMode;
         suspendCurrentQueueTimeMillis = 1000,        // 消费失败挂起时间
         delayLevelWhenNextConsume = 0                // 消费失败延迟级别
 )
-public class PaymentPointConsumer implements RocketMQListener<PaymentMessage>{
+public class PaymentPointConsumer implements RocketMQListener<PaymentSuccessMessage> {
 
     @Autowired
-    private MemberPointService pointService;
+//    private MemberPointService pointService;
 
     @Override
-    public void onMessage(PaymentMessage message) {
+    public void onMessage(PaymentSuccessMessage message) {
         log.info("积分服务收到支付成功消息: orderNo={}", message.getOrderNo());
 
         try {
@@ -45,12 +49,12 @@ public class PaymentPointConsumer implements RocketMQListener<PaymentMessage>{
                     .multiply(new BigDecimal("0.1"))
                     .setScale(0, RoundingMode.DOWN);
 
-            pointService.grantPoints(
-                    message.getMemberId(),
-                    points.intValue(),
-                    "支付奖励",
-                    message.getOrderNo()
-            );
+//            pointService.grantPoints(
+//                    message.getMemberId(),
+//                    points.intValue(),
+//                    "支付奖励",
+//                    message.getOrderNo()
+//            );
 
         } catch (Exception e) {
             log.error("发放积分异常: orderNo={}", message.getOrderNo(), e);

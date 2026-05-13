@@ -10,9 +10,11 @@ import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.model.form.MqSendRecordForm;
 import com.aioveu.pay.aioveu10MqSendRecord.model.query.MqSendRecordQuery;
 import com.aioveu.pay.aioveu10MqSendRecord.model.vo.MqSendRecordVo;
+import com.aioveu.pay.aioveu10MqSendRecord.model.vo.SendRecordStats;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
 import com.aioveu.pay.aioveu10MqSendRecord.utils.MessageIdGenerator;
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -26,6 +28,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -304,6 +307,300 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
         }
 
         return result;
+    }
+
+
+    /**
+     * 查询发送失败的记录
+     * @param maxCount 最大查询数量
+     * @return 失败记录列表
+     */
+
+    /*
+    *   selectFailedMessages方法的核心功能是查询发送失败的消息记录，通常用于：
+            1.补偿任务：定时重试发送失败的消息
+            2.监控告警：统计失败率，触发告警
+            3.人工处理：在管理后台展示失败记录，供人工处理
+            4.数据分析：分析失败原因，优化发送策略
+    *
+    *
+    * */
+    @Override
+    public List<MqSendRecord> selectFailedMessages(int maxCount) {
+        try {
+            log.info("查询发送失败的记录，最大数量: {}", maxCount);
+
+            List<MqSendRecord> failedRecords = this.baseMapper.selectFailedMessages(maxCount);
+
+            log.info("查询到 {} 条发送失败的记录", failedRecords.size());
+            return failedRecords;
+
+        } catch (Exception e) {
+            log.error("查询发送失败的记录异常", e);
+            throw new RuntimeException("查询发送失败的记录失败", e);
+        }
+
+    }
+
+    /**
+     * 查询需要重试的记录
+     */
+    @Override
+    public List<MqSendRecord> selectNeedRetryRecords(int maxRetryCount, Date beforeTime, int maxCount) {
+        try {
+            log.info("查询需要重试的记录: maxRetryCount={}, beforeTime={}, maxCount={}",
+                    maxRetryCount, beforeTime, maxCount);
+
+            List<MqSendRecord> retryRecords = this.baseMapper
+                    .selectNeedRetryRecords(maxRetryCount, beforeTime, maxCount);
+
+            log.info("查询到 {} 条需要重试的记录", retryRecords.size());
+            return retryRecords;
+
+        } catch (Exception e) {
+            log.error("查询需要重试的记录异常", e);
+            throw new RuntimeException("查询需要重试的记录失败", e);
+        }
+    }
+
+    /**
+     * 查询未确认的记录
+     */
+    @Override
+    public List<MqSendRecord> selectUnconfirmedMessages(int timeoutMinutes, int maxCount) {
+        try {
+            log.info("查询未确认的记录: timeoutMinutes={}, maxCount={}", timeoutMinutes, maxCount);
+
+            List<MqSendRecord> unconfirmedRecords = this.baseMapper
+                    .selectUnconfirmedMessages(timeoutMinutes, maxCount);
+
+            log.info("查询到 {} 条未确认的记录", unconfirmedRecords.size());
+            return unconfirmedRecords;
+
+        } catch (Exception e) {
+            log.error("查询未确认的记录异常", e);
+            throw new RuntimeException("查询未确认的记录失败", e);
+        }
+    }
+
+    /**
+     * 批量更新重试信息
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int batchUpdateRetryInfo(List<Long> ids, int retryCount, LocalDateTime nextRetryTime) {
+        if (ids == null || ids.isEmpty()) {
+            return 0;
+        }
+
+        try {
+            int updatedCount = 0;
+            LocalDateTime updateTime = LocalDateTime.now();
+
+            for (Long id : ids) {
+                MqSendRecord record = new MqSendRecord();
+                record.setId(id);
+                record.setRetryCount(retryCount);
+                record.setNextRetryTime(nextRetryTime);
+                record.setUpdateTime(updateTime);
+
+                int rows = this.baseMapper.updateById(record);
+                if (rows > 0) {
+                    updatedCount++;
+                }
+            }
+
+            log.info("批量更新重试信息: 共{}条，成功{}条", ids.size(), updatedCount);
+            return updatedCount;
+
+        } catch (Exception e) {
+            log.error("批量更新重试信息异常", e);
+            throw new RuntimeException("批量更新重试信息失败", e);
+        }
+    }
+
+    /**
+     * 统计各类状态的消息数量
+     */
+    @Override
+    public SendRecordStats getSendRecordStats(LocalDateTime startTime, LocalDateTime endTime) {
+        try {
+            LambdaQueryWrapper<MqSendRecord> wrapper = new LambdaQueryWrapper<>();
+
+            if (startTime != null) {
+                wrapper.ge(MqSendRecord::getCreateTime, startTime);
+            }
+
+            if (endTime != null) {
+                wrapper.le(MqSendRecord::getCreateTime, endTime);
+            }
+
+            wrapper.eq(MqSendRecord::getIsDeleted, 0);
+
+            // 统计总数
+            long totalCount = this.baseMapper.selectCount(wrapper);
+
+            // 统计成功数
+            LambdaQueryWrapper<MqSendRecord> successWrapper = wrapper.clone();
+            successWrapper.eq(MqSendRecord::getSendStatus, SendStatusEnum.SUCCESS.getValue());
+            long successCount = this.baseMapper.selectCount(successWrapper);
+
+            // 统计失败数
+            LambdaQueryWrapper<MqSendRecord> failedWrapper = wrapper.clone();
+            failedWrapper.eq(MqSendRecord::getSendStatus, SendStatusEnum.FAILED.getValue());
+            long failedCount = this.baseMapper.selectCount(failedWrapper);
+
+            // 统计未确认数
+            LambdaQueryWrapper<MqSendRecord> unconfirmedWrapper = wrapper.clone();
+            unconfirmedWrapper.eq(MqSendRecord::getSendStatus, SendStatusEnum.SUCCESS.getValue())
+                    .isNull(MqSendRecord::getConfirmTime);
+            long unconfirmedCount = this.baseMapper.selectCount(unconfirmedWrapper);
+
+            return SendRecordStats.builder()
+                    .totalCount(totalCount)
+                    .successCount(successCount)
+                    .failedCount(failedCount)
+                    .unconfirmedCount(unconfirmedCount)
+                    .successRate(totalCount > 0 ? (successCount * 100.0 / totalCount) : 0.0)
+                    .build();
+
+        } catch (Exception e) {
+            log.error("统计发送记录异常", e);
+            throw new RuntimeException("统计发送记录失败", e);
+        }
+    }
+
+
+    /**
+     * 获取详细的发送记录统计
+     */
+    @Override
+    public SendRecordStats getDetailedSendRecordStats(LocalDateTime startTime, LocalDateTime endTime) {
+        try {
+            LambdaQueryWrapper<MqSendRecord> wrapper = new LambdaQueryWrapper<>();
+
+            if (startTime != null) {
+                wrapper.ge(MqSendRecord::getCreateTime, startTime);
+            }
+
+            if (endTime != null) {
+                wrapper.le(MqSendRecord::getCreateTime, endTime);
+            }
+
+            wrapper.eq(MqSendRecord::getIsDeleted, 0);
+
+            // 查询所有记录
+            List<MqSendRecord> allRecords = this.baseMapper.selectList(wrapper);
+
+            SendRecordStats stats = SendRecordStats.builder()
+                    .startTime(startTime)
+                    .endTime(endTime)
+                    .totalCount((long) allRecords.size())
+                    .statsTime(LocalDateTime.now())
+                    .build();
+
+            // 按状态统计
+            Map<Integer, Long> statusCounts = allRecords.stream()
+                    .collect(Collectors.groupingBy(MqSendRecord::getSendStatus, Collectors.counting()));
+
+            Long successCount = statusCounts.getOrDefault(SendStatusEnum.SUCCESS.getValue(), 0L);
+            Long failedCount = statusCounts.getOrDefault(SendStatusEnum.FAILED.getValue(), 0L);
+
+            stats.setSuccessCount(successCount);
+            stats.setFailedCount(failedCount);
+
+            // 未确认数
+            Long unconfirmedCount = allRecords.stream()
+                    .filter(record -> record.getSendStatus() == SendStatusEnum.SUCCESS.getValue())
+                    .filter(record -> record.getConfirmTime() == null)
+                    .count();
+            stats.setUnconfirmedCount(unconfirmedCount);
+
+            // 已确认数
+            Long confirmedCount = allRecords.stream()
+                    .filter(record -> record.getSendStatus() == SendStatusEnum.SUCCESS.getValue())
+                    .filter(record -> record.getConfirmTime() != null)
+                    .count();
+            stats.setConfirmedCount(confirmedCount);
+
+            // 重试统计
+            Long retryTotalCount = allRecords.stream()
+                    .mapToLong(MqSendRecord::getRetryCount)
+                    .sum();
+            stats.setRetryTotalCount(retryTotalCount);
+
+            Integer maxRetryCount = allRecords.stream()
+                    .mapToInt(MqSendRecord::getRetryCount)
+                    .max()
+                    .orElse(0);
+            stats.setMaxRetryCount(maxRetryCount);
+
+            // 正在重试中的消息数
+            Long retryingCount = allRecords.stream()
+                    .filter(record -> record.getSendStatus() == SendStatusEnum.FAILED.getValue())
+                    .filter(record -> record.getRetryCount() > 0)
+                    //record.getNextRetryTime().after(new Date())
+                    //record.getNextRetryTime().isAfter(LocalDateTime.now())
+                    .filter(record -> record.getNextRetryTime() != null && record.getNextRetryTime().isAfter(LocalDateTime.now()))
+                    .count();
+            stats.setRetryingCount(retryingCount);
+
+            // 按Topic统计
+            Map<String, List<MqSendRecord>> recordsByTopic = allRecords.stream()
+                    .collect(Collectors.groupingBy(MqSendRecord::getTopic));
+
+            List<SendRecordStats.TopicStats> topicStatsList = new ArrayList<>();
+            for (Map.Entry<String, List<MqSendRecord>> entry : recordsByTopic.entrySet()) {
+                String topic = entry.getKey();
+                List<MqSendRecord> topicRecords = entry.getValue();
+
+                long topicTotal = topicRecords.size();
+                long topicSuccess = topicRecords.stream()
+                        .filter(r -> r.getSendStatus() == SendStatusEnum.SUCCESS.getValue())
+                        .count();
+                double topicSuccessRate = topicTotal > 0 ? (topicSuccess * 100.0 / topicTotal) : 0.0;
+
+                topicStatsList.add(SendRecordStats.TopicStats.builder()
+                        .topic(topic)
+                        .totalCount(topicTotal)
+                        .successCount(topicSuccess)
+                        .successRate(topicSuccessRate)
+                        .build());
+            }
+            stats.setTopicStats(topicStatsList);
+
+            // 按状态统计
+            List<SendRecordStats.StatusStats> statusStatsList = new ArrayList<>();
+            for (Map.Entry<Integer, Long> entry : statusCounts.entrySet()) {
+                Integer status = entry.getKey();
+                Long count = entry.getValue();
+                // 在需要获取 label 的地方
+                String statusDesc = Arrays.stream(SendStatusEnum.values())
+                        .filter(s -> s.getValue().equals(status))
+                        .findFirst()
+                        .map(SendStatusEnum::getLabel)
+                        .orElse("未发送");
+
+                double rate = allRecords.size() > 0 ? (count * 100.0 / allRecords.size()) : 0.0;
+
+                statusStatsList.add(SendRecordStats.StatusStats.builder()
+                        .status(status)
+                        .statusDesc(statusDesc)
+                        .count(count)
+                        .rate(rate)
+                        .build());
+            }
+            stats.setStatusStats(statusStatsList);
+
+            // 计算比率
+            stats.calculateRates();
+
+            return stats;
+
+        } catch (Exception e) {
+            log.error("获取详细发送记录统计异常", e);
+            throw new RuntimeException("获取详细发送记录统计失败", e);
+        }
     }
 
 

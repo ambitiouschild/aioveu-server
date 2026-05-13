@@ -26,34 +26,30 @@ rocketmq:
 #      consume-thread-min: 5
 #      consume-thread-max: 20
 
-payment:
-  mq:
-    topics:
-      success: payment_success_topic
-      failed: payment_failed_topic
-      refund: payment_refund_topic
-    retry:
-      max-attempts: 5
-      initial-interval: 30s
-      multiplier: 2
+  monitor:
+    consumer:
+      enabled: true
+      groups:
+        - order_service_group
+      metrics:
+        - consume_success_rate  # 消费成功率
+        - consume_latency_ms    # 消费延迟
+        - dlq_count             # 死信队列数量
+        - retry_count           # 重试次数
+      alerts:
+        - condition: "consume_failure_rate > 5%"
+          message: "消息消费失败率过高"
+        - condition: "dlq_count > 0"
+          message: "存在死信消息"
+# 订单消费端监控配置
+order:
+  consumer:
     monitor:
       enabled: true
       backlog-threshold: 1000
-      alert-interval: 5m
-
-      #//Prometheus监控配置
-
-      # prometheus.yml
-      scrape_configs:
-        - job_name: 'rocketmq_exporter'
-          static_configs:
-            - targets: [ 'rocketmq-exporter:5557' ]
-              labels:
-                group: 'payment'
-
-        - job_name: 'payment_service'
-          metrics_path: '/actuator/prometheus'
-          static_configs:
-            - targets: [ 'payment-service:8080' ]
-              labels:
-                application: 'payment-service'
+      delay-threshold: 10000
+      failure-rate-threshold: 5.0
+      # 监控的 Topic
+      topics: payment_success_topic
+      # 监控的消费者组
+      consumer-groups: ${spring.application.name}-payment-consumer

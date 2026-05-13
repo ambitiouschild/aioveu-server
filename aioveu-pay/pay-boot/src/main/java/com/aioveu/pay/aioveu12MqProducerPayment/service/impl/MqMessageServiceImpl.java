@@ -6,27 +6,39 @@ import com.aioveu.pay.aioveu10MqSendRecord.enums.SendStatusEnum;
 import com.aioveu.pay.aioveu10MqSendRecord.mapper.MqSendRecordMapper;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
+import com.aioveu.pay.aioveu10MqSendRecord.utils.MessageIdGenerator;
+import com.aioveu.pay.aioveu12MqProducerPayment.MQMonitorProducer.ProducerMonitor;
+import com.aioveu.pay.aioveu12MqProducerPayment.MQMonitorProducer.ProducerMetricsCollector;
+import com.aioveu.pay.aioveu12MqProducerPayment.adapter.MessageRequestAdapter;
+import com.aioveu.pay.aioveu12MqProducerPayment.enums.MessageQueueTypeEnum;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.MqBatchSendResult;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.MessageSendResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.PaymentFailedMessage;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.PaymentSuccessMessage;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.MessageSendRequest;
 import com.aioveu.pay.aioveu12MqProducerPayment.service.MqMessageService;
-import com.alibaba.fastjson.JSON;
+import com.aioveu.pay.aioveu12MqProducerPayment.util.AdapterMessageBuilder;
+import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.MessageConst;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
-import org.springframework.beans.BeanUtils;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.apache.rocketmq.client.producer.SendResult;  // ✅
 import java.time.LocalDateTime;
 import java.util.*;
 
+
 /**
  * @ClassName: MqSendRecordServiceImpl
  * @Description TODO MQ消息发送记录服务实现类
+ *                    消息发送服务（使用自定义Request）
  * @Author aioveu
  * @Author 雒世松
  * @Date 2026/5/9 21:48
@@ -39,6 +51,9 @@ import java.util.*;
 public class MqMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSendRecord> implements MqMessageService {
 
 
+    private final MessageProducer messageProducer;
+    private final MessageIdGenerator messageIdGenerator;
+
 
     private final MqSendRecordMapper mqSendRecordMapper;
     private final RocketMQTemplate rocketMQTemplate;
@@ -48,12 +63,22 @@ public class MqMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSend
     @Value("${rocketmq.topic.payment-success:payment_success_topic}")
     private String paymentSuccessTopic;
 
+    private final ProducerMonitor producerMonitor;
+    private final ProducerMetricsCollector metricsCollector;
+
+    private final AdapterMessageBuilder adapterMessageBuilder;
+
+
+
+
+
     /**
      * 发送支付成功消息
      */
     @Override
     public boolean sendPaymentSuccessMessage(PayOrder payOrder, Map<String, String> params) {
-
+        long startTime = System.currentTimeMillis();
+        boolean success = false;
 
         try {
 
@@ -91,14 +116,16 @@ public class MqMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSend
             );
 
             // 更新发送状态
-            Boolean  updateSendStatus =  mqSendRecordService.updateSendStatus(messageId, SendStatusEnum.SUCCESS, null);
+           success =  mqSendRecordService.updateSendStatus(messageId, SendStatusEnum.SUCCESS, null);
 
+            if (success) {
+                log.info("【MQ发送】支付成功消息发送成功: paymentNo={}, messageId={}",
+                        payOrder.getPaymentNo(), messageId);
+            } else {
+                log.error("消息发送失败: status={}", messageId);
+            }
 
-
-            log.info("【MQ发送】支付成功消息发送成功: paymentNo={}, messageId={}",
-                    payOrder.getPaymentNo(), messageId);
-
-            return updateSendStatus;
+            return success;
 
         } catch (Exception e) {
             log.error("发送支付成功消息异常: paymentNo={}", payOrder.getPaymentNo(), e);
@@ -110,7 +137,14 @@ public class MqMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSend
                     SendStatusEnum.FAILED,
                     e.getMessage()
             );
+            return false;
 
+        }finally {
+            // 记录发送结果
+            producerMonitor.recordSendResult(success);
+            long costTime = System.currentTimeMillis() - startTime;
+            // ✅ 使用 ProducerMetricsCollector 记录指标
+            metricsCollector.recordSendResult(success, costTime);
         }
 
     }
@@ -120,7 +154,7 @@ public class MqMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSend
      * 发送支付失败消息
      */
     @Override
-    public void sendPaymentFailedMessage(PayOrder payOrder, Map<String, String> params) {
+    public boolean sendPaymentFailedMessage(PayOrder payOrder, Map<String, String> params) {
         PaymentFailedMessage message = PaymentFailedMessage.builder()
                 .paymentNo(payOrder.getPaymentNo())
                 .orderNo(payOrder.getOrderNo())
@@ -130,6 +164,88 @@ public class MqMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSend
                 .build();
 
         rocketMQTemplate.syncSend("payment-failed-topic", message);
+
+        // 记录发送结果
+        producerMonitor.recordSendResult(false);
+
+        return true;
+
+    }
+
+    /**
+     * 批量发送消息
+     */
+    @Override
+    public MqBatchSendResult batchSend(List<PaymentSuccessMessage> messages) {
+        MqBatchSendResult result = new MqBatchSendResult ();
+        long totalStartTime = System.currentTimeMillis();
+
+        for (PaymentSuccessMessage message : messages) {
+            long startTime = System.currentTimeMillis();
+            boolean success = false;
+
+            try {
+                // 发送单条消息
+                success = sendSingleMessage(message);
+
+                // 更新统计
+                if (success) {
+                    result.incrementSuccess();
+                } else {
+                    result.incrementFailed();
+                }
+
+            } finally {
+                long costTime = System.currentTimeMillis() - startTime;
+                // ✅ 记录每条消息的发送指标
+                metricsCollector.recordSendResult(success, costTime);
+            }
+        }
+
+        long totalCostTime = System.currentTimeMillis() - totalStartTime;
+        // ✅ 记录批量发送的整体指标
+        metricsCollector.recordSendResult(result.getFailedCount() == 0, totalCostTime);
+
+        return result;
+    }
+
+
+    /**
+     * 发送单条消息（完整功能版）
+     *
+     * @param request 发送请求
+     * @return 发送结果
+     */
+    @Override
+    public MessageSendResult sendSingleMessage(MessageSendRequest request) {
+        long startTime = System.currentTimeMillis();
+        String messageId = request.getMessageId();
+
+        if (StringUtils.isBlank(messageId)) {
+            messageId = messageIdGenerator.generateMessageId();
+        }
+
+        try {
+            // 1. 参数校验
+            adapterMessageBuilder.validateRequest(request);
+
+            // 3. 根据配置选择MQ
+            MessageQueueTypeEnum queueType = adapterMessageBuilder.determineQueueType(request);
+
+
+            // 3. 发送消息
+            SendResult sendResult = adapterMessageBuilder.doSend(queueType, request);
+
+            // 5. 记录成功日志
+            adapterMessageBuilder.logSendSuccess(request, sendResult, startTime);
+
+            return sendResult;
+
+        } catch (Exception e) {
+            // 6. 记录失败日志
+            adapterMessageBuilder.logSendFailure(request, messageId, e, startTime);
+            throw new MessageSendException("消息发送失败", e, messageId);
+        }
     }
 
 

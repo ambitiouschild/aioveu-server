@@ -31,6 +31,8 @@ public class ConsumerRocketMQConfig {
     private String nameServer;
 
 
+
+
 //    @Bean
     public RocketMQTemplate rocketMQTemplate() {
         // 只保留生产者配置

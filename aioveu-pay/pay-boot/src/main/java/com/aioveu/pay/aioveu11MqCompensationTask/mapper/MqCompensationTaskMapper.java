@@ -27,4 +27,7 @@ public interface MqCompensationTaskMapper extends BaseMapper<MqCompensationTask>
      * @return {@link Page<MqCompensationTaskVo>} MQ补偿任务分页列表
      */
     Page<MqCompensationTaskVo> getMqCompensationTaskPage(Page<MqCompensationTaskVo> page, MqCompensationTaskQuery queryParams);
+
+
+
 }

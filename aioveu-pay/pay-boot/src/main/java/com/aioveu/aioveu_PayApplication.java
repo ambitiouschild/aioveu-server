@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /*
  * @Author 可我不敌可爱
@@ -27,6 +28,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
         OrderFeignClient.class,
         SkuFeignClient.class
 })
+// 在启动类添加 @EnableScheduling
+@EnableScheduling
 public class aioveu_PayApplication {
     public static void main(String[] args) {
 
