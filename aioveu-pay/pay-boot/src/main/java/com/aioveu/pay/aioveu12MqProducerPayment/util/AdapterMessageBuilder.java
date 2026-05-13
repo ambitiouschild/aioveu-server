@@ -3,7 +3,7 @@ package com.aioveu.pay.aioveu12MqProducerPayment.util;
 
 import com.aioveu.pay.aioveu12MqProducerPayment.adapter.MessageRequestAdapter;
 import com.aioveu.pay.aioveu12MqProducerPayment.enums.MessageQueueTypeEnum;
-import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.MessageSendRequest;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitMQMessageSendRequest;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.MessageSendResult;
 import com.alibaba.nacos.common.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,6 @@ import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
@@ -46,7 +45,7 @@ public class AdapterMessageBuilder {
 
 
     // 私有辅助方法
-    public void validateRequest(MessageSendRequest request) {
+    public void validateRequest(RabbitMQMessageSendRequest request) {
         if (StringUtils.isBlank(request.getTopic())) {
             throw new IllegalArgumentException("主题不能为空");
         }
@@ -60,7 +59,7 @@ public class AdapterMessageBuilder {
 
 
     // 3. 根据配置选择MQ
-    public MessageQueueTypeEnum determineQueueType(MessageSendRequest request) {
+    public MessageQueueTypeEnum determineQueueType(RabbitMQMessageSendRequest request) {
 
 
         return null;
@@ -70,7 +69,7 @@ public class AdapterMessageBuilder {
     /*
     *  发送消息
     * */
-    public SendResult doSend(MessageQueueTypeEnum queueType, MessageSendRequest request) throws Exception {
+    public SendResult doSend(MessageQueueTypeEnum queueType, RabbitMQMessageSendRequest request) throws Exception {
 
         SendResult result = null;
 
@@ -118,7 +117,7 @@ public class AdapterMessageBuilder {
     /**
      * 发送到RocketMQ
      */
-    private SendResult sendByRocketMQ(MessageSendRequest request) {
+    private SendResult sendByRocketMQ(RabbitMQMessageSendRequest request) {
         org.apache.rocketmq.common.message.Message message =
                 requestAdapter.toRocketMQMessage(request);
 
@@ -139,7 +138,7 @@ public class AdapterMessageBuilder {
     /**
      * 发送到Kafka
      */
-    private SendResult sendByKafka(MessageSendRequest request) {
+    private SendResult sendByKafka(RabbitMQMessageSendRequest request) {
         ProducerRecord<String, String> record =
                 requestAdapter.toKafkaRecord(request);
 
@@ -163,7 +162,7 @@ public class AdapterMessageBuilder {
 
 
 
-    private void logSendSuccess(MessageSendRequest request, MessageSendResult result, long startTime) {
+    private void logSendSuccess(RabbitMQMessageSendRequest request, MessageSendResult result, long startTime) {
         if (log.isInfoEnabled()) {
             long costTime = System.currentTimeMillis() - startTime;
             log.info("消息发送成功: messageId={}, topic={}, tag={}, bizId={}, cost={}ms, queueId={}, offset={}",
@@ -177,7 +176,7 @@ public class AdapterMessageBuilder {
         }
     }
 
-    private void logSendFailure(MessageSendRequest request, String messageId, Exception e, long startTime) {
+    private void logSendFailure(RabbitMQMessageSendRequest request, String messageId, Exception e, long startTime) {
         long costTime = System.currentTimeMillis() - startTime;
         log.error("消息发送失败: messageId={}, topic={}, tag={}, bizId={}, cost={}ms",
                 messageId, request.getTopic(), request.getTag(), request.getBizId(), costTime, e);

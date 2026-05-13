@@ -71,3 +71,19 @@ payment:
               labels:
                 application: 'payment-service'
 
+kafka:
+  bootstrap-servers: localhost:9092
+  producer:
+    key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    # 可选配置
+    acks: all
+    retries: 3
+    batch-size: 16384
+    buffer-memory: 33554432
+    compression-type: snappy
+  consumer:
+    group-id: my-group
+    auto-offset-reset: earliest
+    key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    value-deserializer: org.apache.kafka.common.serialization.StringDeserializer

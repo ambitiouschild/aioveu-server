@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.MQMonitorProducer;
 
 
-import com.aioveu.pay.aioveu12MqProducerPayment.service.MQAlertService;
+import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.impl.MQAlertService;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;

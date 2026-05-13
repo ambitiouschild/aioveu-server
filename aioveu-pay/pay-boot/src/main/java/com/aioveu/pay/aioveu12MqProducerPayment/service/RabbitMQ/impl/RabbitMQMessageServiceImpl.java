@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.service.impl;
+package com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.impl;
 
 
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
@@ -9,14 +9,13 @@ import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
 import com.aioveu.pay.aioveu10MqSendRecord.utils.MessageIdGenerator;
 import com.aioveu.pay.aioveu12MqProducerPayment.MQMonitorProducer.ProducerMonitor;
 import com.aioveu.pay.aioveu12MqProducerPayment.MQMonitorProducer.ProducerMetricsCollector;
-import com.aioveu.pay.aioveu12MqProducerPayment.adapter.MessageRequestAdapter;
 import com.aioveu.pay.aioveu12MqProducerPayment.enums.MessageQueueTypeEnum;
-import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.MqBatchSendResult;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.MqBatchSendResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.MessageSendResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.PaymentFailedMessage;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.PaymentSuccessMessage;
-import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.MessageSendRequest;
-import com.aioveu.pay.aioveu12MqProducerPayment.service.MqMessageService;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitMQMessageSendRequest;
+import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.RabbitMQMessageService;
 import com.aioveu.pay.aioveu12MqProducerPayment.util.AdapterMessageBuilder;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -24,20 +23,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.MessageConst;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import org.apache.rocketmq.client.producer.SendResult;  // ✅
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
  * @ClassName: MqSendRecordServiceImpl
- * @Description TODO MQ消息发送记录服务实现类
+ * @Description TODO RabbitMQ专属消息发送服务
  *                    消息发送服务（使用自定义Request）
  * @Author aioveu
  * @Author 雒世松
@@ -48,7 +45,7 @@ import java.util.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MqMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSendRecord> implements MqMessageService {
+public class RabbitMQMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSendRecord> implements RabbitMQMessageService {
 
 
     private final MessageProducer messageProducer;
@@ -69,7 +66,8 @@ public class MqMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSend
     private final AdapterMessageBuilder adapterMessageBuilder;
 
 
-
+    // 存储消息回调上下文，用于重试
+    private final Map<String, SendContext> sendContextMap = new ConcurrentHashMap<>();
 
 
     /**
@@ -217,7 +215,7 @@ public class MqMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSend
      * @return 发送结果
      */
     @Override
-    public MessageSendResult sendSingleMessage(MessageSendRequest request) {
+    public MessageSendResult sendSingleMessage(RabbitMQMessageSendRequest request) {
         long startTime = System.currentTimeMillis();
         String messageId = request.getMessageId();
 

@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.MQMonitorProducer;
 
-import com.aioveu.pay.aioveu12MqProducerPayment.service.MQAlertService;
-import com.aioveu.pay.aioveu12MqProducerPayment.service.MQMetricsService;
+import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.impl.MQAlertService;
+import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.impl.MQMetricsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.MessageQueue;

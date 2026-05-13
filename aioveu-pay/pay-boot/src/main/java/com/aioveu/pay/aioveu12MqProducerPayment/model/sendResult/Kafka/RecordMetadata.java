@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult;
+package com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.Kafka;
 
 
 /**
@@ -13,6 +13,9 @@ package com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult;
 /*
 * RecordMetadata是 Apache Kafka Producer API 中表示消息发送结果的核心类。它包含了消息在 Kafka 集群中的确切存储位置信息。
 * */
+
+import org.apache.kafka.common.record.RecordBatch;
+
 /**
  * Kafka RecordMetadata 的核心字段
  * 记录了消息在 Kafka 集群中的存储元数据

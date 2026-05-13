@@ -1,7 +1,6 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.service.impl;
+package com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.impl;
 
 
-import com.aioveu.pay.aioveu12MqProducerPayment.service.MQAlertService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

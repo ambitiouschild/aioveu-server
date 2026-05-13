@@ -2,7 +2,7 @@ package com.aioveu.pay.aioveu12MqProducerPayment.MQMonitorProducer;
 
 
 import cn.hutool.core.date.StopWatch;
-import com.aioveu.pay.aioveu12MqProducerPayment.service.MQMetricsService;
+import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.impl.MQMetricsService;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;

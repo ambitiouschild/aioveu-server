@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult;
+package com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.Kafka;
 
 
 /**

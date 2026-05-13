@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.model.vo;
+package com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ;
 
 
 
@@ -13,7 +13,8 @@ import java.util.Map;
 
 /**
  * @ClassName: SendMessageRequest
- * @Description TODO 发送请求参数 核心业务层（最推荐）
+ * @Description TODO RabbitMQ专属发送请求
+ *                          发送请求参数 核心业务层（最推荐）
  * @Author aioveu
  * @Author 雒世松
  * @Date 2026/5/13 17:47
@@ -25,7 +26,7 @@ import java.util.Map;
  * 统一封装各种MQ的发送参数
  */
 @Data
-public class MessageSendRequest {
+public class RabbitMQMessageSendRequest {
 
     // ========== 必填字段 ==========
     /** 主题/交换机 */
@@ -106,15 +107,15 @@ public class MessageSendRequest {
     private String callerIp;
 
     // ========== 构造方法 ==========
-    public MessageSendRequest() {
+    public RabbitMQMessageSendRequest() {
     }
 
-    public MessageSendRequest(String topic, Object body) {
+    public RabbitMQMessageSendRequest(String topic, Object body) {
         this.topic = topic;
         this.body = body;
     }
 
-    public MessageSendRequest(String topic, Object body, String bizId, String bizType) {
+    public RabbitMQMessageSendRequest(String topic, Object body, String bizId, String bizType) {
         this.topic = topic;
         this.body = body;
         this.bizId = bizId;
@@ -125,7 +126,7 @@ public class MessageSendRequest {
     /**
      * 添加属性
      */
-    public MessageSendRequest addProperty(String key, String value) {
+    public RabbitMQMessageSendRequest addProperty(String key, String value) {
         if (this.properties == null) {
             this.properties = new HashMap<>();
         }
@@ -136,7 +137,7 @@ public class MessageSendRequest {
     /**
      * 添加消息头
      */
-    public MessageSendRequest addHeader(String key, String value) {
+    public RabbitMQMessageSendRequest addHeader(String key, String value) {
         if (this.headers == null) {
             this.headers = new HashMap<>();
         }
@@ -147,7 +148,7 @@ public class MessageSendRequest {
     /**
      * 设置业务标识
      */
-    public MessageSendRequest withBizInfo(String bizId, String bizType) {
+    public RabbitMQMessageSendRequest withBizInfo(String bizId, String bizType) {
         this.bizId = bizId;
         this.bizType = bizType;
         return this;
@@ -156,7 +157,7 @@ public class MessageSendRequest {
     /**
      * 启用异步发送
      */
-    public MessageSendRequest async() {
+    public RabbitMQMessageSendRequest async() {
         this.async = true;
         return this;
     }
@@ -164,7 +165,7 @@ public class MessageSendRequest {
     /**
      * 启用延迟发送
      */
-    public MessageSendRequest delay(long delayMillis) {
+    public RabbitMQMessageSendRequest delay(long delayMillis) {
         this.delayTime = delayMillis;
         return this;
     }

@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.adapter;
 
 
-import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.MessageSendRequest;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitMQMessageSendRequest;
 import com.rabbitmq.client.MessageProperties;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +24,7 @@ public class MessageRequestAdapter {
     /**
      * 转换为RocketMQ的Message
      */
-    public org.apache.rocketmq.common.message.Message toRocketMQMessage(MessageSendRequest request) {
+    public org.apache.rocketmq.common.message.Message toRocketMQMessage(RabbitMQMessageSendRequest request) {
         Message msg = new Message(
                 request.getTopic(),
                 request.getTag(),
@@ -53,7 +53,7 @@ public class MessageRequestAdapter {
     /**
      * 转换为Kafka的ProducerRecord
      */
-    public org.apache.kafka.clients.producer.ProducerRecord<String, String> toKafkaRecord(MessageSendRequest request) {
+    public org.apache.kafka.clients.producer.ProducerRecord<String, String> toKafkaRecord(RabbitMQMessageSendRequest request) {
         return new ProducerRecord<>(
                 request.getTopic(),
                 request.getMessageKey(),  // 作为Kafka的key
@@ -64,7 +64,7 @@ public class MessageRequestAdapter {
     /**
      * 转换为RabbitMQ的Message
      */
-    public org.springframework.amqp.core.Message toRabbitMQMessage(MessageSendRequest request) {
+    public org.springframework.amqp.core.Message toRabbitMQMessage(RabbitMQMessageSendRequest request) {
         MessageProperties properties = new MessageProperties();
 
         // 设置消息头
