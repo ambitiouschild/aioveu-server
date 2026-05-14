@@ -10,12 +10,12 @@ import com.aioveu.pay.aioveu10MqSendRecord.utils.MessageIdGenerator;
 import com.aioveu.pay.aioveu12MqProducerPayment.MQMonitorProducer.ProducerMonitor;
 import com.aioveu.pay.aioveu12MqProducerPayment.MQMonitorProducer.ProducerMetricsCollector;
 import com.aioveu.pay.aioveu12MqProducerPayment.enums.MessageQueueTypeEnum;
-import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.MqBatchSendResult;
-import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.MessageSendResult;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RocketMQ.RocketBatchSendResult;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.PaymentFailedMessage;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.PaymentSuccessMessage;
-import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitMQMessageSendRequest;
-import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.RabbitMQMessageService;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendRequest;
+import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.RabbitMessageService;
 import com.aioveu.pay.aioveu12MqProducerPayment.util.AdapterMessageBuilder;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -45,7 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RabbitMQMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSendRecord> implements RabbitMQMessageService {
+public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSendRecord> implements RabbitMessageService {
 
 
     private final MessageProducer messageProducer;
@@ -174,8 +174,8 @@ public class RabbitMQMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, 
      * 批量发送消息
      */
     @Override
-    public MqBatchSendResult batchSend(List<PaymentSuccessMessage> messages) {
-        MqBatchSendResult result = new MqBatchSendResult ();
+    public RocketBatchSendResult batchSend(List<PaymentSuccessMessage> messages) {
+        RocketBatchSendResult result = new RocketBatchSendResult();
         long totalStartTime = System.currentTimeMillis();
 
         for (PaymentSuccessMessage message : messages) {
@@ -215,7 +215,7 @@ public class RabbitMQMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, 
      * @return 发送结果
      */
     @Override
-    public MessageSendResult sendSingleMessage(RabbitMQMessageSendRequest request) {
+    public RabbitSendResult sendSingleMessage(RabbitSendRequest request) {
         long startTime = System.currentTimeMillis();
         String messageId = request.getMessageId();
 

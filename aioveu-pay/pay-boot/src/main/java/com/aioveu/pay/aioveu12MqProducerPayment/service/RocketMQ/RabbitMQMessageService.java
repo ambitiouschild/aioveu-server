@@ -1,12 +1,12 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ;
+package com.aioveu.pay.aioveu12MqProducerPayment.service.RocketMQ.impl;
 
 
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
-import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.MqBatchSendResult;
-import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.MessageSendResult;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendRequest;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RocketMQ.RocketBatchSendResult;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.PaymentSuccessMessage;
-import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitMQMessageSendRequest;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;
@@ -38,7 +38,7 @@ public interface RabbitMQMessageService extends IService<MqSendRecord> {
     /**
      * 批量发送消息
      */
-    MqBatchSendResult batchSend(List<PaymentSuccessMessage> messages);
+    RocketBatchSendResult batchSend(List<PaymentSuccessMessage> messages);
 
 
     /**
@@ -47,5 +47,5 @@ public interface RabbitMQMessageService extends IService<MqSendRecord> {
      * @param request 发送请求
      * @return 发送结果
      */
-    MessageSendResult sendSingleMessage(RabbitMQMessageSendRequest request);
+    RabbitSendResult sendSingleMessage(RabbitSendRequest request);
 }

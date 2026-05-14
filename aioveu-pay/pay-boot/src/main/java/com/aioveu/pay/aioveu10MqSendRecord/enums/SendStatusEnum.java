@@ -16,7 +16,7 @@ public enum SendStatusEnum implements IBaseEnum<Integer> {
 
     PENDING(0, "未发送"),
     SENDING(1, "发送中"),
-    SUCCESS(2, "发送成功"),
+    SUCCESS(2, "发送成功（到达Broker并被确认）"),
 
     FAILED(3, "发送失败"),
 
@@ -26,6 +26,10 @@ public enum SendStatusEnum implements IBaseEnum<Integer> {
 
     DEAD(6, "进入死信队列"),
 
+    ROUTING_FAILED(7, "路由失败（触发ReturnCallback"),         // 路由失败（触发ReturnCallback）
+    CONFIRM_TIMEOUT(8, "确认超时"),
+    CONFIRM_NACK(9, "Broker返回NACK"),
+    UNKNOWN (10, "未知状态"),
     ;
 
     SendStatusEnum(Integer value, String label) {

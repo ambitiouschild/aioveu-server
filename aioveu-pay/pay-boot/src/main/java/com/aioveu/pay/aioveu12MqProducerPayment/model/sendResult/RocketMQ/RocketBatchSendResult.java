@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ;
+package com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RocketMQ;
 
 
 /**
@@ -17,10 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * RocketMQ 批量发送结果
+ * RocketMQ批量发送结果
  */
 @Data
-public class MqBatchSendResult {
+public class RocketBatchSendResult {
 
 
     /** 发送状态（SEND_OK, FLUSH_DISK_TIMEOUT, etc） */
