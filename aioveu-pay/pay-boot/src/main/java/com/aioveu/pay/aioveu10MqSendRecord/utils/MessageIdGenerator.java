@@ -12,6 +12,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -66,6 +67,13 @@ public class MessageIdGenerator {
 
         return String.format("%s_%s_%s_%04d_%d",
                 getAppShortName(), timestamp, WORKER_ID, sequence, random);
+    }
+
+    /**
+     * 生成消息ID
+     */
+    private String generateMessageIdWithUUID() {
+        return "msg-" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
     }
 
     /**
