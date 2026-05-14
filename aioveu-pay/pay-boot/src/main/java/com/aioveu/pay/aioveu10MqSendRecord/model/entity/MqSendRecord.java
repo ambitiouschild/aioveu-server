@@ -4,14 +4,19 @@ package com.aioveu.pay.aioveu10MqSendRecord.model.entity;
 import com.aioveu.common.base.BaseEntity;
 import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import kotlin.jvm.Transient;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * @ClassName: MqSendRecord
  * @Description TODO MQ消息发送记录实体对象
+ *                      新增extraInfo字段，但查询时忽略
  * @Author aioveu
  * @Author 雒世松
  * @Date 2026/5/9 21:11
@@ -22,6 +27,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @TableName("mq_send_record")
+@JsonInclude(JsonInclude.Include.NON_NULL) // JSON序列化时忽略null字段
 public class MqSendRecord extends BaseEntityWithTenantId {
 
     private static final long serialVersionUID = 1L;
@@ -90,4 +96,37 @@ public class MqSendRecord extends BaseEntityWithTenantId {
      * 逻辑删除：0-未删除 1-已删除
      */
     private Integer isDeleted;
+
+
+    /**
+     * 交换机名称
+     */
+    private String exchange;
+
+    /**
+     * 路由键
+     */
+    private String routingKey;
+
+
+
+    // ========== 新增字段 ==========
+
+    /**
+     * 扩展信息（临时字段，不映射到数据库）
+     * @Transient: JPA忽略此字段，不持久化到数据库
+     * @JsonIgnore: JSON序列化时忽略
+     */
+    @Transient
+    @JsonIgnore
+    private Map<String, Object> extraInfo;
+
+    /**
+     * 扩展信息（存储到数据库，但查询时忽略）
+     * 使用@Column(insertable = false, updatable = false)表示不参与插入和更新
+     * 但可以读取
+     */
+    @JsonIgnore
+    private String extraInfoJson;
+
 }
