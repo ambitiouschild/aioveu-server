@@ -1,10 +1,7 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.config;
+package com.aioveu.pay.aioveu12MqProducerPayment.config.RocketMQ;
 
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
-import org.apache.rocketmq.client.consumer.listener.ConsumeOrderlyStatus;
-import org.apache.rocketmq.client.consumer.listener.MessageListenerOrderly;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
@@ -14,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * @ClassName: RocketMQConfig
- * @Description TODO 生产者配置类  主要职责：生产者配置、回调接口配置
+ * @Description TODO RocketMQ生产者配置类  主要职责：生产者配置、回调接口配置
  * @Author aioveu
  * @Author 雒世松
  * @Date 2026/5/11 19:22

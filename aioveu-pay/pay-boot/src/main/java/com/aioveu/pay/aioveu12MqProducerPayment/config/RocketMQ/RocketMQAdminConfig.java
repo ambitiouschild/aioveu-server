@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.config;
+package com.aioveu.pay.aioveu12MqProducerPayment.config.RocketMQ;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * @ClassName: RocketMQAdminConfig
- * @Description TODO 创建一个配置类来配置 DefaultMQAdminExt
+ * @Description TODO RocketMQAdmin配置类来配置 DefaultMQAdminExt
  * @Author aioveu
  * @Author 雒世松
  * @Date 2026/5/12 17:23
