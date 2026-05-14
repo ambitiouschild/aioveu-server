@@ -13,7 +13,7 @@ import com.aioveu.pay.aioveu11MqCompensationTask.model.form.MqCompensationTaskFo
 import com.aioveu.pay.aioveu11MqCompensationTask.model.query.MqCompensationTaskQuery;
 import com.aioveu.pay.aioveu11MqCompensationTask.model.vo.MqCompensationTaskVo;
 import com.aioveu.pay.aioveu11MqCompensationTask.service.MqCompensationTaskService;
-import com.aioveu.pay.aioveu12MqProducerPayment.MQMonitorProducer.ProducerMetricsCollector;
+import com.aioveu.pay.aioveu12MqProducerPayment.Monitor.RabbitMQ.ProducerMetricsCollector;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;

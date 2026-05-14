@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.MQMonitorProducer;
+package com.aioveu.pay.aioveu12MqProducerPayment.Monitor.RabbitMQ;
 
 import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.impl.MQAlertService;
 import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.impl.MQMetricsService;

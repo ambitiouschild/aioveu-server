@@ -25,28 +25,4 @@ import java.util.Map;
 public interface RabbitMessageService extends IService<MqSendRecord> {
 
 
-    /**
-     * 发送支付成功消息
-     */
-    boolean sendPaymentSuccessMessage(PayOrder payOrder, Map<String, String> params);
-
-    /**
-     * 发送支付失败消息
-     */
-    boolean sendPaymentFailedMessage(PayOrder payOrder, Map<String, String> params);
-
-
-    /**
-     * 批量发送消息
-     */
-    RocketBatchSendResult batchSend(List<PaymentSuccessMessage> messages);
-
-
-    /**
-     * 发送单条消息（完整功能版）（同步）
-     *
-     * @param request 发送请求
-     * @return 发送结果
-     */
-    RabbitSendResult sendSingleMessage(RabbitSendRequest request);
 }

@@ -7,15 +7,15 @@ import com.aioveu.pay.aioveu10MqSendRecord.mapper.MqSendRecordMapper;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
 import com.aioveu.pay.aioveu10MqSendRecord.utils.MessageIdGenerator;
-import com.aioveu.pay.aioveu12MqProducerPayment.MQMonitorProducer.ProducerMetricsCollector;
-import com.aioveu.pay.aioveu12MqProducerPayment.MQMonitorProducer.ProducerMonitor;
+import com.aioveu.pay.aioveu12MqProducerPayment.Monitor.RabbitMQ.ProducerMetricsCollector;
+import com.aioveu.pay.aioveu12MqProducerPayment.Monitor.RabbitMQ.ProducerMonitor;
 import com.aioveu.pay.aioveu12MqProducerPayment.enums.MessageQueueTypeEnum;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendRequest;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RocketMQ.RocketBatchSendResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.PaymentFailedMessage;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.PaymentSuccessMessage;
-import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.RabbitMessageService;
+import com.aioveu.pay.aioveu12MqProducerPayment.service.RocketMQ.RocketMessageService;
 import com.aioveu.pay.aioveu12MqProducerPayment.util.AdapterMessageBuilder;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -48,7 +48,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSendRecord> implements RabbitMessageService {
+public class RocketMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSendRecord> implements RocketMessageService {
 
 
     private final MessageProducer messageProducer;

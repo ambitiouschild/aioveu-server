@@ -19,7 +19,7 @@ import com.aioveu.pay.aioveu01.enums.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01.model.vo.*;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
-import com.aioveu.pay.aioveu12MqProducerPayment.producer.MQProducerPayment;
+import com.aioveu.pay.aioveu12MqProducerPayment.producer.RabbitMQ.EnhancedRabbitMessagProducerPayment;
 import com.alibaba.fastjson.JSON;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -338,9 +338,9 @@ public class PaymentServiceImpl implements PaymentService {
 
 // 8. 发送MQ消息
                 if (success) {
-                    boolean mqResult = MQProducerPayment.sendPaymentSuccessMessageAndSaveSendRecord(payOrder, params);
+                    boolean mqResult = EnhancedRabbitMessagProducerPayment.sendPaymentSuccessMessageAndSaveSendRecord(payOrder, params);
                 } else {
-                    boolean mqResult = MQProducerPayment.sendPaymentSuccessMessage(payOrder, params);
+                    boolean mqResult = EnhancedRabbitMessagProducerPayment.sendPaymentSuccessMessage(payOrder, params);
 
 
                     // MQ发送失败，记录到补偿表

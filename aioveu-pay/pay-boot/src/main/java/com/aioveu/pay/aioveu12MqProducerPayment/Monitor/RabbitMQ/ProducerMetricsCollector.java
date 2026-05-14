@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.MQMonitorProducer;
+package com.aioveu.pay.aioveu12MqProducerPayment.Monitor.RabbitMQ;
 
 
 import cn.hutool.core.date.StopWatch;

@@ -7,8 +7,8 @@ import com.aioveu.pay.aioveu10MqSendRecord.mapper.MqSendRecordMapper;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
 import com.aioveu.pay.aioveu10MqSendRecord.utils.MessageIdGenerator;
-import com.aioveu.pay.aioveu12MqProducerPayment.MQMonitorProducer.ProducerMonitor;
-import com.aioveu.pay.aioveu12MqProducerPayment.MQMonitorProducer.ProducerMetricsCollector;
+import com.aioveu.pay.aioveu12MqProducerPayment.Monitor.RabbitMQ.ProducerMonitor;
+import com.aioveu.pay.aioveu12MqProducerPayment.Monitor.RabbitMQ.ProducerMetricsCollector;
 import com.aioveu.pay.aioveu12MqProducerPayment.enums.MessageQueueTypeEnum;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RocketMQ.RocketBatchSendResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendResult;
@@ -19,10 +19,15 @@ import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.RabbitMessageSe
 import com.aioveu.pay.aioveu12MqProducerPayment.util.AdapterMessageBuilder;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import io.netty.handler.timeout.TimeoutException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.MessageConst;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.springframework.amqp.core.ReturnedMessage;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
@@ -30,6 +35,7 @@ import org.apache.rocketmq.client.producer.SendResult;  // ✅
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -47,206 +53,169 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSendRecord> implements RabbitMessageService {
 
-
-    private final MessageProducer messageProducer;
-    private final MessageIdGenerator messageIdGenerator;
-
-
-    private final MqSendRecordMapper mqSendRecordMapper;
-    private final RocketMQTemplate rocketMQTemplate;
-
-    private final MqSendRecordService mqSendRecordService;
-
-    @Value("${rocketmq.topic.payment-success:payment_success_topic}")
-    private String paymentSuccessTopic;
-
-    private final ProducerMonitor producerMonitor;
-    private final ProducerMetricsCollector metricsCollector;
-
-    private final AdapterMessageBuilder adapterMessageBuilder;
-
-
-    // 存储消息回调上下文，用于重试
-    private final Map<String, SendContext> sendContextMap = new ConcurrentHashMap<>();
-
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     /**
-     * 发送支付成功消息
+     * 同步发送并获取结果
      */
-    @Override
-    public boolean sendPaymentSuccessMessage(PayOrder payOrder, Map<String, String> params) {
+    public RabbitSendResult sendMessageSync(String exchange, String routingKey, Object message) {
         long startTime = System.currentTimeMillis();
-        boolean success = false;
+        String messageId = UUID.randomUUID().toString();
 
         try {
-
             // 构建消息
-            PaymentSuccessMessage message = PaymentSuccessMessage.builder()
-                    .messageId(UUID.randomUUID().toString())
-                    .paymentNo(payOrder.getPaymentNo())
-                    .orderNo(payOrder.getOrderNo())
-                    .transactionId(params.get("transaction_id"))
-                    .amount(payOrder.getPaymentAmount())
-                    .channel(payOrder.getPaymentChannel())
-                    .paymentTime(LocalDateTime.now())
-                    .memberId(payOrder.getUserId())
-                    .build();
+            CorrelationData correlationData = new CorrelationData(messageId);
 
-            // 保存发送记录
-            String messageId = mqSendRecordService.saveMqSendRecord(
-                    "payment_success_topic",
-                    "wechat_pay",
-                    payOrder.getPaymentNo(),  // 使用订单号保证顺序
-                    message
-            );
+            // 发送消息
+            rabbitTemplate.convertAndSend(exchange, routingKey, message, correlationData);
 
+            // 等待确认
+            correlationData.getFuture().get(5000, TimeUnit.MILLISECONDS);
 
+            // 构建成功结果
+            return RabbitSendResult.success(messageId, correlationData.getId(),
+                            System.currentTimeMillis() - startTime, exchange, routingKey)
+                    .withTenant("tenant_001")
+                    .withMessageType("ORDER_CREATE")
+                    .addExtraInfo("bizId", "order_1001");
 
-            // 发送顺序消息，确保同一订单的消息顺序
-            SendResult sendResult = rocketMQTemplate.syncSendOrderly(
-                    paymentSuccessTopic + ":wechat_pay",
-                    MessageBuilder
-                            .withPayload(message)
-                            .setHeader(MessageConst.PROPERTY_KEYS, payOrder.getOrderNo())
-                            .build(),
-                    payOrder.getOrderNo(),  // 使用订单号作为Sharding Key  // 使用订单号保证顺序
-                    3000  // 3秒超时
-            );
-
-            // 更新发送状态
-           success =  mqSendRecordService.updateSendStatus(messageId, SendStatus.SUCCESS, null);
-
-            if (success) {
-                log.info("【MQ发送】支付成功消息发送成功: paymentNo={}, messageId={}",
-                        payOrder.getPaymentNo(), messageId);
-            } else {
-                log.error("消息发送失败: status={}", messageId);
-            }
-
-            return success;
+        } catch (TimeoutException e) {
+            // 超时结果
+            return RabbitSendResult.timeout(messageId,
+                            System.currentTimeMillis() - startTime, exchange, routingKey)
+                    .withTenant("tenant_001");
 
         } catch (Exception e) {
-            log.error("发送支付成功消息异常: paymentNo={}", payOrder.getPaymentNo(), e);
-            // 可以记录到补偿表，定时任务重试
-
-            // 记录发送失败，后续补偿任务会重试
-            mqSendRecordService.updateSendStatus(
-                    UUID.randomUUID().toString(),
-                    SendStatus.FAILED,
-                    e.getMessage()
-            );
-            return false;
-
-        }finally {
-            // 记录发送结果
-            producerMonitor.recordSendResult(success);
-            long costTime = System.currentTimeMillis() - startTime;
-            // ✅ 使用 ProducerMetricsCollector 记录指标
-            metricsCollector.recordSendResult(success, costTime);
+            // 失败结果
+            return RabbitSendResult.failure(messageId, e.getMessage(),
+                            System.currentTimeMillis() - startTime, exchange, routingKey)
+                    .withTenant("tenant_001");
         }
-
-    }
-
-
-    /**
-     * 发送支付失败消息
-     */
-    @Override
-    public boolean sendPaymentFailedMessage(PayOrder payOrder, Map<String, String> params) {
-        PaymentFailedMessage message = PaymentFailedMessage.builder()
-                .paymentNo(payOrder.getPaymentNo())
-                .orderNo(payOrder.getOrderNo())
-                .errorCode(params.get("err_code"))
-                .errorMsg(params.get("err_code_des"))
-                .channel(payOrder.getPaymentChannel())
-                .build();
-
-        rocketMQTemplate.syncSend("payment-failed-topic", message);
-
-        // 记录发送结果
-        producerMonitor.recordSendResult(false);
-
-        return true;
-
     }
 
     /**
-     * 批量发送消息
+     * 处理发送结果
      */
-    @Override
-    public RocketBatchSendResult batchSend(List<PaymentSuccessMessage> messages) {
-        RocketBatchSendResult result = new RocketBatchSendResult();
-        long totalStartTime = System.currentTimeMillis();
+    public void handleSendResult(RabbitSendResult result) {
+        // 记录日志
+        log.info("消息发送结果: {}", result.getSimpleInfo());
 
-        for (PaymentSuccessMessage message : messages) {
-            long startTime = System.currentTimeMillis();
-            boolean success = false;
+        // 判断是否成功
+        if (result.isSuccess()) {
+            log.info("消息发送成功: messageId={}, exchange={}, cost={}ms",
+                    result.getMessageId(), result.getExchange(), result.getCostTime());
 
-            try {
-                // 发送单条消息
-                success = sendSingleMessage(message);
+            // 成功后的业务处理
+            onMessageSendSuccess(result);
 
-                // 更新统计
-                if (success) {
-                    result.incrementSuccess();
-                } else {
-                    result.incrementFailed();
-                }
+        } else {
+            log.error("消息发送失败: messageId={}, error={}",
+                    result.getMessageId(), result.getFullErrorMessage());
 
-            } finally {
-                long costTime = System.currentTimeMillis() - startTime;
-                // ✅ 记录每条消息的发送指标
-                metricsCollector.recordSendResult(success, costTime);
+            // 失败处理
+            if (result.shouldRetry()) {
+                log.warn("消息发送失败，准备重试: messageId={}, retryCount={}",
+                        result.getMessageId(), result.getRetryCount());
+                retrySend(result);
+            } else {
+                onMessageSendPermanentFailure(result);
             }
         }
 
-        long totalCostTime = System.currentTimeMillis() - totalStartTime;
-        // ✅ 记录批量发送的整体指标
-        metricsCollector.recordSendResult(result.getFailedCount() == 0, totalCostTime);
+        // 监控指标
+        recordMetrics(result);
+    }
+
+    /**
+     * 批量发送结果处理
+     */
+    public void handleBatchResults(List<RabbitSendResult> results) {
+        int successCount = 0;
+        int failureCount = 0;
+
+        for (RabbitSendResult result : results) {
+            if (result.isSuccess()) {
+                successCount++;
+            } else {
+                failureCount++;
+                log.error("批量发送失败项: {}", result.getSimpleInfo());
+            }
+        }
+
+        log.info("批量发送完成: 总数={}, 成功={}, 失败={}",
+                results.size(), successCount, failureCount);
+    }
+
+    /**
+     * 从ReturnedMessage构建结果
+     */
+    public RabbitSendResult createResultFromReturned(ReturnedMessage returnedMessage) {
+        String messageId = extractMessageId(returnedMessage.getMessage());
+
+        return RabbitSendResult.routingFailed(messageId, returnedMessage)
+                .withTenant("tenant_001")
+                .withMessageType("ORDER_NOTIFY")
+                .addExtraInfo("originalExchange", returnedMessage.getExchange())
+                .addExtraInfo("originalRoutingKey", returnedMessage.getRoutingKey());
+    }
+
+    /**
+     * 从CorrelationData构建结果
+     */
+    public RabbitSendResult createResultFromCorrelation(CorrelationData correlationData,
+                                                        long startTime, String exchange,
+                                                        String routingKey) {
+        RabbitSendResult result = RabbitSendResult.fromCorrelationData(
+                correlationData, startTime, exchange, routingKey);
+
+        // 添加业务信息
+        result.setTenantId("tenant_001");
+        result.setMessageType("ORDER_CREATE");
+        result.setSendThread(Thread.currentThread().getName());
 
         return result;
     }
 
+    private void onMessageSendSuccess(RabbitSendResult result) {
+        // 更新消息状态为已发送
+        messageStatusService.updateStatus(result.getMessageId(), MessageStatus.SENT);
 
-    /**
-     * 发送单条消息（完整功能版）
-     *
-     * @param request 发送请求
-     * @return 发送结果
-     */
-    @Override
-    public RabbitSendResult sendSingleMessage(RabbitSendRequest request) {
-        long startTime = System.currentTimeMillis();
-        String messageId = request.getMessageId();
-
-        if (StringUtils.isBlank(messageId)) {
-            messageId = messageIdGenerator.generateMessageId();
-        }
-
-        try {
-            // 1. 参数校验
-            adapterMessageBuilder.validateRequest(request);
-
-            // 3. 根据配置选择MQ
-            MessageQueueTypeEnum queueType = adapterMessageBuilder.determineQueueType(request);
-
-
-            // 3. 发送消息
-            SendResult sendResult = adapterMessageBuilder.doSend(queueType, request);
-
-            // 5. 记录成功日志
-            adapterMessageBuilder.logSendSuccess(request, sendResult, startTime);
-
-            return sendResult;
-
-        } catch (Exception e) {
-            // 6. 记录失败日志
-            adapterMessageBuilder.logSendFailure(request, messageId, e, startTime);
-            throw new MessageSendException("消息发送失败", e, messageId);
-        }
+        // 发送成功通知
+        eventPublisher.publishMessageSent(result);
     }
 
+    private void retrySend(RabbitSendResult result) {
+        // 实现重试逻辑
+        result.setRetried(true);
+        result.setRetryCount(result.getRetryCount() + 1);
 
+        // 重新发送消息
+        // sendMessageSync(...);
+    }
+
+    private void onMessageSendPermanentFailure(RabbitSendResult result) {
+        // 记录到失败表
+        failedMessageService.recordFailure(result);
+
+        // 发送告警
+        alertService.sendAlert("消息发送永久失败", result.toJson());
+    }
+
+    private void recordMetrics(RabbitSendResult result) {
+        // 记录监控指标
+        metricsService.recordMessageSend(
+                result.getTenantId(),
+                result.getMessageType(),
+                result.isSuccess(),
+                result.getCostTime()
+        );
+    }
+
+    private String extractMessageId(Message message) {
+        // 从消息中提取messageId
+        return message.getMessageProperties().getMessageId();
+    }
 
 
 }

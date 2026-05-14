@@ -1,8 +1,9 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.producer;
+package com.aioveu.pay.aioveu12MqProducerPayment.producer.RabbitMQ;
 
 
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
-import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.impl.RabbitMQMessageService;
+import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.RabbitMessageService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -20,16 +21,17 @@ import java.util.Map;
 
 @Service
 @Slf4j
-public class MQProducerPayment {
+@RequiredArgsConstructor
+public class EnhancedRabbitMessagProducerPayment {
 
 
-    private RabbitMQMessageService rabbitMQMessageService;
+    private final RabbitMessageService rabbitMessageService;
     /*
     *  发送支付成功消息并保存发送记录
     * */
     public boolean sendPaymentSuccessMessageAndSaveSendRecord(PayOrder payOrder, Map<String, String> params) {
 
-        boolean result = rabbitMQMessageService.sendPaymentSuccessMessage(payOrder, params);
+        boolean result = rabbitMessageService.sendPaymentSuccessMessage(payOrder, params);
 
         return result;
     }
@@ -40,7 +42,7 @@ public class MQProducerPayment {
      * */
     public boolean sendPaymentFailedMessageAndSaveSendRecord(PayOrder payOrder, Map<String, String> params) {
 
-        boolean result = rabbitMQMessageService.sendPaymentFailedMessage( payOrder,  params);
+        boolean result = rabbitMessageService.sendPaymentFailedMessage( payOrder,  params);
 
         return result;
     }
