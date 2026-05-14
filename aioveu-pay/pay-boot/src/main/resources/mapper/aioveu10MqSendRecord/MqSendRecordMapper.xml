@@ -23,6 +23,8 @@
                 error_msg,
                 exchange,
                 routingKey,
+                correlationId,
+                messageType,
                 is_deleted,
                 create_time,
                 update_time
