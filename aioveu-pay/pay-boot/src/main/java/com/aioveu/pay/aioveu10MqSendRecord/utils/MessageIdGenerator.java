@@ -72,7 +72,7 @@ public class MessageIdGenerator {
     /**
      * 生成消息ID
      */
-    private String generateMessageIdWithUUID() {
+    public String generateMessageIdWithUUID() {
         return "msg-" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
     }
 
