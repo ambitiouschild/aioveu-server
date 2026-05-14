@@ -25,6 +25,10 @@
                 routingKey,
                 correlationId,
                 messageType,
+                cost_time ,
+                broker_ack_time ,
+                network_cost_time ,
+                broker_process_cost_time ,
                 is_deleted,
                 create_time,
                 update_time
