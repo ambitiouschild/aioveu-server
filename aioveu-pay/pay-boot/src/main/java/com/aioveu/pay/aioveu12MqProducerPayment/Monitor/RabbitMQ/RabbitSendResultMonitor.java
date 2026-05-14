@@ -31,39 +31,43 @@ public class RabbitSendResultMonitor {
         SendStats stats = new SendStats();
 
         for (RabbitSendResult result : results) {
-            stats.totalCount++;
+            stats.incrementTotalCount();
 
             if (result.isSuccess()) {
-                stats.successCount++;
-                stats.totalCostTime += result.getCostTime();
+                stats.incrementSuccessCount();
+                stats.addCostTime(result.getCostTime());
 
-                if (result.getCostTime() < stats.minCostTime) {
-                    stats.minCostTime = result.getCostTime();
+                if (result.getCostTime() < stats.getMinCostTime()) {
+                    stats.setMinCostTime(result.getCostTime());
                 }
-                if (result.getCostTime() > stats.maxCostTime) {
-                    stats.maxCostTime = result.getCostTime();
+                if (result.getCostTime() > stats.getMaxCostTime()) {
+                    stats.setMaxCostTime(result.getCostTime());
                 }
             } else {
-                stats.failureCount++;
+                stats.incrementFailureCount();
 
                 // 按失败原因统计
                 if (result.getSendStatus() == SendStatus.TIMEOUT) {
-                    stats.timeoutCount++;
+                    stats.incrementTimeoutCount();
                 } else if (result.getSendStatus() == SendStatus.ROUTING_FAILED) {
-                    stats.routingFailedCount++;
+                    stats.incrementRoutingFailedCount();
                 } else if (result.getSendStatus() == SendStatus.CONFIRM_NACK) {
-                    stats.nackCount++;
+                    stats.incrementNackCount();
                 } else {
-                    stats.otherFailureCount++;
+                    stats.incrementOtherFailureCount();
                 }
             }
         }
 
-        if (stats.successCount > 0) {
-            stats.avgCostTime = stats.totalCostTime / stats.successCount;
+        // 计算平均值
+        if (stats.getSuccessCount() > 0) {
+            long avgCostTime = stats.getTotalCostTime() / stats.getSuccessCount();
+            stats.setAvgCostTime(avgCostTime);
         }
-        if (stats.totalCount > 0) {
-            stats.successRate = (double) stats.successCount / stats.totalCount * 100;
+        // 计算成功率
+        if (stats.getTotalCount() > 0) {
+            double successRate = (double) stats.getSuccessCount() / stats.getTotalCount() * 100;
+            stats.setSuccessRate(successRate);
         }
 
         return stats;
@@ -81,7 +85,7 @@ public class RabbitSendResultMonitor {
         report.setEndTime(new Date());
         report.setTotalResults(results.size());
 
-        // 找出最慢的10个
+        // 找出最慢的10个成功消息
         List<RabbitSendResult> slowest = results.stream()
                 .filter(RabbitSendResult::isSuccess)
                 .sorted((r1, r2) -> Long.compare(r2.getCostTime(), r1.getCostTime()))
