@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -84,9 +85,9 @@ public class MqSendRecord extends BaseEntityWithTenantId {
      * 发送时间
      */
     private LocalDateTime sendTime;
-    /**
-     * 确认时间
-     */
+
+
+    /** 确认时间戳（收到Broker确认的时间） */
     private LocalDateTime confirmTime;
     /**
      * 错误信息
@@ -97,7 +98,7 @@ public class MqSendRecord extends BaseEntityWithTenantId {
      */
     private Integer isDeleted;
 
-
+//补充必要字段
     /**
      * 交换机名称
      */
@@ -115,6 +116,31 @@ public class MqSendRecord extends BaseEntityWithTenantId {
 
     /** RabbitMQ关联ID（CorrelationData ID） */
     private String correlationId;
+
+
+
+    /**
+     * 发送总耗时（毫秒）
+     * 从调用 send() 到收到 confirm 的总时间
+     */
+    private Long costTime;
+
+
+    /** 确认时间戳（收到Broker确认的时间） */
+    private LocalDateTime brokerAckTime;
+
+    /**
+     * 网络传输耗时（毫秒）
+     * 从发送到Broker接收的时间
+     */
+    private Long networkCostTime;
+
+
+    /**
+     * Broker处理耗时（毫秒）
+     * Broker收到消息到返回确认的时间
+     */
+    private Long brokerProcessCostTime;
 
 
 
