@@ -109,6 +109,14 @@ public class MqSendRecord extends BaseEntityWithTenantId {
     private String routingKey;
 
 
+    /** 消息类型 */
+    private String messageType;
+
+
+    /** RabbitMQ关联ID（CorrelationData ID） */
+    private String correlationId;
+
+
 
     // ========== 新增字段 ==========
 
