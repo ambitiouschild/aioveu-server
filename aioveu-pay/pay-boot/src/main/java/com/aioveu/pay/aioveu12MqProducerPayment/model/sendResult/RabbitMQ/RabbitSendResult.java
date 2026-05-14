@@ -1,11 +1,14 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ;
 
 import com.aioveu.pay.aioveu10MqSendRecord.enums.AckType;
+import com.aioveu.pay.aioveu10MqSendRecord.enums.ErrorCategory;
 import com.aioveu.pay.aioveu10MqSendRecord.enums.SendStatus;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.core.ReturnedMessage;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 
@@ -27,9 +30,10 @@ import java.util.Map;
 /**
  * RabbitMQ消息发送结果
  * 包含RabbitMQ特有的返回信息和确认机制
+ * 修复了withTenant等方法
  */
 @Data
-@Builder
+@Builder(toBuilder = true)  // 支持toBuilder()方法
 @NoArgsConstructor
 @AllArgsConstructor
 public class RabbitSendResult {
@@ -289,6 +293,28 @@ public class RabbitSendResult {
         return result;
     }
 
+
+    /**
+     * 从RabbitMQ Message创建结果
+     */
+    public static RabbitSendResult fromMessage(Message message, String exchange,
+                                               String routingKey, long costTime) {
+        MessageProperties properties = message.getMessageProperties();
+
+        return RabbitSendResult.builder()
+                .messageId(properties.getMessageId())
+                .exchange(exchange)
+                .routingKey(routingKey)
+                .costTime(costTime)
+                .sendTime(new Date())
+                .tenantId((String) properties.getHeader("tenantId"))
+                .messageType((String) properties.getHeader("messageType"))
+                .messageSize(message.getBody().length)
+                .build();
+    }
+
+
+
     // ========== 业务方法 ==========
 
     /**
@@ -380,6 +406,76 @@ public class RabbitSendResult {
         return this;
     }
 
+
+    // ========== 链式调用方法（修复withTenant等）==========
+
+    /**
+     * 设置租户ID（链式调用）
+     */
+    public RabbitSendResult withTenant(String tenantId) {
+        this.tenantId = tenantId;
+        return this;
+    }
+
+    /**
+     * 设置消息类型（链式调用）
+     */
+    public RabbitSendResult withMessageType(String messageType) {
+        this.messageType = messageType;
+        return this;
+    }
+
+    /**
+     * 设置重试次数（链式调用）
+     */
+    public RabbitSendResult withRetryCount(int retryCount) {
+        this.retryCount = retryCount;
+        return this;
+    }
+
+    /**
+     * 设置发送线程（链式调用）
+     */
+    public RabbitSendResult withSendThread(String sendThread) {
+        this.sendThread = sendThread;
+        return this;
+    }
+
+    /**
+     * 标记为重试（链式调用）
+     */
+    public RabbitSendResult markAsRetried() {
+        this.retried = true;
+        this.retryCount++;
+        return this;
+    }
+
+    /**
+     * 设置客户端信息（链式调用）
+     */
+    public RabbitSendResult withClientInfo(String clientIp, String clientApp) {
+        this.clientIp = clientIp;
+        this.clientApp = clientApp;
+        return this;
+    }
+
+    /**
+     * 使用toBuilder()创建新实例（不可变对象模式）
+     */
+    public RabbitSendResult toBuilderTenant(String tenantId) {
+        return this.toBuilder().tenantId(tenantId).build();
+    }
+
+    public RabbitSendResult toBuilderMessageType(String messageType) {
+        return this.toBuilder().messageType(messageType).build();
+    }
+
+    public RabbitSendResult toBuilderWithStatus(SendStatus sendStatus) {
+        return this.toBuilder().sendStatus(sendStatus).build();
+    }
+
+
+    // ========== 转换方法 ==========
     /**
      * 转换为Map（用于日志或监控）
      */
@@ -417,16 +513,164 @@ public class RabbitSendResult {
     /**
      * 转换为JSON字符串
      */
+    /**
+     * 转换为JSON字符串
+     */
     public String toJson() {
-        return JsonUtils.toJson(toMap());
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(toMap());
+        } catch (Exception e) {
+            return "{\"error\":\"转换JSON失败: " + e.getMessage() + "\"}";
+        }
     }
 
     /**
      * 获取简化的结果信息
      */
+    /**
+     * 获取简化的结果信息
+     */
     public String getSimpleInfo() {
-        return String.format("RabbitSendResult{messageId=%s, status=%s, exchange=%s, routingKey=%s, cost=%dms, success=%s}",
-                messageId, sendStatus, exchange, routingKey, costTime, isSuccess());
+        return String.format("RabbitSendResult{messageId=%s, status=%s, exchange=%s, routingKey=%s, cost=%dms, success=%s, tenant=%s}",
+                messageId,
+                sendStatus,
+                exchange,
+                routingKey,
+                costTime,
+                isSuccess(),
+                tenantId
+        );
+    }
+
+
+    /**
+     * 获取详细的结果信息
+     */
+    public String getDetailInfo() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("RabbitSendResult:\n");
+        sb.append("  messageId: ").append(messageId).append("\n");
+        sb.append("  status: ").append(sendStatus).append("\n");
+        sb.append("  exchange: ").append(exchange).append("\n");
+        sb.append("  routingKey: ").append(routingKey).append("\n");
+        sb.append("  tenantId: ").append(tenantId).append("\n");
+        sb.append("  messageType: ").append(messageType).append("\n");
+        sb.append("  costTime: ").append(costTime).append("ms\n");
+        sb.append("  success: ").append(isSuccess()).append("\n");
+
+        if (!isSuccess()) {
+            sb.append("  error: ").append(getFullErrorMessage()).append("\n");
+        }
+
+        if (ackReceived) {
+            sb.append("  ackType: ").append(ackType).append("\n");
+            if (ackCause != null) {
+                sb.append("  ackCause: ").append(ackCause).append("\n");
+            }
+        }
+
+        if (messageReturned) {
+            sb.append("  returned: ").append(replyText)
+                    .append(" (code: ").append(replyCode).append(")\n");
+        }
+
+        return sb.toString();
+    }
+
+
+    // ========== 工具方法 ==========
+
+    /**
+     * 判断是否为路由失败
+     */
+    public boolean isRoutingFailed() {
+        return sendStatus == SendStatus.ROUTING_FAILED;
+    }
+
+    /**
+     * 判断是否为超时
+     */
+    public boolean isTimeout() {
+        return sendStatus == SendStatus.TIMEOUT || sendStatus == SendStatus.CONFIRM_TIMEOUT;
+    }
+
+    /**
+     * 判断是否为Broker拒绝
+     */
+    public boolean isNack() {
+        return sendStatus == SendStatus.CONFIRM_NACK;
+    }
+
+    /**
+     * 获取错误分类
+     */
+    public ErrorCategory getErrorCategory() {
+        if (isSuccess()) {
+            return ErrorCategory.SUCCESS;
+        }
+
+        if (isTimeout()) {
+            return ErrorCategory.TIMEOUT;
+        }
+
+        if (isRoutingFailed()) {
+            return ErrorCategory.ROUTING;
+        }
+
+        if (isNack()) {
+            return ErrorCategory.BROKER;
+        }
+
+        return ErrorCategory.OTHER;
+    }
+
+    /**
+     * 创建深度拷贝
+     */
+    public RabbitSendResult deepCopy() {
+        RabbitSendResult copy = new RabbitSendResult();
+        copy.messageId = this.messageId;
+        copy.correlationId = this.correlationId;
+        copy.sendStatus = this.sendStatus;
+        copy.errorCode = this.errorCode;
+        copy.errorMessage = this.errorMessage;
+        copy.costTime = this.costTime;
+        copy.sendTime = this.sendTime != null ? (Date) this.sendTime.clone() : null;
+        copy.confirmTime = this.confirmTime != null ? (Date) this.confirmTime.clone() : null;
+        copy.exchange = this.exchange;
+        copy.routingKey = this.routingKey;
+        copy.mandatory = this.mandatory;
+        copy.routedToQueue = this.routedToQueue;
+        copy.ackReceived = this.ackReceived;
+        copy.ackType = this.ackType;
+        copy.ackCause = this.ackCause;
+        copy.ackTime = this.ackTime != null ? (Date) this.ackTime.clone() : null;
+        copy.messageReturned = this.messageReturned;
+        copy.replyCode = this.replyCode;
+        copy.replyText = this.replyText;
+        copy.returnedExchange = this.returnedExchange;
+        copy.returnedRoutingKey = this.returnedRoutingKey;
+        copy.messageSize = this.messageSize;
+
+        if (this.messageProperties != null) {
+            copy.messageProperties = new HashMap<>(this.messageProperties);
+        }
+
+        copy.tenantId = this.tenantId;
+        copy.messageType = this.messageType;
+
+        if (this.extraInfo != null) {
+            copy.extraInfo = new HashMap<>(this.extraInfo);
+        }
+
+        copy.retried = this.retried;
+        copy.retryCount = this.retryCount;
+        copy.sendThread = this.sendThread;
+        copy.clientIp = this.clientIp;
+        copy.clientApp = this.clientApp;
+
+        return copy;
     }
 
     // ========== Builder扩展方法 ==========
