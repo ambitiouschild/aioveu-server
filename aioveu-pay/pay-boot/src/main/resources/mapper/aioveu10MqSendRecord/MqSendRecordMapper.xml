@@ -21,6 +21,8 @@
                 send_time,
                 confirm_time,
                 error_msg,
+                exchange,
+                routingKey,
                 is_deleted,
                 create_time,
                 update_time
