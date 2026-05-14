@@ -1,10 +1,9 @@
 package com.aioveu.pay.aioveu11MqCompensationTask.service.impl;
 
 
-import cn.binarywang.wx.miniapp.bean.cloud.WxCloudSendSmsV2Result;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.pay.aioveu10MqSendRecord.enums.SendStatusEnum;
+import com.aioveu.pay.aioveu10MqSendRecord.enums.SendStatus;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
 import com.aioveu.pay.aioveu11MqCompensationTask.converter.MqCompensationTaskConverter;
@@ -21,7 +20,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.SendResult;
-import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.common.message.MessageConst;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.messaging.Message;
@@ -32,7 +30,6 @@ import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -147,7 +144,7 @@ public class MqCompensationTaskServiceImpl extends ServiceImpl<MqCompensationTas
 
                 if (record.getRetryCount() >= 5) {
                     log.error("消息重试超过5次，进入死信: messageId={}", record.getMessageId());
-                    mqSendRecordService.updateSendStatus(record.getMessageId(), SendStatusEnum.DEAD, "重试超过5次");
+                    mqSendRecordService.updateSendStatus(record.getMessageId(), SendStatus.DEAD, "重试超过5次");
                     continue;
                 }
 
@@ -166,13 +163,13 @@ public class MqCompensationTaskServiceImpl extends ServiceImpl<MqCompensationTas
                     );
 
                     // ✅ 修复：使用正确的 RocketMQ SendStatus
-                    if (sendResult.getSendStatus() == SendStatus.SEND_OK) {
-                        mqSendRecordService.updateSendStatus(record.getMessageId(), SendStatusEnum.SUCCESS, null);
+                    if (sendResult.getSendStatus() == org.apache.rocketmq.client.producer.SendStatus.SEND_OK) {
+                        mqSendRecordService.updateSendStatus(record.getMessageId(), SendStatus.SUCCESS, null);
                         log.info("补偿发送成功: messageId={}, msgId={}",
                                 record.getMessageId(), sendResult.getMsgId());
                         successCount++;
                     } else {
-                        mqSendRecordService.updateSendStatus(record.getMessageId(), SendStatusEnum.FAILED,
+                        mqSendRecordService.updateSendStatus(record.getMessageId(), SendStatus.FAILED,
                                 "发送失败, status=" + sendResult.getSendStatus());
                         log.error("补偿发送失败: messageId={}, status={}",
                                 record.getMessageId(), sendResult.getSendStatus());
@@ -181,7 +178,7 @@ public class MqCompensationTaskServiceImpl extends ServiceImpl<MqCompensationTas
                     log.info("补偿任务完成: 成功={}, 失败={}", successCount, failCount);
                 } catch (Exception e) {
                     log.error("补偿发送异常: messageId={}", record.getMessageId(), e);
-                    mqSendRecordService.updateSendStatus(record.getMessageId(), SendStatusEnum.FAILED, e.getMessage());
+                    mqSendRecordService.updateSendStatus(record.getMessageId(), SendStatus.FAILED, e.getMessage());
                 }
             }
 
@@ -202,14 +199,14 @@ public class MqCompensationTaskServiceImpl extends ServiceImpl<MqCompensationTas
     // 更详细的处理
     @Override
     public void handleSendResult(SendResult sendResult, MqSendRecord record) {
-        SendStatus sendStatus = sendResult.getSendStatus();
+        org.apache.rocketmq.client.producer.SendStatus sendStatus = sendResult.getSendStatus();
 
         switch (sendStatus) {
             case SEND_OK:
                 // 发送成功
                 mqSendRecordService.updateSendStatus(
                         record.getMessageId(),
-                        SendStatusEnum.SUCCESS,
+                        SendStatus.SUCCESS,
                         null
                 );
                 log.info("RocketMQ发送成功: messageId={}, msgId={}, queueOffset={}",
@@ -225,7 +222,7 @@ public class MqCompensationTaskServiceImpl extends ServiceImpl<MqCompensationTas
                 // 可重试的失败
                 mqSendRecordService.updateSendStatus(
                         record.getMessageId(),
-                        SendStatusEnum.FAILED,
+                        SendStatus.FAILED,
                         "发送失败: " + sendStatus
                 );
                 log.warn("RocketMQ发送失败(可重试): messageId={}, status={}",
@@ -236,7 +233,7 @@ public class MqCompensationTaskServiceImpl extends ServiceImpl<MqCompensationTas
                 // 其他失败
                 mqSendRecordService.updateSendStatus(
                         record.getMessageId(),
-                        SendStatusEnum.FAILED,
+                        SendStatus.FAILED,
                         "发送失败: " + sendStatus
                 );
                 log.error("RocketMQ发送失败: messageId={}, status={}",

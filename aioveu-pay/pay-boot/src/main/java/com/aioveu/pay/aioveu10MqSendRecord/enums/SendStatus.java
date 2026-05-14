@@ -12,7 +12,7 @@ import lombok.Getter;
  **/
 
 
-public enum SendStatusEnum implements IBaseEnum<Integer> {
+public enum SendStatus implements IBaseEnum<Integer> {
 
     PENDING(0, "未发送"),
     SENDING(1, "发送中"),
@@ -32,7 +32,7 @@ public enum SendStatusEnum implements IBaseEnum<Integer> {
     UNKNOWN (10, "未知状态"),
     ;
 
-    SendStatusEnum(Integer value, String label) {
+    SendStatus(Integer value, String label) {
         this.value = value;
         this.label = label;
     }

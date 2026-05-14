@@ -12,14 +12,14 @@ import lombok.Getter;
  **/
 
 
-public enum AckTypeEnum implements IBaseEnum<Integer> {
+public enum AckType implements IBaseEnum<Integer> {
 
     ACK(0, "Broker确认收到"),
     NACK(1, "Broker拒绝"),
     UNKNOWN(2, "未知"),
     ;
 
-    AckTypeEnum(Integer value, String label) {
+    AckType(Integer value, String label) {
         this.value = value;
         this.label = label;
     }

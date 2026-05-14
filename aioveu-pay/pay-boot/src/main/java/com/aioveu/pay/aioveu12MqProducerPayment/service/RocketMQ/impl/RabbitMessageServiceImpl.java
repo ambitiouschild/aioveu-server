@@ -2,7 +2,7 @@ package com.aioveu.pay.aioveu12MqProducerPayment.service.RocketMQ.impl;
 
 
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
-import com.aioveu.pay.aioveu10MqSendRecord.enums.SendStatusEnum;
+import com.aioveu.pay.aioveu10MqSendRecord.enums.SendStatus;
 import com.aioveu.pay.aioveu10MqSendRecord.mapper.MqSendRecordMapper;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
@@ -117,7 +117,7 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
             );
 
             // 更新发送状态
-           success =  mqSendRecordService.updateSendStatus(messageId, SendStatusEnum.SUCCESS, null);
+           success =  mqSendRecordService.updateSendStatus(messageId, SendStatus.SUCCESS, null);
 
             if (success) {
                 log.info("【MQ发送】支付成功消息发送成功: paymentNo={}, messageId={}",
@@ -135,7 +135,7 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
             // 记录发送失败，后续补偿任务会重试
             mqSendRecordService.updateSendStatus(
                     UUID.randomUUID().toString(),
-                    SendStatusEnum.FAILED,
+                    SendStatus.FAILED,
                     e.getMessage()
             );
             return false;

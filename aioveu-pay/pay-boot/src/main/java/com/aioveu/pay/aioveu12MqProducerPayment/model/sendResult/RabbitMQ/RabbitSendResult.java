@@ -1,9 +1,13 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ;
 
+import com.aioveu.pay.aioveu10MqSendRecord.enums.AckType;
+import com.aioveu.pay.aioveu10MqSendRecord.enums.SendStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.amqp.core.ReturnedMessage;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -144,4 +148,372 @@ public class RabbitSendResult {
     private String clientApp;
 
     // ========== 枚举定义 ==========
+
+
+    // ========== 静态工厂方法 ==========
+
+    /**
+     * 创建成功结果
+     */
+    public static RabbitSendResult success(String messageId, String correlationId,
+                                           long costTime, String exchange, String routingKey) {
+        return RabbitSendResult.builder()
+                .messageId(messageId)
+                .correlationId(correlationId)
+                .sendStatus(SendStatus.SUCCESS)
+                .costTime(costTime)
+                .exchange(exchange)
+                .routingKey(routingKey)
+                .ackReceived(true)
+                .ackType(AckType.ACK)
+                .routedToQueue(true)
+                .sendTime(new Date())
+                .ackTime(new Date())
+                .confirmTime(new Date())
+                .build();
+    }
+
+    /**
+     * 创建失败结果
+     */
+    public static RabbitSendResult failure(String messageId, String errorMessage,
+                                           long costTime, String exchange, String routingKey) {
+        return RabbitSendResult.builder()
+                .messageId(messageId)
+                .sendStatus(SendStatus.FAILED)
+                .errorMessage(errorMessage)
+                .costTime(costTime)
+                .exchange(exchange)
+                .routingKey(routingKey)
+                .sendTime(new Date())
+                .build();
+    }
+
+    /**
+     * 创建超时结果
+     */
+    public static RabbitSendResult timeout(String messageId, long costTime,
+                                           String exchange, String routingKey) {
+        return RabbitSendResult.builder()
+                .messageId(messageId)
+                .sendStatus(SendStatus.TIMEOUT)
+                .errorMessage("发送超时")
+                .costTime(costTime)
+                .exchange(exchange)
+                .routingKey(routingKey)
+                .sendTime(new Date())
+                .build();
+    }
+
+    /**
+     * 创建路由失败结果
+     */
+    public static RabbitSendResult routingFailed(String messageId, ReturnedMessage returnedMessage) {
+        return RabbitSendResult.builder()
+                .messageId(messageId)
+                .sendStatus(SendStatus.ROUTING_FAILED)
+                .errorMessage("消息路由失败")
+                .messageReturned(true)
+                .replyCode(returnedMessage.getReplyCode())
+                .replyText(returnedMessage.getReplyText())
+                .returnedExchange(returnedMessage.getExchange())
+                .returnedRoutingKey(returnedMessage.getRoutingKey())
+                .sendTime(new Date())
+                .build();
+    }
+
+    /**
+     * 创建NACK结果
+     */
+    public static RabbitSendResult nack(String messageId, String correlationId,
+                                        String cause, long costTime) {
+        return RabbitSendResult.builder()
+                .messageId(messageId)
+                .correlationId(correlationId)
+                .sendStatus(SendStatus.CONFIRM_NACK)
+                .ackReceived(true)
+                .ackType(AckType.NACK)
+                .ackCause(cause)
+                .costTime(costTime)
+                .errorMessage("Broker返回NACK: " + cause)
+                .sendTime(new Date())
+                .ackTime(new Date())
+                .build();
+    }
+
+    /**
+     * 从CorrelationData创建结果
+     */
+    public static RabbitSendResult fromCorrelationData(CorrelationData correlationData,
+                                                       long startTime, String exchange,
+                                                       String routingKey) {
+        RabbitSendResult result = RabbitSendResult.builder()
+                .messageId(correlationData.getId())
+                .correlationId(correlationData.getId())
+                .exchange(exchange)
+                .routingKey(routingKey)
+                .costTime(System.currentTimeMillis() - startTime)
+                .sendTime(new Date(startTime))
+                .build();
+
+        if (correlationData.getFuture() != null && correlationData.getFuture().isDone()) {
+            try {
+                CorrelationData.Confirm confirm = correlationData.getFuture().get();
+                if (confirm != null) {
+                    result.setAckReceived(true);
+                    result.setAckTime(new Date());
+                    result.setConfirmTime(new Date());
+
+                    if (confirm.isAck()) {
+                        result.setSendStatus(SendStatus.SUCCESS);
+                        result.setAckType(AckType.ACK);
+                        result.setRoutedToQueue(true);
+                    } else {
+                        result.setSendStatus(SendStatus.CONFIRM_NACK);
+                        result.setAckType(AckType.NACK);
+                        result.setAckCause(confirm.getReason());
+                        result.setErrorMessage("Broker NACK: " + confirm.getReason());
+                    }
+                } else {
+                    result.setSendStatus(SendStatus.UNKNOWN);
+                }
+            } catch (Exception e) {
+                result.setSendStatus(SendStatus.FAILED);
+                result.setErrorMessage("获取确认结果异常: " + e.getMessage());
+            }
+        } else {
+            result.setSendStatus(SendStatus.CONFIRM_TIMEOUT);
+            result.setErrorMessage("确认超时");
+        }
+
+        return result;
+    }
+
+    // ========== 业务方法 ==========
+
+    /**
+     * 判断是否发送成功
+     */
+    public boolean isSuccess() {
+        return SendStatus.SUCCESS == sendStatus;
+    }
+
+    /**
+     * 判断是否需要重试
+     */
+    public boolean shouldRetry() {
+        return sendStatus == SendStatus.FAILED ||
+                sendStatus == SendStatus.TIMEOUT ||
+                sendStatus == SendStatus.CONFIRM_TIMEOUT ||
+                (sendStatus == SendStatus.CONFIRM_NACK && isRetryableNack());
+    }
+
+    /**
+     * 判断是否为可重试的NACK
+     */
+    private boolean isRetryableNack() {
+        if (ackCause == null) {
+            return true;
+        }
+        // 不可重试的NACK原因
+        String lowerCause = ackCause.toLowerCase();
+        return !lowerCause.contains("no route") &&
+                !lowerCause.contains("access refused");
+    }
+
+    /**
+     * 获取完整的错误信息
+     */
+    public String getFullErrorMessage() {
+        StringBuilder sb = new StringBuilder();
+        if (errorMessage != null) {
+            sb.append(errorMessage);
+        }
+        if (ackCause != null) {
+            sb.append(" [ACK Cause: ").append(ackCause).append("]");
+        }
+        if (replyText != null) {
+            sb.append(" [Reply: ").append(replyText).append("]");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 获取消息位置标识
+     */
+    public String getMessagePosition() {
+        if (exchange != null && routingKey != null) {
+            return exchange + " -> " + routingKey;
+        }
+        return "Unknown";
+    }
+
+    /**
+     * 获取确认延迟（毫秒）
+     */
+    public Long getConfirmDelay() {
+        if (ackTime != null && sendTime != null) {
+            return ackTime.getTime() - sendTime.getTime();
+        }
+        return null;
+    }
+
+    /**
+     * 添加扩展信息
+     */
+    public RabbitSendResult addExtraInfo(String key, Object value) {
+        if (this.extraInfo == null) {
+            this.extraInfo = new HashMap<>();
+        }
+        this.extraInfo.put(key, value);
+        return this;
+    }
+
+    /**
+     * 添加消息属性
+     */
+    public RabbitSendResult addMessageProperty(String key, Object value) {
+        if (this.messageProperties == null) {
+            this.messageProperties = new HashMap<>();
+        }
+        this.messageProperties.put(key, value);
+        return this;
+    }
+
+    /**
+     * 转换为Map（用于日志或监控）
+     */
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("messageId", messageId);
+        map.put("correlationId", correlationId);
+        map.put("sendStatus", sendStatus != null ? sendStatus.name() : null);
+        map.put("errorCode", errorCode);
+        map.put("errorMessage", errorMessage);
+        map.put("costTime", costTime);
+        map.put("sendTime", sendTime);
+        map.put("confirmTime", confirmTime);
+        map.put("exchange", exchange);
+        map.put("routingKey", routingKey);
+        map.put("mandatory", mandatory);
+        map.put("routedToQueue", routedToQueue);
+        map.put("ackReceived", ackReceived);
+        map.put("ackType", ackType != null ? ackType.name() : null);
+        map.put("ackCause", ackCause);
+        map.put("ackTime", ackTime);
+        map.put("messageReturned", messageReturned);
+        map.put("replyCode", replyCode);
+        map.put("replyText", replyText);
+        map.put("returnedExchange", returnedExchange);
+        map.put("returnedRoutingKey", returnedRoutingKey);
+        map.put("messageSize", messageSize);
+        map.put("tenantId", tenantId);
+        map.put("messageType", messageType);
+        map.put("retried", retried);
+        map.put("retryCount", retryCount);
+        return map;
+    }
+
+    /**
+     * 转换为JSON字符串
+     */
+    public String toJson() {
+        return JsonUtils.toJson(toMap());
+    }
+
+    /**
+     * 获取简化的结果信息
+     */
+    public String getSimpleInfo() {
+        return String.format("RabbitSendResult{messageId=%s, status=%s, exchange=%s, routingKey=%s, cost=%dms, success=%s}",
+                messageId, sendStatus, exchange, routingKey, costTime, isSuccess());
+    }
+
+    // ========== Builder扩展方法 ==========
+
+    /**
+     * 自定义Builder，支持链式调用
+     */
+    public static class RabbitSendResultBuilder {
+        private String messageId;
+        private String correlationId;
+        private SendStatus sendStatus;
+        private String errorCode;
+        private String errorMessage;
+        private long costTime;
+        private Date sendTime = new Date();
+        private Date confirmTime;
+        private String exchange;
+        private String routingKey;
+        private boolean mandatory;
+        private boolean routedToQueue;
+        private boolean ackReceived;
+        private AckType ackType;
+        private String ackCause;
+        private Date ackTime;
+        private boolean messageReturned;
+        private Integer replyCode;
+        private String replyText;
+        private String returnedExchange;
+        private String returnedRoutingKey;
+        private Integer messageSize;
+        private Map<String, Object> messageProperties = new HashMap<>();
+        private String tenantId;
+        private String messageType;
+        private Map<String, Object> extraInfo = new HashMap<>();
+        private boolean retried;
+        private int retryCount = 0;
+        private String sendThread = Thread.currentThread().getName();
+        private String clientIp;
+        private String clientApp;
+
+        public RabbitSendResultBuilder withTenant(String tenantId) {
+            this.tenantId = tenantId;
+            return this;
+        }
+
+        public RabbitSendResultBuilder withMessageType(String messageType) {
+            this.messageType = messageType;
+            return this;
+        }
+
+        public RabbitSendResultBuilder withCostTime(long startTime) {
+            this.costTime = System.currentTimeMillis() - startTime;
+            return this;
+        }
+
+        public RabbitSendResultBuilder withAck(boolean ack, String cause) {
+            this.ackReceived = true;
+            this.ackTime = new Date();
+            this.confirmTime = new Date();
+            this.ackType = ack ? AckType.ACK : AckType.NACK;
+            this.ackCause = cause;
+            this.sendStatus = ack ? SendStatus.SUCCESS : SendStatus.CONFIRM_NACK;
+            if (!ack) {
+                this.errorMessage = "Broker返回NACK: " + cause;
+            }
+            return this;
+        }
+
+        public RabbitSendResultBuilder withReturnedMessage(ReturnedMessage returnedMessage) {
+            this.messageReturned = true;
+            this.sendStatus = SendStatus.ROUTING_FAILED;
+            this.replyCode = returnedMessage.getReplyCode();
+            this.replyText = returnedMessage.getReplyText();
+            this.returnedExchange = returnedMessage.getExchange();
+            this.returnedRoutingKey = returnedMessage.getRoutingKey();
+            this.errorMessage = "消息路由失败: " + returnedMessage.getReplyText();
+            return this;
+        }
+
+        public RabbitSendResultBuilder addMessageProperty(String key, Object value) {
+            this.messageProperties.put(key, value);
+            return this;
+        }
+
+        public RabbitSendResultBuilder addExtraInfo(String key, Object value) {
+            this.extraInfo.put(key, value);
+            return this;
+        }
+    }
 }
