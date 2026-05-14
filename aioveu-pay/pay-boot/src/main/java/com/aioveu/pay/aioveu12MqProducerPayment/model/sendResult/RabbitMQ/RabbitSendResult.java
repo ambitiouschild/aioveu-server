@@ -126,7 +126,7 @@ public class RabbitSendResult {
     private Map<String, Object> messageProperties = new HashMap<>();
 
     /** 租户ID（多租户场景） */
-    private String tenantId;
+    private Long tenantId;
 
     /** 消息类型 */
     private String messageType;
@@ -308,7 +308,7 @@ public class RabbitSendResult {
                 .routingKey(routingKey)
                 .costTime(costTime)
                 .sendTime(new Date())
-                .tenantId((String) properties.getHeader("tenantId"))
+                .tenantId((Long) properties.getHeader("tenantId"))
                 .messageType((String) properties.getHeader("messageType"))
                 .messageSize(message.getBody().length)
                 .build();
@@ -413,7 +413,7 @@ public class RabbitSendResult {
     /**
      * 设置租户ID（链式调用）
      */
-    public RabbitSendResult withTenant(String tenantId) {
+    public RabbitSendResult withTenant(Long tenantId) {
         this.tenantId = tenantId;
         return this;
     }
@@ -463,7 +463,7 @@ public class RabbitSendResult {
     /**
      * 使用toBuilder()创建新实例（不可变对象模式）
      */
-    public RabbitSendResult toBuilderTenant(String tenantId) {
+    public RabbitSendResult toBuilderTenant(Long tenantId) {
         return this.toBuilder().tenantId(tenantId).build();
     }
 
