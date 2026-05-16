@@ -3,6 +3,7 @@ package com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ;
 
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitBatchSendResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendRequest;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RocketMQ.RocketBatchSendResult;
@@ -39,7 +40,7 @@ public interface RabbitMessageServicePayment extends IService<MqSendRecord> {
     /**
      * 批量发送消息
      */
-    RocketBatchSendResult batchSend(List<PaymentSuccessMessage> messages);
+    RabbitBatchSendResult batchSend(List<PaymentSuccessMessage> messages);
 
 
     /**

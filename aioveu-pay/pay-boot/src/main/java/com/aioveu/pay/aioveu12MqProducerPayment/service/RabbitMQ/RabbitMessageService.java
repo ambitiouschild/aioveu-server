@@ -3,11 +3,15 @@ package com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ;
 
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
+import com.aioveu.pay.aioveu12MqProducerPayment.enums.MessageQueueTypeEnum;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.Kafka.KafkaSendResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RocketMQ.RocketBatchSendResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendResult;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RocketMQ.RocketMQSendResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.PaymentSuccessMessage;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendRequest;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 
 import java.util.List;
 import java.util.Map;
@@ -22,7 +26,9 @@ import java.util.Map;
  * @Version 1.0
  **/
 
-public interface RabbitMessageService extends IService<MqSendRecord> {
+public interface RabbitMessageService {
+
+
 
 
 }

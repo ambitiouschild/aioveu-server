@@ -39,6 +39,9 @@ public class RabbitSendRequest {
 
     /** 路由键（支持租户ID路由，如：order.create.tenant_001） */
     @NotBlank(message = "路由键不能为空")
+
+    private String correlationId;
+
     private String routingKey;
 
     /** 主题/交换机 */
@@ -48,6 +51,10 @@ public class RabbitSendRequest {
     /** 消息体（JSON/XML/String） */
     @NotNull(message = "消息体不能为空")
     private Object body;
+
+
+    // Kafka 相关
+    private String key;  // 添加这个字段
 
 
     // ========== 业务标识 ==========
@@ -99,6 +106,9 @@ public class RabbitSendRequest {
     @Builder.Default
     private boolean async = false;
 
+    @Builder.Default
+    private boolean waitForConfirms = true;  // 默认等待确认
+
     // 检查是否有 delayLevel 字段
     private Integer delayLevel;  // 延迟级别
 
@@ -124,6 +134,17 @@ public class RabbitSendRequest {
 
     /** 是否启用退避策略 */
     private Boolean backoffEnabled = true;
+
+
+    // 重试配置
+    @Builder.Default
+    private Integer retryCount = 0;  // 当前重试次数
+
+    @Builder.Default
+    private Integer maxRetryCount = 3;  // 最大重试次数
+
+
+
 
     // ========== 扩展属性 ==========
     /** 消息属性（扩展字段） */
@@ -269,4 +290,28 @@ public class RabbitSendRequest {
 
         return properties;
     }
+
+
+    /**
+     * 增加重试次数
+     */
+    public void incrementRetryCount() {
+        this.retryCount++;
+    }
+
+    /**
+     * 是否可以重试
+     */
+    public boolean canRetry() {
+        return this.retryCount < this.maxRetryCount;
+    }
+
+    /**
+     * 重置重试次数
+     */
+    public void resetRetryCount() {
+        this.retryCount = 0;
+    }
+
+
 }
