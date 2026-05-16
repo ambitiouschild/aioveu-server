@@ -14,6 +14,7 @@ import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * RabbitMQ批量发送结果
@@ -28,17 +29,23 @@ public class RabbitBatchSendResult {
     private BatchSendStatus status;
 
     /** 总消息数 */
-    private int totalCount;
+    private int totalCount = 0;
 
     /** 成功数 */
-    private int successCount;
+    private int successCount  = 0;
 
     /** 失败数 */
-    private int failedCount;
+    private int failedCount = 0;
 
-    /** 发送耗时（毫秒） */
-    private long costTime;
+    // 失败消息详情
+    private List<FailedMessage> failedMessages = new ArrayList<>();
 
+    // 成功消息
+    private List<String> successMessageIds = new ArrayList<>();
+
+
+    // 发送耗时
+    private long totalCostTime = 0L;
     /** 单条消息发送结果列表 */
     private List<ItemResult> itemResults = new ArrayList<>();
 
@@ -47,6 +54,75 @@ public class RabbitBatchSendResult {
 
     /** 批量操作是否完成 */
     private boolean completed = false;
+
+
+
+    /**
+     * 增加成功计数
+     */
+    public void incrementSuccess() {
+        this.successCount++;
+        this.totalCount++;
+    }
+
+    /**
+     * 增加成功计数（带消息ID）
+     */
+    public void incrementSuccess(String messageId) {
+        this.successCount++;
+        this.totalCount++;
+        if (messageId != null) {
+            this.successMessageIds.add(messageId);
+        }
+    }
+
+    /**
+     * 增加失败计数
+     */
+    public void incrementFailed() {
+        this.failedCount++;
+        this.totalCount++;
+    }
+
+    /**
+     * 增加失败计数（带详情）
+     */
+    public void incrementFailed(String messageId, String errorMsg) {
+        this.failedCount++;
+        this.totalCount++;
+        addFailedMessage(messageId, errorMsg);
+    }
+
+    /**
+     * 添加失败消息
+     */
+    public void addFailedMessage(String messageId, String errorMsg) {
+        FailedMessage failedMessage = new FailedMessage();
+        failedMessage.setMessageId(messageId);
+        failedMessage.setErrorMsg(errorMsg);
+        this.failedMessages.add(failedMessage);
+    }
+
+    /**
+     * 获取成功率
+     */
+    public double getSuccessRate() {
+        return totalCount > 0 ? (double) successCount / totalCount * 100 : 0.0;
+    }
+
+    /**
+     * 是否全部成功
+     */
+    public boolean isAllSuccess() {
+        return failedCount == 0;
+    }
+
+    /**
+     * 设置总耗时
+     */
+    public void setTotalCostTime(long totalCostTime) {
+        this.totalCostTime = totalCostTime;
+    }
 
     /** 成功消息ID列表 */
     public List<String> getSuccessMessageIds() {
@@ -162,4 +238,16 @@ public class RabbitBatchSendResult {
             return item;
         }
     }
+
+    /**
+     * 失败消息详情
+     */
+    @Data
+    public static class FailedMessage {
+        private String messageId;
+        private String errorMsg;
+        private long failTime = System.currentTimeMillis();
+    }
+
+
 }
