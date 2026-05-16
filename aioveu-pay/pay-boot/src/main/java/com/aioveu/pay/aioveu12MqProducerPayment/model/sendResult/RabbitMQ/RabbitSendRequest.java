@@ -1,12 +1,12 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ;
 
-import com.alibaba.fastjson.JSON;
-import com.rabbitmq.client.MessageProperties;
+import com.aioveu.pay.aioveu12MqProducerPayment.util.JsonUtils;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.amqp.core.MessageProperties;
 
 import java.util.HashMap;
 import java.util.Map;
