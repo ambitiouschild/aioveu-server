@@ -261,7 +261,7 @@ public class SendRecordStats {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public class TopicStats {
+    public static class TopicStats {
         private String topic;
         private Long totalCount;
         private Long successCount;
