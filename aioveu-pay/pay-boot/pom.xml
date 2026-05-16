@@ -133,16 +133,32 @@
 
 
 
+
+<!--        既然你决定使用 RocketMQ 最新版本，我们需要将依赖升级到 2.3.x或更高版本，并适配最新的 API 规范。-->
+<!--        你之前的 asyncSend(String, Message, long)方法签名在旧版本中不存在，但在新版本中，-->
+<!--        核心 API 已统一为基于 Object payload或 Message<?>进行发送。-->
+<!--        将你的 pom.xml依赖替换为以下版本（截至 2026 年 5 月，2.3.4是稳定且功能完整的最新版）-->
+
         <!-- 方案A：RocketMQ 5.x 系列 -->
         <!-- 支付服务和订单服务的pom.xml都添加 Mq消息队列-->
         <!-- Spring Boot Starter for RocketMQ (如果你在使用) -->
+        <!-- RocketMQ Spring Boot Starter (最新版) -->
         <dependency>
             <groupId>org.apache.rocketmq</groupId>
             <artifactId>rocketmq-spring-boot-starter</artifactId>
-            <version>2.2.3</version>
+            <version>2.3.4</version>
+        </dependency>
+
+
+        <!-- RocketMQ 核心客户端 (建议与 Starter 版本配套) -->
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-client</artifactId>
+            <version>4.9.7</version>
         </dependency>
 
         <!-- RocketMQ Tools (包含 DefaultMQAdminExt) -->
+        <!-- 工具包 (用于管理控制台等，非必须) -->
         <dependency>
             <groupId>org.apache.rocketmq</groupId>
             <artifactId>rocketmq-tools</artifactId>
