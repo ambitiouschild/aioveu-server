@@ -99,6 +99,10 @@ public class RabbitSendRequest {
     @Builder.Default
     private boolean async = false;
 
+    // 检查是否有 delayLevel 字段
+    private Integer delayLevel;  // 延迟级别
+
+
     // ========== 事务/顺序消息 ==========
     /** 是否为事务消息 */
     private Boolean transactional = false;
