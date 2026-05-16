@@ -5,6 +5,7 @@ import com.aioveu.pay.aioveu10MqSendRecord.enums.SendStatus;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RetryCheckResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RetryResult;
+import io.netty.handler.timeout.TimeoutException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -274,8 +275,9 @@ public class RetryResultCreator {
                         .exchange(entity.getExchange())
                         .routingKey(entity.getRoutingKey())
                         .sendStatus(SendStatus.CONFIRM_NACK)
-                        .addExtra("ackCause", confirm.getReason())
-                        .build();
+                        .build()
+                        .addExtra("ackCause", confirm.getReason());
+
             }
 
         } catch (TimeoutException e) {
@@ -306,8 +308,9 @@ public class RetryResultCreator {
                     .exchange(entity.getExchange())
                     .routingKey(entity.getRoutingKey())
                     .sendStatus(SendStatus.FAILED)
-                    .addExtra("exception", e.getClass().getName())
-                    .build();
+                    .build()
+                    .addExtra("exception", e.getClass().getName());
+
         }
     }
 
@@ -354,7 +357,7 @@ public class RetryResultCreator {
     /**
      * 发布重试事件
      */
-    private void publishRetryEvent(MqSendRecordEntity entity, RetryResult retryResult) {
+    private void publishRetryEvent(MqSendRecord entity, RetryResult retryResult) {
         try {
             // 可以集成Spring Event或直接记录日志
             if (retryResult.isSuccess()) {
