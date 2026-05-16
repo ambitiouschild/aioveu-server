@@ -54,7 +54,7 @@ public class RabbitSendRequest {
 
     // ========== 业务标识 ==========
     /** 租户ID（多租户商城必须） */
-    private String tenantId;
+    private Long tenantId;
 
     /** 消息类型：ORDER_CREATE-订单创建, ORDER_PAY-订单支付, INVENTORY-库存等 */
     @NotBlank(message = "消息类型不能为空")
@@ -159,7 +159,7 @@ public class RabbitSendRequest {
     }
 
     public static RabbitSendRequest of(String exchange, String routingKey, Object body,
-                                       String messageType, String tenantId) {
+                                       String messageType, Long tenantId) {
         return RabbitSendRequest.builder()
                 .exchange(exchange)
                 .routingKey(routingKey)
@@ -172,7 +172,7 @@ public class RabbitSendRequest {
 
     // ========== 链式调用方法 ==========
     /** 添加租户ID */
-    public RabbitSendRequest withTenant(String tenantId) {
+    public RabbitSendRequest withTenant(Long tenantId) {
         this.tenantId = tenantId;
         return this;
     }
