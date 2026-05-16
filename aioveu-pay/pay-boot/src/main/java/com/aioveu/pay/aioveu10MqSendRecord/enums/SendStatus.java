@@ -16,6 +16,12 @@ import java.util.Map;
  * @return:
  **/
 
+/*
+*
+         Integer statusValue = entity.getSendStatus(); // 假设这是从数据库读取的值
+        SendStatus status = SendStatus.fromValue(statusValue);
+*
+* */
 
 public enum SendStatus implements IBaseEnum<Integer> {
 

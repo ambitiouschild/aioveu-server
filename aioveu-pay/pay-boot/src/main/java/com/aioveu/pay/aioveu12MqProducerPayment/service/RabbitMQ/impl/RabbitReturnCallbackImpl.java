@@ -1,8 +1,10 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.impl;
 
 
+import com.aioveu.pay.aioveu12MqProducerPayment.config.RabbitMQ.RabbitTemplateManager;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.ReturnCallbackStats;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.ReturnedMessage;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -32,9 +34,21 @@ public class RabbitReturnCallbackImpl implements RabbitTemplate.ReturnsCallback 
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
+    @Autowired
+    private RabbitTemplateManager rabbitTemplateManager;
+
     // 存储返回的消息（用于监控和重试）
     private final ConcurrentLinkedQueue<ReturnedMessage> returnedMessages = new ConcurrentLinkedQueue<>();
     private final AtomicInteger returnedCount = new AtomicInteger(0);
+
+
+    @PostConstruct
+    public void init() {
+        // 设置ReturnCallback
+        rabbitTemplate.setReturnsCallback(this);
+        log.info("FixedRabbitReturnCallback已注册到RabbitTemplate");
+    }
+
 
     @Override
     public void returnedMessage(ReturnedMessage returnedMessage) {
@@ -44,6 +58,12 @@ public class RabbitReturnCallbackImpl implements RabbitTemplate.ReturnsCallback 
             // 记录返回的消息
             returnedMessages.offer(returnedMessage);
             int count = returnedCount.incrementAndGet();
+
+            // 记录统计
+            rabbitTemplateManager.recordReturnCallback();
+
+            // 处理返回的消息
+            processReturnedMessage(returnedMessage);
 
             // 创建结果对象
             RabbitSendResult result = rabbitMessageService.createEnhancedResultFromReturned(
@@ -198,6 +218,48 @@ public class RabbitReturnCallbackImpl implements RabbitTemplate.ReturnsCallback 
         stats.setCurrentQueueSize(returnedMessages.size());
         stats.setLastReturnedTime(new java.util.Date());
         return stats;
+    }
+
+
+    private void processReturnedMessage(ReturnedMessage returnedMessage) {
+        try {
+            log.error("消息路由失败 - 详细:");
+            log.error("  交换机: {}", returnedMessage.getExchange());
+            log.error("  路由键: {}", returnedMessage.getRoutingKey());
+            log.error("  返回码: {}", returnedMessage.getReplyCode());
+            log.error("  返回信息: {}", returnedMessage.getReplyText());
+            log.error("  消息: {}",
+                    new String(returnedMessage.getMessage().getBody(), java.nio.charset.StandardCharsets.UTF_8));
+
+            // 可以添加更多的处理逻辑
+            handleRoutingFailure(returnedMessage);
+
+        } catch (Exception e) {
+            log.error("处理ReturnedMessage异常", e);
+        }
+    }
+
+    private void handleRoutingFailure(ReturnedMessage returnedMessage) {
+        int replyCode = returnedMessage.getReplyCode();
+
+        switch (replyCode) {
+            case 312: // NO_ROUTE
+                log.error("路由失败: 没有匹配的队列，请检查routingKey配置");
+                break;
+            case 313: // NO_CONSUMERS
+                log.error("路由失败: 队列存在但没有消费者");
+                break;
+            case 403: // ACCESS_REFUSED
+                log.error("路由失败: 权限拒绝，请检查用户权限");
+                break;
+            case 404: // NOT_FOUND
+                log.error("路由失败: 交换机或队列不存在");
+                break;
+            default:
+                log.error("路由失败: 未知错误码 {}", replyCode);
+        }
+
+        // 这里可以添加重试、告警、记录到数据库等逻辑
     }
 
 }

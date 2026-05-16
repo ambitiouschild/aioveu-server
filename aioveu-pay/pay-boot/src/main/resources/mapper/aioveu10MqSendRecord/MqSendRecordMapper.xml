@@ -65,4 +65,39 @@
         </where>
     </select>
 
+
+
+
+    <delete id="deleteBySendStatusAndCreateTimeBefore">
+        DELETE FROM mq_send_record
+        WHERE send_status = #{sendStatus}
+        AND create_time &lt; #{createTime}
+        <if test="tenantId != null">
+            AND tenant_id = #{tenantId}
+        </if>
+    </delete>
+
+    <delete id="deleteBySendStatusesAndCreateTimeBefore">
+        DELETE FROM mq_send_record
+        WHERE create_time &lt; #{createTime}
+        AND send_status IN
+        <foreach collection="sendStatuses" item="status" open="(" separator="," close=")">
+            #{status}
+        </foreach>
+    </delete>
+
+    <delete id="deleteRecords">
+        DELETE FROM mq_send_record
+        WHERE 1=1
+        <if test="sendStatus != null">
+            AND send_status = #{sendStatus}
+        </if>
+        <if test="createTime != null">
+            AND create_time &lt; #{createTime}
+        </if>
+        <if test="batchSize != null">
+            LIMIT #{batchSize}
+        </if>
+    </delete>
+
 </mapper>

@@ -2,6 +2,7 @@ package com.aioveu.pay.aioveu10MqSendRecord.service.impl;
 
 
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.pay.aioveu10MqSendRecord.converter.MqSendRecordConverter;
 import com.aioveu.pay.aioveu10MqSendRecord.enums.SendStatus;
@@ -13,21 +14,36 @@ import com.aioveu.pay.aioveu10MqSendRecord.model.vo.MqSendRecordVo;
 import com.aioveu.pay.aioveu10MqSendRecord.model.vo.SendRecordStats;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
 import com.aioveu.pay.aioveu10MqSendRecord.utils.MessageIdGenerator;
+import com.aioveu.pay.aioveu10MqSendRecord.utils.RetryResultCreator;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.query.FailedMessageQuery;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.*;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
@@ -48,6 +64,11 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
     private final MqSendRecordConverter mqSendRecordConverter;
 
     private final MessageIdGenerator messageIdGenerator;
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    // 正在重试的消息（防止重复重试）
+    private final Map<String, Long> retryingMessages = new ConcurrentHashMap<>();
+
+    private final RetryResultCreator retryResultCreator;
 
 
     /**
@@ -603,6 +624,717 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
         }
     }
 
+
+
+    //------------------------------------------------------------------------
+    /**
+     * 记录失败消息（主要方法）
+     */
+    @Transactional
+    public boolean recordFailure(RabbitSendResult result) {
+        if (result == null || result.getMessageId() == null) {
+            log.warn("无法记录空结果");
+            return false;
+        }
+
+        try {
+            // 1. 查找或创建记录
+            MqSendRecord entity = findOrCreateRecord(result);
+
+            // 2. 更新失败信息
+            updateFailureInfo(entity, result);
+
+            // 3. 计算下次重试时间
+            calculateNextRetryTime(entity);
+
+            // 4. 保存记录
+            this.save(entity);
+
+            // 5. 记录日志
+            logFailure(entity, result);
+
+            // 6. 发送告警（如果需要）
+            sendAlertIfNeeded(entity);
+
+            return true;
+
+        } catch (Exception e) {
+            log.error("记录失败消息异常: messageId={}", result.getMessageId(), e);
+            return false;
+        }
+    }
+
+    /**
+     * 记录失败消息（带原始Message）
+     */
+    @Transactional
+    public boolean recordFailure(Message rabbitMessage, RabbitSendResult result) {
+        boolean recorded = recordFailure(result);
+
+        if (recorded && rabbitMessage != null) {
+            try {
+
+                // 方法1：使用自定义的注解查询
+//                MqSendRecordEntity entity = mqSendRecordMapper.findByMessageId(messageId);
+
+                // 方法2：使用Wrapper查询
+                MqSendRecord entity = this.baseMapper.findByMessageIdWrapper(result.getMessageId());
+
+                if (entity != null) {
+                    // 补充消息体信息
+                    entity.setMessageBody(new String(rabbitMessage.getBody(), StandardCharsets.UTF_8));
+//                    entity.setMessageSize(rabbitMessage.getBody().length);
+
+                    // 保存消息属性
+                    Map<String, Object> props = extractMessageProperties(rabbitMessage);
+                    if (!props.isEmpty()) {
+                        addExtraInfo(entity, "messageProperties", props);
+                    }
+
+                    this.save(entity);
+                }
+            } catch (Exception e) {
+                log.error("补充消息体信息失败", e);
+            }
+        }
+
+        return recorded;
+    }
+
+    /**
+     * 记录异常
+     */
+    @Transactional
+    public boolean recordException(String messageId, Exception e,
+                                   String exchange, String routingKey,
+                                   Long tenantId, String messageType) {
+        RabbitSendResult result = RabbitSendResult.failure(
+                        messageId,
+                        e.getMessage(),
+                        0L,
+                        exchange,
+                        routingKey
+                )
+                .withTenant(tenantId)
+                .withMessageType(messageType)
+                .addExtraInfo("exceptionClass", e.getClass().getName())
+                .addExtraInfo("stackTrace", getStackTrace(e));
+
+        return recordFailure(result);
+    }
+
+    /**
+     * 重试失败消息
+     */
+    @Transactional
+    public RetryResult retryMessage(String messageId) {
+        long startTime = System.currentTimeMillis();
+
+        if (messageId == null || messageId.trim().isEmpty()) {
+            // 修复：使用正确的参数调用failure方法
+            return retryResultCreator.createInvalidIdResult(startTime);
+        }
+
+        // 防止重复重试
+        if (retryingMessages.containsKey(messageId)) {
+            //       log.info("创建重复重试的结果");
+            return retryResultCreator.createDuplicateRetryResult(messageId, startTime);
+        }
+
+        try {
+            retryingMessages.put(messageId, System.currentTimeMillis());
+
+            // 1. 查找记录
+            MqSendRecord mqSendRecord = this.baseMapper.findByMessageId(messageId);
+
+            // 使用 Optional.ofNullable()包装，转换为Optional
+            Optional<MqSendRecord> optional = Optional.ofNullable(mqSendRecord);
+
+
+            if (!optional.isPresent()) {
+
+                return retryResultCreator.createNotFoundResult(messageId, startTime);
+            }
+
+            MqSendRecord entity = optional.get();
+
+            // 2. 检查是否可以重试
+
+            // 2. 检查是否可以重试
+            RetryCheckResult checkResult = retryResultCreator.checkIfCanRetry(entity);
+
+            if (!checkResult.isCanRetry()) {
+                return retryResultCreator.createCannotRetryResult(entity, checkResult, startTime);
+            }
+
+            // 3. 更新状态为重试中
+            // 3. 更新状态为重试中
+            retryResultCreator.updateEntityAsRetrying(entity);
+
+            this.save(entity);
+
+            // 4. 执行重试
+            RetryResult retryResult = retryResultCreator.executeRetry(entity , startTime);
+
+            // 5. 更新重试结果
+            retryResultCreator.updateEntityAfterRetry(entity, retryResult);
+
+            return retryResult;
+
+        } catch (Exception e) {
+            log.error("重试消息异常: messageId={}", messageId, e);
+            return // 提供所有必要参数
+                    RetryResult.failure(
+                            "messageId",      // 原始消息ID
+                            "错误信息",        // 错误信息
+                            0L,               // 耗时
+                            null              // 重试次数
+                    );
+
+        } finally {
+            retryingMessages.remove(messageId);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * 批量重试
+     */
+    @Transactional
+    public BatchRetryResult batchRetry(List<String> messageIds) {
+        BatchRetryResult result = new BatchRetryResult();
+
+        for (String messageId : messageIds) {
+            try {
+                RetryResult retryResult = retryMessage(messageId);
+                result.addResult(messageId, retryResult);
+            } catch (Exception e) {
+                result.addError(messageId, e.getMessage());
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 获取可重试的消息
+     */
+    public List<MqSendRecord> getRetryableMessages() {
+        // 查询状态为失败、超时、路由失败等的消息
+        List<Integer> retryableStatuses = Arrays.asList(
+                SendStatus.FAILED.getValue(),
+                SendStatus.TIMEOUT.getValue(),
+                SendStatus.ROUTING_FAILED.getValue(),
+                SendStatus.CONFIRM_TIMEOUT.getValue(),
+                SendStatus.CONFIRM_NACK.getValue()
+        );
+
+        return this.baseMapper.findBySendStatusInAndRetryCountLessThan(
+                retryableStatuses,
+                3  // 最大重试次数
+        );
+    }
+
+    /**
+     * 查询失败消息 - 返回 MyBatis-Plus Page
+     */
+    public com.baomidou.mybatisplus.extension.plugins.pagination.Page<MqSendRecord>
+    queryFailedMessages(FailedMessageQuery query, Pageable pageable) {
+
+        try {
+            // 创建 MyBatis-Plus Page
+            com.baomidou.mybatisplus.extension.plugins.pagination.Page<MqSendRecord> mpPage =
+                    new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(
+                            pageable.getPageNumber() + 1,
+                            pageable.getPageSize()
+                    );
+
+            // 构建查询条件
+            QueryWrapper<MqSendRecord> wrapper = new QueryWrapper<>();
+
+            // 失败状态
+            wrapper.in("send_status",
+                    SendStatus.FAILED.getValue(),
+                    SendStatus.TIMEOUT.getValue(),
+                    SendStatus.ROUTING_FAILED.getValue(),
+                    SendStatus.CONFIRM_TIMEOUT.getValue(),
+                    SendStatus.CONFIRM_NACK.getValue(),
+                    SendStatus.DEAD.getValue()
+            );
+
+            // 租户ID
+            if (StringUtils.isNotBlank(query.getTenantId())) {
+                wrapper.eq("tenant_id", query.getTenantId());
+            }
+
+            // 消息类型
+            if (StringUtils.isNotBlank(query.getMessageType())) {
+                wrapper.eq("message_type", query.getMessageType());
+            }
+
+            // 排序
+            if (pageable.getSort().isSorted()) {
+                pageable.getSort().forEach(order -> {
+                    if (order.isAscending()) {
+                        wrapper.orderByAsc(order.getProperty());
+                    } else {
+                        wrapper.orderByDesc(order.getProperty());
+                    }
+                });
+            } else {
+                wrapper.orderByDesc("create_time");
+            }
+
+            // 执行查询并直接返回 MyBatis-Plus Page
+            return this.baseMapper.selectPage(mpPage, wrapper);
+
+        } catch (Exception e) {
+            log.error("查询失败消息异常", e);
+            throw new RuntimeException("查询失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 获取失败统计
+     */
+    public FailedMessageStats getFailedStats() {
+        FailedMessageStats stats = new FailedMessageStats();
+
+        Long failedCount = this.baseMapper.countBySendStatusIn();
+
+        stats.setFailedCount(failedCount);
+
+        stats.setTodayFailed(this.baseMapper.countBySendStatusInAndCreateTimeAfter());
+
+
+        Map<String, Long> statusCountMap = this.baseMapper.countBySendStatus();
+        stats.getStatusStatistics().putAll(statusCountMap);
+
+
+        // 假设 failedStatuses 是从其他地方获取的
+        List<Integer> failedStatuses = Arrays.asList(3, 4, 5 , 6); // 假设 2,3,4 是失败状态
+
+        // 按租户统计
+        List<Object[]> tenantStats = this.baseMapper.countFailedByTenant(failedStatuses);
+        for (Object[] row : tenantStats) {
+            // 注意：根据数据库字段类型，可能需要调整类型转换
+            String tenantId = String.valueOf(row[0]);  // 使用 String.valueOf 更安全
+            Long count = ((Number) row[1]).longValue(); // 处理不同的数字类型
+
+            // 创建统计对象
+            FailedMessageStats tenantStat = FailedMessageStats.createWithCount(count);
+            // 可以在这里设置其他统计信息
+
+            stats.getTenantStatistics().put(tenantId, tenantStat);
+        }
+
+        // 可重试数量
+        stats.setRetryableCount(countRetryableMessages());
+
+        return stats;
+    }
+
+    /**
+     * 清理旧数据
+     */
+    @Transactional
+    public int cleanupOldRecords(int days) {
+        LocalDateTime expireTime = LocalDateTime.now().minusDays(days);
+
+        // 只清理已成功的消息
+        int deletedCount = this.baseMapper.deleteBySendStatusAndCreateTimeBefore(
+                SendStatus.SUCCESS.getValue(),
+                expireTime,
+                null  // 不按租户筛选，传 null
+//                "your-tenant-id"  // 特定租户
+        );
+
+        log.info("清理旧记录: 天数={}, 删除数量={}", days, deletedCount);
+        return deletedCount;
+    }
+
+    // ========== 私有辅助方法 ==========
+
+    private MqSendRecord findOrCreateRecord(RabbitSendResult result) {
+        MqSendRecord record = this.baseMapper.findByMessageId(result.getMessageId());
+        if (record == null) {
+            record = createNewRecord(result);
+        }
+        return record;
+
+    }
+
+    private MqSendRecord createNewRecord(RabbitSendResult result) {
+        MqSendRecord entity = new MqSendRecord();
+//        entity.setId(messageIdGenerator.generateMessageId());
+        entity.setMessageId(result.getMessageId());
+        entity.setCorrelationId(result.getCorrelationId());
+        entity.setTenantId(result.getTenantId());
+        entity.setMessageType(result.getMessageType());
+        entity.setExchange(result.getExchange());
+        entity.setRoutingKey(result.getRoutingKey());
+        entity.setCreateTime(LocalDateTime.now());
+        return entity;
+    }
+
+    private void updateFailureInfo(MqSendRecord entity, RabbitSendResult result) {
+        // 转换状态
+        SendStatus status = convertToSendStatus(result.getSendStatus());
+        entity.setSendStatus(status.getValue());
+
+        // 设置错误信息
+        entity.setErrorMsg(buildErrorDetail(result));
+
+        // 分析错误码
+        String errorCode = analyzeErrorCode(result);
+//        entity.setErrorCode(errorCode);
+
+        // 设置耗时和时间
+        entity.setCostTime(result.getCostTime());
+        entity.setSendTime(convertToLocalDateTime(result.getSendTime()));
+        entity.setConfirmTime(convertToLocalDateTime(result.getConfirmTime()));
+        entity.setUpdateTime(LocalDateTime.now());
+
+        // 设置重试信息
+        if (entity.getRetryCount() == null) {
+            entity.setRetryCount(0);
+        }
+
+        // 设置扩展信息
+        addExtraInfo(entity, "failureDetails", result.getExtraInfo());
+        addExtraInfo(entity, "sendResult", result.toMap());
+
+//        // 设置消息大小
+//        if (result.getExtraInfo() != null && result.getExtraInfo().containsKey("messageSize")) {
+//            entity.setMessageSize((Integer) result.getExtraInfo().get("messageSize"));
+//        }
+    }
+
+    private SendStatus convertToSendStatus(SendStatus rabbitStatus) {
+        if (rabbitStatus == null) {
+            return SendStatus.FAILED;
+        }
+
+        switch (rabbitStatus) {
+            case SUCCESS:
+                return SendStatus.SUCCESS;
+            case FAILED:
+                return SendStatus.FAILED;
+            case TIMEOUT:
+            case CONFIRM_TIMEOUT:
+                return SendStatus.TIMEOUT;
+            case ROUTING_FAILED:
+                return SendStatus.ROUTING_FAILED;
+            case CONFIRM_NACK:
+                return SendStatus.CONFIRM_NACK;
+            default:
+                return SendStatus.UNKNOWN;
+        }
+    }
+
+    private String buildErrorDetail(RabbitSendResult result) {
+        StringBuilder detail = new StringBuilder();
+
+        if (result.getErrorMessage() != null) {
+            detail.append(result.getErrorMessage());
+        }
+
+        if (result.getAckCause() != null) {
+            detail.append(" [ACK Cause: ").append(result.getAckCause()).append("]");
+        }
+
+        if (result.getReplyText() != null) {
+            detail.append(" [Reply: ").append(result.getReplyText()).append("]");
+        }
+
+        return detail.toString();
+    }
+
+    private String analyzeErrorCode(RabbitSendResult result) {
+        if (result.getSendStatus() == null) {
+            return "UNKNOWN";
+        }
+
+        switch (result.getSendStatus()) {
+            case TIMEOUT:
+            case CONFIRM_TIMEOUT:
+                return "TIMEOUT";
+            case ROUTING_FAILED:
+                if (result.getReplyCode() != null) {
+                    switch (result.getReplyCode()) {
+                        case 312: return "NO_ROUTE";
+                        case 313: return "NO_CONSUMERS";
+                        case 403: return "ACCESS_REFUSED";
+                        case 404: return "NOT_FOUND";
+                        default: return "ROUTING_ERROR";
+                    }
+                }
+                return "ROUTING_FAILED";
+            case CONFIRM_NACK:
+                return "BROKER_NACK";
+            case FAILED:
+                if (result.getErrorMessage() != null &&
+                        result.getErrorMessage().toLowerCase().contains("network")) {
+                    return "NETWORK_ERROR";
+                }
+                return "SEND_FAILURE";
+            default:
+                return "UNKNOWN_ERROR";
+        }
+    }
+
+    private void calculateNextRetryTime(MqSendRecord entity) {
+        Integer statusValue = entity.getSendStatus(); // 假设这是从数据库读取的值
+        SendStatus status = SendStatus.fromValue(statusValue);
+
+        if (!isRetryable(status)) {
+            return;
+        }
+
+        // 指数退避算法
+        int retryCount = entity.getRetryCount() != null ? entity.getRetryCount() : 0;
+        long delaySeconds = (long) Math.pow(2, retryCount);
+        delaySeconds = Math.min(delaySeconds, 3600); // 最多1小时
+
+        LocalDateTime nextRetryTime = LocalDateTime.now().plusSeconds(delaySeconds);
+
+        addExtraInfo(entity, "nextRetryTime", nextRetryTime.toString());
+        addExtraInfo(entity, "retryDelay", delaySeconds + "s");
+    }
+
+    private boolean isRetryable(SendStatus status) {
+        return status == SendStatus.FAILED ||
+                status == SendStatus.TIMEOUT ||
+                status == SendStatus.CONFIRM_TIMEOUT ||
+                status == SendStatus.CONFIRM_NACK;
+    }
+
+    private boolean canRetry(MqSendRecord entity) {
+        // 检查状态是否可重试
+
+        Integer statusValue = entity.getSendStatus(); // 假设这是从数据库读取的值
+        SendStatus status = SendStatus.fromValue(statusValue);
+
+        if (!isRetryable(status)) {
+            return false;
+        }
+
+        // 检查重试次数
+        if (entity.getRetryCount() != null && entity.getRetryCount() >= 3) {
+            return false;
+        }
+
+        // 检查下次重试时间
+        String nextRetryTimeStr = getExtraInfo(entity, "nextRetryTime", String.class);
+        if (nextRetryTimeStr != null) {
+            try {
+                LocalDateTime nextRetryTime = LocalDateTime.parse(nextRetryTimeStr);
+                if (LocalDateTime.now().isBefore(nextRetryTime)) {
+                    return false;
+                }
+            } catch (Exception e) {
+                // 解析失败，允许重试
+            }
+        }
+
+        return true;
+    }
+
+
+
+    private void updateRetryResult(MqSendRecord entity, RetryResult retryResult) {
+        if (retryResult.isSuccess()) {
+            entity.setSendStatus(SendStatus.SUCCESS.getValue());
+            entity.setConfirmTime(LocalDateTime.now());
+            entity.setCostTime(retryResult.getCostTime());
+            entity.setErrorMsg(null); // 清空错误信息
+
+            log.info("重试成功: messageId={}, retryCount={}",
+                    entity.getMessageId(), entity.getRetryCount());
+        } else {
+            entity.setSendStatus(SendStatus.FAILED.getValue());
+            entity.setErrorMsg("重试失败: " + retryResult.getError());
+
+            log.warn("重试失败: messageId={}, error={}",
+                    entity.getMessageId(), retryResult.getError());
+        }
+
+        entity.setUpdateTime(LocalDateTime.now());
+        this.save(entity);
+    }
+
+
+
+    private Map<String, Object> extractMessageProperties(Message rabbitMessage) {
+        Map<String, Object> props = new HashMap<>();
+        MessageProperties properties = rabbitMessage.getMessageProperties();
+
+        if (properties != null) {
+            props.put("contentType", properties.getContentType());
+            props.put("contentEncoding", properties.getContentEncoding());
+            props.put("headers", properties.getHeaders());
+            props.put("correlationId", properties.getCorrelationId());
+            props.put("replyTo", properties.getReplyTo());
+            props.put("priority", properties.getPriority());
+            props.put("deliveryMode", properties.getDeliveryMode());
+            props.put("timestamp", properties.getTimestamp());
+        }
+
+        return props;
+    }
+
+    /**
+     * 安全地添加扩展信息
+     */
+    public static <T> void addExtraInfo(MqSendRecord entity, String key, T value) {
+        if (entity == null || key == null) {
+            return;
+        }
+
+        try {
+            Map<String, Object> extraInfo = getExtraInfoMap(entity);
+            extraInfo.put(key, value);
+            // 直接设置 Map 对象，不转换为字符串
+            entity.setExtraInfo(extraInfo);
+
+        } catch (Exception e) {
+            log.warn("添加扩展信息失败, key: {}, value: {}", key, value, e);
+        }
+    }
+
+    /**
+     * 获取扩展信息并转换为指定类型
+     */
+    public static <T> T getExtraInfo(MqSendRecord entity, String key, Class<T> clazz) {
+        if (entity == null || key == null || clazz == null) {
+            return null;
+        }
+
+        try {
+            Map<String, Object> extraInfo = getExtraInfoMap(entity);
+            Object value = extraInfo.get(key);
+
+            if (value == null) {
+                return null;
+            }
+
+            // 如果类型匹配，直接返回
+            if (clazz.isInstance(value)) {
+                return clazz.cast(value);
+            }
+
+            // 否则尝试转换
+            return objectMapper.convertValue(value, clazz);
+
+        } catch (Exception e) {
+            log.warn("获取扩展信息失败, key: {}, class: {}", key, clazz, e);
+            return null;
+        }
+    }
+
+    /**
+     * 获取扩展信息 Map
+     */
+    private static Map<String, Object> getExtraInfoMap(MqSendRecord entity) {
+        if (entity == null || entity.getExtraInfo() == null) {
+            return new HashMap<>();
+        }
+
+        try {
+            Map<String, Object> extraInfo = entity.getExtraInfo();
+            return extraInfo != null ? extraInfo : new HashMap<>();
+        } catch (Exception e) {
+            log.warn("解析扩展信息失败: {}", entity.getExtraInfo(), e);
+            return new HashMap<>();
+        }
+    }
+
+
+
+
+    private void logFailure(MqSendRecord entity, RabbitSendResult result) {
+
+        Integer statusValue = entity.getSendStatus(); // 假设这是从数据库读取的值
+        SendStatus status = SendStatus.fromValue(statusValue);
+
+        log.error("消息发送失败记录: messageId={}, status={}, error={}, retryCount={}",
+                entity.getMessageId(),
+                status.getLabel(),
+                entity.getErrorMsg(),
+                entity.getRetryCount());
+
+        if (log.isDebugEnabled()) {
+            log.debug("失败详情: {}", result.getDetailInfo());
+        }
+    }
+
+    private void sendAlertIfNeeded(MqSendRecord entity) {
+        // 重要消息或连续失败发送告警
+        if (isImportantMessage(entity) || isContinuousFailure(entity)) {
+            sendAlert(entity);
+        }
+    }
+
+    private boolean isImportantMessage(MqSendRecord entity) {
+        return "ORDER_PAY".equals(entity.getMessageType()) ||
+                "ORDER_CREATE".equals(entity.getMessageType());
+    }
+
+    private boolean isContinuousFailure(MqSendRecord entity) {
+        return entity.getRetryCount() != null && entity.getRetryCount() >= 3;
+    }
+
+    private void sendAlert(MqSendRecord entity) {
+        String alertMsg = String.format(
+                "消息发送失败告警\n" +
+                        "消息ID: %s\n" +
+                        "租户: %s\n" +
+                        "类型: %s\n" +
+                        "交换机: %s\n" +
+                        "路由键: %s\n" +
+                        "错误: %s\n" +
+                        "重试次数: %d\n" +
+                        "时间: %s",
+                entity.getMessageId(),
+                entity.getTenantId(),
+                entity.getMessageType(),
+                entity.getExchange(),
+                entity.getRoutingKey(),
+                entity.getErrorMsg(),
+                entity.getRetryCount(),
+                LocalDateTime.now()
+        );
+
+        log.warn("发送失败告警: {}", alertMsg);
+        // TODO: 集成告警系统
+    }
+
+    private Long countRetryableMessages() {
+        List<MqSendRecord> retryable = getRetryableMessages();
+        return (long)retryable.size();
+    }
+
+
+    private LocalDateTime convertToLocalDateTime(Date date) {
+        if (date == null) return null;
+        return LocalDateTime.ofInstant(date.toInstant(), java.time.ZoneId.systemDefault());
+    }
+
+    private String getStackTrace(Exception e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        return sw.toString();
+    }
 
 
 }
