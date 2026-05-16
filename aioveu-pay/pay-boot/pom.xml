@@ -189,12 +189,26 @@
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
 
+
+<!--        基于 Spring Boot 3 + Spring Kafka 3.x（最新稳定版）的 Kafka 实现方案。-->
+<!--        这套代码在 API 风格和设计思路上与你的 RocketMQ 服务保持高度一致。-->
         <!-- Spring Boot Starter for Kafka -->
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
-            <version>3.1.4</version> <!-- 使用最新稳定版 -->
+            <version>3.3.4</version> <!-- 截至2026年5月的最新稳定版 -->
         </dependency>
+
+        <!-- 如果你需要手动指定客户端版本（通常不需要） -->
+        <!--
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>3.9.0</version>
+        </dependency>
+        -->
+
+
 
         <!-- 如果需要JSON序列化 -->
         <dependency>
