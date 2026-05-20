@@ -1,8 +1,7 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.adapter;
 
 
-import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendRequest;
-import com.rabbitmq.client.MessageProperties;
+import com.aioveu.common.rabbitmq.producer.model.vo.RabbitSendRequest;
 import org.apache.commons.lang3.StringUtils; // 引入 StringUtils
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.rocketmq.common.message.Message; // 引入 RocketMQ 的 Message

@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.model.query;
 
 
-import com.aioveu.pay.aioveu10MqSendRecord.enums.SendStatus;
+import com.aioveu.common.rabbitmq.enums.SendStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

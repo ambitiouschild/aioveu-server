@@ -33,6 +33,8 @@
         <module>common-sms</module>
         <!-- mail 公共模块 -->
         <module>common-mail</module>
+        <module>common-kafka</module>
+        <module>common-rocketmq</module>
     </modules>
 
     <properties>

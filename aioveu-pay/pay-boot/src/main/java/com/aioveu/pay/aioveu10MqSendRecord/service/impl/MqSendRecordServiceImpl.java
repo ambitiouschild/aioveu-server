@@ -2,10 +2,10 @@ package com.aioveu.pay.aioveu10MqSendRecord.service.impl;
 
 
 import cn.hutool.core.lang.Assert;
-import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.common.rabbitmq.producer.model.vo.*;
 import com.aioveu.pay.aioveu10MqSendRecord.converter.MqSendRecordConverter;
-import com.aioveu.pay.aioveu10MqSendRecord.enums.SendStatus;
+import com.aioveu.common.rabbitmq.enums.SendStatus;
 import com.aioveu.pay.aioveu10MqSendRecord.mapper.MqSendRecordMapper;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.model.form.MqSendRecordForm;
@@ -13,10 +13,9 @@ import com.aioveu.pay.aioveu10MqSendRecord.model.query.MqSendRecordQuery;
 import com.aioveu.pay.aioveu10MqSendRecord.model.vo.MqSendRecordVo;
 import com.aioveu.pay.aioveu10MqSendRecord.model.vo.SendRecordStats;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
-import com.aioveu.pay.aioveu10MqSendRecord.utils.MessageIdGenerator;
-import com.aioveu.pay.aioveu10MqSendRecord.utils.RetryResultCreator;
+import com.aioveu.common.util.MessageIdGenerator;
+import com.aioveu.pay.aioveu12MqProducerPayment.utils.RetryResultCreator;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.query.FailedMessageQuery;
-import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.*;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -29,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,7 +41,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 

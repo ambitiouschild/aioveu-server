@@ -1,13 +1,13 @@
 package com.aioveu.pay.aioveu10MqSendRecord.service;
 
 
-import com.aioveu.pay.aioveu10MqSendRecord.enums.SendStatus;
+import com.aioveu.common.rabbitmq.enums.SendStatus;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.model.form.MqSendRecordForm;
 import com.aioveu.pay.aioveu10MqSendRecord.model.query.MqSendRecordQuery;
 import com.aioveu.pay.aioveu10MqSendRecord.model.vo.MqSendRecordVo;
 import com.aioveu.pay.aioveu10MqSendRecord.model.vo.SendRecordStats;
-import com.aioveu.pay.aioveu10MqSendRecord.utils.MessageIdGenerator;
+import com.aioveu.common.util.MessageIdGenerator;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 

@@ -1,12 +1,7 @@
 package com.aioveu.oms.aioveu11MqConsumer.consumer;
 
-import com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum;
-import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
-import com.aioveu.oms.aioveu01Order.service.app.OrderService;
-import com.aioveu.oms.aioveu04OrderLog.service.OmsOrderLogService;
-import com.aioveu.oms.aioveu08MqConsumeRecord.service.MqConsumeRecordService;
 import com.aioveu.oms.aioveu11MqConsumer.MQMonitorConsumer.OrderConsumerMQMonitor;
-import com.aioveu.oms.aioveu11MqConsumer.service.MqConsumerService;
+import com.aioveu.oms.aioveu11MqConsumer.service.impl.MqConsumerService;
 import com.aioveu.pay.model.PaymentSuccessMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.ZoneId;
-import java.util.Date;
 
 /**
  * @ClassName: PaymentSuccessConsumer

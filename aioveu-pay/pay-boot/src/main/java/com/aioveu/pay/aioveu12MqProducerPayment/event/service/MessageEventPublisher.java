@@ -1,8 +1,8 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.event.service;
 
 
-import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitBatchSendResult;
-import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendResult;
+import com.aioveu.common.rabbitmq.producer.model.vo.RabbitBatchSendResult;
+import com.aioveu.common.rabbitmq.producer.model.vo.RabbitSendResult;
 
 /**
  * @ClassName: MessageEventPublisher

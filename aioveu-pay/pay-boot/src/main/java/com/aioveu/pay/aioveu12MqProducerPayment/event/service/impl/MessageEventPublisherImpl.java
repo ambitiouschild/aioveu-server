@@ -3,8 +3,8 @@ package com.aioveu.pay.aioveu12MqProducerPayment.event.service.impl;
 
 import com.aioveu.pay.aioveu12MqProducerPayment.event.model.*;
 import com.aioveu.pay.aioveu12MqProducerPayment.event.service.MessageEventPublisher;
-import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitBatchSendResult;
-import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendResult;
+import com.aioveu.common.rabbitmq.producer.model.vo.RabbitBatchSendResult;
+import com.aioveu.common.rabbitmq.producer.model.vo.RabbitSendResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;

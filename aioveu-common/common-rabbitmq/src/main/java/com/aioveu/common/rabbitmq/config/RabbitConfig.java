@@ -3,6 +3,7 @@ package com.aioveu.common.rabbitmq.config;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.listener.RabbitListenerContainerFactory;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
@@ -29,5 +30,19 @@ public class RabbitConfig {
         factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(  new Jackson2JsonMessageConverter());
         return factory;
+    }
+
+    /**
+     * 创建RabbitAdmin Bean
+     * RabbitAdmin用于管理RabbitMQ队列、交换机和绑定
+     */
+    @Bean
+    public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
+        RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
+
+        // 自动声明队列和交换机
+        rabbitAdmin.setAutoStartup(true);
+
+        return rabbitAdmin;
     }
 }

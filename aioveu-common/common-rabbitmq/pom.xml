@@ -24,12 +24,79 @@
             <version>3.2.3</version> <!-- 根据您的Spring Boot版本调整 -->
         </dependency>
 
-        <!-- 检查是否正确引用了Spring AMQP 3.1.2 -->
+        <!-- 公共依赖 -->
         <dependency>
-            <groupId>org.springframework.amqp</groupId>
-            <artifactId>spring-rabbit</artifactId>
-            <version>3.1.2</version>  <!-- 确保是这个版本 -->
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-core</artifactId>
         </dependency>
+
+        <!-- 检查是否正确引用了Spring AMQP 3.1.2 -->
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.amqp</groupId>-->
+<!--            <artifactId>spring-rabbit</artifactId>-->
+<!--            <version>3.1.2</version>  &lt;!&ndash; 确保是这个版本 &ndash;&gt;-->
+<!--        </dependency>-->
+
+        <!-- 无需单独引入spring-rabbit -->
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-amqp</artifactId>-->
+<!--        </dependency>-->
+
+
+        <!-- 如果需要JSON序列化 -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.15.2</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.24</version> <!-- 必须 >= 1.18.16 -->
+            <scope>provided</scope>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.15.2</version>
+        </dependency>
+
+<!--        @NotBlank是 Java Bean Validation 注解，需要添加对应的依赖。-->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <version>3.0.2</version>
+        </dependency>
+
+
+        <!--        方案3：使用 Micrometer（推荐，集成 Spring Boot Actuator）-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
+        <!-- Micrometer Core -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+        </dependency>
+
+
+        <!-- 添加 Micrometer 依赖 -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+        </dependency>
+
 
     </dependencies>
 

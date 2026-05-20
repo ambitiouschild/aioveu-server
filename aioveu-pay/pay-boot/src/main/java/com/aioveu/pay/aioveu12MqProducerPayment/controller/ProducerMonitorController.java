@@ -1,8 +1,8 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.controller;
 
 
-import com.aioveu.pay.aioveu12MqProducerPayment.Monitor.RabbitMQ.ProducerMetrics;
-import com.aioveu.pay.aioveu12MqProducerPayment.Monitor.RabbitMQ.ProducerMetricsCollector;
+import com.aioveu.common.rabbitmq.producer.monitor.ProducerMetrics;
+import com.aioveu.common.rabbitmq.producer.monitor.ProducerMetricsCollector;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

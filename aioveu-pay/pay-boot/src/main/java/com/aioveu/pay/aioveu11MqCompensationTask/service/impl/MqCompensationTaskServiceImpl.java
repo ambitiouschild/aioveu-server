@@ -3,7 +3,7 @@ package com.aioveu.pay.aioveu11MqCompensationTask.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.pay.aioveu10MqSendRecord.enums.SendStatus;
+import com.aioveu.common.rabbitmq.enums.SendStatus;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
 import com.aioveu.pay.aioveu11MqCompensationTask.converter.MqCompensationTaskConverter;
@@ -13,15 +13,12 @@ import com.aioveu.pay.aioveu11MqCompensationTask.model.form.MqCompensationTaskFo
 import com.aioveu.pay.aioveu11MqCompensationTask.model.query.MqCompensationTaskQuery;
 import com.aioveu.pay.aioveu11MqCompensationTask.model.vo.MqCompensationTaskVo;
 import com.aioveu.pay.aioveu11MqCompensationTask.service.MqCompensationTaskService;
-import com.aioveu.pay.aioveu12MqProducerPayment.Monitor.RabbitMQ.ProducerMetricsCollector;
+import com.aioveu.common.rabbitmq.producer.monitor.ProducerMetricsCollector;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.rocketmq.client.producer.SendResult;
-import org.apache.rocketmq.common.message.MessageConst;
-import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.messaging.Message;

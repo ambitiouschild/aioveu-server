@@ -1,12 +1,9 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.event.model;
 
 
-import com.aioveu.pay.aioveu10MqSendRecord.enums.SendStatus;
-import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendResult;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import com.aioveu.common.rabbitmq.enums.SendStatus;
+import com.aioveu.common.rabbitmq.producer.model.vo.RabbitSendResult;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.context.ApplicationEvent;
 
 import java.time.LocalDateTime;

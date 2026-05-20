@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.event.model;
 
 
-import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitBatchSendResult;
+import com.aioveu.common.rabbitmq.producer.model.vo.RabbitBatchSendResult;
 import lombok.Data;
 import org.springframework.context.ApplicationEvent;
 

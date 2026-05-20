@@ -8,28 +8,16 @@ import com.aioveu.oms.aioveu01Order.service.app.OrderService;
 import com.aioveu.oms.aioveu04OrderLog.service.OmsOrderLogService;
 import com.aioveu.oms.aioveu08MqConsumeRecord.enums.ConsumeStatusEnum;
 import com.aioveu.oms.aioveu08MqConsumeRecord.service.MqConsumeRecordService;
-import com.aioveu.oms.aioveu10MqConsumeIdempotent.model.query.MqConsumeIdempotentQuery;
-import com.aioveu.oms.aioveu10MqConsumeIdempotent.model.vo.MqConsumeIdempotentVo;
-import com.aioveu.oms.aioveu10MqConsumeIdempotent.service.MqConsumeIdempotentService;
 import com.aioveu.oms.aioveu11MqConsumer.model.vo.OrderPaySuccessDTO;
-import com.aioveu.oms.aioveu11MqConsumer.service.MqConsumerService;
+import com.aioveu.common.rabbitmq.consumer.service.MqConsumerService;
 import com.aioveu.oms.aioveu11MqConsumer.utils.MqConsumerUtils;
 import com.aioveu.pay.model.PaymentSuccessMessage;
-import com.alibaba.nacos.common.utils.StringUtils;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 
 /**
  * @ClassName: MqConsumerServiceImpl

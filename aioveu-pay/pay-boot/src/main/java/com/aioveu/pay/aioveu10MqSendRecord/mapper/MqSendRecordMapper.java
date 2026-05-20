@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu10MqSendRecord.mapper;
 
 
-import com.aioveu.pay.aioveu10MqSendRecord.enums.SendStatus;
+import com.aioveu.common.rabbitmq.enums.SendStatus;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.model.query.MqSendRecordQuery;
 import com.aioveu.pay.aioveu10MqSendRecord.model.vo.MqSendRecordVo;
