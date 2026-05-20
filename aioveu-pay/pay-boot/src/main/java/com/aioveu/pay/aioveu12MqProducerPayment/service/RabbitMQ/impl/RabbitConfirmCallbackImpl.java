@@ -77,7 +77,7 @@ public class RabbitConfirmCallbackImpl implements RabbitTemplate.ConfirmCallback
 
                 if (existingCallback == null) {
                     // 情况1：还没有设置ConfirmCallback
-                    rabbitTemplate.setConfirmCallback(this);
+//                    rabbitTemplate.setConfirmCallback(this);
                     log.info("✅ FixedRabbitConfirmCallback注册成功");
                 } else if (existingCallback == this) {
                     // 情况2：已经设置过（可能是重复调用）
