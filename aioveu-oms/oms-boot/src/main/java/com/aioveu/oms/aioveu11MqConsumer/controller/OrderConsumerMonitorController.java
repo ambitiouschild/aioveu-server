@@ -1,7 +1,7 @@
 package com.aioveu.oms.aioveu11MqConsumer.controller;
 
 
-import com.aioveu.oms.aioveu11MqConsumer.MQMonitorConsumer.OrderConsumerMQMonitor;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,7 +26,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class OrderConsumerMonitorController {
 
-    private final OrderConsumerMQMonitor orderConsumerMQMonitor;
 
     /**
      * 获取监控指标
@@ -37,9 +36,6 @@ public class OrderConsumerMonitorController {
 
         metrics.put("consumer_group", "order-service-payment-consumer");
         metrics.put("topic", "payment_success_topic");
-        metrics.put("success_rate", orderConsumerMQMonitor.getSuccessRate());
-        metrics.put("current_backlog", orderConsumerMQMonitor.getCurrentBacklog());
-        metrics.put("max_delay", orderConsumerMQMonitor.getMaxConsumeDelay());
 
         return metrics;
     }
@@ -49,7 +45,6 @@ public class OrderConsumerMonitorController {
      */
     @PostMapping("/check")
     public String triggerMonitor() {
-        orderConsumerMQMonitor.monitorOrderConsumer();
         return "监控检查已触发";
     }
 }

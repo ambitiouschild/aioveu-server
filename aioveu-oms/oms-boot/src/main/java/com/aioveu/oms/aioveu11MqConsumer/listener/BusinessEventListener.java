@@ -10,7 +10,9 @@ package com.aioveu.oms.aioveu11MqConsumer.listener;
  * @Version 1.0
  **/
 
+import com.aioveu.cache.service.CacheService;
 import com.aioveu.common.sms.service.SmsService;
+import com.aioveu.database.service.DatabaseService;
 import com.aioveu.event.model.vo.MessageSentEvent;
 import com.aioveu.mail.service.MailService;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +39,7 @@ public class BusinessEventListener {
     @Async("businessTaskExecutor")
     @EventListener
     public void handleMessageSent(MessageSentEvent event) {
-        String tenantId = event.getTenantId();
+        Long tenantId = event.getTenantId();
         String messageType = event.getMessageType();
 
         try {
@@ -75,21 +77,21 @@ public class BusinessEventListener {
             orderId = (String) event.getExtraInfo().get("orderId");
         }
 
-        if (orderId != null) {
-            // 1. 更新订单发送状态
-            databaseService.updateOrderSendStatus(orderId, "SENT", event.getCostTime());
-
-            // 2. 发送订单创建成功通知
-            if (shouldSendNotification(event.getTenantId())) {
-                sendOrderCreateNotification(orderId, event.getTenantId());
-            }
-
-            // 3. 清理缓存
-            cacheService.remove("order:pending:" + orderId);
-
-            log.info("订单创建消息处理完成: orderId={}, cost={}ms",
-                    orderId, event.getCostTime());
-        }
+//        if (orderId != null) {
+//            // 1. 更新订单发送状态
+//            databaseService.updateOrderSendStatus(orderId, "SENT", event.getCostTime());
+//
+//            // 2. 发送订单创建成功通知
+//            if (shouldSendNotification(event.getTenantId())) {
+//                sendOrderCreateNotification(orderId, event.getTenantId());
+//            }
+//
+//            // 3. 清理缓存
+//            cacheService.remove("order:pending:" + orderId);
+//
+//            log.info("订单创建消息处理完成: orderId={}, cost={}ms",
+//                    orderId, event.getCostTime());
+//        }
     }
 
     /**
@@ -99,12 +101,12 @@ public class BusinessEventListener {
         String orderId = event.getBusinessId();
         if (orderId != null) {
             // 1. 记录支付消息发送时间
-            databaseService.recordPaymentMessageSent(orderId, event.getSendTime());
-
-            // 2. 发送支付成功短信
-            if (shouldSendSms(event.getTenantId())) {
-                smsService.sendPaymentSuccessSms(orderId, event.getTenantId());
-            }
+//            databaseService.recordPaymentMessageSent(orderId, event.getSendTime());
+//
+//            // 2. 发送支付成功短信
+//            if (shouldSendSms(event.getTenantId())) {
+//                smsService.sendPaymentSuccessSms(orderId, event.getTenantId());
+//            }
 
             log.info("订单支付消息处理完成: orderId={}", orderId);
         }
@@ -117,10 +119,10 @@ public class BusinessEventListener {
         String userId = event.getBusinessId();
         if (userId != null) {
             // 发送欢迎邮件
-            emailService.sendWelcomeEmail(userId, event.getTenantId());
-
-            // 记录用户活跃时间
-            databaseService.updateUserLastActive(userId, event.getSendTime());
+//            emailService.sendWelcomeEmail(userId, event.getTenantId());
+//
+//            // 记录用户活跃时间
+//            databaseService.updateUserLastActive(userId, event.getSendTime());
 
             log.info("用户注册消息处理完成: userId={}", userId);
         }
@@ -133,7 +135,7 @@ public class BusinessEventListener {
         // 更新库存缓存
         String sku = (String) event.getExtraInfo().get("skuCode");
         if (sku != null) {
-            cacheService.refreshInventoryCache(sku, event.getTenantId());
+//            cacheService.refreshInventoryCache(sku, event.getTenantId());
             log.debug("库存缓存已刷新: sku={}", sku);
         }
     }
@@ -143,7 +145,7 @@ public class BusinessEventListener {
      */
     private void sendOrderCreateNotification(String orderId, String tenantId) {
         // 发送邮件通知
-        emailService.sendOrderCreatedEmail(orderId, tenantId);
+//        emailService.sendOrderCreatedEmail(orderId, tenantId);
 
         // 发送内部通知
         sendInternalNotification("订单创建成功",

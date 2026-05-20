@@ -75,6 +75,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
@@ -1648,8 +1649,12 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 //            order.setPayStatus(PayStatusEnum.PAID.getCode());     // 已支付
             order.setTransactionId(message.getTransactionId());
 
-            order.setPaymentTime(Date.from(message.getPaymentTime()
-                    .atZone(java.time.ZoneId.systemDefault()).toInstant()));
+            order.setPaymentTime(
+                    message.getPaymentTime()
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDateTime()
+            );
+
             order.setUpdateTime(LocalDateTime.now());
 
             int rows = this.baseMapper.updateById(order);

@@ -16,6 +16,6 @@ import org.springframework.stereotype.Service;
  **/
 @Service
 @RequiredArgsConstructor
-@Slf4j
+//@Slf4j
 public class CacheServiceImpl implements CacheService {
 }

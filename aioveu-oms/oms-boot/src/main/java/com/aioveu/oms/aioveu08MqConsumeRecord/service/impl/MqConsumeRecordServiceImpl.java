@@ -257,15 +257,15 @@ public class MqConsumeRecordServiceImpl extends ServiceImpl<MqConsumeRecordMappe
             record.setErrorMsg(errorMsg);
             record.setUpdateTime(LocalDateTime.now());
 
-            if (status.isFinalStatus()) {
-                record.setFinishTime(LocalDateTime.now());
-            }
-
-            // 设置下次重试时间（如果需要重试）
-            if (status.isRetryable()) {
-                LocalDateTime nextRetryTime = calculateNextRetryTime(record.getRetryCount());
-                record.setNextRetryTime(nextRetryTime);
-            }
+//            if (status.isFinalStatus()) {
+//                record.setFinishTime(LocalDateTime.now());
+//            }
+//
+//            // 设置下次重试时间（如果需要重试）
+//            if (status.isRetryable()) {
+//                LocalDateTime nextRetryTime = calculateNextRetryTime(record.getRetryCount());
+//                record.setNextRetryTime(nextRetryTime);
+//            }
 
             int rows = this.baseMapper.updateById(record);
             return rows > 0;
@@ -302,9 +302,9 @@ public class MqConsumeRecordServiceImpl extends ServiceImpl<MqConsumeRecordMappe
                     record.setErrorMsg(errorMsg);
                     record.setUpdateTime(updateTime);
 
-                    if (status.isFinalStatus()) {
-                        record.setFinishTime(updateTime);
-                    }
+//                    if (status.isFinalStatus()) {
+//                        record.setFinishTime(updateTime);
+//                    }
 
                     int rows = this.baseMapper.updateById(record);
                     if (rows > 0) {
@@ -358,7 +358,9 @@ public class MqConsumeRecordServiceImpl extends ServiceImpl<MqConsumeRecordMappe
             return false;  // 记录不存在，未消费
         }
 
-        return status.isFinalStatus() && status != ConsumeStatusEnum.FAILED;
+//        return status.isFinalStatus() && status != ConsumeStatusEnum.FAILED;
+
+        return status != ConsumeStatusEnum.FAILED;
     }
 
     /**

@@ -1,6 +1,6 @@
 package com.aioveu.oms.aioveu11MqConsumer.consumer;
 
-import com.aioveu.oms.aioveu11MqConsumer.MQMonitorConsumer.OrderConsumerMQMonitor;
+import com.aioveu.common.rabbitmq.config.RabbitConfig;
 import com.aioveu.oms.aioveu11MqConsumer.service.MqConsumerService;
 import com.aioveu.pay.model.PaymentSuccessMessage;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +9,9 @@ import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,23 +26,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  **/
 
 
-@Service
+@Component
 @Slf4j
-// # 不再需要 consumer 配置，注解中已包含
-@RocketMQMessageListener(
-        topic = "${rocketmq.topics.payment-success:payment_success_topic}",
-        consumerGroup = "${spring.application.name}-payment-consumer",
-        selectorExpression = "*",  // 消费所有Tag
-//        selectorExpression = "wechat_pay || alipay",  // 只消费微信和支付宝支付消息
-        consumeMode = ConsumeMode.ORDERLY,  // 顺序消费
-        messageModel = MessageModel.CLUSTERING,  // 集群模式
-        consumeThreadMax = 20,  // 最大消费线程数
-        consumeTimeout = 15L,  // 消费超时时间(分钟)
-        suspendCurrentQueueTimeMillis = 1000,        // 消费失败挂起时间
-        delayLevelWhenNextConsume = 0                // 消费失败延迟级别
-)
-@RequiredArgsConstructor  // Lombok 自动生成构造器
-public class PaymentSuccessConsumer implements RocketMQListener<PaymentSuccessMessage> {
+@RequiredArgsConstructor
+public class PaymentSuccessConsumer{
+
+
+    private final RabbitConfig rabbitConfig;
 
     // 使用 final 字段 + @RequiredArgsConstructor
     private final MqConsumerService mqConsumerService;
@@ -48,13 +40,14 @@ public class PaymentSuccessConsumer implements RocketMQListener<PaymentSuccessMe
     // Spring 会自动通过构造器注入
 
 
-    //在 PaymentSuccessConsumer 中集成监控
-    private final OrderConsumerMQMonitor orderConsumerMQMonitor;
 
     @Autowired
     private ObjectMapper objectMapper;     // 使用 Jackson 的 ObjectMapper
 
-    @Override
+    @RabbitListener(
+            queues = "#{'${rabbitmq.queue.payment-success}'}",
+            containerFactory = "rabbitListenerContainerFactory"
+    )
     @Transactional(rollbackFor = Exception.class)
     public void onMessage(PaymentSuccessMessage message) {
 
@@ -95,9 +88,9 @@ public class PaymentSuccessConsumer implements RocketMQListener<PaymentSuccessMe
         }finally {
             long costTime = System.currentTimeMillis() - startTime;
 
-            // 记录监控指标
-            orderConsumerMQMonitor.recordConsumeResult(orderSn, messageId,
-                    success, costTime, success ? null : "处理异常");
+//            // 记录监控指标
+//            orderConsumerMQMonitor.recordConsumeResult(orderSn, messageId,
+//                    success, costTime, success ? null : "处理异常");
         }
 
     }

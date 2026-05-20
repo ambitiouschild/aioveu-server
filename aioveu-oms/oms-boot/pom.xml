@@ -26,6 +26,10 @@
 
         <common-sms.version>1.0-SNAPSHOT</common-sms.version>
 
+        <common-database.version>1.0-SNAPSHOT</common-database.version>
+
+        <common-cache.version>1.0-SNAPSHOT</common-cache.version>
+
 
     </properties>
 
@@ -118,6 +122,19 @@
             <groupId>com.aioveu</groupId>
             <artifactId>common-sms</artifactId>
             <version>${common-sms.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-database</artifactId>
+            <version>${common-database.version}</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-cache</artifactId>
+            <version>${common-cache.version}</version>
         </dependency>
 
         <dependency>

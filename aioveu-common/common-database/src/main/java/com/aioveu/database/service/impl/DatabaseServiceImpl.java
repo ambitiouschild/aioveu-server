@@ -14,8 +14,8 @@ import org.springframework.stereotype.Service;
  * @Date 2026/5/20 22:32
  * @Version 1.0
  **/
+//@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class DatabaseServiceImpl implements DatabaseService {
 }

@@ -35,4 +35,20 @@ public enum ConsumeStatusEnum implements IBaseEnum<Integer> {
 
     @Getter
     private String label;
+
+
+    /**
+     * 根据 value 获取枚举
+     */
+    public static ConsumeStatusEnum fromValue(Integer value) {
+        if (value == null) {
+            return null;
+        }
+        for (ConsumeStatusEnum e : values()) {
+            if (e.getValue().equals(value)) {
+                return e;
+            }
+        }
+        throw new IllegalArgumentException("未知的消费状态：" + value);
+    }
 }

@@ -54,7 +54,7 @@ public class MessageMonitorListener {
     private void recordMetrics(MessageSentEvent event) {
         // 计数器：发送成功次数
         Counter successCounter = Counter.builder("rabbitmq.message.sent.total")
-                .tag("tenant", event.getTenantId() != null ? event.getTenantId() : "unknown")
+                .tag("tenant", event.getTenantId() != null ? event.getTenantId().toString() : "unknown")
                 .tag("messageType", event.getMessageType() != null ? event.getMessageType() : "unknown")
                 .tag("exchange", event.getExchange() != null ? event.getExchange() : "unknown")
                 .description("消息发送成功总数")
@@ -64,18 +64,20 @@ public class MessageMonitorListener {
         // 计时器：发送耗时
         if (event.getCostTime() != null) {
             Timer.builder("rabbitmq.message.send.duration")
-                    .tag("tenant", event.getTenantId() != null ? event.getTenantId() : "unknown")
+                    .tag("tenant", event.getTenantId() != null ? event.getTenantId().toString() : "unknown")
                     .tag("messageType", event.getMessageType() != null ? event.getMessageType() : "unknown")
                     .description("消息发送耗时")
                     .register(meterRegistry)
                     .record(event.getCostTime(), java.util.concurrent.TimeUnit.MILLISECONDS);
         }
 
-        // 记录消息大小
         if (event.getMessageSize() != null) {
-            meterRegistry.summary("rabbitmq.message.size")
-                    .tag("tenant", event.getTenantId() != null ? event.getTenantId() : "unknown")
-                    .record(event.getMessageSize());
+            meterRegistry.summary(
+                    "rabbitmq.message.size",
+                    "tenant", event.getTenantId() == null
+                            ? "unknown"
+                            : event.getTenantId().toString()
+            ).record(event.getMessageSize());
         }
     }
 
