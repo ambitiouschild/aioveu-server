@@ -1,4 +1,4 @@
-package com.aioveu.oms.aioveu11MqConsumer.service.impl;
+package com.aioveu.oms.aioveu11MqConsumer.service;
 
 
 import com.aioveu.oms.aioveu11MqConsumer.model.vo.OrderPaySuccessDTO;

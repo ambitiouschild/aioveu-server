@@ -9,7 +9,7 @@ import com.aioveu.oms.aioveu04OrderLog.service.OmsOrderLogService;
 import com.aioveu.oms.aioveu08MqConsumeRecord.enums.ConsumeStatusEnum;
 import com.aioveu.oms.aioveu08MqConsumeRecord.service.MqConsumeRecordService;
 import com.aioveu.oms.aioveu11MqConsumer.model.vo.OrderPaySuccessDTO;
-import com.aioveu.common.rabbitmq.consumer.service.MqConsumerService;
+import com.aioveu.oms.aioveu11MqConsumer.service.MqConsumerService;
 import com.aioveu.oms.aioveu11MqConsumer.utils.MqConsumerUtils;
 import com.aioveu.pay.model.PaymentSuccessMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;

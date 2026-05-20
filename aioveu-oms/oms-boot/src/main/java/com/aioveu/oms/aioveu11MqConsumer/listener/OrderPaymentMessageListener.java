@@ -1,7 +1,7 @@
 package com.aioveu.oms.aioveu11MqConsumer.listener;
 
 
-import com.aioveu.oms.aioveu11MqConsumer.service.impl.MqConsumerService;
+import com.aioveu.oms.aioveu11MqConsumer.service.MqConsumerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.consumer.listener.ConsumeOrderlyContext;

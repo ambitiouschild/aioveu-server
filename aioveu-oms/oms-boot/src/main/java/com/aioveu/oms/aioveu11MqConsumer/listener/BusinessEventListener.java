@@ -10,6 +10,7 @@ package com.aioveu.oms.aioveu11MqConsumer.listener;
  * @Version 1.0
  **/
 
+import com.aioveu.event.model.vo.MessageSentEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

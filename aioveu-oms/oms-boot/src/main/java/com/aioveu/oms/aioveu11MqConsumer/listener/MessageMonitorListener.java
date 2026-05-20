@@ -10,6 +10,7 @@ package com.aioveu.oms.aioveu11MqConsumer.listener;
  * @Version 1.0
  **/
 
+import com.aioveu.event.model.vo.MessageSentEvent;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
