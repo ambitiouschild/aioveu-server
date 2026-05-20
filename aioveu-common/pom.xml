@@ -36,6 +36,8 @@
         <module>common-kafka</module>
         <module>common-rocketmq</module>
         <module>common-event</module>
+        <module>common-database</module>
+        <module>common-cache</module>
     </modules>
 
     <properties>
