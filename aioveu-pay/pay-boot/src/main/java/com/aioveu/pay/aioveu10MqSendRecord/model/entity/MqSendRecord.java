@@ -3,6 +3,7 @@ package com.aioveu.pay.aioveu10MqSendRecord.model.entity;
 
 import com.aioveu.common.base.BaseEntity;
 import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -153,6 +154,7 @@ public class MqSendRecord extends BaseEntityWithTenantId {
      */
     @Transient
     @JsonIgnore
+    @TableField(exist = false)
     private Map<String, Object> extraInfo;
 
     /**
@@ -161,6 +163,7 @@ public class MqSendRecord extends BaseEntityWithTenantId {
      * 但可以读取
      */
     @JsonIgnore
+    @TableField(exist = false)
     private String extraInfoJson;
 
 }
