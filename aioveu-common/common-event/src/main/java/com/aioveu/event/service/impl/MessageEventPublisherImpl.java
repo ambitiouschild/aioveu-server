@@ -1,10 +1,13 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.event.service.impl;
+package com.aioveu.event.service.impl;
 
 
-import com.aioveu.pay.aioveu12MqProducerPayment.event.model.*;
-import com.aioveu.pay.aioveu12MqProducerPayment.event.service.MessageEventPublisher;
 import com.aioveu.common.rabbitmq.producer.model.vo.RabbitBatchSendResult;
 import com.aioveu.common.rabbitmq.producer.model.vo.RabbitSendResult;
+import com.aioveu.event.model.vo.BatchMessageSentEvent;
+import com.aioveu.event.model.vo.MessageRetryEvent;
+import com.aioveu.event.model.vo.MessageSendingEvent;
+import com.aioveu.event.model.vo.MessageSentEvent;
+import com.aioveu.event.service.MessageEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;

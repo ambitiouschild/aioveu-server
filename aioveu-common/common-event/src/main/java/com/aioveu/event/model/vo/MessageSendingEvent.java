@@ -1,7 +1,6 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.event.model;
+package com.aioveu.event.model.vo;
 
 import lombok.Data;
-import lombok.experimental.SuperBuilder;
 import org.springframework.context.ApplicationEvent;
 
 import java.time.LocalDateTime;

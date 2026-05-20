@@ -98,12 +98,12 @@ public interface MqConsumeRecordService extends IService<MqConsumeRecord> {
     /**
      * 查询消费记录
      */
-    ConsumeRecordVO getConsumeRecord(String messageId, String consumerGroup);
+    MqConsumeRecord getConsumeRecord(String messageId, String consumerGroup);
 
     /**
      * 获取需要重试的消费记录
      */
-    List<MqConsumeRecordDTO> getNeedRetryRecords(String consumerGroup, Integer maxRetryCount);
+    List<MqConsumeRecord> getNeedRetryRecords(String consumerGroup, Integer maxRetryCount);
 
 
     /**

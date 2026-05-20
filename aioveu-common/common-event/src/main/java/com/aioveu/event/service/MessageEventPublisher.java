@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.event.service;
+package com.aioveu.event.service;
 
 
 import com.aioveu.common.rabbitmq.producer.model.vo.RabbitBatchSendResult;

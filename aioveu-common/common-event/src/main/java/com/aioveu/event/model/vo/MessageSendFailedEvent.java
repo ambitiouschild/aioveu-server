@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.event.model;
+package com.aioveu.event.model.vo;
 
 
 import com.aioveu.common.rabbitmq.enums.SendStatus;

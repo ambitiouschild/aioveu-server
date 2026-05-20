@@ -326,16 +326,16 @@ public class MqConsumeRecordServiceImpl extends ServiceImpl<MqConsumeRecordMappe
      * 查询消费记录
      */
     @Override
-    public ConsumeRecordVO getConsumeRecord(String messageId, String consumerGroup) {
+    public MqConsumeRecord getConsumeRecord(String messageId, String consumerGroup) {
         MqConsumeRecord record = this.baseMapper.selectByMessageAndGroup(messageId, consumerGroup);
-        return mqConsumeRecordConverter.toVO(record);
+        return record;
     }
 
     /**
      * 获取需要重试的消费记录
      */
     @Override
-    public List<MqConsumeRecordDTO> getNeedRetryRecords(String consumerGroup, Integer maxRetryCount) {
+    public List<MqConsumeRecord> getNeedRetryRecords(String consumerGroup, Integer maxRetryCount) {
         LocalDateTime now = LocalDateTime.now();
 
         List<MqConsumeRecord> records = this.baseMapper.selectNeedRetry(
@@ -344,9 +344,7 @@ public class MqConsumeRecordServiceImpl extends ServiceImpl<MqConsumeRecordMappe
                 now
         );
 
-        return records.stream()
-                .map(mqConsumeRecordConverter::toDTO)
-                .collect(Collectors.toList());
+        return records;
     }
 
     /**

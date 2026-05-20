@@ -35,6 +35,7 @@
         <module>common-mail</module>
         <module>common-kafka</module>
         <module>common-rocketmq</module>
+        <module>common-event</module>
     </modules>
 
     <properties>
