@@ -10,6 +10,7 @@ import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.Rabbit
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RocketMQ.RocketMQSendResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.AdapterMessageBuilder;
 import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.RabbitMessageService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -28,8 +29,10 @@ import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -45,17 +48,46 @@ import java.io.IOException;
  * @Date 2026/5/13 18:07
  * @Version 1.0
  **/
+
+/*
+*    TODO       总结
+            问题的根本原因：
+            1.RabbitMessageServicePaymentImpl依赖AdapterMessageBuilderImpl
+            2.但AdapterMessageBuilderImpl没有正确注册为Spring Bean
+            3.或者AdapterMessageBuilderImpl自身有依赖注入问题
+            解决方案优先级：
+            1.首先确保AdapterMessageBuilderImpl类有@Component或@Service注解
+            2.其次修复AdapterMessageBuilderImpl中的@Autowired注解，添加required=false
+            3.然后检查包扫描配置
+            4.最后考虑手动注册Bean
+*
+*
+* */
+
+
 @Slf4j
-@Service
+@Component  // 确保有这个注解
 @RequiredArgsConstructor
+//方案2：使用条件注解重构AdapterMessageBuilderImpl
+// 移除这行：@ConditionalOnBean(RocketMQTemplate.class)  // 这会导致Bean无法创建
+//@ConditionalOnBean(RocketMQTemplate.class)  // 只在有RocketMQTemplate时才创建Bean
 public class AdapterMessageBuilderImpl implements AdapterMessageBuilder {
 
 
     @Autowired
     private MessageRequestAdapter requestAdapter;
 
-    @Autowired
-    private RocketMQTemplate rocketMQTemplate;  // Spring Cloud Stream
+    // 修改前（错误的）
+    // @Autowired(required=true)  // 强制依赖
+    // private RocketMQTemplate rocketMQTemplate;
+
+//    方案1：移除或修复AdapterMessageBuilderImpl中的强制依赖
+    // 修改后（正确的）
+    @Autowired(required=false)  // 改为非强制依赖
+    private RocketMQTemplate rocketMQTemplate;
+
+
+
 
     // 注意：如果发送 Object，需要配置合适的序列化器
     // 或者改为 KafkaTemplate<String, String> 并手动序列化
@@ -65,7 +97,12 @@ public class AdapterMessageBuilderImpl implements AdapterMessageBuilder {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-
+ //修复3：添加初始化方法
+    @PostConstruct
+    public void init() {
+        log.info("AdapterMessageBuilderImpl初始化完成，RocketMQTemplate={}",
+                rocketMQTemplate != null ? "已注入" : "未注入");
+    }
 
     // 私有辅助方法
     @Override
