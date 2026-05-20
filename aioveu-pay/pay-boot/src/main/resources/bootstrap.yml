@@ -4,9 +4,36 @@ spring:
   profiles:
     active: dev   #dev prod
 
+  # RabbitMQ配置
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+    connection-timeout: 3000
 
-rabbitmq:
-  name-server: ${ROCKETMQ_NAMESRV:127.0.0.1:9876}  # NameServer地址
+  # Kafka配置
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+    consumer:
+      group-id: payment-group
+      auto-offset-reset: earliest
+
+  # 禁用RocketMQ自动配置
+  autoconfigure:
+    exclude:
+      - org.apache.rocketmq.spring.autoconfigure.RocketMQAutoConfiguration
+
+# RocketMQ配置 - 注意键名必须是 rocketmq
+rocketmq:
+  enabled: false
+  name-server: ${ROCKETMQ_NAMESRV:127.0.0.1:9876}
   producer:
     group: payment-producer-group
     send-message-timeout: 3000
@@ -15,7 +42,6 @@ rabbitmq:
     retry-next-server: true
     max-message-size: 4194304
     compress-message-body-threshold: 4096
-# 支付服务不需要 consumer 配置
 
 # 生产端监控配置
 producer:
@@ -35,60 +61,34 @@ payment:
       max-attempts: 5
       initial-interval: 30s
       multiplier: 2
-    # 监控配置
     monitor:
       enabled: true
       topics: payment_success_topic,payment_failed_topic
       consumer-groups: order_service_group
       backlog-threshold: 1000
       delay-threshold: 10000
-
       metrics:
-        - send_success_rate  # 发送成功率
-        - send_failure_rate  # 发送失败率
-        - send_latency_ms    # 发送延迟
-        - backlog_count      # 积压消息数
+        - send_success_rate
+        - send_failure_rate
+        - send_latency_ms
+        - backlog_count
       alerts:
         - condition: "send_failure_rate > 5%"
           message: "消息发送失败率过高"
         - condition: "backlog_count > 1000"
           message: "消息积压过多"
 
-      #//Prometheus监控配置
-
-      # prometheus.yml
-      scrape_configs:
-        - job_name: 'rocketmq_exporter'
-          static_configs:
-            - targets: [ 'rocketmq-exporter:5557' ]
-              labels:
-                group: 'payment'
-
-        - job_name: 'payment_service'
-          metrics_path: '/actuator/prometheus'
-          static_configs:
-            - targets: [ 'payment-service:8080' ]
-              labels:
-                application: 'payment-service'
-
-kafka:
-  bootstrap-servers: localhost:9092
-  producer:
-    key-serializer: org.apache.kafka.common.serialization.StringSerializer
-    value-serializer: org.apache.kafka.common.serialization.StringSerializer
-    # 可选配置
-    acks: all
-    retries: 3
-    batch-size: 16384
-    buffer-memory: 33554432
-    compression-type: snappy
-  consumer:
-    group-id: my-group
-    auto-offset-reset: earliest
-    key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-    value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-
-
-# 明确禁用RocketMQ
-rocketmq:
-  enabled: false
+# Prometheus监控配置
+prometheus:
+  scrape-configs:
+    - job_name: 'rocketmq_exporter'
+      static_configs:
+        - targets: [ 'rocketmq-exporter:5557' ]
+          labels:
+            group: 'payment'
+    - job_name: 'payment_service'
+      metrics_path: '/actuator/prometheus'
+      static_configs:
+        - targets: [ 'payment-service:8080' ]
+          labels:
+            application: 'payment-service'

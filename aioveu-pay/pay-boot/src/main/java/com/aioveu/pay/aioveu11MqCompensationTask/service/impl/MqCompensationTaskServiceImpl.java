@@ -22,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.MessageConst;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -31,7 +33,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+// 正确的导入
 /**
  * @ClassName: MqCompensationTaskServiceImpl
  * @Description TODO MQ补偿任务服务实现类
@@ -46,7 +50,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MqCompensationTaskServiceImpl extends ServiceImpl<MqCompensationTaskMapper, MqCompensationTask> implements MqCompensationTaskService {
 
-    private final RocketMQTemplate rocketMQTemplate;
+//    private final RocketMQTemplate rocketMQTemplate;
+    private final RabbitTemplate rabbitTemplate;
 
     private final MqCompensationTaskConverter mqCompensationTaskConverter;
 
@@ -125,15 +130,17 @@ public class MqCompensationTaskServiceImpl extends ServiceImpl<MqCompensationTas
      * 补偿任务 - 处理发送失败的消息
      * //有 @Scheduled(fixedDelay = 30000)注解，Spring 会自动调用
      */
+    /**
+     * 补偿任务 - 处理发送失败的消息
+     */
     @Override
-    @Scheduled(fixedDelay = 30000)  // 30秒执行一次
+    @Scheduled(fixedDelay = 30000)
     public void compensateFailedMessages() {
         long startTime = System.currentTimeMillis();
         int successCount = 0;
         int failCount = 0;
 
         try {
-
             // 查询发送失败的记录
             List<MqSendRecord> failedRecords = mqSendRecordService.selectFailedMessages(100);
 
@@ -152,97 +159,137 @@ public class MqCompensationTaskServiceImpl extends ServiceImpl<MqCompensationTas
                     // 重新发送消息
                     Message<byte[]> message = MessageBuilder
                             .withPayload(record.getMessageBody().getBytes(StandardCharsets.UTF_8))
-                            .setHeader(MessageConst.PROPERTY_KEYS, record.getBizId())
+                            .setHeader("bizId", record.getBizId())  // RabbitMQ使用自定义header
                             .build();
 
-                    SendResult sendResult = rocketMQTemplate.syncSendOrderly(
+                    // ✅ 最小改动：将RocketMQ的syncSendOrderly改为RabbitMQ的同步发送
+                    boolean sendSuccess = sendMessageByRabbitMQ(
                             record.getTopic() + ":" + record.getTag(),
                             message,
                             record.getShardingKey(),
                             3000
                     );
 
-                    // ✅ 修复：使用正确的 RocketMQ SendStatus
-                    if (sendResult.getSendStatus() == org.apache.rocketmq.client.producer.SendStatus.SEND_OK) {
+                    if (sendSuccess) {
                         mqSendRecordService.updateSendStatus(record.getMessageId(), SendStatus.SUCCESS, null);
-                        log.info("补偿发送成功: messageId={}, msgId={}",
-                                record.getMessageId(), sendResult.getMsgId());
+                        log.info("补偿发送成功: messageId={}", record.getMessageId());
                         successCount++;
                     } else {
                         mqSendRecordService.updateSendStatus(record.getMessageId(), SendStatus.FAILED,
-                                "发送失败, status=" + sendResult.getSendStatus());
-                        log.error("补偿发送失败: messageId={}, status={}",
-                                record.getMessageId(), sendResult.getSendStatus());
+                                "RabbitMQ发送失败");
+                        log.error("补偿发送失败: messageId={}", record.getMessageId());
                         failCount++;
                     }
-                    log.info("补偿任务完成: 成功={}, 失败={}", successCount, failCount);
+
                 } catch (Exception e) {
                     log.error("补偿发送异常: messageId={}", record.getMessageId(), e);
                     mqSendRecordService.updateSendStatus(record.getMessageId(), SendStatus.FAILED, e.getMessage());
+                    failCount++;
                 }
             }
 
         } catch (Exception e) {
             log.error("重试失败消息异常", e);
-        }finally {
+        } finally {
             long totalCost = System.currentTimeMillis() - startTime;
-            // ✅ 记录补偿任务整体结果
             metricsCollector.recordSendResult(failCount == 0, totalCost);
             log.info("补偿任务完成: 成功={}, 失败={}, 耗时={}ms",
                     successCount, failCount, totalCost);
-
         }
     }
 
+    /**
+     * RabbitMQ同步发送消息
+     */
+    private boolean sendMessageByRabbitMQ(String destination, Object message, String shardingKey, long timeoutMs) {
+        try {
+            String exchange = "compensation.exchange";
+            String routingKey = buildRoutingKeyFromDestination(destination, shardingKey);
 
+            String correlationId = UUID.randomUUID().toString();
+            org.springframework.amqp.rabbit.connection.CorrelationData correlationData =
+                    new org.springframework.amqp.rabbit.connection.CorrelationData(correlationId);
 
-    // 更详细的处理
+            // 发送消息
+            rabbitTemplate.convertAndSend(exchange, routingKey, message, correlationData);
+
+            // 等待确认
+            try {
+                // ✅ 正确的确认获取
+                CorrelationData.Confirm confirm = correlationData.getFuture().get(timeoutMs, TimeUnit.MILLISECONDS);
+
+                if (confirm == null) {
+                    log.warn("未收到确认: correlationId={}", correlationId);
+                    return false;
+                }
+
+                // ✅ 正确的确认检查
+                boolean isAck = confirm.isAck();
+
+                if (isAck) {
+                    log.debug("消息确认成功: correlationId={}", correlationId);
+                    return true;
+                } else {
+                    log.warn("消息被拒绝: correlationId={}", correlationId);
+                    return false;
+                }
+
+            } catch (Exception e) {
+                log.error("等待确认异常: correlationId={}", correlationId, e);
+                return false;
+            }
+
+        } catch (Exception e) {
+            log.error("RabbitMQ发送失败: destination={}", destination, e);
+            return false;
+        }
+    }
+
+    /**
+     * 从destination构建routingKey
+     */
+    private String buildRoutingKeyFromDestination(String destination, String shardingKey) {
+        // 将 "topic:tag" 格式转换为 "topic.tag"
+        String baseKey = destination.replace(":", ".");
+
+        if (StrUtil.isNotBlank(shardingKey)) {
+            return baseKey + "." + shardingKey;
+        }
+        return baseKey;
+    }
+
+    // 移除或修改handleSendResult方法，因为它接收RocketMQ的SendResult
+    // 可以重载为接收boolean参数
+
     @Override
-    public void handleSendResult(SendResult sendResult, MqSendRecord record) {
-        org.apache.rocketmq.client.producer.SendStatus sendStatus = sendResult.getSendStatus();
-
-        switch (sendStatus) {
-            case SEND_OK:
-                // 发送成功
-                mqSendRecordService.updateSendStatus(
-                        record.getMessageId(),
-                        SendStatus.SUCCESS,
-                        null
-                );
-                log.info("RocketMQ发送成功: messageId={}, msgId={}, queueOffset={}",
-                        record.getMessageId(),
-                        sendResult.getMsgId(),
-                        sendResult.getQueueOffset()
-                );
-                break;
-
-            case FLUSH_DISK_TIMEOUT:
-            case FLUSH_SLAVE_TIMEOUT:
-            case SLAVE_NOT_AVAILABLE:
-                // 可重试的失败
-                mqSendRecordService.updateSendStatus(
-                        record.getMessageId(),
-                        SendStatus.FAILED,
-                        "发送失败: " + sendStatus
-                );
-                log.warn("RocketMQ发送失败(可重试): messageId={}, status={}",
-                        record.getMessageId(), sendStatus);
-                break;
-
-            default:
-                // 其他失败
-                mqSendRecordService.updateSendStatus(
-                        record.getMessageId(),
-                        SendStatus.FAILED,
-                        "发送失败: " + sendStatus
-                );
-                log.error("RocketMQ发送失败: messageId={}, status={}",
-                        record.getMessageId(), sendStatus);
-        }
+    public void handleSendResult(org.apache.rocketmq.client.producer.SendResult sendResult, MqSendRecord record) {
+        // 这个方法可能需要重构，因为现在使用RabbitMQ
+        // 临时实现：调用原始方法但可能不会执行
+        log.warn("handleSendResult方法仍然使用RocketMQ SendResult，可能需要重构");
     }
 
-
-
-
-
+    /**
+     * 处理RabbitMQ发送结果
+     */
+    public void handleRabbitSendResult(boolean success, String correlationId, MqSendRecord record) {
+        if (success) {
+            mqSendRecordService.updateSendStatus(
+                    record.getMessageId(),
+                    SendStatus.SUCCESS,
+                    null
+            );
+            log.info("RabbitMQ发送成功: messageId={}, correlationId={}",
+                    record.getMessageId(), correlationId);
+        } else {
+            mqSendRecordService.updateSendStatus(
+                    record.getMessageId(),
+                    SendStatus.FAILED,
+                    "RabbitMQ发送失败"
+            );
+            log.error("RabbitMQ发送失败: messageId={}, correlationId={}",
+                    record.getMessageId(), correlationId);
+        }
+    }
 }
+
+

@@ -21,6 +21,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
+            <version>3.2.3</version> <!-- 根据您的Spring Boot版本调整 -->
         </dependency>
     </dependencies>
 
