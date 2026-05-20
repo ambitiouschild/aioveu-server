@@ -148,18 +148,25 @@
         <!-- 支付服务和订单服务的pom.xml都添加 Mq消息队列-->
         <!-- Spring Boot Starter for RocketMQ (如果你在使用) -->
         <!-- RocketMQ Spring Boot Starter (最新版) -->
+        <!-- RocketMQ配置 - 使用统一版本 -->
         <dependency>
             <groupId>org.apache.rocketmq</groupId>
             <artifactId>rocketmq-spring-boot-starter</artifactId>
             <version>2.3.4</version>
+            <exclusions>
+                <!-- 排除自带的client，避免冲突 -->
+                <exclusion>
+                    <groupId>org.apache.rocketmq</groupId>
+                    <artifactId>rocketmq-client</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
-
 
         <!-- RocketMQ 核心客户端 (建议与 Starter 版本配套) -->
         <dependency>
             <groupId>org.apache.rocketmq</groupId>
             <artifactId>rocketmq-client</artifactId>
-            <version>4.9.7</version>
+            <version>5.1.0</version> <!-- 改为5.x版本 -->
         </dependency>
 
         <!-- RocketMQ Tools (包含 DefaultMQAdminExt) -->
