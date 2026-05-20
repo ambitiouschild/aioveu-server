@@ -3,6 +3,7 @@ package com.aioveu.pay.aioveu12MqProducerPayment.producer.RabbitMQ;
 
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.RabbitMessageService;
+import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.RabbitMessageServicePayment;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,13 +26,13 @@ import java.util.Map;
 public class EnhancedRabbitMessagProducerPayment {
 
 
-    private final RabbitMessageService rabbitMessageService;
+    private final RabbitMessageServicePayment rabbitMessageServicePayment;
     /*
     *  发送支付成功消息并保存发送记录
     * */
     public boolean sendPaymentSuccessMessageAndSaveSendRecord(PayOrder payOrder, Map<String, String> params) {
 
-        boolean result = rabbitMessageService.sendPaymentSuccessMessage(payOrder, params);
+        boolean result = rabbitMessageServicePayment.sendPaymentSuccessMessage(payOrder, params);
 
         return result;
     }
@@ -42,7 +43,7 @@ public class EnhancedRabbitMessagProducerPayment {
      * */
     public boolean sendPaymentFailedMessageAndSaveSendRecord(PayOrder payOrder, Map<String, String> params) {
 
-        boolean result = rabbitMessageService.sendPaymentFailedMessage( payOrder,  params);
+        boolean result = rabbitMessageServicePayment.sendPaymentFailedMessage( payOrder,  params);
 
         return result;
     }

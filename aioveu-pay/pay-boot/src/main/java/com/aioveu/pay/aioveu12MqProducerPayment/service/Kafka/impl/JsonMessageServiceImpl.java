@@ -36,7 +36,9 @@ public class JsonMessageServiceImpl {
         message.put("status", order.getStatus());
         message.put("timestamp", System.currentTimeMillis());
 
-        jsonKafkaTemplate.send("order-topic", order.getId(), message);
+        // 将 Long 转换为 String
+        String orderIdStr = order.getId().toString();
+        jsonKafkaTemplate.send("order-topic", orderIdStr, message);
     }
 
 //    /**

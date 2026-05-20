@@ -1,10 +1,15 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.controller;
 
 
+import com.aioveu.pay.aioveu12MqProducerPayment.Monitor.RabbitMQ.ProducerMetrics;
 import com.aioveu.pay.aioveu12MqProducerPayment.Monitor.RabbitMQ.ProducerMetricsCollector;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.internals.ProducerMetrics;
+
+//您有两个同名的 ProducerMetrics类，分别来自不同的包
+//import org.apache.kafka.clients.producer.internals.ProducerMetrics;
+
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

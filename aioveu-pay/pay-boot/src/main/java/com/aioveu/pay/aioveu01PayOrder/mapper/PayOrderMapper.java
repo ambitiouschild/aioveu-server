@@ -7,6 +7,8 @@ import com.aioveu.pay.aioveu01PayOrder.model.vo.PayOrderVO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 /**
  * @ClassName: PayOrderMapper
@@ -28,4 +30,12 @@ public interface PayOrderMapper extends BaseMapper<PayOrder>{
      * @return {@link Page<PayOrderVO>} 支付订单分页列表
      */
     Page<PayOrderVO> getPayOrderPage(Page<PayOrderVO> page, PayOrderQuery queryParams);
+
+
+    /**
+     * 根据支付订单号查询（带锁）
+     */
+    @Select("SELECT * FROM pay_order WHERE payment_no = #{paymentNo} FOR UPDATE")
+    PayOrder selectByPaymentNoWithLock(@Param("paymentNo") String paymentNo);
+
 }

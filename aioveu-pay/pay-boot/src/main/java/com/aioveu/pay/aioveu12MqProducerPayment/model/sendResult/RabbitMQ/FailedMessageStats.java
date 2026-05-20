@@ -307,14 +307,14 @@ public class FailedMessageStats {
      * 添加状态统计
      */
     public void addStatusStat(String status, Long count) {
-        this.statusStats.put(status, count);
+        this.statusStatistics.put(status, count);
     }
 
     /**
      * 添加租户统计
      */
     public void addTenantStat(String tenantId, FailedMessageStats stat) {
-        this.tenantStats.put(tenantId, stat);
+        this.tenantStatistics.put(tenantId, stat);
     }
 
     /**

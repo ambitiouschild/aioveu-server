@@ -58,52 +58,49 @@ public class KafkaMessageServiceImpl {
     /**
      * 异步发送
      */
-    public CompletableFuture<SendResult<String, String>> sendAsync(String topic, String message) {
-        CompletableFuture<SendResult<String, String>> future = new CompletableFuture<>();
+//    public ListenableFuture<SendResult<String, String>> sendAsync(String topic, String message) {
+//        ListenableFuture<SendResult<String, String>> kafkaFuture = kafkaTemplate.send(topic, message);
+//
+//        kafkaFuture.addCallback(new ListenableFutureCallback<SendResult<String, String>>() {
+//            @Override
+//            public void onSuccess(SendResult<String, String> result) {
+//                log.info("异步发送成功: topic={}, partition={}, offset={}",
+//                        topic,
+//                        result.getRecordMetadata().partition(),
+//                        result.getRecordMetadata().offset());
+//            }
+//
+//            @Override
+//            public void onFailure(Throwable ex) {
+//                log.error("异步发送失败: topic={}", topic, ex);
+//            }
+//        });
+//
+//        return kafkaFuture;  // ✅ 返回 ListenableFuture
+//    }
 
-        ListenableFuture<SendResult<String, String>> kafkaFuture = kafkaTemplate.send(topic, message);
-
-        kafkaFuture.addCallback(new ListenableFutureCallback<SendResult<String, String>>() {
-            @Override
-            public void onSuccess(SendResult<String, String> result) {
-                log.info("异步发送成功: topic={}, partition={}, offset={}",
-                        topic,
-                        result.getRecordMetadata().partition(),
-                        result.getRecordMetadata().offset());
-                future.complete(result);
-            }
-
-            @Override
-            public void onFailure(Throwable ex) {
-                log.error("异步发送失败: topic={}", topic, ex);
-                future.completeExceptionally(ex);
-            }
-        });
-
-        return future;
-    }
 
     /**
      * 带回调的异步发送
      */
-    public void sendWithCallback(String topic, String message) {
-        kafkaTemplate.send(topic, message).addCallback(
-                result -> {
-                    if (result != null) {
-                        log.info("发送成功: topic={}, partition={}, offset={}, timestamp={}",
-                                topic,
-                                result.getRecordMetadata().partition(),
-                                result.getRecordMetadata().offset(),
-                                result.getRecordMetadata().timestamp());
-                    }
-                },
-                ex -> {
-                    log.error("发送失败: topic={}", topic, ex);
-                    // 可以在这里实现重试逻辑
-                    retrySend(topic, message, ex);
-                }
-        );
-    }
+//    public void sendWithCallback(String topic, String message) {
+//        kafkaTemplate.send(topic, message).addCallback(
+//                result -> {
+//                    if (result != null) {
+//                        log.info("发送成功: topic={}, partition={}, offset={}, timestamp={}",
+//                                topic,
+//                                result.getRecordMetadata().partition(),
+//                                result.getRecordMetadata().offset(),
+//                                result.getRecordMetadata().timestamp());
+//                    }
+//                },
+//                ex -> {
+//                    log.error("发送失败: topic={}", topic, ex);
+//                    // 可以在这里实现重试逻辑
+//                    retrySend(topic, message, ex);
+//                }
+//        );
+//    }
 
     /**
      * 发送到指定分区

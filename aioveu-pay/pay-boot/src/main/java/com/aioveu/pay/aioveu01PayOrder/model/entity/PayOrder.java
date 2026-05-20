@@ -27,6 +27,9 @@ public class PayOrder extends BaseEntityWithTenantId {
 
     /**
      * 支付单号，唯一，格式：PAYyyyyMMddHHmmss+6位随机
+     * 商户支付订单号
+     * 对应 out_trade_no
+     *
      */
     private String paymentNo;
     /**
@@ -70,7 +73,9 @@ public class PayOrder extends BaseEntityWithTenantId {
      */
     private String thirdPaymentNo;
     /**
-     * 第三方交易流水号
+     * 第三方交易流水号,
+     * 微信交易流水号
+     * transaction_id
      */
     private String thirdTransactionNo;
     /**

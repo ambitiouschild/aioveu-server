@@ -3,6 +3,9 @@ package com.aioveu.pay.aioveu12MqProducerPayment.adapter;
 
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendRequest;
 import com.rabbitmq.client.MessageProperties;
+import org.apache.commons.lang3.StringUtils; // 引入 StringUtils
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.rocketmq.common.message.Message; // 引入 RocketMQ 的 Message
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -25,6 +28,7 @@ public class MessageRequestAdapter {
      * 转换为RocketMQ的Message
      */
     public org.apache.rocketmq.common.message.Message toRocketMQMessage(RabbitSendRequest request) {
+        // 使用全限定名或确保导入的是 org.apache.rocketmq.common.message.Message
         Message msg = new Message(
                 request.getTopic(),
                 request.getTag(),
@@ -37,12 +41,14 @@ public class MessageRequestAdapter {
         }
 
         // 设置延迟
+        // 注意：这里假设 RabbitSendRequest 有 getDelayTime() 方法
         if (request.getDelayTime() > 0) {
             int delayLevel = calculateDelayLevel(request.getDelayTime());
             msg.setDelayTimeLevel(delayLevel);
         }
 
         // 设置属性
+        // 注意：这里假设 RabbitSendRequest 有 getProperties() 方法，且返回 Map<String, String>
         if (request.getProperties() != null) {
             request.getProperties().forEach(msg::putUserProperty);
         }
@@ -65,16 +71,20 @@ public class MessageRequestAdapter {
      * 转换为RabbitMQ的Message
      */
     public org.springframework.amqp.core.Message toRabbitMQMessage(RabbitSendRequest request) {
-        MessageProperties properties = new MessageProperties();
+        // 使用重命名后的 SpringAmqpMessageProperties
+        org.springframework.amqp.core.MessageProperties properties = new org.springframework.amqp.core.MessageProperties();
 
         // 设置消息头
+        // 注意：这里假设 RabbitSendRequest 有 getHeaders() 方法，且返回 Map<String, Object>
         if (request.getHeaders() != null) {
             request.getHeaders().forEach(properties::setHeader);
         }
 
         // 设置优先级
-        if (request.getPriority() != null) {
-            properties.setPriority(request.getPriority());
+        // 修复 Operator '!=' cannot be applied to 'int, null'
+        int priority = request.getPriority();
+        if (priority != 0) {  // 假设0是默认值
+            properties.setPriority(priority);
         }
 
         // 设置TTL

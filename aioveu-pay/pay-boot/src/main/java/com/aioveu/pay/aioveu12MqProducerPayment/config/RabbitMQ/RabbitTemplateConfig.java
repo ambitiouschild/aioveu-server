@@ -18,6 +18,11 @@ import org.springframework.context.annotation.Configuration;
  * @Date 2026/5/14 18:29
  * @Version 1.0
  **/
+
+/*
+* 这些错误说明您的 Spring AMQP 版本中没有 isMandatory()和 getReturnsCallback()方法。这些方法在较新版本中可能被移除或改名了。
+*
+* */
 @Slf4j
 @Configuration
 public class RabbitTemplateConfig {
@@ -31,21 +36,16 @@ public class RabbitTemplateConfig {
     @Autowired
     private ConnectionFactory connectionFactory;
 
+    // 自己记录配置状态
+    private volatile boolean mandatoryEnabled = false;
+    private volatile boolean returnCallbackSet = false;
+    private volatile boolean confirmCallbackSet = false;
+
+
     @PostConstruct
     public void configureRabbitTemplate() {
         // 1. 启用 mandatory 模式（正确方法）
         rabbitTemplate.setMandatory(true);
-
-
-        // 2. 检查配置是否生效
-        log.info("RabbitTemplate配置完成:");
-        log.info("  - 已启用mandatory模式（消息路由失败会触发ReturnCallback）");
-        log.info("  - ConnectionFactory: {}", connectionFactory.getClass().getSimpleName());
-
-
-        // 3. 验证配置
-        validateRabbitTemplateConfig();
-
 
         // 2. 设置 ReturnCallback
         rabbitTemplate.setReturnsCallback(rabbitReturnCallback);
@@ -60,8 +60,21 @@ public class RabbitTemplateConfig {
             }
         });
 
+
+
+        // 2. 检查配置是否生效
+        log.info("RabbitTemplate配置完成:");
+        log.info("  - 已启用mandatory模式（消息路由失败会触发ReturnCallback）");
+        log.info("  - ConnectionFactory: {}", connectionFactory.getClass().getSimpleName());
+
+
+        // 3. 验证配置
+        validateRabbitTemplateConfig();
+
+
+        // 最终日志
         log.info("RabbitTemplate配置完成: mandatory={}, 已设置ReturnCallback和ConfirmCallback",
-                rabbitTemplate.isMandatory());
+                mandatoryEnabled);
     }
 
 
@@ -71,13 +84,13 @@ public class RabbitTemplateConfig {
     private void validateRabbitTemplateConfig() {
         try {
             // 检查必要的回调是否设置
-            if (rabbitTemplate.getReturnsCallback() != null) {
+            if (returnCallbackSet) {  // ✅ 改为使用我们自己记录的状态
                 log.info("  - 已设置ReturnCallback");
             } else {
                 log.warn("  - 未设置ReturnCallback，mandatory模式可能不会生效");
             }
 
-            if (rabbitTemplate.getConfirmCallback() != null) {
+            if (confirmCallbackSet) {  // ✅ 改为使用我们自己记录的状态
                 log.info("  - 已设置ConfirmCallback");
             } else {
                 log.warn("  - 未设置ConfirmCallback，无法获取Broker确认");
@@ -101,10 +114,11 @@ public class RabbitTemplateConfig {
         RabbitTemplateInfo info = new RabbitTemplateInfo();
 
         // 通过反射或其他方式获取状态
-        info.setMandatoryEnabled(true); // 因为我们设置了setMandatory(true)
+        // 使用我们自己记录的状态
+        info.setMandatoryEnabled(mandatoryEnabled);
         info.setConnectionFactoryType(connectionFactory.getClass().getSimpleName());
-        info.setHasReturnCallback(rabbitTemplate.getReturnsCallback() != null);
-        info.setHasConfirmCallback(rabbitTemplate.getConfirmCallback() != null);
+        info.setHasReturnCallback(returnCallbackSet);  // ✅ 改为使用我们自己记录的状态
+        info.setHasConfirmCallback(confirmCallbackSet);  // ✅ 改为使用我们自己记录的状态
 
         return info;
     }

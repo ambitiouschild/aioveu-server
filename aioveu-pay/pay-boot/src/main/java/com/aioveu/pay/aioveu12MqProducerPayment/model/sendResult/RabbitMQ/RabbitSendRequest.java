@@ -102,6 +102,9 @@ public class RabbitSendRequest {
     @Builder.Default
     private long timeout = 3000;
 
+    /** 延迟时间 */
+    private long delayTime;
+
     /** 是否异步发送 */
     @Builder.Default
     private boolean async = false;

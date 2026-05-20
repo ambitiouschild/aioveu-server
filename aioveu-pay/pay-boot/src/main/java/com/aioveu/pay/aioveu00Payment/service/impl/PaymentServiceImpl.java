@@ -20,6 +20,7 @@ import com.aioveu.pay.aioveu01.model.vo.*;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
 import com.aioveu.pay.aioveu12MqProducerPayment.producer.RabbitMQ.EnhancedRabbitMessagProducerPayment;
+import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.RabbitMessageServicePayment;
 import com.alibaba.fastjson.JSON;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -87,6 +90,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Autowired
     private MqSendRecordService mqSendRecordService;
+
+    @Autowired
+    private EnhancedRabbitMessagProducerPayment enhancedRabbitMessagProducerPayment;
 
 
     @Autowired
@@ -273,6 +279,10 @@ public class PaymentServiceImpl implements PaymentService {
      */
     @Override
     public String handleWechatCallback(String xmlData) {
+
+        long startTime = System.currentTimeMillis();
+
+
         try {
             // 1. 解析XML
             Map<String, String> params = parseWechatXml(xmlData);
@@ -281,88 +291,66 @@ public class PaymentServiceImpl implements PaymentService {
             // 2. 验证签名
             if (!verifyWechatSign(params)) {
                 log.error("【微信回调】微信签名验证失败");
-                return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[签名验证失败]]></return_msg></xml>";
+                return generateWechatFailResponse("签名验证失败");
             }
 
             // 3. 获取支付订单号
             String paymentNo = params.get("out_trade_no");
             if (!StringUtils.hasText(paymentNo)) {
-                log.error("支付订单为空");
-                return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[订单号为空]]></return_msg></xml>";
+                log.error("【微信回调】支付订单号为空");
+                return generateWechatFailResponse("订单号为空");
             }
 
 
-
-
-
-            // 4. 处理支付结果
-            // 3. 验证业务返回码
+            // 4. 验证通信返回码
             String returnCode = params.get("return_code");
-            String resultCode = params.get("result_code");
-            if ("SUCCESS".equals(resultCode)) {
-                // 支付成功逻辑
-                String transactionId = params.get("transaction_id");
-                log.info("订单支付成功: {}, 微信订单号: {}", orderNo, transactionId);
-
-                //查询支付订单
-                PayOrder payOrder = payOrderService.getByPaymentNo(paymentNo);
-
-                if (payOrder == null) {
-                    log.error("【微信回调】支付订单不存在: paymentNo={}", paymentNo);
-                    return generateWechatFailResponse("订单不存在");
-                }
-
-                // 5. 幂等性检查
-                if (payOrder.getPaymentStatus() != PaymentStatusEnum.PENDING.getValue()
-                        && payOrder.getPaymentStatus() != PaymentStatusEnum.PROCESSING.getValue()) {
-                    log.warn("【微信回调】订单已处理，跳过: paymentNo={}, status={}",
-                            paymentNo, payOrder.getPaymentStatus());
-                    return generateWechatSuccessResponse();
-                }
-
-                // 6. 验证金额
-                BigDecimal callbackAmount = new BigDecimal(params.get("total_fee"))
-                        .divide(new BigDecimal(100), 2, RoundingMode.HALF_UP);
-                if (callbackAmount.compareTo(payOrder.getAmount()) != 0) {
-                    log.error("【微信回调】金额不匹配: paymentNo={}, 订单金额={}, 回调金额={}",
-                            paymentNo, payOrder.getAmount(), callbackAmount);
-                    return generateWechatFailResponse("金额不匹配");
-                }
-
-
-                // TODO: 更新支付订单状态
-                // 7. 更新支付订单
-                boolean success = "SUCCESS".equals(resultCode);
-                payOrderService.updatePaymentStatus(payOrder, success, params);
-
-
-// 8. 发送MQ消息
-                if (success) {
-                    boolean mqResult = EnhancedRabbitMessagProducerPayment.sendPaymentSuccessMessageAndSaveSendRecord(payOrder, params);
-                } else {
-                    boolean mqResult = EnhancedRabbitMessagProducerPayment.sendPaymentSuccessMessage(payOrder, params);
-
-
-                    // MQ发送失败，记录到补偿表
-                    saveToCompensation(payOrder, params);
-                }
-
-                log.info("发送MQ成功消息: {}");
-
-                // 9. 记录处理时间
-                long costTime = System.currentTimeMillis() - startTime;
-                log.info("【微信回调】处理完成: paymentNo={}, 耗时={}ms", paymentNo, costTime);
-
-
-                return "<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>";
-            } else {
-                // 支付失败
-                log.error("支付失败，订单号: {}, 错误码: {}", orderNo, params.get("err_code"));
-                log.error("【微信回调】通信失败: paymentNo={}, msg={}",
+            if (!"SUCCESS".equals(returnCode)) {
+                log.error("【微信回调】通信失败: paymentNo={}, returnMsg={}",
                         paymentNo, params.get("return_msg"));
-
-                return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[支付失败]]></return_msg></xml>";
+                return generateWechatFailResponse(params.get("return_msg"));
             }
+
+            // 5. 验证业务返回码
+            String resultCode = params.get("result_code");
+            if (!"SUCCESS".equals(resultCode)) {
+                // 支付失败
+                String errorCode = params.get("err_code");
+                String errorMsg = params.get("err_code_des");
+                log.error("【微信回调】支付失败: paymentNo={}, errorCode={}, errorMsg={}",
+                        paymentNo, errorCode, errorMsg);
+                return handlePaymentFailure(paymentNo, params, startTime);
+            }
+
+            // 6. 查询支付订单
+            PayOrder payOrder = payOrderService.getByPaymentNo(paymentNo);
+            if (payOrder == null) {
+                log.error("【微信回调】支付订单不存在: paymentNo={}", paymentNo);
+                return generateWechatFailResponse("订单不存在");
+            }
+
+            // 7. 幂等性检查
+            if (!isProcessable(payOrder)) {
+                log.warn("【微信回调】订单已处理，跳过: paymentNo={}, status={}",
+                        paymentNo, payOrder.getPaymentStatus());
+                return generateWechatSuccessResponse();
+            }
+
+            // 8. 验证金额
+            if (!verifyAmount(payOrder, params)) {
+                log.error("【微信回调】金额不匹配: paymentNo={}, 订单金额={}, 回调金额={}",
+                        paymentNo, payOrder.getPaymentAmount(), getCallbackAmount(params));
+                return generateWechatFailResponse("金额不匹配");
+            }
+
+            // 9. 验证应用ID
+//            if (!verifyAppId(payOrder, params)) {
+//                log.error("【微信回调】应用ID不匹配: paymentNo={}, 订单appId={}, 回调appId={}",
+//                        paymentNo, payOrder.getAppId(), params.get("appid"));
+//                return generateWechatFailResponse("应用ID不匹配");
+//            }
+
+            // 10. 处理支付成功
+            return handlePaymentSuccess(payOrder, params, startTime);
 
         } catch (Exception e) {
             log.error("处理微信回调异常", e);
@@ -370,6 +358,213 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
+
+    /**
+     * 处理支付成功
+     */
+    private String handlePaymentSuccess(PayOrder payOrder, Map<String, String> params, long startTime) {
+        try {
+            String paymentNo = payOrder.getPaymentNo();
+
+            // 1. 更新支付订单状态
+            boolean updateSuccess = payOrderService.updatePaymentStatus(payOrder, true, params);
+            if (!updateSuccess) {
+                log.error("【微信回调】更新支付订单状态失败: paymentNo={}", paymentNo);
+                return generateWechatFailResponse("更新订单状态失败");
+            }
+
+            // 2. 发送MQ成功消息
+            boolean mqSuccess = sendPaymentSuccessMessage(payOrder, params);
+
+            // 3. 如果MQ发送失败，记录到补偿表
+            if (!mqSuccess) {
+                log.warn("【微信回调】MQ发送失败，记录到补偿表: paymentNo={}", paymentNo);
+                saveToCompensation(payOrder, params, "MQ_SEND_FAILED");
+            }
+
+            // 4. 记录处理时间
+            long costTime = System.currentTimeMillis() - startTime;
+            log.info("【微信回调】支付成功处理完成: paymentNo={}, 订单号={}, 微信订单号={}, 耗时={}ms",
+                    paymentNo, payOrder.getOrderNo(), params.get("transaction_id"), costTime);
+
+            return generateWechatSuccessResponse();
+
+        } catch (Exception e) {
+            log.error("【微信回调】支付成功处理异常: paymentNo={}", payOrder.getPaymentNo(), e);
+            return generateWechatFailResponse("支付成功处理异常");
+        }
+    }
+
+    /**
+     * 处理支付失败
+     */
+    private String handlePaymentFailure(String paymentNo, Map<String, String> params, long startTime) {
+        try {
+            // 1. 查询支付订单
+            PayOrder payOrder = payOrderService.getByPaymentNo(paymentNo);
+            if (payOrder == null) {
+                log.warn("【微信回调】支付失败订单不存在: paymentNo={}", paymentNo);
+                return generateWechatSuccessResponse(); // 对微信返回成功，避免重复通知
+            }
+
+            // 2. 更新支付订单为失败状态
+            if (isProcessable(payOrder)) {
+                boolean updateSuccess = payOrderService.updatePaymentStatus(payOrder, false, params);
+                if (!updateSuccess) {
+                    log.error("【微信回调】更新支付失败状态失败: paymentNo={}", paymentNo);
+                }
+            }
+
+            // 3. 发送MQ失败消息
+            boolean mqSuccess = sendPaymentFailureMessage(payOrder, params);
+            if (!mqSuccess) {
+                log.warn("【微信回调】MQ失败消息发送失败，记录到补偿表: paymentNo={}", paymentNo);
+                saveToCompensation(payOrder, params, "MQ_FAILURE_SEND_FAILED");
+            }
+
+            // 4. 记录处理时间
+            long costTime = System.currentTimeMillis() - startTime;
+            log.warn("【微信回调】支付失败处理完成: paymentNo={}, 耗时={}ms", paymentNo, costTime);
+
+            return generateWechatSuccessResponse(); // 对微信返回成功，避免重复通知
+
+        } catch (Exception e) {
+            log.error("【微信回调】支付失败处理异常: paymentNo={}", paymentNo, e);
+            return generateWechatSuccessResponse(); // 对微信返回成功，避免重复通知
+        }
+    }
+
+    /**
+     * 检查订单是否可处理
+     */
+    private boolean isProcessable(PayOrder payOrder) {
+        int status = payOrder.getPaymentStatus();
+        return status == PaymentStatusEnum.PENDING.getValue()
+                || status == PaymentStatusEnum.PROCESSING.getValue();
+    }
+
+
+    /**
+     * 验证金额
+     */
+    private boolean verifyAmount(PayOrder payOrder, Map<String, String> params) {
+        try {
+            BigDecimal callbackAmount = getCallbackAmount(params);
+            BigDecimal orderAmount = payOrder.getPaymentAmount();
+
+            return callbackAmount.compareTo(orderAmount) == 0;
+        } catch (Exception e) {
+            log.error("验证金额异常: paymentNo={}", payOrder.getPaymentNo(), e);
+            return false;
+        }
+    }
+
+    /**
+     * 获取回调金额
+     */
+    private BigDecimal getCallbackAmount(Map<String, String> params) {
+        try {
+            String totalFee = params.get("total_fee");
+            if (StringUtils.hasText(totalFee)) {
+                return new BigDecimal(totalFee)
+                        .divide(new BigDecimal(100), 2, RoundingMode.HALF_UP);
+            }
+        } catch (Exception e) {
+            log.error("解析回调金额异常: totalFee={}", params.get("total_fee"), e);
+        }
+        return BigDecimal.ZERO;
+    }
+
+    /**
+     * 验证应用ID
+     */
+//    private boolean verifyAppId(PayOrder payOrder, Map<String, String> params) {
+//        try {
+//            String callbackAppId = params.get("appid");
+//            String orderAppId = payOrder.getAppId();
+//
+//            if (!StringUtils.hasText(orderAppId)) {
+//                // 如果订单没有appId，跳过验证
+//                return true;
+//            }
+//
+//            return orderAppId.equals(callbackAppId);
+//        } catch (Exception e) {
+//            log.error("验证应用ID异常: paymentNo={}", payOrder.getPaymentNo(), e);
+//            return false;
+//        }
+//    }
+
+    /**
+     * 发送支付成功消息
+     */
+    private boolean sendPaymentSuccessMessage(PayOrder payOrder, Map<String, String> params) {
+        try {
+            return enhancedRabbitMessagProducerPayment.sendPaymentSuccessMessageAndSaveSendRecord(payOrder, params);
+        } catch (Exception e) {
+            log.error("发送支付成功MQ消息异常: paymentNo={}", payOrder.getPaymentNo(), e);
+            return false;
+        }
+    }
+
+    /**
+     * 发送支付失败消息
+     */
+    private boolean sendPaymentFailureMessage(PayOrder payOrder, Map<String, String> params) {
+        try {
+            return enhancedRabbitMessagProducerPayment.sendPaymentFailedMessageAndSaveSendRecord(payOrder, params);
+        } catch (Exception e) {
+            log.error("发送支付失败MQ消息异常: paymentNo={}", payOrder.getPaymentNo(), e);
+            return false;
+        }
+    }
+
+    /**
+     * 保存到补偿表
+     */
+    private void saveToCompensation(PayOrder payOrder, Map<String, String> params, String reason) {
+        try {
+            // TODO: 实现补偿表保存逻辑
+            log.info("保存到补偿表: paymentNo={}, reason={}", payOrder.getPaymentNo(), reason);
+
+            // 示例代码：
+            // CompensationRecord record = new CompensationRecord();
+            // record.setPaymentNo(payOrder.getPaymentNo());
+            // record.setOrderNo(payOrder.getOrderNo());
+            // record.setTenantId(payOrder.getTenantId());
+            // record.setEventType("WECHAT_CALLBACK");
+            // record.setReason(reason);
+            // record.setParams(JSON.toJSONString(params));
+            // record.setRetryCount(0);
+            // record.setStatus(CompensationStatusEnum.PENDING.getValue());
+            // record.setCreateTime(LocalDateTime.now());
+            // compensationRecordService.save(record);
+
+        } catch (Exception e) {
+            log.error("保存到补偿表异常: paymentNo={}", payOrder.getPaymentNo(), e);
+        }
+    }
+
+
+    /**
+     * 生成微信成功响应
+     */
+    private String generateWechatSuccessResponse() {
+        return "<xml>" +
+                "<return_code><![CDATA[SUCCESS]]></return_code>" +
+                "<return_msg><![CDATA[OK]]></return_msg>" +
+                "</xml>";
+    }
+
+    /**
+     * 生成微信失败响应
+     */
+    private String generateWechatFailResponse(String errorMsg) {
+        return "<xml>" +
+                "<return_code><![CDATA[FAIL]]></return_code>" +
+                "<return_msg><![CDATA[" + (errorMsg != null ? errorMsg : "处理失败") + "]]></return_msg>" +
+                "</xml>";
+    }
 
     /**
      * 处理支付宝回调

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.context.ApplicationEvent;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -21,13 +22,11 @@ import java.util.Map;
  * @Version 1.0
  **/
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+// 移除 @Builder, @NoArgsConstructor, @AllArgsConstructor
 public class MessageSendFailedEvent extends ApplicationEvent {
 
     private String messageId;
-    private String tenantId;
+    private Long tenantId;
     private String messageType;
     private String exchange;
     private String routingKey;
@@ -37,16 +36,136 @@ public class MessageSendFailedEvent extends ApplicationEvent {
     private String errorMessage;
     private SendStatus sendStatus;
     private Integer retryCount;
-    private Map<String, Object> extraInfo;
-    @Builder.Default
+    private Map<String, Object> extraInfo = new HashMap<>();
     private LocalDateTime eventTime = LocalDateTime.now();
 
-    public MessageSendFailedEvent(Object source) {
+    public MessageSendFailedEvent(Object source, String messageId, Long tenantId,
+                                  String messageType, String exchange, String routingKey,
+                                  Long costTime, LocalDateTime sendTime, String errorCode,
+                                  String errorMessage, SendStatus sendStatus, Integer retryCount,
+                                  Map<String, Object> extraInfo, LocalDateTime eventTime) {
         super(source);
+        this.messageId = messageId;
+        this.tenantId = tenantId;
+        this.messageType = messageType;
+        this.exchange = exchange;
+        this.routingKey = routingKey;
+        this.costTime = costTime;
+        this.sendTime = sendTime;
+        this.errorCode = errorCode;
+        this.errorMessage = errorMessage;
+        this.sendStatus = sendStatus;
+        this.retryCount = retryCount;
+        this.extraInfo = extraInfo;
+        this.eventTime = eventTime;
     }
 
-    public static MessageSendFailedEvent fromResult(RabbitSendResult result) {
+    // 手动定义 Builder
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private Object source;
+        private String messageId;
+        private Long tenantId;
+        private String messageType;
+        private String exchange;
+        private String routingKey;
+        private Long costTime;
+        private LocalDateTime sendTime;
+        private String errorCode;
+        private String errorMessage;
+        private SendStatus sendStatus;
+        private Integer retryCount = 0;
+        private Map<String, Object> extraInfo = new HashMap<>();
+        private LocalDateTime eventTime = LocalDateTime.now();
+
+        public Builder source(Object source) {
+            this.source = source;
+            return this;
+        }
+
+        public Builder messageId(String messageId) {
+            this.messageId = messageId;
+            return this;
+        }
+
+        public Builder tenantId(Long tenantId) {
+            this.tenantId = tenantId;
+            return this;
+        }
+
+        public Builder messageType(String messageType) {
+            this.messageType = messageType;
+            return this;
+        }
+
+        public Builder exchange(String exchange) {
+            this.exchange = exchange;
+            return this;
+        }
+
+        public Builder routingKey(String routingKey) {
+            this.routingKey = routingKey;
+            return this;
+        }
+
+        public Builder costTime(Long costTime) {
+            this.costTime = costTime;
+            return this;
+        }
+
+        public Builder sendTime(LocalDateTime sendTime) {
+            this.sendTime = sendTime;
+            return this;
+        }
+
+        public Builder errorCode(String errorCode) {
+            this.errorCode = errorCode;
+            return this;
+        }
+
+        public Builder errorMessage(String errorMessage) {
+            this.errorMessage = errorMessage;
+            return this;
+        }
+
+        public Builder sendStatus(SendStatus sendStatus) {
+            this.sendStatus = sendStatus;
+            return this;
+        }
+
+        public Builder retryCount(Integer retryCount) {
+            this.retryCount = retryCount;
+            return this;
+        }
+
+        public Builder extraInfo(Map<String, Object> extraInfo) {
+            this.extraInfo = extraInfo;
+            return this;
+        }
+
+        public Builder eventTime(LocalDateTime eventTime) {
+            this.eventTime = eventTime;
+            return this;
+        }
+
+        public MessageSendFailedEvent build() {
+            if (source == null) {
+                throw new IllegalStateException("source 参数不能为空");
+            }
+            return new MessageSendFailedEvent(
+                    source, messageId, tenantId, messageType, exchange, routingKey,
+                    costTime, sendTime, errorCode, errorMessage, sendStatus, retryCount,
+                    extraInfo, eventTime
+            );
+        }
+    }
+
+    public static MessageSendFailedEvent fromResult(Object source, RabbitSendResult result) {
         return MessageSendFailedEvent.builder()
+                .source(source)
                 .messageId(result.getMessageId())
                 .tenantId(result.getTenantId())
                 .messageType(result.getMessageType())
@@ -57,14 +176,8 @@ public class MessageSendFailedEvent extends ApplicationEvent {
                         LocalDateTime.ofInstant(result.getSendTime().toInstant(), java.time.ZoneId.systemDefault()) :
                         null)
                 .errorMessage(result.getErrorMessage())
-                .sendStatus(convertStatus(result.getSendStatus()))
+                .sendStatus(result.getSendStatus())
                 .eventTime(LocalDateTime.now())
                 .build();
-    }
-
-    private static SendStatus convertStatus(SendStatus status) {
-        if (status == null) return SendStatus.UNKNOWN;
-        // 转换逻辑
-        return SendStatus.FAILED;
     }
 }

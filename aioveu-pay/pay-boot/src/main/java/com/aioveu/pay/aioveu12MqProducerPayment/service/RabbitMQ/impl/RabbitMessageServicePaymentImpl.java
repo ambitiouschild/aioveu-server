@@ -14,6 +14,7 @@ import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.Rabbit
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendRequest;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RocketMQ.SendContext;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.MessageSendException;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.PaymentFailedMessage;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.PaymentSuccessMessage;
 import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.RabbitMessageServicePayment;
@@ -307,7 +308,7 @@ public class RabbitMessageServicePaymentImpl extends ServiceImpl<MqSendRecordMap
 
 
             // 3. 发送消息
-            SendResult sendResult = adapterMessageBuilderImpl.doSend(queueType, request);
+            RabbitSendResult sendResult = (RabbitSendResult)adapterMessageBuilderImpl.doSend(queueType, request);
 
             // 5. 记录成功日志
             adapterMessageBuilderImpl.logSendSuccess(request, sendResult, startTime);

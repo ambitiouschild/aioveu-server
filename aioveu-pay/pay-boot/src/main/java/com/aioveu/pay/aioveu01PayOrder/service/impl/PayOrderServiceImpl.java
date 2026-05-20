@@ -12,16 +12,25 @@ import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
 import com.aioveu.pay.aioveu01.enums.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01.model.vo.PaymentCallbackDTO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+//import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.StringUtils;  // ✅ Spring 的 StringUtils
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: PayOrderServiceImpl
@@ -38,6 +47,10 @@ import java.util.List;
 public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> implements PayOrderService {
 
     private final PayOrderConverter payOrderConverter;
+
+
+    // 创建 ObjectMapper 实例
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * 获取支付订单分页列表
@@ -196,4 +209,156 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         }
 
     }
+
+
+    @Override
+    public PayOrder getByPaymentNo(String paymentNo) {
+        if (StringUtils.isEmpty(paymentNo)) {
+            return null;
+        }
+
+        // 使用 MyBatis-Plus
+        QueryWrapper<PayOrder> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("payment_no", paymentNo);
+
+        return this.baseMapper.selectOne(queryWrapper);
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public PayOrder getByPaymentNoWithLock(String paymentNo) {
+        if (StringUtils.isEmpty(paymentNo)) {
+            return null;
+        }
+
+        // 使用 for update 锁
+        return this.baseMapper.selectByPaymentNoWithLock(paymentNo);
+    }
+
+    @Override
+    public boolean updatePaymentStatus(PayOrder payOrder, boolean success, Map<String, String> params) {
+        if (payOrder == null) {
+            log.error("更新支付状态失败：支付订单为空");
+            return false;
+        }
+
+        try {
+            // 1. 更新订单状态
+            int newStatus = success ? PaymentStatusEnum.SUCCESS.getValue() : PaymentStatusEnum.FAILED.getValue();
+            payOrder.setPaymentStatus(newStatus);
+
+            // 2. 更新支付完成时间
+            if (success) {
+                payOrder.setPaymentTime(LocalDateTime.now());
+            }
+
+            // 3. 设置微信支付相关信息
+            if (params != null) {
+                String transactionId = params.get("transaction_id");
+                if (StringUtils.hasText(transactionId)) {
+                    payOrder.setThirdTransactionNo(transactionId);  // ✅ 设置到 thirdTransactionNo
+                }
+
+                String outTradeNo = params.get("out_trade_no");
+                if (StringUtils.hasText(outTradeNo)) {
+                    // 确认 paymentNo 匹配
+                    if (!outTradeNo.equals(payOrder.getPaymentNo())) {
+                        log.warn("微信回调订单号不匹配: 回调={}, 数据库={}",
+                                outTradeNo, payOrder.getPaymentNo());
+                    }
+                }
+
+                // 3. 存储到 attachData
+                Map<String, Object> attachData = parseAttachData(payOrder.getAttachData());
+
+                // 添加微信回调参数
+                attachData.put("wechat_transaction_id", transactionId);
+                attachData.put("wechat_bank_type", params.get("bank_type"));
+                attachData.put("wechat_openid", params.get("openid"));
+                attachData.put("wechat_trade_type", params.get("trade_type"));
+                attachData.put("wechat_cash_fee", params.get("cash_fee"));
+                attachData.put("wechat_fee_type", params.get("fee_type"));
+                attachData.put("wechat_settlement_total_fee", params.get("settlement_total_fee"));
+                attachData.put("wechat_time_end", params.get("time_end"));
+                attachData.put("wechat_result_code", params.get("result_code"));
+                attachData.put("wechat_err_code", params.get("err_code"));
+                attachData.put("wechat_err_code_des", params.get("err_code_des"));
+
+                // 保存 attachData
+                try {
+                    payOrder.setAttachData(objectMapper.writeValueAsString(attachData));
+                } catch (Exception e) {
+                    log.warn("序列化附加数据失败", e);
+                }
+
+                // 设置支付完成时间（从微信回调）
+                String timeEnd = params.get("time_end");
+                if (StringUtils.hasText(timeEnd)) {
+                    // 微信时间格式：20191201235959
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+                    LocalDateTime paymentTime = LocalDateTime.parse(timeEnd, formatter);
+                    payOrder.setPaymentTime(paymentTime);
+                }
+            }
+
+            // 4. 更新版本号（乐观锁）
+            if (payOrder.getVersion() != null) {
+                payOrder.setVersion(payOrder.getVersion() + 1);
+            }
+
+            // 5. 执行更新
+            int rows = this.baseMapper.updateById(payOrder);
+
+            boolean updateSuccess = rows > 0;
+            if (updateSuccess) {
+                log.info("支付订单状态更新成功: paymentNo={}, 新状态={}",
+                        payOrder.getPaymentNo(), newStatus);
+            } else {
+                log.error("支付订单状态更新失败: paymentNo={}, 影响行数={}",
+                        payOrder.getPaymentNo(), rows);
+            }
+
+            return updateSuccess;
+
+        } catch (Exception e) {
+            log.error("更新支付订单状态异常: paymentNo={}",
+                    payOrder.getPaymentNo(), e);
+            return false;
+        }
+    }
+
+
+    // 解析 attachData 的辅助方法
+    private Map<String, Object> parseAttachData(String attachDataJson) {
+        Map<String, Object> attachData = new HashMap<>();
+        if (StringUtils.hasText(attachDataJson)) {
+            try {
+                attachData = objectMapper.readValue(attachDataJson,
+                        new TypeReference<Map<String, Object>>() {});
+            } catch (Exception e) {
+                log.warn("解析附加数据失败: {}", attachDataJson, e);
+            }
+        }
+        return attachData;
+    }
+
+
+    @Override
+    public boolean updatePaymentStatus(String paymentNo, boolean success, Map<String, String> params) {
+        if (StringUtils.isEmpty(paymentNo)) {
+            return false;
+        }
+
+        // 先查询订单
+        PayOrder payOrder = getByPaymentNo(paymentNo);
+        if (payOrder == null) {
+            log.error("更新支付状态失败：支付订单不存在: paymentNo={}", paymentNo);
+            return false;
+        }
+
+        return updatePaymentStatus(payOrder, success, params);
+    }
+
+
 }

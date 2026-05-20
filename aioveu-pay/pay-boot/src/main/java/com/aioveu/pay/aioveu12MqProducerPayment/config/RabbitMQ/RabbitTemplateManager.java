@@ -24,6 +24,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @Date 2026/5/14 18:40
  * @Version 1.0
  **/
+
+/*
+*  问题在于 RabbitTemplate类中没有 getReturnsCallback()和 getConfirmCallback()方法。这些方法在新版本中可能已经被移除或改名了
+*  RabbitTemplate类在 Spring AMQP 的不同版本中有不同的方法。根据您的错误信息，当前版本中没有 getReturnsCallback()方法。
+*  方案3：通过您自己的管理类来追踪状态（推荐）
+    由于直接检查 RabbitTemplate 的状态可能不可靠，您可以自己维护回调的设置状态：
+*
+* */
 @Slf4j
 @Service
 public class RabbitTemplateManager {
@@ -38,6 +46,42 @@ public class RabbitTemplateManager {
     private final AtomicInteger returnCount = new AtomicInteger(0);
     private final AtomicInteger confirmCount = new AtomicInteger(0);
 
+    private volatile boolean returnCallbackSet = false;
+    private volatile boolean confirmCallbackSet = false;
+    private final AtomicInteger returnCallbackCount = new AtomicInteger(0);
+
+    /**
+     * 设置 ReturnCallback
+     */
+    public void setReturnsCallback(RabbitTemplate rabbitTemplate, RabbitTemplate.ReturnsCallback callback) {
+        rabbitTemplate.setReturnsCallback(callback);
+        this.returnCallbackSet = true;
+        this.returnCallbackCount.incrementAndGet();
+    }
+
+    /**
+     * 设置 ConfirmCallback
+     */
+    public void setConfirmCallback(RabbitTemplate rabbitTemplate, RabbitTemplate.ConfirmCallback callback) {
+        rabbitTemplate.setConfirmCallback(callback);
+        this.confirmCallbackSet = true;
+    }
+
+    /**
+     * 检查 ReturnCallback 是否设置
+     */
+    public boolean isReturnCallbackSet() {
+        return this.returnCallbackSet;
+    }
+
+    /**
+     * 检查 ConfirmCallback 是否设置
+     */
+    public boolean isConfirmCallbackSet() {
+        return this.confirmCallbackSet;
+    }
+
+
     /**
      * 检查RabbitTemplate状态
      */
@@ -49,8 +93,9 @@ public class RabbitTemplateManager {
             status.setMandatoryEnabled(checkMandatoryStatus());
 
             // 2. 检查回调设置
-            status.setReturnCallbackSet(rabbitTemplate.getReturnsCallback() != null);
-            status.setConfirmCallbackSet(rabbitTemplate.getConfirmCallback() != null);
+            // 2. 检查回调设置 - 使用我们自己维护的状态
+            status.setReturnCallbackSet(this.returnCallbackSet);  // ✅ 改为使用我们自己的状态
+            status.setConfirmCallbackSet(this.confirmCallbackSet); // ✅ 改为使用我们自己的状态
 
             // 3. 检查连接工厂
             if (connectionFactory instanceof CachingConnectionFactory) {
@@ -106,7 +151,7 @@ public class RabbitTemplateManager {
 
         // 实际验证：发送一个不存在的routingKey，检查是否会触发ReturnCallback
         // 注意：这会影响生产环境，所以这里只做逻辑判断
-        return rabbitTemplate.getReturnsCallback() != null;
+        return this.returnCallbackSet;  // ✅ 如果设置了ReturnCallback，我们认为mandatory是启用的
     }
 
     /**

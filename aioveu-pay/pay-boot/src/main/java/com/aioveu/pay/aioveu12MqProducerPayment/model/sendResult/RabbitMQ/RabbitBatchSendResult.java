@@ -25,6 +25,8 @@ public class RabbitBatchSendResult {
     /** 批次ID */
     private String batchId;
 
+    private Long tenantId;
+
     /** 批量发送状态 */
     private BatchSendStatus status;
 
@@ -36,6 +38,8 @@ public class RabbitBatchSendResult {
 
     /** 失败数 */
     private int failedCount = 0;
+
+    private  Long  costTime;
 
     // 失败消息详情
     private List<FailedMessage> failedMessages = new ArrayList<>();

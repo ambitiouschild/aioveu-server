@@ -7,6 +7,7 @@ import com.aioveu.pay.aioveu10MqSendRecord.mapper.MqSendRecordMapper;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
 import com.aioveu.pay.aioveu10MqSendRecord.utils.MessageIdGenerator;
+import com.aioveu.pay.aioveu12MqProducerPayment.Monitor.RabbitMQ.ProducerMetricsCollector;
 import com.aioveu.pay.aioveu12MqProducerPayment.event.service.MessageEventPublisher;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.RabbitMQ.RabbitSendResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.RabbitMessageService;
@@ -53,10 +54,18 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
 
     private final MessageEventPublisher messageEventPublisher;
 
+    private final ProducerMetricsCollector producerMetricsCollector;
+
     /**
      * 同步发送并获取结果
+     *
+     * @param exchange 交换机
+     * @param routingKey 路由键
+     * @param message 消息体
+     * @param tenantId 租户ID
+     * @return 发送结果
      */
-    public RabbitSendResult sendMessageSync(String exchange, String routingKey, Object message) {
+    public RabbitSendResult sendMessageSync(String exchange, String routingKey, Object message, Long tenantId) {
         long startTime = System.currentTimeMillis();
         String messageId = UUID.randomUUID().toString();
 
@@ -73,7 +82,7 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
             // 构建成功结果
             return RabbitSendResult.success(messageId, correlationData.getId(),
                             System.currentTimeMillis() - startTime, exchange, routingKey)
-                    .withTenant("tenant_001")
+                    .withTenant(tenantId)  // 使用传入的 tenantId
                     .withMessageType("ORDER_CREATE")
                     .addExtraInfo("bizId", "order_1001");
 
@@ -81,13 +90,13 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
             // 超时结果
             return RabbitSendResult.timeout(messageId,
                             System.currentTimeMillis() - startTime, exchange, routingKey)
-                    .withTenant("tenant_001");
+                    .withTenant(tenantId);  // 使用传入的 tenantId
 
         } catch (Exception e) {
             // 失败结果
             return RabbitSendResult.failure(messageId, e.getMessage(),
                             System.currentTimeMillis() - startTime, exchange, routingKey)
-                    .withTenant("tenant_001");
+                    .withTenant(tenantId);  // 使用传入的 tenantId
         }
     }
 
@@ -148,12 +157,12 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
     /**
      * 正确使用withTenant方法
      */
-    public RabbitSendResult createResult() {
+    public RabbitSendResult createResult(Long tenantId) {
         // 方法1：使用静态工厂方法 + 链式调用
         RabbitSendResult result = RabbitSendResult.success(
                         "msg-001", "corr-001", 150, "order.exchange", "order.create"
                 )
-                .withTenant("tenant_001")  // ✅ 正确：使用链式调用
+                .withTenant(tenantId)  // 使用传入的 tenantId  // ✅ 正确：使用链式调用
                 .withMessageType("ORDER_CREATE")
                 .withRetryCount(0)
                 .withSendThread(Thread.currentThread().getName());
@@ -164,7 +173,7 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
     /**
      * 批量创建结果
      */
-    public List<RabbitSendResult> createBatchResults() {
+    public List<RabbitSendResult> createBatchResults(Long tenantId) {
         List<RabbitSendResult> results = new ArrayList<>();
 
         // 创建多个结果
@@ -176,7 +185,7 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
                             "order.exchange",
                             "order.create"
                     )
-                    .withTenant("tenant_001")
+                    .withTenant(tenantId)
                     .withMessageType("ORDER_CREATE")
                     .addExtraInfo("orderId", "order_" + i)
                     .addExtraInfo("userId", "user_" + i);
@@ -191,7 +200,7 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
     /**
      * 处理失败结果
      */
-    public RabbitSendResult createFailureResult() {
+    public RabbitSendResult createFailureResult(Long tenantId) {
         // 创建失败结果
         RabbitSendResult result = RabbitSendResult.failure(
                         "msg-fail-001",
@@ -200,7 +209,7 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
                         "order.exchange",
                         "order.create"
                 )
-                .withTenant("tenant_001")
+                .withTenant(tenantId)
                 .withMessageType("ORDER_CREATE")
                 .withRetryCount(1)
                 .addExtraInfo("retryAt", new Date());
@@ -212,10 +221,10 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
     /**
      * 使用toBuilder模式
      */
-    public RabbitSendResult updateResultWithToBuilder(RabbitSendResult original) {
+    public RabbitSendResult updateResultWithToBuilder(RabbitSendResult original , Long tenantId) {
         // 使用toBuilder创建新实例
         return original.toBuilder()
-                .tenantId("tenant_002")  // 修改租户
+                .tenantId(tenantId)  // 修改租户
                 .messageType("ORDER_UPDATE")  // 修改消息类型
                 .retryCount(original.getRetryCount() + 1)  // 增加重试次数
                 .sendTime(new Date())  // 更新发送时间
@@ -226,8 +235,8 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
     /**
      * 使用toBuilder便捷方法
      */
-    public RabbitSendResult updateResultWithConvenienceMethods(RabbitSendResult original) {
-        return original.toBuilderTenant("tenant_003")
+    public RabbitSendResult updateResultWithConvenienceMethods(RabbitSendResult original, Long tenantId) {
+        return original.toBuilderTenant(tenantId)
                 .toBuilderMessageType("ORDER_DELETE")
                 .toBuilderWithStatus(SendStatus.SUCCESS);
     }
@@ -236,7 +245,7 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
     /**
      * 从ReturnedMessage构建结果
      */
-    public RabbitSendResult createResultFromReturned(ReturnedMessage returnedMessage) {
+    public RabbitSendResult createResultFromReturned(ReturnedMessage returnedMessage, Long tenantId) {
         if (returnedMessage == null) {
             return RabbitSendResult.failure(
                     messageIdGenerator.generateMessageId(),
@@ -244,14 +253,14 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
                     0L,
                     "unknown",
                     "unknown"
-            ).withTenant("unknown").withMessageType("UNKNOWN");
+            ).withTenant(tenantId).withMessageType("UNKNOWN");
         }
 
 
         String messageId = extractMessageId(returnedMessage.getMessage());
 
         return RabbitSendResult.routingFailed(messageId, returnedMessage)
-                .withTenant("tenant_001")
+                .withTenant(tenantId)
                 .withMessageType("ORDER_NOTIFY")
                 .addExtraInfo("originalExchange", returnedMessage.getExchange())
                 .addExtraInfo("originalRoutingKey", returnedMessage.getRoutingKey())
@@ -264,7 +273,7 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
      * 增强的从ReturnedMessage构建结果
      */
     public RabbitSendResult createEnhancedResultFromReturned(ReturnedMessage returnedMessage,
-                                                             String tenantId, String messageType) {
+                                                             Long tenantId, String messageType) {
         if (returnedMessage == null) {
             return createNullReturnedResult(tenantId, messageType);
         }
@@ -274,7 +283,7 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
 
         // 提取各种可能的信息
         String messageId = extractMessageIdFromReturned(returnedMessage);
-        String originalTenantId = extractTenantId(properties);
+        Long originalTenantId = extractTenantId(properties);
         String originalMessageType = extractMessageType(properties);
 
         RabbitSendResult result = RabbitSendResult.routingFailed(messageId, returnedMessage)
@@ -292,26 +301,85 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
     /**
      * 从消息属性提取租户ID
      */
-    public String extractTenantId(MessageProperties properties) {
+    public Long extractTenantId(MessageProperties properties) {
         if (properties == null) {
             return null;
         }
 
-        // 从header中获取
-        Object tenantIdObj = properties.getHeader("tenantId");
-        if (tenantIdObj instanceof String) {
-            return (String) tenantIdObj;
+        // 1. 从header中获取
+        Long tenantIdFromHeader = extractTenantIdFromHeader(properties);
+        if (tenantIdFromHeader != null) {
+            return tenantIdFromHeader;
         }
 
         // 从userId获取
-        String userId = properties.getUserId();
-        if (userId != null && userId.startsWith("tenant_")) {
-            return userId;
+        // 2. 从userId中获取
+        Long tenantIdFromUserId = extractTenantIdFromUserId(properties);
+        if (tenantIdFromUserId != null) {
+            return tenantIdFromUserId;
         }
 
         return null;
     }
 
+
+    /**
+     * 从消息头提取租户ID
+     */
+    private Long extractTenantIdFromHeader(MessageProperties properties) {
+        try {
+            Object tenantIdObj = properties.getHeader("tenantId");
+            if (tenantIdObj == null) {
+                return null;
+            }
+
+            if (tenantIdObj instanceof Long) {
+                return (Long) tenantIdObj;
+            } else if (tenantIdObj instanceof Integer) {
+                return ((Integer) tenantIdObj).longValue();
+            } else if (tenantIdObj instanceof String) {
+                String tenantIdStr = (String) tenantIdObj;
+                if (!tenantIdStr.trim().isEmpty()) {
+                    return Long.parseLong(tenantIdStr.trim());
+                }
+            } else if (tenantIdObj instanceof Number) {
+                return ((Number) tenantIdObj).longValue();
+            }
+        } catch (Exception e) {
+            log.warn("从header解析tenantId失败", e);
+        }
+        return null;
+    }
+
+    /**
+     * 从userId提取租户ID
+     */
+    private Long extractTenantIdFromUserId(MessageProperties properties) {
+        try {
+            String userId = properties.getUserId();
+            if (userId == null || userId.trim().isEmpty()) {
+                return null;
+            }
+
+            userId = userId.trim();
+
+            // 如果userId以"tenant_"开头，尝试提取后面的数字
+            if (userId.startsWith("tenant_")) {
+                String tenantPart = userId.substring("tenant_".length());
+                if (!tenantPart.isEmpty()) {
+                    return Long.parseLong(tenantPart);
+                }
+            } else {
+                // 直接尝试解析为Long
+                return Long.parseLong(userId);
+            }
+        } catch (NumberFormatException e) {
+            log.debug("userId无法转换为Long: {}", properties.getUserId(), e);
+        } catch (Exception e) {
+            log.warn("从userId提取tenantId失败", e);
+        }
+        return null;
+    }
 
     /**
      * 从消息属性提取消息类型
@@ -339,12 +407,12 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
      */
     public RabbitSendResult createResultFromCorrelation(CorrelationData correlationData,
                                                         long startTime, String exchange,
-                                                        String routingKey) {
+                                                        String routingKey, Long tenantId) {  // 添加参数) {
         RabbitSendResult result = RabbitSendResult.fromCorrelationData(
                 correlationData, startTime, exchange, routingKey);
 
         // 添加业务信息
-        result.setTenantId("tenant_001");
+        result.setTenantId(tenantId);
         result.setMessageType("ORDER_CREATE");
         result.setSendThread(Thread.currentThread().getName());
 
@@ -358,7 +426,7 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
         // 模拟发送消息
         long startTime = System.currentTimeMillis();
         String messageId = UUID.randomUUID().toString();
-        String tenantId = "tenant_001";
+        Long tenantId = 0l;
         String exchange = "order.exchange";
         String routingKey = "order.create";
 
@@ -440,7 +508,7 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
     /**
      * 处理空的ReturnedMessage
      */
-    public RabbitSendResult createNullReturnedResult(String tenantId, String messageType) {
+    public RabbitSendResult createNullReturnedResult(Long tenantId, String messageType) {
         return RabbitSendResult.failure(
                         messageIdGenerator.generateMessageId(),
                         "ReturnedMessage为null",
@@ -448,7 +516,7 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
                         "unknown",
                         "unknown"
                 )
-                .withTenant(tenantId != null ? tenantId : "unknown")
+                .withTenant(tenantId != null ? tenantId : 0)
                 .withMessageType(messageType != null ? messageType : "UNKNOWN")
                 .addExtraInfo("errorType", "NULL_RETURNED_MESSAGE")
                 .addExtraInfo("diagnostic", "接收到的ReturnedMessage参数为null");
@@ -488,22 +556,17 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
 
 
         // 记录到失败表
-        failedMessageService.recordFailure(result);
+        mqSendRecordService.saveMqSendRecord(result.getMessageId(), result.getMessageId(), result.getMessageId(),result.getMessageId());
         // 发布失败事件
         messageEventPublisher.publishMessageSendFailed(result);
         log.error("消息发送失败，事件已发布: {}", result.getMessageId());
         // 发送告警
-        alertService.sendAlert("消息发送永久失败", result.toJson());
+//        alertService.sendAlert("消息发送永久失败", result.toJson());
     }
 
     private void recordMetrics(RabbitSendResult result) {
         // 记录监控指标
-        metricsService.recordMessageSend(
-                result.getTenantId(),
-                result.getMessageType(),
-                result.isSuccess(),
-                result.getCostTime()
-        );
+        producerMetricsCollector.getMetrics();
     }
 
 
@@ -542,28 +605,28 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
 
 
         // 方法3：从消息体JSON中解析
-        try {
-            String body = new String(message.getBody(), StandardCharsets.UTF_8);
-            Map<String, Object> bodyMap = objectMapper.readValue(body,
-                    new TypeReference<Map<String, Object>>() {});
-
-            if (bodyMap.containsKey("messageId")) {
-                Object idObj = bodyMap.get("messageId");
-                if (idObj != null) {
-                    return idObj.toString();
-                }
-            }
-
-            if (bodyMap.containsKey("id")) {
-                Object idObj = bodyMap.get("id");
-                if (idObj != null) {
-                    return idObj.toString();
-                }
-            }
-
-        } catch (Exception e) {
-            log.debug("从消息体解析messageId失败: {}", e.getMessage());
-        }
+//        try {
+//            String body = new String(message.getBody(), StandardCharsets.UTF_8);
+//            Map<String, Object> bodyMap = objectMapper.readValue(body,
+//                    new TypeReference<Map<String, Object>>() {});
+//
+//            if (bodyMap.containsKey("messageId")) {
+//                Object idObj = bodyMap.get("messageId");
+//                if (idObj != null) {
+//                    return idObj.toString();
+//                }
+//            }
+//
+//            if (bodyMap.containsKey("id")) {
+//                Object idObj = bodyMap.get("id");
+//                if (idObj != null) {
+//                    return idObj.toString();
+//                }
+//            }
+//
+//        } catch (Exception e) {
+//            log.debug("从消息体解析messageId失败: {}", e.getMessage());
+//        }
 
         // 方法4：从关联ID中获取
         String correlationId = properties.getCorrelationId();
@@ -597,7 +660,7 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
         int total = results.size();
         int success = 0;
         int failure = 0;
-        Map<String, Integer> tenantStats = new HashMap<>();
+        Map<Long, Integer> tenantStats = new HashMap<>();
         Map<SendStatus, Integer> statusStats = new HashMap<>();
 
         for (RabbitSendResult result : results) {
@@ -629,7 +692,7 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
     /**
      * 创建路由失败结果示例
      */
-    public RabbitSendResult createRoutingFailedResult() {
+    public RabbitSendResult createRoutingFailedResult(Long tenantId) {
         // 模拟ReturnedMessage
         ReturnedMessage returnedMessage = new ReturnedMessage(
                 new org.springframework.amqp.core.Message("test".getBytes(), new MessageProperties()),
@@ -640,7 +703,7 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
         );
 
         return RabbitSendResult.routingFailed("msg-routing-001", returnedMessage)
-                .withTenant("tenant_001")
+                .withTenant(tenantId)
                 .withMessageType("ORDER_NOTIFY");
     }
 
@@ -651,7 +714,7 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
      * 批量处理ReturnedMessages
      */
     public List<RabbitSendResult> createResultsFromReturnedList(List<ReturnedMessage> returnedMessages,
-                                                                String defaultTenant, String defaultMessageType) {
+                                                                Long defaultTenant, String defaultMessageType) {
         List<RabbitSendResult> results = new ArrayList<>();
 
         if (returnedMessages == null || returnedMessages.isEmpty()) {
@@ -679,7 +742,7 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
     /**
      * 创建错误结果
      */
-    private RabbitSendResult createErrorResult(Exception e, String tenantId, String messageType) {
+    private RabbitSendResult createErrorResult(Exception e, Long tenantId, String messageType) {
         return RabbitSendResult.failure(
                         messageIdGenerator.generateMessageId(),
                         "处理ReturnedMessage异常: " + e.getMessage(),
@@ -746,7 +809,7 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
         String exchange = "order.exchange";
         String routingKey = "order.create";
         String message = "{\"orderId\": \"1001\", \"amount\": 99.9}";
-        String tenantId = "tenant_001";
+        Long tenantId = 1l;
         String messageType = "ORDER_CREATE";
 
         // 生成消息ID
@@ -814,12 +877,12 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
     /**
      * 模拟处理 ReturnedMessage
      */
-    public void processReturnedMessageExample() {
+    public void processReturnedMessageExample(Long tenantId) {
         // 创建一个模拟的 ReturnedMessage
         MessageProperties properties = new MessageProperties();
         properties.setMessageId("test-returned-001");
         properties.setContentType(MessageProperties.CONTENT_TYPE_JSON);
-        properties.setHeader("tenantId", "tenant_001");
+        properties.setHeader("tenantId", tenantId);
         properties.setHeader("messageType", "ORDER_CREATE");
 
         Message message = new Message(
@@ -836,12 +899,12 @@ public class RabbitMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, Mq
         );
 
         // 使用方法1：基本的创建结果
-        RabbitSendResult result1 = createResultFromReturned(returnedMessage);
+        RabbitSendResult result1 = createResultFromReturned(returnedMessage, tenantId);
         log.info("基本结果: {}", result1.getSimpleInfo());
 
         // 使用方法2：增强的创建结果
         RabbitSendResult result2 = createEnhancedResultFromReturned(
-                returnedMessage, "tenant_001", "ORDER_CREATE"
+                returnedMessage, tenantId, "ORDER_CREATE"
         );
         log.info("增强结果: {}", result2.getDetailInfo());
 

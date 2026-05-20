@@ -703,7 +703,7 @@ public class RabbitSendResult {
         private String returnedRoutingKey;
         private Integer messageSize;
         private Map<String, Object> messageProperties = new HashMap<>();
-        private String tenantId;
+        private Long tenantId;
         private String messageType;
         private Map<String, Object> extraInfo = new HashMap<>();
         private boolean retried;
@@ -712,7 +712,7 @@ public class RabbitSendResult {
         private String clientIp;
         private String clientApp;
 
-        public RabbitSendResultBuilder withTenant(String tenantId) {
+        public RabbitSendResultBuilder withTenant(Long tenantId) {
             this.tenantId = tenantId;
             return this;
         }

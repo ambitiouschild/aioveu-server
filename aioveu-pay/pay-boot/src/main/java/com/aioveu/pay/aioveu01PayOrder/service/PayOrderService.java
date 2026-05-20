@@ -8,6 +8,8 @@ import com.aioveu.pay.aioveu01.model.vo.PaymentCallbackDTO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.Map;
+
 /**
  * @ClassName: PayOrderService
  * @Description TODO 支付订单服务类
@@ -109,4 +111,33 @@ public interface PayOrderService extends IService<PayOrder> {
 //
 //    // 同步支付状态
 //    Result<Void> syncPaymentStatus(String paymentNo);
+
+    /**
+     * 根据支付订单号查询支付订单
+     */
+    PayOrder getByPaymentNo(String paymentNo);
+
+
+    /**
+     * 根据支付订单号查询支付订单（包含锁）
+     */
+    PayOrder getByPaymentNoWithLock(String paymentNo);
+
+
+
+    /**
+     * 更新支付订单状态
+     *
+     * @param payOrder 支付订单
+     * @param success 是否成功
+     * @param params 回调参数
+     * @return 是否更新成功
+     */
+    boolean updatePaymentStatus(PayOrder payOrder, boolean success, Map<String, String> params);
+
+    /**
+     * 更新支付订单状态（重载版本）
+     */
+    boolean updatePaymentStatus(String paymentNo, boolean success, Map<String, String> params);
+
 }

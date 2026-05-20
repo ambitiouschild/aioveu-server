@@ -49,12 +49,25 @@ public class RabbitReturnCallbackImpl implements RabbitTemplate.ReturnsCallback 
         log.info("FixedRabbitReturnCallback已注册到RabbitTemplate");
     }
 
-
+    /**
+     * 实现 ReturnsCallback 接口的抽象方法。
+     * 当消息无法被投递到任何队列时，RabbitMQ会通过此方法返回消息。
+     *
+     * @param returnedMessage 被返回的消息及其元信息
+     */
     @Override
     public void returnedMessage(ReturnedMessage returnedMessage) {
         long startTime = System.currentTimeMillis();
 
         try {
+
+
+            // 如果您需要 tenantId，需要从其他地方获取
+            // 例如：从消息头中获取，或者从您的业务上下文中获取
+
+            // 获取 tenantId - 从消息头中获取
+            Long tenantId = getTenantIdFromMessage(returnedMessage.getMessage());
+
             // 记录返回的消息
             returnedMessages.offer(returnedMessage);
             int count = returnedCount.incrementAndGet();
@@ -67,7 +80,7 @@ public class RabbitReturnCallbackImpl implements RabbitTemplate.ReturnsCallback 
 
             // 创建结果对象
             RabbitSendResult result = rabbitMessageService.createEnhancedResultFromReturned(
-                    returnedMessage, "default_tenant", "RETURNED_MESSAGE"
+                    returnedMessage, tenantId, "RETURNED_MESSAGE"
             );
 
             // 记录日志
@@ -89,6 +102,28 @@ public class RabbitReturnCallbackImpl implements RabbitTemplate.ReturnsCallback 
         } catch (Exception e) {
             log.error("处理ReturnedMessage异常", e);
         }
+    }
+
+
+    /**
+     * 从消息头中获取 tenantId
+     */
+    private Long getTenantIdFromMessage(org.springframework.amqp.core.Message message) {
+        try {
+            Object tenantIdHeader = message.getMessageProperties().getHeader("tenantId");
+            if (tenantIdHeader != null) {
+                if (tenantIdHeader instanceof Long) {
+                    return (Long) tenantIdHeader;
+                } else if (tenantIdHeader instanceof Integer) {
+                    return ((Integer) tenantIdHeader).longValue();
+                } else if (tenantIdHeader instanceof String) {
+                    return Long.parseLong((String) tenantIdHeader);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("从消息头获取tenantId失败", e);
+        }
+        return null; // 或者返回一个默认值
     }
 
     /**
