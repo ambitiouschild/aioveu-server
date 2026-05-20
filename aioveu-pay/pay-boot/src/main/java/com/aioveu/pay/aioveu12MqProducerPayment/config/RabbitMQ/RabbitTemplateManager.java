@@ -32,6 +32,11 @@ import java.util.concurrent.atomic.AtomicInteger;
     由于直接检查 RabbitTemplate 的状态可能不可靠，您可以自己维护回调的设置状态：
 *
 * */
+
+/*
+* RocketMQ 和 RabbitMQ 可以同时配置
+是的，RocketMQ 和 RabbitMQ 可以同时配置在一个应用中，它们之间没有冲突。
+* */
 @Slf4j
 @Service
 public class RabbitTemplateManager {
