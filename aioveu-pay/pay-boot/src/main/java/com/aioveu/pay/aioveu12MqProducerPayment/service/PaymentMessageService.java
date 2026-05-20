@@ -6,7 +6,8 @@ import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.common.rabbitmq.producer.model.vo.RabbitBatchSendResult;
 import com.aioveu.common.rabbitmq.producer.model.vo.RabbitSendRequest;
 import com.aioveu.common.rabbitmq.producer.model.vo.RabbitSendResult;
-import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.PaymentSuccessMessage;
+import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.SendPaymentMqDTO;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;
@@ -22,18 +23,18 @@ import java.util.Map;
  * @Version 1.0
  **/
 
-public interface RabbitMessageServicePayment extends IService<MqSendRecord> {
+public interface PaymentMessageService extends IService<MqSendRecord> {
 
 
     /**
      * 发送支付成功消息
      */
-    boolean sendPaymentSuccessMessage(PayOrder payOrder, Map<String, String> params);
+    boolean sendPaymentSuccessMessage(SendPaymentMqDTO dto);
 
     /**
      * 发送支付失败消息
      */
-    boolean sendPaymentFailedMessage(PayOrder payOrder, Map<String, String> params);
+    boolean sendPaymentFailedMessage(SendPaymentMqDTO dto);
 
 
     /**

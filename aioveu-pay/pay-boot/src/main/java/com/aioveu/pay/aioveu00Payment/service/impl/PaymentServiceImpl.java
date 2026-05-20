@@ -19,7 +19,7 @@ import com.aioveu.pay.aioveu01.enums.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01.model.vo.*;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
-import com.aioveu.pay.aioveu12MqProducerPayment.controller.EnhancedRabbitMessagProducerPayment;
+import com.aioveu.pay.aioveu12MqProducerPayment.controller.PaymentMessageController;
 import com.alibaba.fastjson.JSON;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -91,7 +91,7 @@ public class PaymentServiceImpl implements PaymentService {
     private MqSendRecordService mqSendRecordService;
 
     @Autowired
-    private EnhancedRabbitMessagProducerPayment enhancedRabbitMessagProducerPayment;
+    private PaymentMessageController paymentMessageController;
 
 
     @Autowired
@@ -499,7 +499,7 @@ public class PaymentServiceImpl implements PaymentService {
      */
     private boolean sendPaymentSuccessMessage(PayOrder payOrder, Map<String, String> params) {
         try {
-            return enhancedRabbitMessagProducerPayment.sendPaymentSuccessMessageAndSaveSendRecord(payOrder, params);
+            return paymentMessageController.sendPaymentSuccessMessageAndSaveSendRecord(payOrder, params);
         } catch (Exception e) {
             log.error("发送支付成功MQ消息异常: paymentNo={}", payOrder.getPaymentNo(), e);
             return false;
@@ -511,7 +511,7 @@ public class PaymentServiceImpl implements PaymentService {
      */
     private boolean sendPaymentFailureMessage(PayOrder payOrder, Map<String, String> params) {
         try {
-            return enhancedRabbitMessagProducerPayment.sendPaymentFailedMessageAndSaveSendRecord(payOrder, params);
+            return paymentMessageController.sendPaymentFailedMessageAndSaveSendRecord(payOrder, params);
         } catch (Exception e) {
             log.error("发送支付失败MQ消息异常: paymentNo={}", payOrder.getPaymentNo(), e);
             return false;
