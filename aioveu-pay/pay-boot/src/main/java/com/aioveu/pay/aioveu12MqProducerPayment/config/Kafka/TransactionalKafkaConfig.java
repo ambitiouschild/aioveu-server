@@ -22,6 +22,16 @@ import java.util.Map;
  * @Date 2026/5/13 18:37
  * @Version 1.0
  **/
+
+
+/*
+*  TODO     解决方案：
+            1.使用@Qualifier明确指定注入哪个Bean
+            2.创建缺失的Bean类型（KafkaTemplate<String, Object>）
+            3。简化设计，只使用一个KafkaTemplate
+            4.标记主Bean，使用@Primary注解
+*
+* */
 @Configuration
 @EnableKafka
 public class TransactionalKafkaConfig {

@@ -4,6 +4,7 @@ package com.aioveu.pay.aioveu12MqProducerPayment.service.Kafka.impl;
 import com.aioveu.pay.aioveu12MqProducerPayment.service.Kafka.MultiTypeProducerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Service;
  **/
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class MultiTypeProducerServiceImpl implements MultiTypeProducerService {
 
 
@@ -27,6 +27,14 @@ public class MultiTypeProducerServiceImpl implements MultiTypeProducerService {
     // 注入JSON类型的Template
     private final KafkaTemplate<String, Object> jsonKafkaTemplate;
 
+    // 使用@Qualifier指定具体的Bean
+    public MultiTypeProducerServiceImpl(
+            @Qualifier("kafkaTemplate") KafkaTemplate<String, String> stringKafkaTemplate,
+            @Qualifier("jsonKafkaTemplate") KafkaTemplate<String, Object> jsonKafkaTemplate
+    ) {
+        this.stringKafkaTemplate = stringKafkaTemplate;
+        this.jsonKafkaTemplate = jsonKafkaTemplate;
+    }
 
     /**
      * 发送字符串消息
