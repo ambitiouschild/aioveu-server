@@ -132,7 +132,12 @@
         </dependency>
 
 
-
+        <!-- 检查是否正确引用了Spring AMQP 3.1.2 -->
+        <dependency>
+            <groupId>org.springframework.amqp</groupId>
+            <artifactId>spring-rabbit</artifactId>
+            <version>3.1.2</version>  <!-- 确保是这个版本 -->
+        </dependency>
 
 <!--        既然你决定使用 RocketMQ 最新版本，我们需要将依赖升级到 2.3.x或更高版本，并适配最新的 API 规范。-->
 <!--        你之前的 asyncSend(String, Message, long)方法签名在旧版本中不存在，但在新版本中，-->

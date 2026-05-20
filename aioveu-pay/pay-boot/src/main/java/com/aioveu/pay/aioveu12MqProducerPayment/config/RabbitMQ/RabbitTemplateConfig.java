@@ -48,6 +48,7 @@ public class RabbitTemplateConfig {
         rabbitTemplate.setMandatory(true);
 
         // 2. 设置 ReturnCallback
+        //这里已经设置ReturnCallback
         rabbitTemplate.setReturnsCallback(rabbitReturnCallback);
 
         // 3. 配置 ConfirmCallback
