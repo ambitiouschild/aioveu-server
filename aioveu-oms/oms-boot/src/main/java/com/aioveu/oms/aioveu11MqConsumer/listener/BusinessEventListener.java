@@ -10,7 +10,9 @@ package com.aioveu.oms.aioveu11MqConsumer.listener;
  * @Version 1.0
  **/
 
+import com.aioveu.common.sms.service.SmsService;
 import com.aioveu.event.model.vo.MessageSentEvent;
+import com.aioveu.mail.service.MailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -27,7 +29,7 @@ import org.springframework.stereotype.Component;
 public class BusinessEventListener {
 
 
-    private final EmailService emailService;
+    private final MailService emailService;
     private final SmsService smsService;
     private final DatabaseService databaseService;
     private final CacheService cacheService;

@@ -22,6 +22,10 @@
 
         <common-event.version>1.0-SNAPSHOT</common-event.version>
 
+        <common-mail.version>1.0-SNAPSHOT</common-mail.version>
+
+        <common-sms.version>1.0-SNAPSHOT</common-sms.version>
+
 
     </properties>
 
@@ -104,7 +108,17 @@
             <version>${common-event.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-mail</artifactId>
+            <version>${common-mail.version}</version>
+        </dependency>
 
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-sms</artifactId>
+            <version>${common-sms.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>com.aioveu</groupId>
