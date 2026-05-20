@@ -1,14 +1,14 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.service.impl;
 
 
+import com.aioveu.common.rabbitmq.enums.SendStatus;
+import com.aioveu.common.rabbitmq.producer.monitor.ProducerMetricsCollector;
+import com.aioveu.common.rabbitmq.producer.monitor.ProducerMonitor;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
-import com.aioveu.pay.aioveu10MqSendRecord.enums.SendStatus;
 import com.aioveu.pay.aioveu10MqSendRecord.mapper.MqSendRecordMapper;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
 import com.aioveu.common.util.MessageIdGenerator;
-import com.aioveu.pay.aioveu12MqProducerPayment.Monitor.RabbitMQ.ProducerMetricsCollector;
-import com.aioveu.pay.aioveu12MqProducerPayment.Monitor.RabbitMQ.ProducerMonitor;
 import com.aioveu.pay.aioveu12MqProducerPayment.enums.MessageQueueTypeEnum;
 import com.aioveu.common.rabbitmq.producer.model.vo.RabbitBatchSendResult;
 import com.aioveu.common.rabbitmq.producer.model.vo.RabbitSendRequest;
@@ -17,8 +17,8 @@ import com.aioveu.common.rabbitmq.producer.model.vo.SendContext;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.MessageSendException;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.PaymentFailedMessage;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.PaymentSuccessMessage;
-import com.aioveu.common.rabbitmq.producer.service.RabbitMessageServicePayment;
-import com.aioveu.common.rabbitmq.producer.util.AdapterMessageBuilderImpl;
+import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMessageServicePayment;
+import com.aioveu.pay.aioveu12MqProducerPayment.utils.AdapterMessageBuilderImpl;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;

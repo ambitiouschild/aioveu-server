@@ -2,15 +2,13 @@ package com.aioveu.pay.aioveu12MqProducerPayment.utils;
 
 
 import com.aioveu.common.rabbitmq.enums.AckType;
+import com.aioveu.kafka.producer.model.vo.KafkaSendResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.service.AdapterMessageBuilder;
-import com.aioveu.pay.aioveu10MqSendRecord.enums.AckType;
 import com.aioveu.pay.aioveu12MqProducerPayment.adapter.MessageRequestAdapter;
 import com.aioveu.pay.aioveu12MqProducerPayment.enums.MessageQueueTypeEnum;
-import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.Kafka.KafkaSendResult;
 import com.aioveu.common.rabbitmq.producer.model.vo.RabbitSendRequest;
 import com.aioveu.common.rabbitmq.producer.model.vo.RabbitSendResult;
-import com.aioveu.common.rabbitmq.producer.model.vo.RocketMQSendResult;
-import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.AdapterMessageBuilder;
+import com.aioveu.rocketmq.producer.model.vo.RocketMQSendResult;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -167,13 +165,13 @@ public class AdapterMessageBuilderImpl implements AdapterMessageBuilder {
             Object result = null;
 
             switch (queueType) {
-                case MessageQueueTypeEnum.ROCKETMQ:
+                case ROCKETMQ:
                     result = sendByRocketMQ(request);
                     break;
-                case MessageQueueTypeEnum.KAFKA:
+                case KAFKA:
                     result = sendByKafka(request);
                     break;
-                case MessageQueueTypeEnum.RABBITMQ:
+                case RABBITMQ:
                     result = sendByRabbitMQ(request);
                     break;
                 default:

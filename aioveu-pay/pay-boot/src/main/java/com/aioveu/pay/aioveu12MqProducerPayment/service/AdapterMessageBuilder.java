@@ -1,11 +1,11 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.service;
 
 
+import com.aioveu.kafka.producer.model.vo.KafkaSendResult;
 import com.aioveu.pay.aioveu12MqProducerPayment.enums.MessageQueueTypeEnum;
-import com.aioveu.pay.aioveu12MqProducerPayment.model.sendResult.Kafka.KafkaSendResult;
 import com.aioveu.common.rabbitmq.producer.model.vo.RabbitSendRequest;
 import com.aioveu.common.rabbitmq.producer.model.vo.RabbitSendResult;
-import com.aioveu.common.rabbitmq.producer.model.vo.RocketMQSendResult;
+import com.aioveu.rocketmq.producer.model.vo.RocketMQSendResult;
 
 /**
  * @ClassName: AdapterMessageBuilder

@@ -2,7 +2,7 @@ package com.aioveu.pay.aioveu12MqProducerPayment.controller;
 
 
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
-import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMQ.RabbitMessageServicePayment;
+import com.aioveu.pay.aioveu12MqProducerPayment.service.RabbitMessageServicePayment;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
