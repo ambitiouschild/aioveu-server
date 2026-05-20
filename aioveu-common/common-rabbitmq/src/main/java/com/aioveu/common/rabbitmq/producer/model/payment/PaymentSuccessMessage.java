@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.model.vo;
+package com.aioveu.common.rabbitmq.producer.model.payment;
 
 
 import lombok.AllArgsConstructor;
@@ -15,6 +15,9 @@ import java.util.Map;
 /**
  * @ClassName: PaymentMessage
  * @Description TODO 支付成功消息DTO
+ *                    消息契约（两边必须完全一致） 放在公共模块
+ *                      ✅ 不要用 LocalDateTime
+ *                      ✅ 一定要 messageId（幂等）
  * @Author aioveu
  * @Author 雒世松
  * @Date 2026/5/11 18:30
@@ -40,6 +43,7 @@ public class PaymentSuccessMessage implements Serializable {
     private String channel;  // wechat/alipay
 
     // 业务信息
+    private Long tenantId;
     private Long memberId;
     private String memberName;
     private LocalDateTime paymentTime;

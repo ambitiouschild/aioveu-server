@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.model.vo;
+package com.aioveu.common.rabbitmq.producer.model.payment;
 
 
 import lombok.Builder;
