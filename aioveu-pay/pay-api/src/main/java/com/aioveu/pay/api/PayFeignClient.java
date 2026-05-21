@@ -2,11 +2,11 @@ package com.aioveu.pay.api;
 
 import com.aioveu.common.result.Result;
 import com.aioveu.common.web.config.FeignDecoderConfig;
-import com.aioveu.pay.model.PaymentParamsVO;
-import com.aioveu.pay.model.PaymentRequestDTO;
-import com.aioveu.pay.model.PaymentStatusVO;
-import com.aioveu.pay.model.RefundRequestDTO;
+import com.aioveu.pay.model.*;
+import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -52,4 +52,25 @@ public interface PayFeignClient {
      */
     @PostMapping("/refund")
     Result<Boolean> refund(@RequestBody RefundRequestDTO request);
+
+
+    /*
+    * 新增支付订单
+    * */
+    @PostMapping("/api/v1/pay-order")
+    Result<Void> savePayOrder(@RequestBody @Valid PayOrderForm formData );
+
+    /*
+     * 新增支付订单APP
+     * */
+    @PostMapping("/app-api/v1/pay-order")
+    String createPayOrder(@RequestBody @Valid PayOrderForm formData );
+
+
+    /**
+     * 根据订单号查询支付订单
+     */
+    @GetMapping("/app-api/v1/pay-order/getByOrderNo")
+    PayOrderVO getByOrderNo(@RequestBody @Valid String orderNo);
+
 }

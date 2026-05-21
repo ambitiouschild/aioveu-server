@@ -4,7 +4,9 @@ spring:
   profiles:
     active: dev  #dev prod
 
-
+rabbitmq:
+  queue:
+    payment-success: order.payment.success.queue
 
 rocketmq:
   name-server: ${ROCKETMQ_NAMESRV:127.0.0.1:9876}  # NameServer地址
@@ -53,3 +55,10 @@ order:
       topics: payment_success_topic
       # 监控的消费者组
       consumer-groups: ${spring.application.name}-payment-consumer
+
+#✅ 方案 1（最推荐）：忽略 mail 健康检查
+#✅ 方案 2：把邮箱配对（如果你真要用）
+management:
+  health:
+    mail:
+      enabled: false

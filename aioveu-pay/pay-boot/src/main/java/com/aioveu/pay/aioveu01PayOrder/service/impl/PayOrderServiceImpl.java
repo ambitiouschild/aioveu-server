@@ -11,6 +11,7 @@ import com.aioveu.pay.aioveu01PayOrder.model.vo.PayOrderVO;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
 import com.aioveu.pay.aioveu01.enums.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01.model.vo.PaymentCallbackDTO;
+import com.aioveu.pay.aioveu01PayOrder.utils.PayOrderNoGenerator;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -49,6 +50,9 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
     private final PayOrderConverter payOrderConverter;
 
 
+    private final PayOrderNoGenerator payOrderNoGenerator;
+
+
     // 创建 ObjectMapper 实例
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -84,12 +88,66 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
      *
      * @param formData 支付订单表单对象
      * @return 是否新增成功
+     *
+     * 正确写法（生产级 ✅）
+     * 必须：用 orderNo做幂等
+     *
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean savePayOrder(PayOrderForm formData) {
+
+        String orderNo = formData.getOrderNo();
+
+        // 幂等校验（最关键）
+        if (this.lambdaQuery()
+                .eq(PayOrder::getOrderNo, orderNo)
+                .exists()) {
+            log.warn("支付订单已存在，orderNo={}", orderNo);
+            return true;
+        }
+
+        // 生成支付单号
+        formData.setPaymentNo(payOrderNoGenerator.generatePaymentNo());
+
+        // 转换并保存
         PayOrder entity = payOrderConverter.toEntity(formData);
         return this.save(entity);
     }
+
+
+    /**
+     * 新增支付订单
+     *
+     * @param formData 支付订单表单对象
+     * @return orderNo
+     * 订单服务才能拿到 paymentNo
+     * 正确写法（生产级 ✅）
+     * 必须：用 orderNo做幂等
+     *
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String createPayOrder(PayOrderForm formData) {
+
+        String orderNo = formData.getOrderNo();
+
+        // 幂等校验（最关键）
+        if (this.lambdaQuery()
+                .eq(PayOrder::getOrderNo, orderNo)
+                .exists()) {
+            log.warn("支付订单已存在，orderNo={}", orderNo);
+            return orderNo;
+        }
+
+        // 生成支付单号
+        formData.setPaymentNo(payOrderNoGenerator.generatePaymentNo());
+
+        // 转换并保存
+        PayOrder entity = payOrderConverter.toEntity(formData);
+        return orderNo;
+    }
+
 
     /**
      * 更新支付订单
@@ -222,6 +280,27 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         queryWrapper.eq("payment_no", paymentNo);
 
         return this.baseMapper.selectOne(queryWrapper);
+    }
+
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public PayOrderVO getByOrderNo(String orderNo) {
+
+        if (StrUtil.isBlank(orderNo)) {
+            return null;
+        }
+
+        PayOrder payOrder = this.baseMapper.selectOne(
+                new LambdaQueryWrapper<PayOrder>()
+                        .eq(PayOrder::getOrderNo, orderNo)
+                        .last("limit 1")
+        );
+        // 转换并保存
+        PayOrderVO payOrderVO = payOrderConverter.toVO(payOrder);
+
+        // ✅ 永远用 orderNo 查
+        return  payOrderVO;
     }
 
 

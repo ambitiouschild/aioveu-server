@@ -2,6 +2,7 @@ package com.aioveu.pay.aioveu01PayOrder.converter;
 
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu01PayOrder.model.form.PayOrderForm;
+import com.aioveu.pay.aioveu01PayOrder.model.vo.PayOrderVO;
 import com.aioveu.pay.aioveu07PayNotify.model.vo.PayNotifyDTO;
 import com.aioveu.pay.aioveu01.model.vo.PaymentRequestDTO;
 import org.mapstruct.Mapper;
@@ -24,6 +25,8 @@ public interface PayOrderConverter {
     // Consider to declare/implement a mapping method: "BigDecimal map(BigDecimal value)".
     // 或者使用@Mapping的source属性
     PayOrderForm toForm(PayOrder entity);
+
+    PayOrderVO toVO(PayOrder entity);
 
 
     PayOrder toEntity(PayOrderForm formData);

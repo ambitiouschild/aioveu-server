@@ -1,6 +1,10 @@
 package com.aioveu.common.rabbitmq.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
@@ -20,6 +24,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @Slf4j
 public class RabbitConfig {
+
+
+    public static final String QUEUE_PAYMENT_SUCCESS = "order.payment.success.queue";
+    public static final String EXCHANGE_PAYMENT = "order.payment.exchange";
+    public static final String ROUTING_KEY_PAYMENT_SUCCESS = "order.payment.success";
+
 
     /**
      * 消息序列化配置
@@ -44,5 +54,30 @@ public class RabbitConfig {
         rabbitAdmin.setAutoStartup(true);
 
         return rabbitAdmin;
+    }
+
+
+    /*
+    *
+    *     TODO      方案 1（最推荐）：让 Spring 自动创建队列
+    *                       ✅ Spring 启动时会自动创建队列
+                            ✅ 再也不会 404
+    * */
+    @Bean
+    public Queue paymentSuccessQueue() {
+        return new Queue(QUEUE_PAYMENT_SUCCESS, true);
+    }
+
+    @Bean
+    public DirectExchange paymentExchange() {
+        return new DirectExchange(EXCHANGE_PAYMENT);
+    }
+
+    @Bean
+    public Binding paymentSuccessBinding() {
+        return BindingBuilder
+                .bind(paymentSuccessQueue())
+                .to(paymentExchange())
+                .with(ROUTING_KEY_PAYMENT_SUCCESS);
     }
 }

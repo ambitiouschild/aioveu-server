@@ -17,9 +17,7 @@ import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
 import com.aioveu.oms.aioveu11MqConsumer.model.vo.OrderPaySuccessDTO;
 import com.aioveu.pay.api.PayFeignClient;
-import com.aioveu.pay.model.PaymentParamsVO;
-import com.aioveu.pay.model.PaymentRequestDTO;
-import com.aioveu.pay.model.PaymentSuccessMessage;
+import com.aioveu.pay.model.*;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.alibaba.nacos.shaded.com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.alibaba.nacos.shaded.io.grpc.netty.shaded.io.netty.handler.codec.DateFormatter;
@@ -57,6 +55,7 @@ import com.aioveu.ums.api.MemberFeignClient;
 import com.aioveu.ums.dto.MemberAddressDTO;
 import feign.FeignException;
 import io.seata.spring.annotation.GlobalTransactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
@@ -70,9 +69,13 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -456,9 +459,42 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             lockStockWithRetry(orderItems, orderToken, 2);
 
             // ==================== 6. 创建订单 ====================
-            orderSn = createOrder(submitForm, orderItems, latestSkuInfos);
+            OmsOrder omsOrder = createOrder(submitForm, orderItems, latestSkuInfos);
 
-            // ==================== 7. 清理购物车 ====================
+            // ==================== 7. 调用支付服务（Feign）创建支付订单 ====================
+            // 2. 调用支付微服务
+            PayOrderForm formData =  new PayOrderForm();
+            formData.setOrderNo(omsOrder.getOrderSn());
+            formData.setPaymentAmount(
+                    BigDecimal.valueOf(omsOrder.getTotalAmount())
+            );
+            //订单服务里「只负责调用」（✅ 正确）
+
+
+            /*
+            *  TODO     ✅ 100% 正确的地方
+                        ✅ 订单服务不生成 paymentNo
+                        ✅ 订单服务只传“订单号 + 金额”
+                        ✅ paymentNo 由支付服务返回
+                        ✅ Feign 调用，边界清晰
+                        👉 这就是标准支付中台写法
+                        * paymentNo 是后续微信回调的唯一凭证
+            *
+            * */
+            String  paymentNo = payFeignClient.createPayOrder(formData);
+            if (paymentNo == null) {
+                throw new BusinessException("创建支付订单失败");
+            }
+
+            // ✅ 写回到 outTradeNo
+            omsOrder.setOutTradeNo(paymentNo);
+            this.baseMapper.updateById(omsOrder);
+
+            log.info("【订单提交】调用支付服务（Feign）创建支付订单成功，orderNo={}, paymentNo={}",
+                    omsOrder.getOrderSn(), paymentNo);
+
+
+            // ==================== 8. 清理购物车 ====================
             clearCartItems(orderItems, submitForm.getMemberId());
 
             long duration = System.currentTimeMillis() - startTime;
@@ -751,7 +787,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     /**
      * 创建订单
      */
-    private String createOrder(OrderSubmitForm submitForm,
+    private OmsOrder createOrder(OrderSubmitForm submitForm,
                                List<OrderSubmitForm.OrderItem> orderItems,
                                List<SkuInfoDTO> skuInfos) {
         log.info("【创建订单】开始创建订单");
@@ -895,7 +931,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 //            sendOrderCreatedEvent(order);
 
             log.info("【创建订单】订单创建成功，订单号: {}", orderSn);
-            return orderSn;
+            return order;
 
         } catch (Exception e) {
             log.error("【创建订单】创建失败: ", e);
@@ -1024,7 +1060,6 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     @Override
     @GlobalTransactional
 //    public <T> T payOrder(OrderPaymentForm paymentForm) {
-
     public Object payOrder(OrderPaymentForm paymentForm) {
 
         String orderSn = paymentForm.getOrderSn();
@@ -1040,13 +1075,20 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             throw new BizException("支付金额必须大于0");
         }
 
-        // 2. 验证订单金额
-        log.info("根据订单号查询订单");
+
+
+
         OmsOrder order = this.getOne(new LambdaQueryWrapper<OmsOrder>().eq(OmsOrder::getOrderSn, orderSn));
         Assert.isTrue(order != null, "订单不存在");
+        log.info("根据订单号查询订单OmsOrder:{}",order);
 
 
-        //
+        //✅ 2查支付订单（✅ 必须补）
+        PayOrderVO payOrder = payFeignClient.getByOrderNo(orderSn);
+        Assert.notNull(payOrder, "支付订单不存在");
+        log.info("查支付订单（✅ 必须补）,根据订单号查询支付订单PayOrder:{}",payOrder);
+
+        //  2. 验证订单金额 ✅ 用 PayOrder 校验金额（✅ 关键）
         Long orderPaymentAmount = order.getPaymentAmount();
         if (orderPaymentAmount == null || orderPaymentAmount <= 0) {
             log.error("【支付】订单金额异常: {}", orderPaymentAmount);
@@ -1057,14 +1099,31 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         //保持单位为分进行比较（推荐）
         if (!orderPaymentAmount.equals(paymentAmount)) {
             // 只用于显示，不用于比较
+
+            /*
+                    ❌ 不要用 double 做金额
+                    ❌ 不要用除法做比较
+            * */
             double orderAmountYuan = orderPaymentAmount / 100.00;  // 121.5
             double requestAmountYuan = paymentAmount / 100.00;           // 121.5
+            // 显示用
+            String orderAmountStr = new DecimalFormat("#0.00")
+                    .format(orderPaymentAmount / 100.0);
 
             log.error("【支付】金额不匹配，订单金额: {}，请求金额: {}",
                     orderAmountYuan, requestAmountYuan);
             throw new BizException(String.format("支付金额不匹配，订单金额: ¥%.2f",
                     orderPaymentAmount / 100.0));
         }
+        log.info("✅ 用 OmsOrder 校验金额（✅） 关键");
+
+        //✅ 用 PayOrder 校验金额（✅ 关键）
+        if (!payOrder.getPaymentAmount().equals(paymentAmount)) {
+            throw new BizException("支付金额不匹配");
+        }
+        log.info("✅ 用 PayOrder 校验金额（✅） 关键");
+        log.info("✅ 永远用 PayOrder 的金额做资金判断");
+
 
         log.info("校验订单状态是否可支付");
         Assert.isTrue(OrderStatusEnum.UNPAID.getValue().equals(order.getStatus()), "订单不可支付，请检查订单状态");

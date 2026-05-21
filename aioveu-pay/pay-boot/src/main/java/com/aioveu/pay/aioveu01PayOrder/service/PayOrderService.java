@@ -7,6 +7,7 @@ import com.aioveu.pay.aioveu01PayOrder.model.vo.*;
 import com.aioveu.pay.aioveu01.model.vo.PaymentCallbackDTO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 
@@ -43,6 +44,19 @@ public interface PayOrderService extends IService<PayOrder> {
      * @return 是否新增成功
      */
     boolean savePayOrder(PayOrderForm formData);
+
+
+    /**
+     * 新增支付订单
+     *
+     * @param formData 支付订单表单对象
+     * @return orderNo
+     * 订单服务才能拿到 paymentNo
+     * 正确写法（生产级 ✅）
+     * 必须：用 orderNo做幂等
+     *
+     */
+    String createPayOrder(PayOrderForm formData);
 
     /**
      * 修改支付订单
@@ -123,6 +137,11 @@ public interface PayOrderService extends IService<PayOrder> {
      */
     PayOrder getByPaymentNoWithLock(String paymentNo);
 
+
+    /**
+     * 根据订单号查询支付订单
+     */
+    PayOrderVO getByOrderNo(String orderNo);
 
 
     /**

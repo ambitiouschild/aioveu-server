@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu01PayOrder.controller;
+package com.aioveu.pay.aioveu01PayOrder.controller.admin;
 
 import com.aioveu.common.annotation.Log;
 import com.aioveu.common.enums.LogModuleEnum;

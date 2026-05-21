@@ -131,7 +131,7 @@ public class OrderController {
         }
     }
 
-    @Operation(summary ="订单支付")
+    @Operation(summary ="订单支付,只干一件事,获取支付参数（唤起微信 / 支付宝）")
     @PostMapping("/payment")
     public Result payOrder(@Validated @RequestBody OrderPaymentForm paymentForm) {
 
