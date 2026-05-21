@@ -75,8 +75,10 @@ public class MessageIdGenerator {
         int sequence = SEQUENCE.getAndUpdate(prev -> (prev >= MAX_SEQUENCE) ? 0 : prev + 1);
         int random = ThreadLocalRandom.current().nextInt(100, 999);
 
-        return String.format("%s_%s_%s_%04d_%d",
+        String messageId = String.format("%s_%s_%s_%04d_%d",
                 getAppShortName(), timestamp, WORKER_ID, sequence, random);
+        log.info("【MessageIdGenerator】生成通用消息ID:{}",messageId);
+        return messageId;
     }
 
     /**
@@ -91,14 +93,22 @@ public class MessageIdGenerator {
      */
     public String generateBizMessageId(String bizType, String bizNo) {
         String baseId = generateMessageId();
-        return String.format("%s_%s_%s", bizType, bizNo, baseId);
+
+        String bizMessageId=  String.format("%s_%s_%s", bizType, bizNo, baseId);
+        log.info("【MessageIdGenerator】生成业务消息ID:{}",bizMessageId);
+        return bizMessageId;
     }
 
     /**
      * 生成支付消息ID
      */
     public String generatePaymentMessageId(String paymentNo) {
-        return generateBizMessageId("PAY", paymentNo);
+
+
+        String paymentMessageId =  generateBizMessageId("PAY", paymentNo);
+        log.info("【MessageIdGenerator】生成支付消息ID:{}",paymentMessageId);
+
+        return paymentMessageId;
     }
 
     /**
