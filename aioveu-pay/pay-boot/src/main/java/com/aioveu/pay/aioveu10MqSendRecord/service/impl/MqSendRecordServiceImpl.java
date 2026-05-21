@@ -13,7 +13,7 @@ import com.aioveu.pay.aioveu10MqSendRecord.model.query.MqSendRecordQuery;
 import com.aioveu.pay.aioveu10MqSendRecord.model.vo.MqSendRecordVo;
 import com.aioveu.pay.aioveu10MqSendRecord.model.vo.SendRecordStats;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
-import com.aioveu.common.util.MessageIdGenerator;
+import com.aioveu.common.rabbitmq.producer.util.MessageIdGenerator;
 import com.aioveu.pay.aioveu12MqProducerPayment.utils.RetryResultCreator;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.query.FailedMessageQuery;
 import com.alibaba.fastjson.JSON;

@@ -5,12 +5,13 @@ import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.rabbitmq.enums.SendStatus;
 import com.aioveu.common.rabbitmq.producer.monitor.ProducerMetricsCollector;
 import com.aioveu.common.rabbitmq.producer.monitor.ProducerMonitor;
+import com.aioveu.pay.aioveu01.enums.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu10MqSendRecord.mapper.MqSendRecordMapper;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
-import com.aioveu.common.util.MessageIdGenerator;
+import com.aioveu.common.rabbitmq.producer.util.MessageIdGenerator;
 import com.aioveu.pay.aioveu12MqProducerPayment.enums.MessageQueueTypeEnum;
 import com.aioveu.common.rabbitmq.producer.model.vo.RabbitBatchSendResult;
 import com.aioveu.common.rabbitmq.producer.model.vo.RabbitSendRequest;
@@ -89,26 +90,18 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
         boolean success = false;
         String messageId = null;
 
-        PayOrder payOrder = payOrderMapper.getPayOrderByNo(dto.getPayOrderNo());
+        PayOrder payOrder = payOrderMapper.getPayOrderByNo(dto.getPaymentNo());
         if (payOrder == null) {
             throw new BusinessException("支付订单不存在");
         }
 
         try {
 
-//            // 构建消息
-//            PaymentSuccessMessage message = PaymentSuccessMessage.builder()
-//                    .messageId(UUID.randomUUID().toString())
-//                    .paymentNo(payOrder.getPaymentNo())
-//                    .orderNo(payOrder.getOrderNo())
-//                    .transactionId(params.get("transaction_id"))
-//                    .amount(payOrder.getPaymentAmount())
-//                    .channel(payOrder.getPaymentChannel())
-//                    .paymentTime(LocalDateTime.now())
-//                    .memberId(payOrder.getUserId())
-//                    .build();
-
-
+            // ✅ 判断 messageId
+            messageId = dto.getMessageId();
+            if (StringUtils.isBlank(messageId)) {
+                messageId = messageIdGenerator.generatePaymentMessageId(payOrder.getPaymentNo());
+            }
 
             // 构建消息
             PaymentSuccessMessage message = buildPaymentSuccessMessage(payOrder, dto);
@@ -116,7 +109,7 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
                 // 创建 RabbitSendRequest
             RabbitSendRequest request = RabbitSendRequest.builder()
                     .body(message)
-                    .messageId(UUID.randomUUID().toString())
+                    .messageId(messageId)
                     .exchange(paymentExchange)
                     .routingKey(paymentSuccessRoutingKey)
                     .messageType("PAYMENT_SUCCESS")
@@ -157,7 +150,7 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
 
             // 记录发送失败，后续补偿任务会重试
             mqSendRecordService.updateSendStatus(
-                    UUID.randomUUID().toString(),
+                    messageId,
                     SendStatus.FAILED,
                     e.getMessage()
             );
@@ -181,21 +174,27 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
     public boolean sendPaymentFailedMessage(SendPaymentMqDTO dto) {
         long startTime = System.currentTimeMillis();
         boolean success = false;
-        String messageId = null;
 
-        PayOrder payOrder = payOrderMapper.getPayOrderByNo(dto.getPayOrderNo());
+        PayOrder payOrder = payOrderMapper.getPayOrderByNo(dto.getPaymentNo());
         if (payOrder == null) {
             throw new BusinessException("支付订单不存在");
         }
 
+        //✅ 成功 / 失败用同一个生成规则
+        String messageId = dto.getMessageId();
+        if (StringUtils.isBlank(messageId)) {
+            messageId = messageIdGenerator.generatePaymentMessageId(payOrder.getPaymentNo());
+        }
+
         try {
+
             // 构建消息
             PaymentFailedMessage message = buildPaymentFailedMessage(payOrder, dto);
 
             // 创建 RabbitSendRequest
             RabbitSendRequest request = RabbitSendRequest.builder()
                     .body(message)
-                    .messageId(UUID.randomUUID().toString())
+                    .messageId(messageId)
                     .exchange(paymentExchange)
                     .routingKey(paymentFailedRoutingKey)
                     .messageType("PAYMENT_FAILED")
@@ -253,12 +252,14 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
             long startTime = System.currentTimeMillis();
             boolean success = false;
 
+            String messageId = messageIdGenerator.generatePaymentMessageId(message.getPaymentNo());
+
             try {
 
                 // 创建 RabbitSendRequest
                 RabbitSendRequest request = RabbitSendRequest.builder()
                         .body(message)
-                        .messageId(UUID.randomUUID().toString())
+                        .messageId(messageId)
                         .exchange(paymentExchange)
                         .routingKey(paymentSuccessRoutingKey)
                         .messageType("PAYMENT_SUCCESS")
@@ -343,11 +344,11 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
      */
     private PaymentSuccessMessage buildPaymentSuccessMessage(PayOrder payOrder, SendPaymentMqDTO dto) {
         return PaymentSuccessMessage.builder()
-                .messageId(UUID.randomUUID().toString())
+                .messageId(dto.getMessageId())
                 .paymentNo(payOrder.getPaymentNo())
                 .orderNo(payOrder.getOrderNo())
-                .tenantId(dto.getTenantId())
-//                .transactionId(params.get("transaction_id"))
+                .tenantId(payOrder.getTenantId())   // ✅ 从 PayOrder 取
+                .transactionId(dto.getTransactionId())
                 .amount(payOrder.getPaymentAmount())
                 .channel(payOrder.getPaymentChannel())
                 .paymentTime(LocalDateTime.now())
@@ -360,11 +361,18 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
      */
     private PaymentFailedMessage buildPaymentFailedMessage(PayOrder payOrder,SendPaymentMqDTO dto) {
         return PaymentFailedMessage.builder()
+                .messageId(dto.getMessageId())
+                .tenantId(payOrder.getTenantId())
                 .paymentNo(payOrder.getPaymentNo())
                 .orderNo(payOrder.getOrderNo())
+                .amount(payOrder.getPaymentAmount())
+                .channel(payOrder.getPaymentChannel())
+                .bizType("PAY")
+                .paymentStatus(PaymentStatusEnum.FAILED.getValue())
 //                .errorCode(params.get("err_code"))
 //                .errorMsg(params.get("err_code_des"))
-                .channel(payOrder.getPaymentChannel())
+                .retryable(true)
+                .failTime(LocalDateTime.now())
                 .build();
     }
 
@@ -380,6 +388,8 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
                 request.getBody()
         );
     }
+
+
 
 
 }

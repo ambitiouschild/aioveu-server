@@ -19,7 +19,6 @@ import com.aioveu.pay.aioveu01.enums.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01.model.vo.*;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
-import com.aioveu.pay.aioveu12MqProducerPayment.controller.PaymentMessageController;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.SendPaymentMqDTO;
 import com.aioveu.pay.aioveu12MqProducerPayment.service.PaymentMessageService;
 import com.alibaba.fastjson.JSON;
@@ -35,10 +34,11 @@ import org.springframework.util.StringUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-
+import com.aioveu.common.rabbitmq.producer.util.MessageIdGenerator;
 /**
  * @ClassName: aa
  * @Description TODO 主要业务逻辑接口实现
@@ -54,54 +54,24 @@ import java.util.TreeMap;
 public class PaymentServiceImpl implements PaymentService {
 
 
+    private final PaymentStrategyFactory strategyFactory;
+    private final PayFlowService payFlowService;
+    private final PayOrderService payOrderService;
+    private final PayOrderConverter payOrderConverter;
+    private final PayAccountService payAccountService;
+    private final PayNotifyService payNotifyService;
+    private final WeChatPayService wechatPayService;
+    private final OrderFeignClient orderFeignClient;
+    private final MqSendRecordService mqSendRecordService;
+    private final PaymentMessageService paymentMessageService;
+    private final MessageIdGenerator messageIdGenerator;
+
     @Value("${pay.wechat.mch-key:}")
     private String wxMchKey;
 
     @Value("${pay.alipay.public-key:}")
     private String aliPublicKey;
 
-    @Autowired
-    private PayOrderService payOrderService;
-
-    @Autowired
-    private PayOrderConverter payOrderConverter;
-
-
-    @Autowired
-    //使用字段注入
-    private PayAccountService payAccountService;
-
-    //使用构造器注入（推荐）
-    private final PayFlowService payFlowService;
-
-    @Autowired
-    private PayNotifyService payNotifyService;
-
-    @Autowired
-    private WeChatPayService wechatPayService;
-
-//    @Autowired
-//    private ChannelRouter channelRouter;
-
-    @Autowired
-    private PaymentStrategyFactory strategyFactory;  // 策略工厂
-
-    @Autowired
-    private OrderFeignClient orderFeignClient;
-
-    @Autowired
-    private MqSendRecordService mqSendRecordService;
-
-    @Autowired
-    private PaymentMessageService paymentMessageService;
-
-
-    @Autowired
-    public PaymentServiceImpl(PaymentStrategyFactory strategyFactory,
-                              PayFlowService payFlowService) {
-        this.strategyFactory = strategyFactory;
-        this.payFlowService = payFlowService;
-    }
 
     /**
      * 统一支付接口
@@ -376,6 +346,13 @@ public class PaymentServiceImpl implements PaymentService {
 
             // 2. 发送MQ成功消息
             SendPaymentMqDTO dto =  new SendPaymentMqDTO();
+            dto.setMessageId(messageIdGenerator.generatePaymentMessageId(paymentNo));
+            dto.setPaymentNo(payOrder.getPaymentNo());
+            dto.setOmsOrderNo(payOrder.getOrderNo());
+            dto.setPaymentAmount(payOrder.getPaymentAmount());
+            dto.setTransactionId(params.get("transaction_id"));
+            dto.setPaymentTime(OffsetDateTime.now().toString());
+
 
             boolean mqSuccess = sendPaymentSuccessMessage(dto);
 
@@ -419,7 +396,17 @@ public class PaymentServiceImpl implements PaymentService {
             }
 
             // 3. 发送MQ失败消息
-            boolean mqSuccess = sendPaymentFailureMessage(payOrder, params);
+            SendPaymentMqDTO dto = new SendPaymentMqDTO();
+
+            dto.setMessageId(messageIdGenerator.generatePaymentMessageId(paymentNo));
+            dto.setPaymentNo(payOrder.getPaymentNo());
+            dto.setOmsOrderNo(payOrder.getOrderNo());
+            dto.setPaymentAmount(payOrder.getPaymentAmount());
+            dto.setTransactionId(params.get("transaction_id"));
+            dto.setPaymentTime(OffsetDateTime.now().toString());
+
+
+            boolean mqSuccess = sendPaymentFailureMessage(dto);
             if (!mqSuccess) {
                 log.warn("【微信回调】MQ失败消息发送失败，记录到补偿表: paymentNo={}", paymentNo);
                 saveToCompensation(payOrder, params, "MQ_FAILURE_SEND_FAILED");
@@ -505,7 +492,7 @@ public class PaymentServiceImpl implements PaymentService {
         try {
             return paymentMessageService.sendPaymentSuccessMessage(dto);
         } catch (Exception e) {
-            log.error("发送支付成功MQ消息异常: paymentNo={}", dto.getPayOrderNo(), e);
+            log.error("发送支付成功MQ消息异常: paymentNo={}", dto.getPaymentNo(), e);
             return false;
         }
     }
@@ -517,7 +504,7 @@ public class PaymentServiceImpl implements PaymentService {
         try {
             return paymentMessageService.sendPaymentFailedMessage(dto);
         } catch (Exception e) {
-            log.error("发送支付失败MQ消息异常: paymentNo={}", dto.getPayOrderNo(), e);
+            log.error("发送支付失败MQ消息异常: paymentNo={}", dto.getPaymentNo(), e);
             return false;
         }
     }

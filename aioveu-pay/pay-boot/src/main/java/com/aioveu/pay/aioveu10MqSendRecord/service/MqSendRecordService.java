@@ -7,7 +7,7 @@ import com.aioveu.pay.aioveu10MqSendRecord.model.form.MqSendRecordForm;
 import com.aioveu.pay.aioveu10MqSendRecord.model.query.MqSendRecordQuery;
 import com.aioveu.pay.aioveu10MqSendRecord.model.vo.MqSendRecordVo;
 import com.aioveu.pay.aioveu10MqSendRecord.model.vo.SendRecordStats;
-import com.aioveu.common.util.MessageIdGenerator;
+import com.aioveu.common.rabbitmq.producer.util.MessageIdGenerator;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 

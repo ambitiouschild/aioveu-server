@@ -4,7 +4,7 @@ import com.aioveu.common.rabbitmq.enums.SendStatus;
 import com.aioveu.common.rabbitmq.producer.monitor.ProducerMetricsCollector;
 import com.aioveu.common.rabbitmq.producer.model.vo.RabbitSendResult;
 import com.aioveu.common.rabbitmq.producer.service.RabbitMessageService;
-import com.aioveu.common.util.MessageIdGenerator;
+import com.aioveu.common.rabbitmq.producer.util.MessageIdGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.timeout.TimeoutException;
 import lombok.RequiredArgsConstructor;

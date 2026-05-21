@@ -1,9 +1,11 @@
-package com.aioveu.common.util;
+package com.aioveu.common.rabbitmq.producer.util;
 
 
 import jakarta.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -142,15 +144,15 @@ public class MessageIdGenerator {
         }
 
         String[] parts = messageId.split("_");
-        return MessageIdInfo.builder()
-                .appName(parts[0])
-                .timestamp(parts[1])
-                .workerId(parts[2])
-                .sequence(Integer.parseInt(parts[3]))
-                .random(Integer.parseInt(parts[4]))
-                .bizType(parts.length > 5 ? parts[5] : null)
-                .bizNo(parts.length > 6 ? parts[6] : null)
-                .build();
+        return new MessageIdInfo(
+                parts[0],
+                parts[1],
+                parts[2],
+                Integer.parseInt(parts[3]),
+                Integer.parseInt(parts[4]),
+                parts.length > 5 ? parts[5] : null,
+                parts.length > 6 ? parts[6] : null
+        );
     }
 
     /**
@@ -168,7 +170,9 @@ public class MessageIdGenerator {
      * 消息ID信息DTO
      */
     @Data
-    @Builder
+//    @Builder  //方案 2：保留 MessageIdInfo，但禁止外部使用 Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class MessageIdInfo {
         private String appName;      // 应用名
         private String timestamp;    // 时间戳
