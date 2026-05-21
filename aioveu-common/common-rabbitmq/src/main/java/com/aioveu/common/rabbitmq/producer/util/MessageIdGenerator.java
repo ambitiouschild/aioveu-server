@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.net.InetAddress;
@@ -43,6 +44,12 @@ public class MessageIdGenerator {
     private static final int MAX_SEQUENCE = 9999;
 
     private static String WORKER_ID = "01";
+
+    private final Environment environment;
+
+    public MessageIdGenerator(Environment environment) {
+        this.environment = environment;
+    }
 
     @PostConstruct
     public void init() {
@@ -157,13 +164,31 @@ public class MessageIdGenerator {
 
     /**
      * 获取应用简称
+     * getAppShortName()拿不到，99% 是 applicationName为 null
+     * 👉 Spring 不会注入 @Value
+     *
+     * 👉 applicationName 一定是 null
+     *
+     * ✅ 必须用注入的 Bean
      */
-    private String getAppShortName() {
+    private String getAppShortName2() {
         if (applicationName.contains("-")) {
             String[] parts = applicationName.split("-");
             return parts[parts.length - 1].toUpperCase();
         }
         return applicationName.toUpperCase();
+    }
+
+    /*
+    * 方案一（最推荐）：不用 @Value，用 Environment
+    * */
+    private String getAppShortName() {
+        String appName = environment.getProperty("spring.application.name", "unknown");
+        if (appName.contains("-")) {
+            String[] parts = appName.split("-");
+            return parts[parts.length - 1].toUpperCase();
+        }
+        return appName.toUpperCase();
     }
 
     /**
