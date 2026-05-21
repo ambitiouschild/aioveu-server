@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @ClassName: MessageIdGenerator
  * @Description TODO 消息ID生成器工具类
+ *                      messageId 是唯一一个“长得越长越安全”的地方 👍
  * @Author aioveu
  * @Author 雒世松
  * @Date 2026/5/11 20:49
