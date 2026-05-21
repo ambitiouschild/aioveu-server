@@ -61,6 +61,7 @@ public class MyTenantLineHandler implements TenantLineHandler {
         log.info("【MyTenantLineHandler】过滤器 → 解析Token → 设置租户上下文 → 后续所有组件都从上下文获取");
 
         // 如果租户ID为null，不添加租户条件
+        // ✅ 未登录 / 未设置租户
         if (tenantId == null) {
             log.info("【MyTenantLineHandler】租户ID为null，不添加租户过滤条件");
             log.info("【MyTenantLineHandler】问题根源：TenantLineInnerInterceptor在 getTenantId()返回 null时，还是添加了 AND tenant_id = null。");
@@ -68,11 +69,14 @@ public class MyTenantLineHandler implements TenantLineHandler {
             return null;
         }
 
+        // ✅ 平台级（超级管理员）
         if (tenantId == 0) {
             // 租户ID=0可能是超级管理员，可以查看所有数据
             // 根据业务需求决定是否忽略租户过滤
             log.info("【MyTenantLineHandler】租户ID=0，作为超级管理员处理，忽略租户过滤");
-            return new LongValue(tenantId);  // 或者 return false; 根据业务需求
+//            return new LongValue(tenantId);  // 或者 return false; 根据业务需求
+            log.info("【MyTenantLineHandler】平台级操作，忽略租户过滤");
+            return null;
         }
 
         // 正常租户ID，添加过滤条件
@@ -141,6 +145,11 @@ public class MyTenantLineHandler implements TenantLineHandler {
         }
 
         Set<String> systemTables = Set.of(
+
+                /*
+                * 业务系统根本不该直接操作它们
+                    👉 删掉这一段
+                * */
                 "tables",
                 "columns",
                 "all_tables",
@@ -150,6 +159,18 @@ public class MyTenantLineHandler implements TenantLineHandler {
                 "all_col_comments",
                 "all_cons_columns",
                 "all_constraints"
+                // ✅ 1. 平台级表（永远不隔离）
+//                "sys_tenant",
+//                "sys_user",
+//                "sys_role",
+//                "sys_menu",
+//                "pay_config_wechat",
+//                "pay_config_alipay",
+//
+//                "pay_config_wechat",
+//                "pay_config_alipay"
+
+
         );
         if (systemTables.contains(tableName.toLowerCase())) {
             return true;
