@@ -31,7 +31,7 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/pay-mq")
+@RequestMapping("/api/v1/pay-send-message")
 public class PaymentMessageController {
 
 

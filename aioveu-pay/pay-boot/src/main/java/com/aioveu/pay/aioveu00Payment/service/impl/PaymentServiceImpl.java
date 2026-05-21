@@ -20,6 +20,8 @@ import com.aioveu.pay.aioveu01.model.vo.*;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
 import com.aioveu.pay.aioveu12MqProducerPayment.controller.PaymentMessageController;
+import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.SendPaymentMqDTO;
+import com.aioveu.pay.aioveu12MqProducerPayment.service.PaymentMessageService;
 import com.alibaba.fastjson.JSON;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -91,7 +93,7 @@ public class PaymentServiceImpl implements PaymentService {
     private MqSendRecordService mqSendRecordService;
 
     @Autowired
-    private PaymentMessageController paymentMessageController;
+    private PaymentMessageService paymentMessageService;
 
 
     @Autowired
@@ -373,7 +375,9 @@ public class PaymentServiceImpl implements PaymentService {
             }
 
             // 2. 发送MQ成功消息
-            boolean mqSuccess = sendPaymentSuccessMessage(payOrder, params);
+            SendPaymentMqDTO dto =  new SendPaymentMqDTO();
+
+            boolean mqSuccess = sendPaymentSuccessMessage(dto);
 
             // 3. 如果MQ发送失败，记录到补偿表
             if (!mqSuccess) {
@@ -497,11 +501,11 @@ public class PaymentServiceImpl implements PaymentService {
     /**
      * 发送支付成功消息
      */
-    private boolean sendPaymentSuccessMessage(PayOrder payOrder, Map<String, String> params) {
+    private boolean sendPaymentSuccessMessage(SendPaymentMqDTO dto) {
         try {
-            return paymentMessageController.sendPaymentSuccessMessageAndSaveSendRecord(payOrder, params);
+            return paymentMessageService.sendPaymentSuccessMessage(dto);
         } catch (Exception e) {
-            log.error("发送支付成功MQ消息异常: paymentNo={}", payOrder.getPaymentNo(), e);
+            log.error("发送支付成功MQ消息异常: paymentNo={}", dto.getPayOrderNo(), e);
             return false;
         }
     }
@@ -509,11 +513,11 @@ public class PaymentServiceImpl implements PaymentService {
     /**
      * 发送支付失败消息
      */
-    private boolean sendPaymentFailureMessage(PayOrder payOrder, Map<String, String> params) {
+    private boolean sendPaymentFailureMessage(SendPaymentMqDTO dto) {
         try {
-            return paymentMessageController.sendPaymentFailedMessageAndSaveSendRecord(payOrder, params);
+            return paymentMessageService.sendPaymentFailedMessage(dto);
         } catch (Exception e) {
-            log.error("发送支付失败MQ消息异常: paymentNo={}", payOrder.getPaymentNo(), e);
+            log.error("发送支付失败MQ消息异常: paymentNo={}", dto.getPayOrderNo(), e);
             return false;
         }
     }
