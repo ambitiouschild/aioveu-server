@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.utils;
+package com.aioveu.pay.aioveu12MqProducerPayment.service.impl;
 
 
 import com.aioveu.common.rabbitmq.enums.AckType;

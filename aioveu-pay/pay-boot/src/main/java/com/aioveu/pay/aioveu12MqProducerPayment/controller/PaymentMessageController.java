@@ -55,6 +55,41 @@ public class PaymentMessageController {
 
 
 
+
+    /*
+    *
+    *           ✅ 只测 MQ + 订单
+                ✅ 不涉及微信
+                ✅ 最安全
+    * */
+    @PostMapping("/mock-callback-success")
+    public String mockPaySuccess(@RequestParam String paymentNo) {
+
+        SendPaymentMqDTO dto = new SendPaymentMqDTO();
+        dto.setPaymentNo(paymentNo);
+
+        boolean success = paymentMessageService.sendPaymentSuccessMessage(dto);
+        return success ? "ok" : "fail";
+    }
+
+
+    /*
+    *
+    *           ✅ 只测 MQ + 订单
+                ✅ 不涉及微信
+                ✅ 最安全
+    * */
+    @PostMapping("/mock-callback-failed")
+    public String mockPayFailed(@RequestParam String paymentNo) {
+
+        SendPaymentMqDTO dto = new SendPaymentMqDTO();
+        dto.setPaymentNo(paymentNo);
+
+        boolean success = paymentMessageService.sendPaymentFailedMessage(dto);
+        return success ? "ok" : "fail";
+    }
+
+
     /*
      *  发送支付失败消息并保存发送记录
      * */

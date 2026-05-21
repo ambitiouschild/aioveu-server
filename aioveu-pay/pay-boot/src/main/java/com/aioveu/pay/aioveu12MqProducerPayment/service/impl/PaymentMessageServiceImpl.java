@@ -22,7 +22,6 @@ import com.aioveu.common.rabbitmq.producer.model.payment.PaymentFailedMessage;
 import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.SendPaymentMqDTO;
 import com.aioveu.pay.aioveu12MqProducerPayment.service.PaymentMessageService;
-import com.aioveu.pay.aioveu12MqProducerPayment.utils.AdapterMessageBuilderImpl;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +32,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -122,7 +120,7 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
 
 
             // 保存发送记录
-            messageId = saveMqSendRecord(request);
+            boolean saveMqSendRecord = saveMqSendRecord(request);
 
             // 发送消息
             RabbitSendResult result = sendSingleMessage(request);
@@ -205,7 +203,7 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
                     .build();
 
             // 保存发送记录
-            messageId = saveMqSendRecord(request);
+            boolean saveMqSendRecord = saveMqSendRecord(request);
 
             // 发送消息
             RabbitSendResult result = sendSingleMessage(request);
@@ -380,13 +378,28 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
     /**
      * 保存消息发送记录
      */
-    private String saveMqSendRecord(RabbitSendRequest request) {
-        return mqSendRecordService.saveMqSendRecord(
-                request.getExchange(),
-                request.getRoutingKey(),
-                request.getBizId(),
-                request.getBody()
-        );
+    private Boolean saveMqSendRecord(RabbitSendRequest request) {
+
+
+        //✅ messageId 一旦生成，永不改变
+        //只要把 saveMqSendRecord改成「只保存，不返 ID」
+        //👉 就已经是标准支付中台实现了 👍
+        MqSendRecord record = new MqSendRecord();
+        record.setMessageId(request.getMessageId());
+        record.setExchange(request.getExchange());
+        record.setRoutingKey(request.getRoutingKey());
+        record.setBizId(request.getBizId());
+        record.setSendStatus(SendStatus.SENDING.getValue());
+        record.setCreateTime(LocalDateTime.now());
+        save(record);
+
+        return mqSendRecordService.save(record);
+//        return mqSendRecordService.saveMqSendRecord(
+//                request.getExchange(),
+//                request.getRoutingKey(),
+//                request.getBizId(),
+//                request.getBody()
+//        );
     }
 
 

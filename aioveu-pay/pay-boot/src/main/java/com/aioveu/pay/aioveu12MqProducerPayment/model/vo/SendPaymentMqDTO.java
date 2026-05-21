@@ -22,7 +22,7 @@ public class SendPaymentMqDTO {
     /**
      * MQ 消息唯一ID（幂等用）
      */
-    @NotBlank(message = "消息ID不能为空")
+//    @NotBlank(message = "消息ID不能为空")
     private String messageId;
 
 
