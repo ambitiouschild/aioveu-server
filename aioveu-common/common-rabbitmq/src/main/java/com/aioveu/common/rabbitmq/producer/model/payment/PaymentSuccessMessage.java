@@ -60,4 +60,13 @@ public class PaymentSuccessMessage implements Serializable {
 
     // 扩展字段
     private Map<String, Object> extParams = new HashMap<>();
+
+
+    //PaymentSuccessMessage（只承载）
+
+    /** ✅ 业务类型（来自 DTO） */
+    private String bizType;
+
+    /** ✅ 消息主题（来自 DTO） */
+    private String topic;
 }

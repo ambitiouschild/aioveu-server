@@ -22,9 +22,9 @@
                 confirm_time,
                 error_msg,
                 exchange,
-                routingKey,
-                correlationId,
-                messageType,
+        routing_key,
+                correlation_id,
+                message_type,
                 cost_time ,
                 broker_ack_time ,
                 network_cost_time ,
@@ -63,6 +63,10 @@
                 AND error_msg LIKE CONCAT(#{queryParams.errorMsg}, '%')
             </if>
         </where>
+
+        <!-- ✅ 排序：创建时间倒序（最稳） -->
+        ORDER BY create_time DESC, id DESC
+
     </select>
 
 

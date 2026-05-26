@@ -31,7 +31,7 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/pay-send-message")
+@RequestMapping("/api/v1/mq-send-message")
 public class PaymentMessageController {
 
 
@@ -49,6 +49,8 @@ public class PaymentMessageController {
     public Result<Void> sendPaymentSuccessMessage(
             @Parameter(description = "请求 DTO") @Valid @RequestBody SendPaymentMqDTO sendPaymentMqDTO
     ) {
+
+
         boolean result = paymentMessageService.sendPaymentSuccessMessage(sendPaymentMqDTO);
         return Result.judge(result);
     }

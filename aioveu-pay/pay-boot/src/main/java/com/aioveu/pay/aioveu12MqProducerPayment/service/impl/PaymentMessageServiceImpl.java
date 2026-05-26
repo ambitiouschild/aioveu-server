@@ -20,10 +20,15 @@ import com.aioveu.common.rabbitmq.producer.model.vo.SendContext;
 import com.aioveu.common.rabbitmq.producer.model.payment.MessageSendException;
 import com.aioveu.common.rabbitmq.producer.model.payment.PaymentFailedMessage;
 import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
+import com.aioveu.pay.aioveu12MqProducerPayment.enums.PaymentMqBizType;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.SendPaymentMqDTO;
 import com.aioveu.pay.aioveu12MqProducerPayment.service.PaymentMessageService;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -87,10 +92,14 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
         long startTime = System.currentTimeMillis();
         boolean success = false;
         String messageId = null;
+        String errorMsg = null;
+        // ✅ 补上这两行
+        dto.setBizTypeEnum(PaymentMqBizType.PAYMENT_SUCCESS);
+
 
         PayOrder payOrder = payOrderMapper.getPayOrderByNo(dto.getPaymentNo());
         if (payOrder == null) {
-            throw new BusinessException("支付订单不存在");
+            throw new BusinessException("支付订单不存在:{}",dto.getPaymentNo());
         }
 
         try {
@@ -99,38 +108,82 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
             messageId = dto.getMessageId();
             if (StringUtils.isBlank(messageId)) {
                 messageId = messageIdGenerator.generatePaymentMessageId(payOrder.getPaymentNo());
+                log.info("【Pay-mq】使用payOrder.getPaymentNo(),生成messageId:{}",messageId);
             }
 
             // 构建消息
             PaymentSuccessMessage message = buildPaymentSuccessMessage(payOrder, dto);
+            //1️把 PaymentSuccessMessage设计成 “不可变、自解释”
+            log.info("【Pay-mq】构建消息成功:{}",message);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
                 // 创建 RabbitSendRequest
             RabbitSendRequest request = RabbitSendRequest.builder()
-                    .body(message)
+                    .body(message)   // ✅ MQ 发送用（对象）
                     .messageId(messageId)
                     .exchange(paymentExchange)
                     .routingKey(paymentSuccessRoutingKey)
                     .messageType("PAYMENT_SUCCESS")
+                    //根因是 Fastjson 不支持 LocalDateTime
+                    //✅ 换 Jackson + JavaTimeModule，今天所有异常结束
+                    .messageBody(objectMapper.writeValueAsString(message)) // ✅ 安全 // ✅ 落库用（字符串）
                     .persistent(true)
                     .priority(5)
                     .tenantId(payOrder.getTenantId())
                     .bizId(payOrder.getPaymentNo())
+                    .bizType(message.getBizType())     // ✅ 从业务消息来  // ✅ 必填
+                    .topic(message.getTopic())         // ✅ 从业务消息来  // ✅ 必填
                     .build();
 
-
+            //2️把 RabbitSendRequest抽成 通用 MQ 发送模型
+            log.info("【Pay-mq】构建mq成功, RabbitSendRequest 不做任何业务决策:{}",request);
 
             // 保存发送记录
             boolean saveMqSendRecord = saveMqSendRecord(request);
+            if (!saveMqSendRecord) {
+                log.error("【Pay-mq】保存发送记录失败, messageId={}", messageId);
+                return false;
+            }
+            //3️把 MqSendRecord做成 完全从 Request 映射，零业务逻辑
+            log.info("【Pay-mq】保存发送记录成功,saveMqSendRecord()—— 只负责落库:{}",saveMqSendRecord);
+
+
+
+
 
             // 发送消息
-            RabbitSendResult result = sendSingleMessage(request);
-            success = result.isSuccess();
+            try {
+                RabbitSendResult result = sendSingleMessage(request);
+                success = result != null && result.isSuccess();
+            } catch (Exception e) {
+
+                // ✅ 超时 ≠ 失败   这一版，不管你怎么包装异常，都能命中
+                Throwable cause = e;
+                while (cause != null) {
+                    if (cause instanceof java.util.concurrent.TimeoutException) {
+                        log.warn("MQ发送超时，但可能已送达, messageId={}", request.getMessageId());
+                        success = true;
+                        break;
+                    }
+                    cause = cause.getCause();
+                }
+
+                if (!success) {
+                    errorMsg = e.getMessage();
+                }
+            }
+
+            log.info("【Pay-mq】发送消息结果: success={}, messageId={}", success, messageId);
 
 
-            // 更新发送状态
+            //MyBatis 一级缓存 / 自动提交 / 多数据源，都可能导致“同一线程查不到”
+            // ✅ 方案一：根本不查，直接 update（最稳）更新发送状态
             mqSendRecordService.updateSendStatus(messageId,
                     success ? SendStatus.SUCCESS : SendStatus.FAILED,
-                    success ? null : result.getErrorMessage()
+                    success ? null : errorMsg
             );
 
             if (success) {
@@ -172,6 +225,7 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
     public boolean sendPaymentFailedMessage(SendPaymentMqDTO dto) {
         long startTime = System.currentTimeMillis();
         boolean success = false;
+        String errorMsg = null;
 
         PayOrder payOrder = payOrderMapper.getPayOrderByNo(dto.getPaymentNo());
         if (payOrder == null) {
@@ -206,13 +260,24 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
             boolean saveMqSendRecord = saveMqSendRecord(request);
 
             // 发送消息
-            RabbitSendResult result = sendSingleMessage(request);
-            success = result.isSuccess();
+            try {
+                RabbitSendResult result = sendSingleMessage(request);
+                success = result != null && result.isSuccess();
+            } catch (Exception e) {
+
+                if (e instanceof java.util.concurrent.TimeoutException) {
+                    log.warn("MQ发送超时，但可能已送达, messageId={}", request.getMessageId());
+                    success = true;
+                } else {
+                    success = false;
+                    errorMsg = e.getMessage();
+                }
+            }
 
             // 更新发送状态
             mqSendRecordService.updateSendStatus(messageId,
                     success ? SendStatus.SUCCESS : SendStatus.FAILED,
-                    success ? null : result.getErrorMessage()
+                    success ? null : errorMsg
             );
 
             if (success) {
@@ -267,16 +332,30 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
 
 
                 // 发送单条消息
-                RabbitSendResult sendResult = sendSingleMessage(request);
-                success = sendResult.isSuccess();
+                try {
+                    RabbitSendResult sendResult = sendSingleMessage(request);
+                    success = result != null && sendResult.isSuccess();
 
-                // 更新统计
-                if (success) {
-                    result.incrementSuccess();
-                } else {
-                    result.incrementFailed();
-                    result.addFailedMessage(request.getMessageId(), sendResult.getErrorMessage());
+                    // 更新统计
+                    if (success) {
+                        result.incrementSuccess();
+                    } else {
+                        result.incrementFailed();
+                        result.addFailedMessage(request.getMessageId(), sendResult.getErrorMessage());
+                    }
+
+                } catch (Exception e) {
+
+                    // ✅ Timeout 不算失败
+                    if (e instanceof java.util.concurrent.TimeoutException) {
+                        log.warn("MQ发送超时，但可能已送达, messageId={}", request.getMessageId());
+                        success = true; // ✅ 或单独状态
+                    } else {
+                        success = false;
+                    }
                 }
+
+
 
             }catch (Exception e) {
                 result.incrementFailed();
@@ -325,14 +404,26 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
             // 3. 发送消息
             RabbitSendResult sendResult = (RabbitSendResult)adapterMessageBuilderImpl.doSend(queueType, request);
 
-            // 5. 记录成功日志
-            adapterMessageBuilderImpl.logSendSuccess(request, sendResult, startTime);
+            // 5. 记录成功日志 已经记录
+//            adapterMessageBuilderImpl.logSendSuccess(request, sendResult, startTime);
 
             return sendResult;
 
         } catch (Exception e) {
             // 6. 记录失败日志
             adapterMessageBuilderImpl.logSendFailure(request, messageId, e, startTime);
+            // ✅ 区分超时和其他异常
+            Throwable cause = e;
+            while (cause != null) {
+                if (cause instanceof java.util.concurrent.TimeoutException) {
+                    throw new MessageSendException(
+                            "MQ发送超时，可能已送达",
+                            e,
+                            messageId
+                    );
+                }
+                cause = cause.getCause();
+            }
             throw new MessageSendException("消息发送失败", e, messageId);
         }
     }
@@ -340,7 +431,16 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
     /**
      * 构建支付成功消息
      */
+
+
     private PaymentSuccessMessage buildPaymentSuccessMessage(PayOrder payOrder, SendPaymentMqDTO dto) {
+
+        String bizType = dto.getBizTypeEnum().getBizType();
+        String topic =  dto.getBizTypeEnum().getTopic();
+
+        log.info("构建支付成功消息:bizType:{},topic:{}",bizType,topic);
+
+
         return PaymentSuccessMessage.builder()
                 .messageId(dto.getMessageId())
                 .paymentNo(payOrder.getPaymentNo())
@@ -351,6 +451,8 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
                 .channel(payOrder.getPaymentChannel())
                 .paymentTime(LocalDateTime.now())
                 .memberId(payOrder.getUserId())
+                .bizType(dto.getBizTypeEnum().getBizType())     // ✅ 从业务消息来
+                .topic(dto.getBizTypeEnum().getTopic())         // ✅ 从业务消息来
                 .build();
     }
 
@@ -389,9 +491,11 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
         record.setExchange(request.getExchange());
         record.setRoutingKey(request.getRoutingKey());
         record.setBizId(request.getBizId());
+        record.setBizType(request.getBizType());   //业务类型，必填
+        record.setTopic(request.getTopic());   // ✅ 这一行必须有
+        record.setMessageBody(request.getMessageBody()); // ✅ 必须有
         record.setSendStatus(SendStatus.SENDING.getValue());
         record.setCreateTime(LocalDateTime.now());
-        save(record);
 
         return mqSendRecordService.save(record);
 //        return mqSendRecordService.saveMqSendRecord(

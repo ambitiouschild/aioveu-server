@@ -20,6 +20,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -172,31 +173,50 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
     @Override
     public boolean updateSendStatus(String messageId, SendStatus status, String errorMsg) {
 
-        MqSendRecord record = new MqSendRecord();
-        record.setMessageId(messageId);
-        record.setSendStatus(status.getValue());
-        record.setErrorMsg(errorMsg);
-        record.setUpdateTime(LocalDateTime.now());
-        if (status == SendStatus.SUCCESS) {
-            record.setConfirmTime(LocalDateTime.now());
-        } else if (status == SendStatus.FAILED) {
-            // 失败时设置下次重试时间（指数退避）
-            MqSendRecord oldRecord = this.baseMapper.selectById(messageId);
-            int retryCount = oldRecord.getRetryCount() + 1;
-
-            // 计算下次重试时间戳（毫秒）
-            long nextRetryTimestamp = System.currentTimeMillis() +
-                    (long) (Math.pow(2, retryCount) * 30000);
-            // 转换为 LocalDateTime
-            LocalDateTime nextRetryTime = Instant.ofEpochMilli(nextRetryTimestamp)
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDateTime();
-
-            record.setRetryCount(retryCount);
-            record.setNextRetryTime(nextRetryTime);
+        if (messageId == null) {
+            return false;
         }
 
-        return this.updateById(record);
+        LambdaUpdateWrapper<MqSendRecord> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(MqSendRecord::getMessageId, messageId)
+                .set(MqSendRecord::getSendStatus, status.getValue())
+                .set(MqSendRecord::getErrorMsg, errorMsg)
+                .set(MqSendRecord::getUpdateTime, LocalDateTime.now());
+
+
+        // ✅ 成功：设置 confirm_time
+        if (status == SendStatus.SUCCESS) {
+            wrapper.set(MqSendRecord::getConfirmTime, LocalDateTime.now());
+        }
+
+
+            // 失败时设置下次重试时间（指数退避）
+
+            /*
+            * ❌ 不能在 updateSendStatus里 selectById
+                ✅ 必须改成「一条 SQL 完成重试次数 + 下次重试时间」
+                *
+                * 👉 原因你已经踩过：
+                非事务
+                一级缓存
+                多租户 SQL
+                insert 后立刻 select
+                *
+            * */
+        // ✅ 失败：重试次数 + 下次重试时间（数据库原子操作）
+        if (status == SendStatus.FAILED) {
+
+            // 1️重试次数 +1
+            wrapper.setSql("retry_count = retry_count + 1");
+
+            // 2️下次重试时间（指数退避，30秒起）
+            wrapper.setSql("""
+            next_retry_time =
+            DATE_ADD(NOW(), INTERVAL POW(2, retry_count) * 30 SECOND)
+        """);
+        }
+
+        return update(wrapper);
 
     }
 

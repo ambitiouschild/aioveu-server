@@ -1,8 +1,10 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.model.vo;
 
 
+import com.aioveu.pay.aioveu12MqProducerPayment.enums.PaymentMqBizType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -35,16 +37,22 @@ public class SendPaymentMqDTO {
     /**
      * 订单号（oms_order.order_sn）
      */
-    @NotBlank(message = "订单号不能为空")
+//    @NotBlank(message = "订单号不能为空")
     private String omsOrderNo;
 
 
     /**
      * 支付金额（分 → 转 BigDecimal）
      */
-    @NotNull(message = "支付金额不能为空")
+//    @NotNull(message = "支付金额不能为空")
     private BigDecimal paymentAmount;
 
+
+    /**
+     * 租户ID（多租户必填）
+     */
+//    @NotNull(message = "租户ID不能为空")
+    private Long tenantId;
 
     /**
      * 微信支付订单号
@@ -55,4 +63,11 @@ public class SendPaymentMqDTO {
      * 支付成功时间（ISO-8601）
      */
     private String paymentTime;
+
+
+    /** ✅ 业务类型 */
+    private PaymentMqBizType BizTypeEnum;
+
+    /** ✅ 消息类型 */
+    private String messageType = "PAYMENT_SUCCESS";
 }

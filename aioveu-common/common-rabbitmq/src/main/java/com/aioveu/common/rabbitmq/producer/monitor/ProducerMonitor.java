@@ -53,7 +53,7 @@ public class ProducerMonitor {
     /**
      * 监控任务 - 30秒执行一次
      */
-    @Scheduled(fixedDelay = 30000)
+//    @Scheduled(fixedDelay = 30000)
     public void monitorProducer() {
 
         if (!monitorEnabled) {

@@ -19,6 +19,7 @@ import com.aioveu.pay.aioveu01.enums.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01.model.vo.*;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
+import com.aioveu.pay.aioveu12MqProducerPayment.enums.PaymentMqBizType;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.SendPaymentMqDTO;
 import com.aioveu.pay.aioveu12MqProducerPayment.service.PaymentMessageService;
 import com.alibaba.fastjson.JSON;
@@ -352,7 +353,8 @@ public class PaymentServiceImpl implements PaymentService {
             dto.setPaymentAmount(payOrder.getPaymentAmount());
             dto.setTransactionId(params.get("transaction_id"));
             dto.setPaymentTime(OffsetDateTime.now().toString());
-
+            // ✅ 补上这两行
+            dto.setBizTypeEnum(PaymentMqBizType.PAYMENT_SUCCESS);
 
             boolean mqSuccess = sendPaymentSuccessMessage(dto);
 

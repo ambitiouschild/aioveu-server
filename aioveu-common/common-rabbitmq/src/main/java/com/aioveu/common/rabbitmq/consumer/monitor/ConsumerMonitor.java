@@ -41,7 +41,7 @@ public class ConsumerMonitor {
     /**
      * 每30秒执行一次监控检查
      */
-    @Scheduled(fixedDelay = 30000)
+//    @Scheduled(fixedDelay = 30000)
     public void monitorConsumer() {
         try {
             // 1. 检查消费成功率

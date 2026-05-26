@@ -48,13 +48,28 @@ public interface PayOrderMapper extends BaseMapper<PayOrder>{
     /**
      * 根据商户支付订单号查询支付订单
      * @param paymentNo 商户支付订单号
-     * @return 失败记录列表
+     * @return
      */
     default PayOrder getPayOrderByNo(String paymentNo) {
         LambdaQueryWrapper<PayOrder> wrapper = new LambdaQueryWrapper<>();
 
         // 查询条件：发送失败
         wrapper.eq(PayOrder::getPaymentNo, paymentNo); //
+        return selectOne(wrapper);
+    }
+
+
+    /**
+     * 根据商户支付订单号查询支付订单
+     * @param paymentNo 商户支付订单号
+     * @return
+     */
+    default PayOrder getPayOrderByNoAndTenantId(String paymentNo,Long tenantId) {
+        LambdaQueryWrapper<PayOrder> wrapper = new LambdaQueryWrapper<>();
+
+        // 查询条件：发送失败
+        wrapper.eq(PayOrder::getPaymentNo, paymentNo)
+                .eq(PayOrder::getTenantId, tenantId); //
         return selectOne(wrapper);
     }
 

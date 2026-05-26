@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.MessageProperties;
 
 import java.util.HashMap;
@@ -25,6 +26,7 @@ import java.util.Map;
  * 消息发送请求（业务层DTO）
  * 统一封装各种MQ的发送参数
  */
+@Slf4j
 @Data
 @Builder
 @AllArgsConstructor
@@ -52,6 +54,10 @@ public class RabbitSendRequest {
     @NotNull(message = "消息体不能为空")
     private Object body;
 
+    /**
+     * 消息体(JSON格式)
+     */
+    private String messageBody;
 
     // Kafka 相关
     private String key;  // 添加这个字段
@@ -245,8 +251,14 @@ public class RabbitSendRequest {
         if (body instanceof String) {
             return (String) body;
         }
-        // 使用JSON序列化
-        return JsonUtils.toJson(body);
+
+        try {
+            // 使用JSON序列化
+            return JsonUtils.toJson(this.body);
+        } catch (Exception e) {
+            log.error("消息体序列化失败, messageId={}", this.messageId, e);
+            return "{}"; // ✅ 至少不是 null
+        }
     }
 
     /** 构建RabbitMQ的MessageProperties */

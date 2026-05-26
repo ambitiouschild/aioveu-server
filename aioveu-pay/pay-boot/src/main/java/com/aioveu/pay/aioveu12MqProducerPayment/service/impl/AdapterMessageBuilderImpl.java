@@ -21,7 +21,9 @@ import org.apache.commons.lang3.StringUtils;
 //import org.apache.rocketmq.client.producer.SendResult;
 //import org.springframework.kafka.support.SendResult ;
 
-import org.apache.kafka.common.errors.TimeoutException;
+//import org.apache.kafka.common.errors.TimeoutException;
+import java.util.concurrent.TimeoutException;
+
 import org.apache.rocketmq.client.producer.SendCallback;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
@@ -135,19 +137,23 @@ public class AdapterMessageBuilderImpl implements AdapterMessageBuilder {
         // 这里可以根据业务规则决定使用哪种MQ
         // 例如：根据消息类型、优先级、延迟要求等
         if (StringUtils.isNotBlank(request.getExchange()) || StringUtils.isNotBlank(request.getRoutingKey())) {
+            log.info("使用RabbitMQ");
             return MessageQueueTypeEnum.RABBITMQ;
         }
 
         if (request.getTopic() != null && request.getTopic().contains("rocket")) {
+            log.info("使用RocketMQ");
             return MessageQueueTypeEnum.ROCKETMQ;
         }
 
         if (request.getTopic() != null && request.getTopic().contains("kafka")) {
+            log.info("使用kafka");
             return MessageQueueTypeEnum.KAFKA;
         }
 
         // 默认使用 RocketMQ
-        return MessageQueueTypeEnum.ROCKETMQ;
+        log.info("默认使用 RabbitMQ");
+        return MessageQueueTypeEnum.RABBITMQ;
     }
 
 
@@ -570,14 +576,28 @@ public class AdapterMessageBuilderImpl implements AdapterMessageBuilder {
                         request, correlationId, confirm, costTime, confirmTime, exchange, routingKey
                 );
             } catch (TimeoutException e) {
+
+                //把 sendRabbitMQSync()改成「超时 ≠ 失败」
+                log.warn("RabbitMQ等待Confirm超时，但消息很可能已送达: messageId={}", request.getMessageId());
                 // 超时情况
-                result = RabbitSendResult.failure(
+//                result = RabbitSendResult.failure(
+//                        request.getMessageId(),
+//                        "等待确认超时",
+//                        costTime,
+//                        exchange,
+//                        routingKey
+//                );
+                // 这和你在 Payment 服务里的判断逻辑完全一致
+                result = RabbitSendResult.success(
                         request.getMessageId(),
-                        "等待确认超时",
+                        correlationId,
                         costTime,
                         exchange,
                         routingKey
                 );
+                result.setAckType(AckType.UNKNOWN);
+                result.setAckReceived(false);
+                result.setConfirmTime(null);
             }
         } else {
             // 不等待确认，直接返回成功
@@ -732,7 +752,9 @@ public class AdapterMessageBuilderImpl implements AdapterMessageBuilder {
 
         if (e instanceof TimeoutException) {
             // 超时，可以重试
-            return true;
+//            return true;
+            // ✅ 超时不应该无限重试
+            return request.getRetryCount() < 2;
         }
 
         if (e instanceof IOException || e instanceof MQClientException) {
@@ -741,7 +763,7 @@ public class AdapterMessageBuilderImpl implements AdapterMessageBuilder {
         }
 
         // 默认情况下，可以重试
-        return true;
+        return request.getRetryCount() < request.getMaxRetryCount();
     }
 
     /**

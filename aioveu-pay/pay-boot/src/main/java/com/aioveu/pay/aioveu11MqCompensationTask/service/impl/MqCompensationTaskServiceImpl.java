@@ -131,7 +131,7 @@ public class MqCompensationTaskServiceImpl extends ServiceImpl<MqCompensationTas
      * 补偿任务 - 处理发送失败的消息
      */
     @Override
-    @Scheduled(fixedDelay = 30000)
+//    @Scheduled(fixedDelay = 30000)
     public void compensateFailedMessages() {
         long startTime = System.currentTimeMillis();
         int successCount = 0;

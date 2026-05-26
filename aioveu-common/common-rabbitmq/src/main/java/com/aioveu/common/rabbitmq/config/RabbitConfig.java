@@ -1,10 +1,8 @@
 package com.aioveu.common.rabbitmq.config;
 
+import com.aioveu.common.rabbitmq.constant.PaymentMqConstant;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.DirectExchange;
-import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
@@ -24,12 +22,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @Slf4j
 public class RabbitConfig {
-
-
-    public static final String QUEUE_PAYMENT_SUCCESS = "order.payment.success.queue";
-    public static final String EXCHANGE_PAYMENT = "order.payment.exchange";
-    public static final String ROUTING_KEY_PAYMENT_SUCCESS = "order.payment.success";
-
 
     /**
      * 消息序列化配置
@@ -65,19 +57,44 @@ public class RabbitConfig {
     * */
     @Bean
     public Queue paymentSuccessQueue() {
-        return new Queue(QUEUE_PAYMENT_SUCCESS, true);
+        return new Queue(PaymentMqConstant.QUEUE_SUCCESS, true);
     }
 
+    /**
+     * 支付失败队列
+     */
     @Bean
-    public DirectExchange paymentExchange() {
-        return new DirectExchange(EXCHANGE_PAYMENT);
+    public Queue paymentFailedQueue() {
+        return new Queue(PaymentMqConstant.QUEUE_FAILED, true);
     }
 
+    /**
+     * ✅ Topic 交换机（关键）
+     */
+    @Bean
+    public TopicExchange paymentExchange() {
+        return new TopicExchange(PaymentMqConstant.EXCHANGE, true, false);
+    }
+
+
+    /**
+     * 绑定
+     */
     @Bean
     public Binding paymentSuccessBinding() {
         return BindingBuilder
                 .bind(paymentSuccessQueue())
                 .to(paymentExchange())
-                .with(ROUTING_KEY_PAYMENT_SUCCESS);
+                .with(PaymentMqConstant.RK_SUCCESS);
     }
+
+    @Bean
+    public Binding paymentFailedBinding() {
+        return BindingBuilder
+                .bind(paymentFailedQueue())
+                .to(paymentExchange())
+                .with(PaymentMqConstant.RK_FAILED);
+    }
+
+
 }

@@ -76,7 +76,8 @@ public class MyTenantLineHandler implements TenantLineHandler {
             log.info("【MyTenantLineHandler】租户ID=0，作为超级管理员处理，忽略租户过滤");
 //            return new LongValue(tenantId);  // 或者 return false; 根据业务需求
             log.info("【MyTenantLineHandler】平台级操作，忽略租户过滤");
-            return null;
+//            return null;
+            return new LongValue(tenantId);  // 或者 return false; 根据业务需求
         }
 
         // 正常租户ID，添加过滤条件
