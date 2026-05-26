@@ -108,6 +108,7 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
             messageId = dto.getMessageId();
             if (StringUtils.isBlank(messageId)) {
                 messageId = messageIdGenerator.generatePaymentMessageId(payOrder.getPaymentNo());
+                dto.setMessageId(messageId); // ✅ 这一行必须有  写入 DTO
                 log.info("【Pay-mq】使用payOrder.getPaymentNo(),生成messageId:{}",messageId);
             }
 
@@ -123,7 +124,7 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
                 // 创建 RabbitSendRequest
             RabbitSendRequest request = RabbitSendRequest.builder()
                     .body(message)   // ✅ MQ 发送用（对象）
-                    .messageId(messageId)
+                    .messageId(dto.getMessageId()) // ✅ 同一个 构建 MQ Request（从 DTO / messageId 拿）
                     .exchange(paymentExchange)
                     .routingKey(paymentSuccessRoutingKey)
                     .messageType("PAYMENT_SUCCESS")
@@ -236,6 +237,8 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
         String messageId = dto.getMessageId();
         if (StringUtils.isBlank(messageId)) {
             messageId = messageIdGenerator.generatePaymentMessageId(payOrder.getPaymentNo());
+            dto.setMessageId(messageId); // ✅ 这一行必须有
+            log.info("【Pay-mq】使用payOrder.getPaymentNo(),生成messageId:{}", messageId);
         }
 
         try {
@@ -246,7 +249,7 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
             // 创建 RabbitSendRequest
             RabbitSendRequest request = RabbitSendRequest.builder()
                     .body(message)
-                    .messageId(messageId)
+                    .messageId(dto.getMessageId()) // ✅ 同一个 构建 MQ Request（从 DTO / messageId 拿）
                     .exchange(paymentExchange)
                     .routingKey(paymentFailedRoutingKey)
                     .messageType("PAYMENT_FAILED")
@@ -442,7 +445,7 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
 
 
         return PaymentSuccessMessage.builder()
-                .messageId(dto.getMessageId())
+                .messageId(dto.getMessageId())    // 构建业务消息（从 DTO 拿）
                 .paymentNo(payOrder.getPaymentNo())
                 .orderNo(payOrder.getOrderNo())
                 .tenantId(payOrder.getTenantId())   // ✅ 从 PayOrder 取
