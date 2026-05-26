@@ -1,4 +1,4 @@
-package com.aioveu.oms.listener;
+package com.aioveu.oms.aioveu11MqConsumer.listener;
 
 import com.rabbitmq.client.Channel;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
