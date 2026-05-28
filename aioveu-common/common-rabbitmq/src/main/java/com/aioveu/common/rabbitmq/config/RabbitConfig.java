@@ -1,7 +1,6 @@
 package com.aioveu.common.rabbitmq.config;
 
 import com.aioveu.common.rabbitmq.constant.PaymentMqConstant;
-import com.aioveu.common.rabbitmq.constant.PaymentMqConstant2;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
@@ -11,7 +10,6 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.listener.RabbitListenerContainerFactory;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +22,7 @@ import java.util.Map;
  * @return:
  **/
 
-@Configuration
+//@Configuration
 @Slf4j
 @RequiredArgsConstructor
 public class RabbitConfig {
