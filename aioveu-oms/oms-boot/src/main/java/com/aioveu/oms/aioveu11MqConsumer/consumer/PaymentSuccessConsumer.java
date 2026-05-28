@@ -15,6 +15,7 @@ import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,8 +51,11 @@ public class PaymentSuccessConsumer{
     @Autowired
     private ObjectMapper objectMapper;     // 使用 Jackson 的 ObjectMapper
 
+    @Value("${spring.application.name}")
+    private String consumerGroup;
+
     @RabbitListener(
-            queues = "payment.success.queue",
+            queues = "#{paymentMqConstant.queueSuccess()}",
             concurrency = "4-8",   // ✅ 并发控制
             ackMode = "MANUAL"     // ✅ 手动 ACK（非常重要）
     )
@@ -59,6 +63,7 @@ public class PaymentSuccessConsumer{
     public void onMessage(Message message, Channel channel) throws IOException {
 
         long startTime = System.currentTimeMillis();
+
         String messageId = null;
         String orderNo = null;
         boolean success = false;
@@ -74,22 +79,22 @@ public class PaymentSuccessConsumer{
 
             log.info("【Pay-Consumer】收到支付成功消息, orderNo={}, messageId={}", orderNo, messageId);
 
-            // ✅ 1. 幂等校验（最重要）
-            if (mqConsumeRecordService.isConsumed(messageId)) {
-                log.warn("【Pay-Consumer】消息已消费，直接 ACK, messageId={}", messageId);
-                channel.basicAck(deliveryTag, false);
-                return;
-            }
 
-            // ✅ 2. 处理业务（不要在这里抛系统异常）
+            log.info("✅ Consumer 只干一件事：收消息 + ACK");
+            log.info("✅ RabbitMQ Consumer\n" +
+                    "   └── 只负责：反序列化 + ACK");
+
+
+            // ✅ 2. 处理业务（不要在这里抛系统异常） ✅ 业务处理（不含 ACK）
             mqConsumerService.handlePaymentSuccess(msg);
 
-            // ✅ 3. 标记已消费
-            mqConsumeRecordService.markConsumed(messageId, orderNo);
 
-            // ✅ 4. 手动 ACK
+            // ✅ 4. 手动 ACK ✅ 成功 → ACK
             channel.basicAck(deliveryTag, false);
             success = true;
+            log.info("同一条消息发 2 次\n" +
+                    "\n" +
+                    "第 2 次直接 ACK，不处理订单");
 
         } catch (BizException e) {
             // ❌ 业务异常 → 不重试，进 DLQ
@@ -99,7 +104,7 @@ public class PaymentSuccessConsumer{
         } catch (Exception e) {
             // ❌ 系统异常 → NACK 重试
             log.error("【Pay-Consumer】系统异常，等待重试, messageId={}", messageId, e);
-            nackAndRequeue(channel, deliveryTag);
+            nackAndRequeue(channel, deliveryTag, messageId, orderNo);
 
         } finally {
             long costTime = System.currentTimeMillis() - startTime;
@@ -107,11 +112,40 @@ public class PaymentSuccessConsumer{
         }
     }
 
+    /**
+     * ❌ 业务异常 → 直接进 DLQ
+     */
     private void rejectToDlq(Channel channel, long deliveryTag) throws IOException {
         channel.basicReject(deliveryTag, false); // requeue=false → DLQ
+        log.info("❌【业务异常 】 不重试，直接死信");
     }
 
-    private void nackAndRequeue(Channel channel, long deliveryTag) throws IOException {
-        channel.basicNack(deliveryTag, false, true); // requeue=true
+    /**
+     * ⚠️ 系统异常 → 重试 → 超过 3 次进 DLQ
+     */
+    private void nackAndRequeue(
+            Channel channel,
+            long deliveryTag,
+            String messageId,
+            String bizKey
+    ) throws IOException {
+
+
+        int retryCount =
+                mqConsumeRecordService.getRetryCount(messageId, consumerGroup);
+
+        if (retryCount >= 3) {
+            log.error("【Pay-Consumer】超过最大重试次数，进入 DLQ, messageId={}", messageId);
+            channel.basicReject(deliveryTag, false); // DLQ
+            return;
+        }
+
+        // 增加重试次数
+        mqConsumeRecordService.incrementRetryCount(messageId, consumerGroup, bizKey);
+        channel.basicNack(deliveryTag, false, true); // 重试
+        log.info("系统异常 → 重试 → 超过后进 DLQ,RabbitMQ 会自动把 reject 的消息转到 DLQ");
+
+
     }
+
 }

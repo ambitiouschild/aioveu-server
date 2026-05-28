@@ -86,8 +86,35 @@ public interface MqConsumeRecordMapper extends BaseMapper<MqConsumeRecord> {
                      @Param("updateTime") LocalDateTime updateTime);
 
 
+    @Select("""
+        SELECT COUNT(*) 
+        FROM mq_consume_record 
+        WHERE message_id = #{messageId}
+    """)
+    int countByMessageId(@Param("messageId") String messageId);
 
 
+    @Select("""
+    SELECT IFNULL(retry_count, 0)
+    FROM mq_consume_record
+    WHERE message_id = #{messageId}
+      AND consumer_group = #{consumerGroup}
+    """)
+    Integer selectRetryCount(
+            @Param("messageId") String messageId,
+            @Param("consumerGroup") String consumerGroup
+    );
 
 
+    @Update("""
+    UPDATE mq_consume_record
+    SET retry_count = retry_count + 1,
+        update_time = NOW()
+    WHERE message_id = #{messageId}
+      AND consumer_group = #{consumerGroup}
+    """)
+    int incrementRetryCount(
+            @Param("messageId") String messageId,
+            @Param("consumerGroup") String consumerGroup
+    );
 }

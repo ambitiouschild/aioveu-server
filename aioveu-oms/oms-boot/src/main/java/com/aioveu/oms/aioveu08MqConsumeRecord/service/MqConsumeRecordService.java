@@ -116,4 +116,22 @@ public interface MqConsumeRecordService extends IService<MqConsumeRecord> {
      */
     Map<String, Object> getConsumerGroupStats(String consumerGroup, Integer days);
 
+
+
+    /**
+     * 是否已消费
+     */
+    boolean isConsumed(String messageId);
+
+    /**
+     * 标记已消费
+     */
+    void markConsumed(String messageId, String orderNo);
+
+    /** ✅ 新增 */
+    int getRetryCount(String messageId, String consumerGroup);
+
+
+    void incrementRetryCount(String messageId, String consumerGroup, String bizKey);
+
 }

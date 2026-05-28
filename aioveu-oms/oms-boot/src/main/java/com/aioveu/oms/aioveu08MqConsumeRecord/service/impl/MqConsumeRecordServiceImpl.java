@@ -18,6 +18,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -398,6 +399,53 @@ public class MqConsumeRecordServiceImpl extends ServiceImpl<MqConsumeRecordMappe
         delaySeconds = Math.min(delaySeconds, 3600);  // 最多1小时
 
         return LocalDateTime.now().plusSeconds(delaySeconds);
+    }
+
+
+    @Override
+    public boolean isConsumed(String messageId) {
+        return this.baseMapper.countByMessageId(messageId) > 0;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void markConsumed(String messageId, String orderNo) {
+
+        MqConsumeRecord record = new MqConsumeRecord();
+        record.setMessageId(messageId);
+        record.setBizId(orderNo);
+        record.setConsumeStatus(2);
+        record.setRetryCount(0);
+
+        try {
+            this.baseMapper.insert(record);
+        } catch (DuplicateKeyException e) {
+            log.warn("消息已存在，幂等拦截, messageId={}", messageId);
+        }
+    }
+
+    @Override
+    public int getRetryCount(String messageId, String consumerGroup) {
+        Integer count =
+                this.baseMapper.selectRetryCount(messageId, consumerGroup);
+        return count == null ? 0 : count;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void incrementRetryCount(String messageId, String consumerGroup, String bizKey) {
+
+        int rows = this.baseMapper.incrementRetryCount(messageId, consumerGroup);
+
+        if (rows == 0) {
+            // 极端情况：记录还没来得及插入
+            this.recordConsumeStart(
+                    messageId,
+                    "payment.success.topic",
+                    consumerGroup,
+                    bizKey
+            );
+        }
     }
 
 

@@ -1,8 +1,6 @@
 package com.aioveu.common.rabbitmq.constant;
 
 
-import org.springframework.beans.factory.annotation.Value;
-
 /**
  * @ClassName: PaymentMqConstant
  * @Description TODO 支付 MQ 的「最终标准配置」
@@ -13,12 +11,12 @@ import org.springframework.beans.factory.annotation.Value;
  * @Version 1.0
  **/
 
-public interface PaymentMqConstant2 {
+public interface PaymentCommonMqConstant {
 
 
     //把常量分组（一眼看出用途）
     // 1️补一个“消费者组 / 环境前缀”（防脏数据）
-    String SYSTEM_NAME = "oms.";
+    String SYSTEM_NAME = "aivoeu-common";
 
 
     interface Exchange {

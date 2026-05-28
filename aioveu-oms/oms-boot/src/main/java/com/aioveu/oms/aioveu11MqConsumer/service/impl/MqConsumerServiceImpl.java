@@ -90,6 +90,17 @@ public class MqConsumerServiceImpl implements MqConsumerService {
     @Transactional(rollbackFor = Exception.class)
     public boolean handlePaymentSuccess(PaymentSuccessMessage message) {
 
+        log.info("✅ Service 里统一做幂等（你现在的代码是对的）");
+        log.info("✅ 幂等只在 Service 层做");
+        log.info("✅ Consumer 不再关心业务");
+        log.info("✅ MqConsumerServiceImpl\n" +
+                "   ├── 幂等校验\n" +
+                "   ├── 订单状态校验\n" +
+                "   ├── 金额校验\n" +
+                "   ├── 更新订单\n" +
+                "   ├── 记录消费状态\n" +
+                "   └── 后置业务");
+
         if (message == null) {
             log.error("【MQ消费者】消息对象为空");
             return false;
@@ -182,6 +193,9 @@ public class MqConsumerServiceImpl implements MqConsumerService {
             mqConsumeRecordService.updateConsumeStatus(messageId, consumerGroup,
                     ConsumeStatusEnum.SUCCESS, null);
 
+            //已经记录并保存
+//            mqConsumeRecordService.markConsumed(messageId, orderNo);
+
             // 10. 触发后续业务
             triggerPostPaymentLogic(order, message);
 
@@ -197,12 +211,20 @@ public class MqConsumerServiceImpl implements MqConsumerService {
                     ConsumeStatusEnum.FAILED, e.getMessage());
 
 
-            // 根据重试次数决定是否重试
-            if (message.getRetryCount() < 3) {
+            // 根据重试次数决定是否重试 ✅ 正确做法：从消费记录表查
+            //✅ 不要在 PaymentSuccessMessage里放 retryCount
+            //✅ 重试次数永远来自「消费记录表」
+            int retryCount =
+                    mqConsumeRecordService.getRetryCount(messageId, consumerGroup);
+
+
+            if (retryCount < 3) {
                 throw new RuntimeException("处理失败，需要重试", e);
             } else {
-                log.error("消息重试超过3次，记录到死信队列: orderNo={}", orderSn);
+                log.error("消息超过最大重试次数，进入死信队列: orderNo={}", orderSn);
                 // 可以发送到死信队列
+                mqConsumeRecordService.updateConsumeStatus(
+                        messageId, consumerGroup, ConsumeStatusEnum.DEAD, "超过最大重试次数");
             }
             throw new BusinessException("处理支付成功消息异常", e);
         }
