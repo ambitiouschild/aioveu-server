@@ -43,6 +43,8 @@ public class RabbitConfig {
      */
     @Bean
     public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
+        //确保 RabbitAdmin 一定生效（保险写法）
+
         RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
 
         // 自动声明队列和交换机
