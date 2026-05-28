@@ -107,7 +107,7 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
         // ✅ 金额兜底
             BigDecimal amount = Optional.ofNullable(payOrder.getPaymentAmount())
                     .filter(a -> a.compareTo(BigDecimal.ZERO) > 0)
-                    .orElse(payOrder.getPaymentAmount());
+                    .orElse(new BigDecimal("0.01"));
 
             dto.setPaymentAmount(amount);
 
