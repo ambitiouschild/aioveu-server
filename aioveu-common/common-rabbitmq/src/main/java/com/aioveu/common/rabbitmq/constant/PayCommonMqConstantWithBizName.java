@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
  * @Date 2026/5/28 20:59
  * @Version 1.0
  **/
-@Component
-public class PayCommonMqConstantWithBizName {
+
+public final class PayCommonMqConstantWithBizName {
 
     public static final String SYSTEM_NAME = "aivoeu-common";
 

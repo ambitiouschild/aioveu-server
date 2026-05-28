@@ -1,5 +1,6 @@
 package com.aioveu.oms.aioveu11MqConsumer.consumer;
 
+import com.aioveu.common.rabbitmq.constant.PayCommonMqConstantWithBizName;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.oms.aioveu08MqConsumeRecord.service.MqConsumeRecordService;
 import com.aioveu.oms.aioveu11MqConsumer.service.MqConsumerService;
@@ -49,7 +50,7 @@ public class PaymentSuccessConsumer{
     private String consumerGroup;
 
     @RabbitListener(
-            queues = "#{payCommonMqConstantWithBizName.Queue.SUCCESS}",
+            queues = PayCommonMqConstantWithBizName.Queue.SUCCESS,
             concurrency = "4-8",   // ✅ 并发控制
             ackMode = "MANUAL"     // ✅ 手动 ACK（非常重要）
     )

@@ -1,6 +1,7 @@
 package com.aioveu.oms.aioveu11MqConsumer.consumer;
 
 
+import com.aioveu.common.rabbitmq.constant.PayCommonMqConstantWithBizName;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class PaymentDlqConsumer {
 
-    @RabbitListener(queues = "#{payCommonMqConstantWithBizName.Queue.DLQ}")
+    @RabbitListener(queues = PayCommonMqConstantWithBizName.Queue.DLQ)
     public void onDlq(Message message) {
         log.error("收到死信消息: {}", new String(message.getBody()));
         // 落表 / 人工工单 / 风控介入
