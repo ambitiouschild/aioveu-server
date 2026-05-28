@@ -63,11 +63,10 @@ public class RabbitConfig {
 
         //主队列绑定 DLQ（关键）
         Map<String, Object> args = new HashMap<>();
-        args.put("x-dead-letter-exchange", PaymentMqConstant.DLQ_EXCHANGE);
-        args.put("x-dead-letter-routing-key", PaymentMqConstant.QUEUE_SUCCESS);
-        args.put("x-max-retries", 3); // 可选
+        args.put("x-dead-letter-exchange", PaymentMqConstant.Dlx.EXCHANGE);
+        args.put("x-dead-letter-routing-key", PaymentMqConstant.RoutingKey.DLQ);
 
-        return new Queue(PaymentMqConstant.QUEUE_SUCCESS, true, false, false, args);
+            return new Queue(PaymentMqConstant.Queue.SUCCESS, true, false, false, args);
     }
 
     /**
@@ -77,11 +76,10 @@ public class RabbitConfig {
     public Queue paymentFailedQueue() {
 
         Map<String, Object> args = new HashMap<>();
-        args.put("x-dead-letter-exchange", PaymentMqConstant.DLQ_EXCHANGE);
-        args.put("x-dead-letter-routing-key", PaymentMqConstant.QUEUE_SUCCESS);
-        args.put("x-max-retries", 3); // 可选
+        args.put("x-dead-letter-exchange", PaymentMqConstant.Dlx.EXCHANGE);
+        args.put("x-dead-letter-routing-key", PaymentMqConstant.RoutingKey.DLQ);
 
-        return new Queue(PaymentMqConstant.QUEUE_FAILED, true, false, false, args);
+        return new Queue(PaymentMqConstant.Queue.FAILED, true, false, false, args);
     }
 
     /**
@@ -89,7 +87,7 @@ public class RabbitConfig {
      */
     @Bean
     public TopicExchange paymentExchange() {
-        return new TopicExchange(PaymentMqConstant.EXCHANGE, true, false);
+        return new TopicExchange(PaymentMqConstant.Exchange.PAYMENT, true, false);
     }
 
 
@@ -101,7 +99,7 @@ public class RabbitConfig {
         return BindingBuilder
                 .bind(paymentSuccessQueue())
                 .to(paymentExchange())
-                .with(PaymentMqConstant.RK_SUCCESS);
+                .with(PaymentMqConstant.RoutingKey.SUCCESS);
     }
 
     @Bean
@@ -109,7 +107,7 @@ public class RabbitConfig {
         return BindingBuilder
                 .bind(paymentFailedQueue())
                 .to(paymentExchange())
-                .with(PaymentMqConstant.RK_FAILED);
+                .with(PaymentMqConstant.RoutingKey.FAILED);
     }
 
 
@@ -118,7 +116,7 @@ public class RabbitConfig {
      */
     @Bean
     public DirectExchange dlxExchange() {
-        return new DirectExchange(PaymentMqConstant.DLQ_EXCHANGE);
+        return new DirectExchange(PaymentMqConstant.Dlx.EXCHANGE);
     }
 
     /**
@@ -126,7 +124,7 @@ public class RabbitConfig {
      */
     @Bean
     public Queue dlqQueue() {
-        return new Queue(PaymentMqConstant.DLQ_QUEUE, true);
+        return new Queue(PaymentMqConstant.Queue.DLQ, true);
     }
 
     /**
@@ -137,7 +135,7 @@ public class RabbitConfig {
         return BindingBuilder
                 .bind(dlqQueue())
                 .to(dlxExchange())
-                .with(PaymentMqConstant.QUEUE_SUCCESS);
+                .with(PaymentMqConstant.RoutingKey.DLQ);
     }
 
 }

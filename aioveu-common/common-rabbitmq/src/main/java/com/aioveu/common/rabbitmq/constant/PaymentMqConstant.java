@@ -13,14 +13,30 @@ package com.aioveu.common.rabbitmq.constant;
 
 public interface PaymentMqConstant {
 
-    String EXCHANGE = "payment.exchange";
 
-    String QUEUE_SUCCESS = "payment.success.queue";
-    String QUEUE_FAILED  = "payment.failed.queue";
+    //把常量分组（一眼看出用途）
+    // 1️补一个“消费者组 / 环境前缀”（防脏数据）
+    String SYSTEM_NAME = "oms";
 
-    String RK_SUCCESS = "payment.success";
-    String RK_FAILED  = "payment.failed";
+    interface Exchange {
+        String PAYMENT = "payment.exchange";
+    }
 
-    String DLQ_QUEUE = "payment.success.queue.dlq";
-    String DLQ_EXCHANGE = "payment.success.dlx";
+
+    interface Queue {
+        String SUCCESS = SYSTEM_NAME + "payment.success.queue";
+        String FAILED  = "payment.failed.queue";
+        String DLQ     = "payment.success.queue.dlq";
+    }
+
+    interface RoutingKey {
+        String SUCCESS = "payment.success";
+        String FAILED  = "payment.failed";
+        String DLQ     = "payment.success.queue"; // ✅ 推荐
+    }
+
+    interface Dlx {
+        String EXCHANGE = "payment.success.dlx";
+    }
+
 }
