@@ -1,42 +1,65 @@
 package com.aioveu.common.rabbitmq.constant;
 
 
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 /**
  * @ClassName: PaymentMqConstant
- * @Description TODO 支付 MQ 的「最终标准配置」
- *                          常量定义（强烈推荐）
+ * @Description TODO MQ 常量类（Spring Bean）
  * @Author aioveu
  * @Author 雒世松
- * @Date 2026/5/26 21:33
+ * @Date 2026/5/28 18:43
  * @Version 1.0
  **/
+@Component
+@Getter
+@Slf4j
+public class PaymentMqConstant {
 
-public interface PaymentMqConstant {
+    @Value("${system.name}")
+    private String systemName;
+
+    /* ================= Exchange ================= */
+
+    public String exchangePayment() {
+        return systemName + "payment.exchange";
+    }
+
+    public String dlxExchange() {
+        return systemName + "payment.success.dlx";
+
+    }
+
+    /* ================= Queue ================= */
 
 
-    //把常量分组（一眼看出用途）
-    // 1️补一个“消费者组 / 环境前缀”（防脏数据）
-    String SYSTEM_NAME = "oms.";
+    public String queueSuccess() {
+        return systemName + "payment.success.queue";
+    }
 
-    interface Exchange {
-        String PAYMENT = "payment.exchange";
+    public String queueFailed() {
+        return systemName + "payment.failed.queue";
+    }
+
+    public String queueDlq() {
+        return systemName + "payment.success.queue.dlq";
     }
 
 
-    interface Queue {
-        String SUCCESS = SYSTEM_NAME + "payment.success.queue";
-        String FAILED  = SYSTEM_NAME + "payment.failed.queue";
-        String DLQ     = SYSTEM_NAME + "payment.success.queue.dlq";
+    /* ================= RoutingKey ================= */
+
+    public String rkSuccess() {
+        return "payment.success";
     }
 
-    interface RoutingKey {
-        String SUCCESS = "payment.success";
-        String FAILED  = "payment.failed";
-        String DLQ     = "payment.success.queue"; // ✅ 推荐
+    public String rkFailed() {
+        return "payment.failed";
     }
 
-    interface Dlx {
-        String EXCHANGE = "payment.success.dlx";
+    public String rkDlq() {
+        return systemName + "payment.success.queue";
     }
-
 }

@@ -1,8 +1,6 @@
 package com.aioveu.common.rabbitmq.config;
 
-import com.aioveu.common.rabbitmq.constant.PaymentMqConstant;
 import com.aioveu.common.rabbitmq.constant.PaymentMqConstant2;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
@@ -24,14 +22,9 @@ import java.util.Map;
  * @return:
  **/
 
-@Configuration
+//@Configuration
 @Slf4j
-@RequiredArgsConstructor
-public class RabbitConfig {
-
-
-    private final PaymentMqConstant mqConstant;
-
+public class RabbitConfig2 {
 
     /**
      * 消息序列化配置
@@ -72,10 +65,10 @@ public class RabbitConfig {
 
         //主队列绑定 DLQ（关键）
         Map<String, Object> args = new HashMap<>();
-        args.put("x-dead-letter-exchange", mqConstant.dlxExchange());
-        args.put("x-dead-letter-routing-key", mqConstant.rkDlq());
+        args.put("x-dead-letter-exchange", PaymentMqConstant2.Exchange.DLX);
+        args.put("x-dead-letter-routing-key", PaymentMqConstant2.RoutingKey.DLQ);
 
-            return new Queue(mqConstant.queueSuccess(), true, false, false, args);
+            return new Queue(PaymentMqConstant2.Queue.SUCCESS, true, false, false, args);
     }
 
     /**
@@ -85,41 +78,30 @@ public class RabbitConfig {
     public Queue paymentFailedQueue() {
 
         Map<String, Object> args = new HashMap<>();
-        args.put("x-dead-letter-exchange",mqConstant.dlxExchange());
-        args.put("x-dead-letter-routing-key", mqConstant.rkDlq());
+        args.put("x-dead-letter-exchange", PaymentMqConstant2.Exchange.DLX);
+        args.put("x-dead-letter-routing-key", PaymentMqConstant2.RoutingKey.DLQ);
 
-        return new Queue(mqConstant.queueFailed(), true, false, false, args);
+        return new Queue(PaymentMqConstant2.Queue.FAILED, true, false, false, args);
     }
-
-    @Bean
-    public Queue dlqQueue() {
-        return new Queue(mqConstant.queueDlq(), true);
-    }
-
-
-    /* ================= 交换机 ================= */
 
     /**
      * ✅ Topic 交换机（关键）
      */
     @Bean
     public TopicExchange paymentExchange() {
-        return new TopicExchange(mqConstant.exchangePayment(), true, false);
+        return new TopicExchange(PaymentMqConstant2.Exchange.PAYMENT, true, false);
     }
 
-    @Bean
-    public DirectExchange dlxExchange() {
-        return new DirectExchange(mqConstant.dlxExchange());
-    }
 
-    /* ================= 绑定 ================= */
-
+    /**
+     * 绑定
+     */
     @Bean
     public Binding paymentSuccessBinding() {
         return BindingBuilder
                 .bind(paymentSuccessQueue())
                 .to(paymentExchange())
-                .with(mqConstant.rkSuccess());
+                .with(PaymentMqConstant2.RoutingKey.SUCCESS);
     }
 
     @Bean
@@ -127,15 +109,35 @@ public class RabbitConfig {
         return BindingBuilder
                 .bind(paymentFailedQueue())
                 .to(paymentExchange())
-                .with(mqConstant.rkFailed());
+                .with(PaymentMqConstant2.RoutingKey.FAILED);
     }
 
+
+    /**
+     * 死信交换机
+     */
+    @Bean
+    public DirectExchange dlxExchange() {
+        return new DirectExchange(PaymentMqConstant2.Exchange.DLX);
+    }
+
+    /**
+     * 死信队列
+     */
+    @Bean
+    public Queue dlqQueue() {
+        return new Queue(PaymentMqConstant2.Queue.DLQ, true);
+    }
+
+    /**
+     * 绑定死信队列
+     */
     @Bean
     public Binding dlqBinding() {
         return BindingBuilder
                 .bind(dlqQueue())
                 .to(dlxExchange())
-                .with(mqConstant.rkDlq());
+                .with(PaymentMqConstant2.RoutingKey.DLQ);
     }
 
 }
