@@ -49,7 +49,7 @@ public class PaymentSuccessConsumer{
     private String consumerGroup;
 
     @RabbitListener(
-            queues = "#{paymentMqConstant.queueSuccess()}",
+            queues = "#{PayCommonMqConstantWithBizName.Queue.Success}",
             concurrency = "4-8",   // ✅ 并发控制
             ackMode = "MANUAL"     // ✅ 手动 ACK（非常重要）
     )

@@ -1,6 +1,7 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.service.impl;
 
 
+import com.aioveu.common.rabbitmq.constant.PayCommonMqConstantWithBizName;
 import com.aioveu.common.rabbitmq.producer.util.MessageIdGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,29 +25,27 @@ import java.time.LocalDateTime;
 @Slf4j
 public class PayPrivateMessageServiceImpl {
 
-    @Value("${rabbitmq.exchange.pay-private:pay.private.exchange}")
-    private String payPrivateExchange;
-
-    @Value("${rabbitmq.routing-key.pay-close:pay.close}")
-    private String payCloseRoutingKey;
+    private final String paymentExchange = PayCommonMqConstantWithBizName.Exchange.PAYMENT;
+    private final String paymentSuccessRoutingKey = PayCommonMqConstantWithBizName.RoutingKey.SUCCESS;
+    private final String paymentFailedRoutingKey = PayCommonMqConstantWithBizName.RoutingKey.FAILED;
 
     private final RabbitTemplate rabbitTemplate;
     private final MessageIdGenerator messageIdGenerator;
 
-    public boolean sendPayCloseMessage(String paymentNo) {
-        String messageId = messageIdGenerator.generatePaymentMessageId(paymentNo);
-
-        PayCloseMessage message = PayCloseMessage.builder()
-                .messageId(messageId)
-                .paymentNo(paymentNo)
-                .closeTime(LocalDateTime.now())
-                .build();
-
-        rabbitTemplate.convertAndSend(
-                payPrivateExchange,
-                payCloseRoutingKey,
-                message
-        );
-        return true;
-    }
+//    public boolean sendPayCloseMessage(String paymentNo) {
+//        String messageId = messageIdGenerator.generatePaymentMessageId(paymentNo);
+//
+//        PayCloseMessage message = PayCloseMessage.builder()
+//                .messageId(messageId)
+//                .paymentNo(paymentNo)
+//                .closeTime(LocalDateTime.now())
+//                .build();
+//
+//        rabbitTemplate.convertAndSend(
+//                payPrivateExchange,
+//                payCloseRoutingKey,
+//                message
+//        );
+//        return true;
+//    }
 }
