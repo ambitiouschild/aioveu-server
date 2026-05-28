@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class PaymentDlqConsumer {
 
-    @RabbitListener(queues = "#{PayCommonMqConstantWithBizName.Queue.DLQ}")
+    @RabbitListener(queues = "#{payCommonMqConstantWithBizName.Queue.DLQ}")
     public void onDlq(Message message) {
         log.error("收到死信消息: {}", new String(message.getBody()));
         // 落表 / 人工工单 / 风控介入
