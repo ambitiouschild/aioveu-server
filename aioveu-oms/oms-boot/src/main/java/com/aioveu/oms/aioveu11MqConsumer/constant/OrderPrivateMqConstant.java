@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class OrderPrivateMqConstant {
 
-    @Value("${spring.application.name}.")
+    @Value("${spring.application.name}.private.")
     private String systemName;
 
     /* ================= Exchange ================= */

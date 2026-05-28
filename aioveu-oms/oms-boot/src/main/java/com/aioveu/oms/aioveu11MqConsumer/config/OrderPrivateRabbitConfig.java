@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +18,7 @@ import java.util.Map;
  * @return:
  **/
 
-//@Configuration
+@Configuration
 @Slf4j
 @RequiredArgsConstructor
 public class OrderPrivateRabbitConfig {
@@ -33,7 +34,7 @@ public class OrderPrivateRabbitConfig {
                             ✅ 再也不会 404
     * */
     @Bean
-    public Queue paymentSuccessQueue() {
+    public Queue OrderPrivateSuccessQueue() {
 
         //主队列绑定 DLQ（关键）
         Map<String, Object> args = new HashMap<>();
@@ -47,7 +48,7 @@ public class OrderPrivateRabbitConfig {
      * 支付失败队列
      */
     @Bean
-    public Queue paymentFailedQueue() {
+    public Queue OrderPrivateFailedQueue() {
 
         Map<String, Object> args = new HashMap<>();
         args.put("x-dead-letter-exchange",mqConstant.dlxExchange());
@@ -57,7 +58,7 @@ public class OrderPrivateRabbitConfig {
     }
 
     @Bean
-    public Queue dlqQueue() {
+    public Queue OrderPrivateDlqQueue() {
         return new Queue(mqConstant.queueDlq(), true);
     }
 
@@ -68,38 +69,38 @@ public class OrderPrivateRabbitConfig {
      * ✅ Topic 交换机（关键）
      */
     @Bean
-    public TopicExchange paymentExchange() {
+    public TopicExchange OrderPrivateExchange() {
         return new TopicExchange(mqConstant.exchangePayment(), true, false);
     }
 
     @Bean
-    public DirectExchange dlxExchange() {
+    public DirectExchange OrderPrivateDlxExchange() {
         return new DirectExchange(mqConstant.dlxExchange());
     }
 
     /* ================= 绑定 ================= */
 
     @Bean
-    public Binding paymentSuccessBinding() {
+    public Binding OrderPrivateSuccessBinding() {
         return BindingBuilder
-                .bind(paymentSuccessQueue())
-                .to(paymentExchange())
+                .bind(OrderPrivateSuccessQueue())
+                .to(OrderPrivateExchange())
                 .with(mqConstant.rkSuccess());
     }
 
     @Bean
-    public Binding paymentFailedBinding() {
+    public Binding OrderPrivateFailedBinding() {
         return BindingBuilder
-                .bind(paymentFailedQueue())
-                .to(paymentExchange())
+                .bind(OrderPrivateFailedQueue())
+                .to(OrderPrivateExchange())
                 .with(mqConstant.rkFailed());
     }
 
     @Bean
-    public Binding dlqBinding() {
+    public Binding OrderPrivateDlqBinding() {
         return BindingBuilder
-                .bind(dlqQueue())
-                .to(dlxExchange())
+                .bind(OrderPrivateDlqQueue())
+                .to(OrderPrivateDlxExchange())
                 .with(mqConstant.rkDlq());
     }
 
