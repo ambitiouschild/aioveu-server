@@ -34,6 +34,7 @@ import org.springframework.util.StringUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -351,7 +352,7 @@ public class PaymentServiceImpl implements PaymentService {
             dto.setOmsOrderNo(payOrder.getOrderNo());
             dto.setPaymentAmount(payOrder.getPaymentAmount());
             dto.setTransactionId(params.get("transaction_id"));
-            dto.setPaymentTime(OffsetDateTime.now().toString());
+            dto.setPaymentTime(LocalDateTime.now());
             // ✅ 补上这两行
             dto.setBizTypeEnum(PaymentMqBizType.PAYMENT_SUCCESS);
 
@@ -404,7 +405,7 @@ public class PaymentServiceImpl implements PaymentService {
             dto.setOmsOrderNo(payOrder.getOrderNo());
             dto.setPaymentAmount(payOrder.getPaymentAmount());
             dto.setTransactionId(params.get("transaction_id"));
-            dto.setPaymentTime(OffsetDateTime.now().toString());
+            dto.setPaymentTime(LocalDateTime.now());
 
 
             boolean mqSuccess = sendPaymentFailureMessage(dto);
