@@ -4,7 +4,7 @@ import com.aioveu.common.result.PageResult;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderPageWithStatsVO;
 import com.aioveu.oms.aioveu11MqConsumer.model.vo.OrderPaySuccessDTO;
-import com.aioveu.pay.model.PaymentSuccessMessage;
+import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.github.binarywang.wxpay.bean.notify.SignatureHeader;

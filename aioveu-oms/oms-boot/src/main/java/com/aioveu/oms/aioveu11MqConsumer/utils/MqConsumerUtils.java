@@ -7,7 +7,7 @@ import com.aioveu.oms.aioveu08MqConsumeRecord.mapper.MqConsumeRecordMapper;
 import com.aioveu.oms.aioveu08MqConsumeRecord.model.entity.MqConsumeRecord;
 import com.aioveu.oms.aioveu08MqConsumeRecord.service.MqConsumeRecordService;
 import com.aioveu.oms.aioveu11MqConsumer.model.vo.OrderPaySuccessDTO;
-import com.aioveu.pay.model.PaymentSuccessMessage;
+import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.nacos.common.utils.StringUtils;

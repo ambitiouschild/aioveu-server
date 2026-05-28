@@ -4,7 +4,7 @@ import com.aioveu.common.rabbitmq.constant.PayCommonMqConstantWithBizName;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.oms.aioveu08MqConsumeRecord.service.MqConsumeRecordService;
 import com.aioveu.oms.aioveu11MqConsumer.service.MqConsumerService;
-import com.aioveu.pay.model.PaymentSuccessMessage;
+import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
 import com.rabbitmq.client.Channel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -12,7 +12,10 @@ import com.aioveu.oms.aioveu08MqConsumeRecord.service.MqConsumeRecordService;
 import com.aioveu.oms.aioveu11MqConsumer.model.vo.OrderPaySuccessDTO;
 import com.aioveu.oms.aioveu11MqConsumer.service.MqConsumerService;
 import com.aioveu.oms.aioveu11MqConsumer.utils.MqConsumerUtils;
-import com.aioveu.pay.model.PaymentSuccessMessage;
+//import com.aioveu.pay.model.PaymentSuccessMessage;
+
+import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -104,6 +107,12 @@ public class MqConsumerServiceImpl implements MqConsumerService {
 
         if (message == null) {
             log.error("【MQ消费者】消息对象为空");
+            return false;
+        }
+
+        Long tenantId = message.getTenantId(); // ✅ 消息里必须有
+        if (tenantId == null) {
+            log.error("【MQ消费者】tenantId为空");
             return false;
         }
 

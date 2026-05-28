@@ -2,7 +2,7 @@ package com.aioveu.oms.aioveu11MqConsumer.service;
 
 
 import com.aioveu.oms.aioveu11MqConsumer.model.vo.OrderPaySuccessDTO;
-import com.aioveu.pay.model.PaymentSuccessMessage;
+import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
 
 /**
  * @ClassName: MqConsumerService

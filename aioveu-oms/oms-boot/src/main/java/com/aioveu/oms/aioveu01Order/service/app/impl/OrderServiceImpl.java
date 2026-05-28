@@ -73,7 +73,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
-
+import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
