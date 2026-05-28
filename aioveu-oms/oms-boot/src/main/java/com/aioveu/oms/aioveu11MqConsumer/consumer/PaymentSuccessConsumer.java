@@ -1,6 +1,7 @@
 package com.aioveu.oms.aioveu11MqConsumer.consumer;
 
 import com.aioveu.common.rabbitmq.constant.PayCommonMqConstantWithBizName;
+import com.aioveu.common.tenant.TenantContextHolder;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.oms.aioveu08MqConsumeRecord.service.MqConsumeRecordService;
 import com.aioveu.oms.aioveu11MqConsumer.service.MqConsumerService;
@@ -71,6 +72,7 @@ public class PaymentSuccessConsumer{
 
             messageId = msg.getMessageId();
             orderNo = msg.getOrderNo();
+            TenantContextHolder.setTenantId(msg.getTenantId()); // ✅ 只加这一行
 
             log.info("【Pay-Consumer】收到支付成功消息, orderNo={}, messageId={}", orderNo, messageId);
 
