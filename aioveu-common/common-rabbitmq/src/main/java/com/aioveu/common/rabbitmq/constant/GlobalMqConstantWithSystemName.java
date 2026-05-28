@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Getter
 @Slf4j
-public class PaymentMqConstant {
+public class GlobalMqConstantWithSystemName {
 
     @Value("${spring.application.name}.")
     private String systemName;

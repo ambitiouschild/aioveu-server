@@ -1,1 +1,1 @@
- com.aioveu.common.rabbitmq.config.RabbitConfig
+ com.aioveu.common.rabbitmq.config.PayCommonRabbitConfigWithBizName

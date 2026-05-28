@@ -1,15 +1,9 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.config;
 
-import com.aioveu.common.rabbitmq.constant.PaymentMqConstant;
-import com.aioveu.pay.aioveu12MqProducerPayment.constant.PayMqConstant;
+import com.aioveu.pay.aioveu12MqProducerPayment.constant.PayPrivateMqConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
-import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.amqp.rabbit.listener.RabbitListenerContainerFactory;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -27,10 +21,10 @@ import java.util.Map;
 @Configuration
 @Slf4j
 @RequiredArgsConstructor
-public class PayRabbitConfig {
+public class PayPrivateRabbitConfig {
 
 
-    private final PayMqConstant mqConstant;
+    private final PayPrivateMqConstant mqConstant;
 
 
     /*

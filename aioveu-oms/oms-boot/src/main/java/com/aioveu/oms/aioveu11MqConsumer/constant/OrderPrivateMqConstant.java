@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.constant;
+package com.aioveu.oms.aioveu11MqConsumer.constant;
 
 
 import lombok.Getter;
@@ -11,14 +11,13 @@ import org.springframework.stereotype.Component;
  * @Description TODO MQ 常量类（Spring Bean）
  * @Author aioveu
  * @Author 雒世松
- * @Date 2026/5/28 19:31
+ * @Date 2026/5/28 19:32
  * @Version 1.0
  **/
-
 @Component
 @Getter
 @Slf4j
-public class PayMqConstant {
+public class OrderPrivateMqConstant {
 
     @Value("${spring.application.name}.")
     private String systemName;

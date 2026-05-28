@@ -1,7 +1,6 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.service;
 
 
-import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.common.rabbitmq.producer.model.vo.RabbitBatchSendResult;
 import com.aioveu.common.rabbitmq.producer.model.vo.RabbitSendRequest;
@@ -11,7 +10,6 @@ import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.SendPaymentMqDTO;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: MqMessageService
@@ -23,7 +21,7 @@ import java.util.Map;
  * @Version 1.0
  **/
 
-public interface PaymentMessageService extends IService<MqSendRecord> {
+public interface PayCommonMessageProducerService extends IService<MqSendRecord> {
 
 
     /**

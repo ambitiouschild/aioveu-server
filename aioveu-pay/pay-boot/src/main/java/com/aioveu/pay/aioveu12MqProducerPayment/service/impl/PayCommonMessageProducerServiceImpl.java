@@ -2,6 +2,7 @@ package com.aioveu.pay.aioveu12MqProducerPayment.service.impl;
 
 
 import com.aioveu.common.exception.BusinessException;
+import com.aioveu.common.rabbitmq.constant.PaymentCommonMqConstant;
 import com.aioveu.common.rabbitmq.enums.SendStatus;
 import com.aioveu.common.rabbitmq.producer.monitor.ProducerMetricsCollector;
 import com.aioveu.common.rabbitmq.producer.monitor.ProducerMonitor;
@@ -22,8 +23,7 @@ import com.aioveu.common.rabbitmq.producer.model.payment.PaymentFailedMessage;
 import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
 import com.aioveu.pay.aioveu12MqProducerPayment.enums.PaymentMqBizType;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.SendPaymentMqDTO;
-import com.aioveu.pay.aioveu12MqProducerPayment.service.PaymentMessageService;
-import com.alibaba.fastjson.JSON;
+import com.aioveu.pay.aioveu12MqProducerPayment.service.PayCommonMessageProducerService;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,7 +31,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -53,7 +52,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSendRecord> implements PaymentMessageService {
+public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSendRecord> implements PayCommonMessageProducerService {
 
 
     private final MessageIdGenerator messageIdGenerator;
@@ -67,15 +66,10 @@ public class PaymentMessageServiceImpl extends ServiceImpl<MqSendRecordMapper, M
     private final PayOrderMapper payOrderMapper;
 
 
-
-    @Value("${rabbitmq.exchange.payment:payment.exchange}")
-    private String paymentExchange;
-
-    @Value("${rabbitmq.routing-key.payment-success:payment.success}")
-    private String paymentSuccessRoutingKey;
-
-    @Value("${rabbitmq.routing-key.payment-failed:payment.failed}")
-    private String paymentFailedRoutingKey;
+    //正确做法：使用公共常量
+    private final String paymentExchange = PaymentCommonMqConstant.Exchange.PAYMENT;
+    private final String paymentSuccessRoutingKey = PaymentCommonMqConstant.RoutingKey.SUCCESS;
+    private final String paymentFailedRoutingKey = PaymentCommonMqConstant.RoutingKey.FAILED;
 
 
 

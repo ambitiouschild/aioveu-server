@@ -11,7 +11,7 @@ package com.aioveu.common.rabbitmq.constant;
  * @Version 1.0
  **/
 
-public interface PaymentCommonMqConstant {
+public interface PayCommonMqConstantWithBizName {
 
 
     //把常量分组（一眼看出用途）

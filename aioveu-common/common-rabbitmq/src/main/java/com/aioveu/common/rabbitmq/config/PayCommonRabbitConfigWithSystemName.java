@@ -1,22 +1,17 @@
-package com.aioveu.oms.aioveu11MqConsumer.config;
+package com.aioveu.common.rabbitmq.config;
 
-import com.aioveu.common.rabbitmq.constant.PaymentMqConstant;
-import com.aioveu.oms.aioveu11MqConsumer.constant.OrderMqConstant;
+import com.aioveu.common.rabbitmq.constant.PayCommonMqConstantWithSystemName;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
-import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.amqp.rabbit.listener.RabbitListenerContainerFactory;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @Description: TODO 消息序列化配置
+ * @Description: TODO 在 各自服务里声明自己需要的队列 消息序列化配置
  * @Author: 雒世松
  * @Date: 2025/6/5 15:55
  * @param
@@ -26,10 +21,10 @@ import java.util.Map;
 //@Configuration
 @Slf4j
 @RequiredArgsConstructor
-public class OrderRabbitConfig {
+public class PayCommonRabbitConfigWithSystemName {
 
 
-    private final OrderMqConstant mqConstant;
+    private final PayCommonMqConstantWithSystemName mqConstant;
 
 
     /*

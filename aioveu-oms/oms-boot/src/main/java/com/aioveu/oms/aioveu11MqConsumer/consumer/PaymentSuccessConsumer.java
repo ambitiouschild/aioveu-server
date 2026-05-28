@@ -1,6 +1,5 @@
 package com.aioveu.oms.aioveu11MqConsumer.consumer;
 
-import com.aioveu.common.rabbitmq.config.RabbitConfig;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.oms.aioveu08MqConsumeRecord.service.MqConsumeRecordService;
 import com.aioveu.oms.aioveu11MqConsumer.service.MqConsumerService;
@@ -8,16 +7,11 @@ import com.aioveu.pay.model.PaymentSuccessMessage;
 import com.rabbitmq.client.Channel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.rocketmq.spring.annotation.ConsumeMode;
-import org.apache.rocketmq.spring.annotation.MessageModel;
-import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
-import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

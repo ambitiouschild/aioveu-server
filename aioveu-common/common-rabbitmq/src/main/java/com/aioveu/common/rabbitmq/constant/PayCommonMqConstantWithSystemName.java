@@ -1,4 +1,4 @@
-package com.aioveu.oms.aioveu11MqConsumer.constant;
+package com.aioveu.common.rabbitmq.constant;
 
 
 import lombok.Getter;
@@ -8,19 +8,22 @@ import org.springframework.stereotype.Component;
 
 /**
  * @ClassName: OrderMqConstant
- * @Description TODO MQ 常量类（Spring Bean）
+ * @Description TODO MQ 常量类（Spring Bean） （支付 MQ 契约）
  * @Author aioveu
  * @Author 雒世松
- * @Date 2026/5/28 19:32
+ * @Date 2026/5/28 19:31
  * @Version 1.0
  **/
+
 @Component
 @Getter
 @Slf4j
-public class OrderMqConstant {
+public class PayCommonMqConstantWithSystemName {
 
-    @Value("${spring.application.name}.")
+    @Value("${spring.application.name}.common.")
     private String systemName;
+
+    //（支付 MQ 契约） ✅ 队列 / Exchange / RK pay 和 oms 都依赖
 
     /* ================= Exchange ================= */
 

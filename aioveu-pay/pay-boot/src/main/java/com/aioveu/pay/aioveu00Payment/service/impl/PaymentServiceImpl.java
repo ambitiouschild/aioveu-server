@@ -21,11 +21,10 @@ import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
 import com.aioveu.pay.aioveu12MqProducerPayment.enums.PaymentMqBizType;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.SendPaymentMqDTO;
-import com.aioveu.pay.aioveu12MqProducerPayment.service.PaymentMessageService;
+import com.aioveu.pay.aioveu12MqProducerPayment.service.PayCommonMessageProducerService;
 import com.alibaba.fastjson.JSON;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,7 +63,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final WeChatPayService wechatPayService;
     private final OrderFeignClient orderFeignClient;
     private final MqSendRecordService mqSendRecordService;
-    private final PaymentMessageService paymentMessageService;
+    private final PayCommonMessageProducerService payCommonMessageProducerService;
     private final MessageIdGenerator messageIdGenerator;
 
     @Value("${pay.wechat.mch-key:}")
@@ -492,7 +491,7 @@ public class PaymentServiceImpl implements PaymentService {
      */
     private boolean sendPaymentSuccessMessage(SendPaymentMqDTO dto) {
         try {
-            return paymentMessageService.sendPaymentSuccessMessage(dto);
+            return payCommonMessageProducerService.sendPaymentSuccessMessage(dto);
         } catch (Exception e) {
             log.error("发送支付成功MQ消息异常: paymentNo={}", dto.getPaymentNo(), e);
             return false;
@@ -504,7 +503,7 @@ public class PaymentServiceImpl implements PaymentService {
      */
     private boolean sendPaymentFailureMessage(SendPaymentMqDTO dto) {
         try {
-            return paymentMessageService.sendPaymentFailedMessage(dto);
+            return payCommonMessageProducerService.sendPaymentFailedMessage(dto);
         } catch (Exception e) {
             log.error("发送支付失败MQ消息异常: paymentNo={}", dto.getPaymentNo(), e);
             return false;
