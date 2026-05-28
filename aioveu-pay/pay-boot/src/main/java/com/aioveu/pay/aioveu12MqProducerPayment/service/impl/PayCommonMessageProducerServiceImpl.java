@@ -87,8 +87,13 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
         boolean success = false;
         String messageId = null;
         String errorMsg = null;
+
         // ✅ 补上这两行
+        // ✅ 业务类型
         dto.setBizTypeEnum(PaymentMqBizType.PAYMENT_SUCCESS);
+        // ✅ transactionId 处理（核心）
+        String transactionId = resolveTransactionId(dto);
+        dto.setTransactionId(transactionId);
 
 
         PayOrder payOrder = payOrderMapper.getPayOrderByNo(dto.getPaymentNo());
@@ -504,6 +509,24 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
     }
 
 
+    private String resolveTransactionId(SendPaymentMqDTO dto) {
 
+        // 1️优先用微信回调的交易号
+//        if (StringUtils.isNotBlank(dto.getWechatTransactionId())) {
+//            return dto.getWechatTransactionId();
+//        }
+
+        // 2️其次用 DTO 里已有的 transactionId
+        if (StringUtils.isNotBlank(dto.getTransactionId())) {
+            return dto.getTransactionId();
+        }
+
+        // 3️⃣ 兜底：生成一个模拟交易号（不影响业务）
+        return generateMockTransactionId(dto.getPaymentNo());
+    }
+
+    private String generateMockTransactionId(String paymentNo) {
+        return "MOCK_" + paymentNo + "_" + System.currentTimeMillis();
+    }
 
 }
