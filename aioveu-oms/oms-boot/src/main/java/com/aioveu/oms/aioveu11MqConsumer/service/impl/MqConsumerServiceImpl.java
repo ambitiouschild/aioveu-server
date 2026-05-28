@@ -2,6 +2,7 @@ package com.aioveu.oms.aioveu11MqConsumer.service.impl;
 
 
 import com.aioveu.common.exception.BusinessException;
+import com.aioveu.common.rabbitmq.constant.PayCommonMqConstantWithBizName;
 import com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
@@ -42,8 +43,8 @@ public class MqConsumerServiceImpl implements MqConsumerService {
     @Value("${spring.application.name}")
     private String applicationName;
 
-    @Value("${rocketmq.topics.payment-success:payment_success_topic}")
-    private String paymentSuccessTopic;
+    private final String paymentSuccessTopic =
+            PayCommonMqConstantWithBizName.RoutingKey.SUCCESS;
     /**
      * 处理支付成功消息（JSON字符串版本）
      * 消息体格式示例：
