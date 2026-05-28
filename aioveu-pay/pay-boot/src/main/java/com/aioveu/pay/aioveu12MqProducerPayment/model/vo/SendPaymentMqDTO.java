@@ -2,12 +2,14 @@ package com.aioveu.pay.aioveu12MqProducerPayment.model.vo;
 
 
 import com.aioveu.pay.aioveu12MqProducerPayment.enums.PaymentMqBizType;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * @ClassName: SendPaymentMqDTO
@@ -62,7 +64,10 @@ public class SendPaymentMqDTO {
     /**
      * 支付成功时间（ISO-8601）
      */
-    private String paymentTime;
+    /**
+     * 支付时间
+     */
+    private LocalDateTime paymentTime;
 
 
     /** ✅ 业务类型 */
@@ -70,4 +75,25 @@ public class SendPaymentMqDTO {
 
     /** ✅ 消息类型 */
     private String messageType = "PAYMENT_SUCCESS";
+
+    /**
+     * 是否人工发送
+     */
+    @JsonProperty("manualSend")
+    private Boolean manualSend;
+
+    /*
+    *  ✅ Boolean（不是 boolean）
+        ✅ 生成 getManualSend()
+        ✅ Boolean.TRUE.equals()永远安全
+        ✅ Jackson 反序列化稳定
+    *
+    * */
+
+    /**
+     * 支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额
+     */
+    private String channel;
+
+
 }

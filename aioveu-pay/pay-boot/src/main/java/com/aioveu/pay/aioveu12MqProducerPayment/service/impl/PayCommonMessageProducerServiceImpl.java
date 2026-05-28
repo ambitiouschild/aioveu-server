@@ -88,18 +88,47 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
         String messageId = null;
         String errorMsg = null;
 
+        PayOrder payOrder = payOrderMapper.getPayOrderByNo(dto.getPaymentNo());
+        if (payOrder == null) {
+            throw new BusinessException("支付订单不存在:{}",dto.getPaymentNo());
+        }
+
+
         // ✅ 补上这两行
         // ✅ 业务类型
         dto.setBizTypeEnum(PaymentMqBizType.PAYMENT_SUCCESS);
+
+
+        // ✅ 人工发送：全部强制从订单来
+        if (Boolean.TRUE.equals(dto.getManualSend())) {
+
+            // 金额
+            dto.setPaymentAmount(payOrder.getPaymentAmount());
+
+            // 交易号（没有就 mock）
+            dto.setTransactionId(
+                    StringUtils.isNotBlank(payOrder.getThirdPaymentNo())
+                            ? payOrder.getThirdTransactionNo()
+                            : "MANUAL_" + dto.getPaymentNo() + "_" + System.currentTimeMillis()
+            );
+
+            // 渠道
+            dto.setChannel(
+                    StringUtils.isNotBlank(payOrder.getPaymentChannel())
+                            ? payOrder.getPaymentChannel()
+                            : "manual"
+            );
+
+            // 支付时间
+            dto.setPaymentTime(LocalDateTime.now());
+        }
+
         // ✅ transactionId 处理（核心）
         String transactionId = resolveTransactionId(dto);
         dto.setTransactionId(transactionId);
 
 
-        PayOrder payOrder = payOrderMapper.getPayOrderByNo(dto.getPaymentNo());
-        if (payOrder == null) {
-            throw new BusinessException("支付订单不存在:{}",dto.getPaymentNo());
-        }
+
 
         try {
 

@@ -44,7 +44,11 @@ public class PaymentMessageController {
             @Parameter(description = "请求 DTO") @Valid @RequestBody SendPaymentMqDTO sendPaymentMqDTO
     ) {
 
-
+        log.info("【Pay-mq-send-message】前端只负责“触发模拟 MQ”");
+        log.info("【Pay-mq-send-message】不传金额");
+        log.info("【Pay-mq-send-message】不传 transactionId");
+        log.info("【Pay-mq-send-message】不传 channel");
+        sendPaymentMqDTO.setManualSend(true); // ✅ 标记为人工发送
         boolean result = payCommonMessageProducerService.sendPaymentSuccessMessage(sendPaymentMqDTO);
         return Result.judge(result);
     }
