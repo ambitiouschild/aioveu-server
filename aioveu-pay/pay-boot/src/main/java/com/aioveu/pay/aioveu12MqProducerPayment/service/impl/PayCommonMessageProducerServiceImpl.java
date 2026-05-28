@@ -2,7 +2,7 @@ package com.aioveu.pay.aioveu12MqProducerPayment.service.impl;
 
 
 import com.aioveu.common.exception.BusinessException;
-import com.aioveu.common.rabbitmq.constant.PaymentCommonMqConstant;
+import com.aioveu.common.rabbitmq.constant.PayCommonMqConstantWithBizName;
 import com.aioveu.common.rabbitmq.enums.SendStatus;
 import com.aioveu.common.rabbitmq.producer.monitor.ProducerMetricsCollector;
 import com.aioveu.common.rabbitmq.producer.monitor.ProducerMonitor;
@@ -67,9 +67,9 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
 
 
     //正确做法：使用公共常量
-    private final String paymentExchange = PaymentCommonMqConstant.Exchange.PAYMENT;
-    private final String paymentSuccessRoutingKey = PaymentCommonMqConstant.RoutingKey.SUCCESS;
-    private final String paymentFailedRoutingKey = PaymentCommonMqConstant.RoutingKey.FAILED;
+    private final String paymentExchange = PayCommonMqConstantWithBizName.Exchange.PAYMENT;
+    private final String paymentSuccessRoutingKey = PayCommonMqConstantWithBizName.RoutingKey.SUCCESS;
+    private final String paymentFailedRoutingKey = PayCommonMqConstantWithBizName.RoutingKey.FAILED;
 
 
 
