@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class PaymentMqConstant {
 
-    @Value("${spring.application.name}")
+    @Value("${spring.application.name}.")
     private String systemName;
 
     /* ================= Exchange ================= */
