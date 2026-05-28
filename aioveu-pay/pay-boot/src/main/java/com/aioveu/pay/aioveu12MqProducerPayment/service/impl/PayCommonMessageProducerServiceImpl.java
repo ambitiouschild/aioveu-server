@@ -127,7 +127,16 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
             );
 
             // 支付时间
-            dto.setPaymentTime(LocalDateTime.now());
+            // ✅ 支付时间兜底
+            LocalDateTime paymentTime = payOrder.getPaymentTime();
+
+            if (paymentTime == null) {
+                log.warn("【Pay-mq】订单支付时间为空，使用当前时间兜底, paymentNo={}",
+                        payOrder.getPaymentNo());
+                paymentTime = LocalDateTime.now();
+            }
+
+            dto.setPaymentTime(paymentTime);
         }
 
         // ✅ transactionId 处理（核心）
@@ -491,8 +500,8 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
                 .tenantId(payOrder.getTenantId())   // ✅ 从 PayOrder 取
                 .transactionId(dto.getTransactionId())  // ✅ 可能 mock
                 .amount(dto.getPaymentAmount())   // ✅ 已兜底
-                .channel(payOrder.getPaymentChannel())
-                .paymentTime(payOrder.getPaymentTime()) // ✅ 关键
+                .channel(payOrder.getPaymentChannel())   //✅ MQ 消息永远用 DTO 的时间
+                .paymentTime(dto.getPaymentTime()) // ✅ 关键
                 .memberId(payOrder.getUserId())
                 .build();
     }
