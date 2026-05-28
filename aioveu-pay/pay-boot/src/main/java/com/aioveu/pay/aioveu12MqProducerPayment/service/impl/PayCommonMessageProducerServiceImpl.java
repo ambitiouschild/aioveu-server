@@ -33,9 +33,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -102,8 +104,12 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
         // ✅ 人工发送：全部强制从订单来
         if (Boolean.TRUE.equals(dto.getManualSend())) {
 
-            // 金额
-            dto.setPaymentAmount(payOrder.getPaymentAmount());
+        // ✅ 金额兜底
+            BigDecimal amount = Optional.ofNullable(payOrder.getPaymentAmount())
+                    .filter(a -> a.compareTo(BigDecimal.ZERO) > 0)
+                    .orElse(payOrder.getPaymentAmount());
+
+            dto.setPaymentAmount(amount);
 
             // 交易号（没有就 mock）
             dto.setTransactionId(
