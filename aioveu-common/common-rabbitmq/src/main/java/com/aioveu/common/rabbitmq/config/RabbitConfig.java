@@ -11,6 +11,9 @@ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @Description: TODO 消息序列化配置
  * @Author: 雒世松
@@ -57,7 +60,14 @@ public class RabbitConfig {
     * */
     @Bean
     public Queue paymentSuccessQueue() {
-        return new Queue(PaymentMqConstant.QUEUE_SUCCESS, true);
+
+        //主队列绑定 DLQ（关键）
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-dead-letter-exchange", PaymentMqConstant.DLQ_EXCHANGE);
+        args.put("x-dead-letter-routing-key", PaymentMqConstant.QUEUE_SUCCESS);
+        args.put("x-max-retries", 3); // 可选
+
+        return new Queue(PaymentMqConstant.QUEUE_SUCCESS, true, false, false, args);
     }
 
     /**
@@ -65,7 +75,13 @@ public class RabbitConfig {
      */
     @Bean
     public Queue paymentFailedQueue() {
-        return new Queue(PaymentMqConstant.QUEUE_FAILED, true);
+
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-dead-letter-exchange", PaymentMqConstant.DLQ_EXCHANGE);
+        args.put("x-dead-letter-routing-key", PaymentMqConstant.QUEUE_SUCCESS);
+        args.put("x-max-retries", 3); // 可选
+
+        return new Queue(PaymentMqConstant.QUEUE_FAILED, true, false, false, args);
     }
 
     /**
@@ -96,5 +112,32 @@ public class RabbitConfig {
                 .with(PaymentMqConstant.RK_FAILED);
     }
 
+
+    /**
+     * 死信交换机
+     */
+    @Bean
+    public DirectExchange dlxExchange() {
+        return new DirectExchange(PaymentMqConstant.DLQ_EXCHANGE);
+    }
+
+    /**
+     * 死信队列
+     */
+    @Bean
+    public Queue dlqQueue() {
+        return new Queue(PaymentMqConstant.DLQ_QUEUE, true);
+    }
+
+    /**
+     * 绑定死信队列
+     */
+    @Bean
+    public Binding dlqBinding() {
+        return BindingBuilder
+                .bind(dlqQueue())
+                .to(dlxExchange())
+                .with(PaymentMqConstant.QUEUE_SUCCESS);
+    }
 
 }

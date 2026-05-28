@@ -20,4 +20,7 @@ public interface PaymentMqConstant {
 
     String RK_SUCCESS = "payment.success";
     String RK_FAILED  = "payment.failed";
+
+    String DLQ_QUEUE = "payment.success.queue.dlq";
+    String DLQ_EXCHANGE = "payment.success.dlx";
 }
