@@ -110,6 +110,7 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
                     .orElse(new BigDecimal("0.01"));
 
             dto.setPaymentAmount(amount);
+            log.info("金额兜底amount=:{}",amount);
 
             // 交易号（没有就 mock）
             dto.setTransactionId(
@@ -479,17 +480,20 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
 
 
         return PaymentSuccessMessage.builder()
+                // ✅ MQ 发送相关（来自 DTO）
                 .messageId(dto.getMessageId())    // 构建业务消息（从 DTO 拿）
+                .bizType(dto.getBizTypeEnum().getBizType())     // ✅ 从业务消息来
+                .topic(dto.getBizTypeEnum().getTopic())         // ✅ 从业务消息来
+
+                // ✅ 支付事实（来自 PayOrder）
                 .paymentNo(payOrder.getPaymentNo())
                 .orderNo(payOrder.getOrderNo())
                 .tenantId(payOrder.getTenantId())   // ✅ 从 PayOrder 取
-                .transactionId(dto.getTransactionId())
-                .amount(payOrder.getPaymentAmount())
+                .transactionId(dto.getTransactionId())  // ✅ 可能 mock
+                .amount(dto.getPaymentAmount())   // ✅ 已兜底
                 .channel(payOrder.getPaymentChannel())
-                .paymentTime(LocalDateTime.now())
+                .paymentTime(payOrder.getPaymentTime()) // ✅ 关键
                 .memberId(payOrder.getUserId())
-                .bizType(dto.getBizTypeEnum().getBizType())     // ✅ 从业务消息来
-                .topic(dto.getBizTypeEnum().getTopic())         // ✅ 从业务消息来
                 .build();
     }
 
