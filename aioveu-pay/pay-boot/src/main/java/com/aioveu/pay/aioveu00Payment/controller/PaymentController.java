@@ -72,6 +72,8 @@ public class PaymentController {
     @Log( value = "微信支付回调,微信只认 XML",module = LogModuleEnum.PAY)
     public String wxPayNotify(HttpServletRequest request) {
 
+
+        //   https://crush.aioveu.com/api/v1/pay-order/wxpay/notify
 //        return paymentService.handleCallback(request);
 
         log.info("接收到微信支付回调");
