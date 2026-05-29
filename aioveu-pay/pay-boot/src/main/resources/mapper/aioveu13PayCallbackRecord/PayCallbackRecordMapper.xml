@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.pay.aioveu13PayCallbackRecord.mapper.PayCallbackRecordMapper">
+
+    <!-- 获取支付回调记录分页列表 -->
+    <select id="getPayCallbackRecordPage" resultType="com.aioveu.pay.aioveu13PayCallbackRecord.model.vo.PayCallbackRecordVo">
+        SELECT
+                id,
+                tenant_id,
+                payment_no,
+                order_no,
+                transaction_id,
+                channel,
+                notify_status,
+                notify_count,
+                last_notify_time,
+                paid_amount,
+                mch_id,
+                app_id,
+                raw_data,
+                error_msg,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            pay_callback_record
+        <where>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.paymentNo != null and queryParams.paymentNo != ''">
+                AND payment_no LIKE CONCAT(#{queryParams.paymentNo}, '%')
+            </if>
+            <if test="queryParams.orderNo != null and queryParams.orderNo != ''">
+                AND order_no LIKE CONCAT(#{queryParams.orderNo}, '%')
+            </if>
+            <if test="queryParams.transactionId != null and queryParams.transactionId != ''">
+                AND transaction_id LIKE CONCAT(#{queryParams.transactionId}, '%')
+            </if>
+            <if test="queryParams.channel != null and queryParams.channel != ''">
+                AND channel LIKE CONCAT(#{queryParams.channel}, '%')
+            </if>
+            <if test="queryParams.notifyStatus != null">
+                AND notify_status LIKE CONCAT(#{queryParams.notifyStatus}, '%')
+            </if>
+            <if test="queryParams.lastNotifyTime != null">
+                AND last_notify_time LIKE CONCAT(#{queryParams.lastNotifyTime}, '%')
+            </if>
+            <if test="queryParams.paidAmount != null">
+                AND paid_amount LIKE CONCAT(#{queryParams.paidAmount}, '%')
+            </if>
+            <if test="queryParams.mchId != null and queryParams.mchId != ''">
+                AND mch_id LIKE CONCAT(#{queryParams.mchId}, '%')
+            </if>
+            <if test="queryParams.appId != null and queryParams.appId != ''">
+                AND app_id LIKE CONCAT(#{queryParams.appId}, '%')
+            </if>
+            <if test="queryParams.createTime != null">
+                AND create_time LIKE CONCAT(#{queryParams.createTime}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

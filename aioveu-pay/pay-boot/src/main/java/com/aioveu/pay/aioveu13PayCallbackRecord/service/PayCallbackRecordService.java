@@ -1,0 +1,61 @@
+package com.aioveu.pay.aioveu13PayCallbackRecord.service;
+
+
+import com.aioveu.pay.aioveu13PayCallbackRecord.model.entity.PayCallbackRecord;
+import com.aioveu.pay.aioveu13PayCallbackRecord.model.form.PayCallbackRecordForm;
+import com.aioveu.pay.aioveu13PayCallbackRecord.model.query.PayCallbackRecordQuery;
+import com.aioveu.pay.aioveu13PayCallbackRecord.model.vo.PayCallbackRecordVo;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.IService;
+
+/**
+ * @ClassName: PayCallbackRecordService
+ * @Description TODO 支付回调记录服务类
+ * @Author aioveu
+ * @Author 雒世松
+ * @Date 2026/5/29 18:12
+ * @Version 1.0
+ **/
+
+public interface PayCallbackRecordService extends IService<PayCallbackRecord> {
+
+    /**
+     *支付回调记录分页列表
+     *
+     * @return {@link IPage<PayCallbackRecordVo>} 支付回调记录分页列表
+     */
+    IPage<PayCallbackRecordVo> getPayCallbackRecordPage(PayCallbackRecordQuery queryParams);
+
+    /**
+     * 获取支付回调记录表单数据
+     *
+     * @param id 支付回调记录ID
+     * @return 支付回调记录表单数据
+     */
+    PayCallbackRecordForm getPayCallbackRecordFormData(Long id);
+
+    /**
+     * 新增支付回调记录
+     *
+     * @param formData 支付回调记录表单对象
+     * @return 是否新增成功
+     */
+    boolean savePayCallbackRecord(PayCallbackRecordForm formData);
+
+    /**
+     * 修改支付回调记录
+     *
+     * @param id   支付回调记录ID
+     * @param formData 支付回调记录表单对象
+     * @return 是否修改成功
+     */
+    boolean updatePayCallbackRecord(Long id, PayCallbackRecordForm formData);
+
+    /**
+     * 删除支付回调记录
+     *
+     * @param ids 支付回调记录ID，多个以英文逗号(,)分割
+     * @return 是否删除成功
+     */
+    boolean deletePayCallbackRecords(String ids);
+}
