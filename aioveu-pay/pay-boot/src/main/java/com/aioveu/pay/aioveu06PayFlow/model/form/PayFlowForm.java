@@ -1,5 +1,8 @@
 package com.aioveu.pay.aioveu06PayFlow.model.form;
 
+import com.aioveu.pay.aioveu06PayFlow.enums.FlowDirectionEnum;
+import com.aioveu.pay.aioveu06PayFlow.enums.FlowStatusEnum;
+import com.aioveu.pay.aioveu06PayFlow.enums.FlowTypeEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -59,12 +62,12 @@ public class PayFlowForm implements Serializable {
     @Schema(description = "流水类型：PAYMENT-支付 REFUND-退款 SETTLEMENT-结算 ADJUST-调账")
     @NotBlank(message = "流水类型：PAYMENT-支付 REFUND-退款 SETTLEMENT-结算 ADJUST-调账不能为空")
     @Size(max=20, message="流水类型：PAYMENT-支付 REFUND-退款 SETTLEMENT-结算 ADJUST-调账长度不能超过20个字符")
-    private String flowType;
+    private FlowTypeEnum flowType;
 
     @Schema(description = "资金方向：IN-入金 OUT-出金")
     @NotBlank(message = "资金方向：IN-入金 OUT-出金不能为空")
     @Size(max=10, message="资金方向：IN-入金 OUT-出金长度不能超过10个字符")
-    private String flowDirection;
+    private FlowDirectionEnum flowDirection;
 
     @Schema(description = "流水金额")
     @NotNull(message = "流水金额不能为空")
@@ -87,7 +90,7 @@ public class PayFlowForm implements Serializable {
 
     @Schema(description = "流水状态：0-处理中 1-成功 2-失败")
     @NotNull(message = "流水状态：0-处理中 1-成功 2-失败不能为空")
-    private Integer flowStatus;
+    private FlowStatusEnum flowStatus;
 
     @Schema(description = "交易时间")
     @NotNull(message = "交易时间不能为空")

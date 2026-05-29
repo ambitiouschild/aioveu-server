@@ -143,7 +143,7 @@ public class PayFlowServiceImpl extends ServiceImpl<PayFlowMapper, PayFlow> impl
                 .orderNo(payOrder.getOrderNo())
                 .userId(payOrder.getUserId())
                 .flowType(FlowTypeEnum.PAYMENT)
-                .flowDirection(FlowDirectionEnum.IN.name()) // 支付是入金
+                .flowDirection(FlowDirectionEnum.IN) // 支付是入金
                 .amount(callback.getPaidAmount())
                 .balanceBefore(null)   // ✅ 不使用
                 .balanceAfter(null)    // ✅ 不使用
@@ -189,14 +189,14 @@ public class PayFlowServiceImpl extends ServiceImpl<PayFlowMapper, PayFlow> impl
 //                .refundNo(callback.getRefundNo()) // ✅ 用你现有字段
                 .orderNo(payOrder.getOrderNo())
                 .userId(payOrder.getUserId())
-                .flowType(FlowTypeEnum.REFUND.name())
-                .flowDirection(FlowDirectionEnum.OUT.name()) // 退款是出金
+                .flowType(FlowTypeEnum.REFUND)
+                .flowDirection(FlowDirectionEnum.OUT) // 退款是出金
                 .amount(refundAmount)
                 .balanceBefore(null)
                 .balanceAfter(null)
                 .channelCode(callback.getChannel())
                 .thirdFlowNo(callback.getThirdTransactionId())
-                .flowStatus(FlowStatusEnum.FAILED.getValue())
+                .flowStatus(FlowStatusEnum.FAILED)
                 .tradeTime(callback.getPaidTime())
                 .completeTime(now)
 //                .callbackData(callback.getRawData())
