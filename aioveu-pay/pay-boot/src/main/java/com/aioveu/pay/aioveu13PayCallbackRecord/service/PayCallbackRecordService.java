@@ -70,4 +70,27 @@ public interface PayCallbackRecordService extends IService<PayCallbackRecord> {
      * 记录回调（含幂等）
      */
     void markConsumed(String transactionId, String paymentNo, String orderNo, Map<String, String> params);
+
+    /**
+     * 记录失败回调（含幂等）
+     */
+    void markFailed(
+            String transactionId,
+            String paymentNo,
+            String orderNo,
+            Map<String, String> params,
+            String errorMsg);
+
+
+    /**
+     * incrNotifyCount= 每次微信 / 支付宝再次回调时调用
+     */
+    void incrNotifyCount(String transactionId);
+
+
+    /*
+    * 根据transactionId查找支付回调记录
+    * */
+    PayCallbackRecord getByTransactionId(String transactionId);
+
 }

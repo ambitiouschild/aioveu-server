@@ -24,6 +24,7 @@ import com.aioveu.pay.aioveu12MqProducerPayment.enums.PaymentMqBizType;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.SendPaymentMqDTO;
 import com.aioveu.pay.aioveu12MqProducerPayment.service.PayCommonMessageProducerService;
 import com.aioveu.pay.aioveu01.enums.PaymentCallbackStatusEnum;
+import com.aioveu.pay.aioveu13PayCallbackRecord.model.entity.PayCallbackRecord;
 import com.aioveu.pay.aioveu13PayCallbackRecord.service.PayCallbackRecordService;
 import com.alibaba.fastjson.JSON;
 import lombok.RequiredArgsConstructor;
@@ -305,7 +306,18 @@ public class PaymentServiceImpl implements PaymentService {
 
             // 4. ✅【核心】幂等判断（必须用 transaction_id）（✅ 用 pay_callback_record）
             if (payCallbackRecordService.isConsumed(transactionId)) {
-                log.info("【微信回调】已处理，直接返回 SUCCESS, transactionId={}", transactionId);
+
+                PayCallbackRecord record =
+                        payCallbackRecordService.getByTransactionId(transactionId);
+
+                if (record != null && record.getNotifyCount() >= 10) {
+                    log.warn("【微信回调】超过最大回调次数，忽略通知, transactionId={}", transactionId);
+                    return generateWechatSuccessResponse();
+                }
+
+
+                log.info("【微信回调】已处理，增加回调次数, transactionId={}", transactionId);
+                payCallbackRecordService.incrNotifyCount(transactionId);
                 return generateWechatSuccessResponse();
             }
 

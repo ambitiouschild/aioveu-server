@@ -19,6 +19,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -127,14 +129,102 @@ public class PayCallbackRecordServiceImpl extends ServiceImpl<PayCallbackRecordM
     public void markConsumed(String transactionId, String paymentNo, String orderNo, Map<String, String> params) {
 
         PayCallbackRecord record = new PayCallbackRecord();
+        // 2️核心字段
         record.setTransactionId(transactionId);
         record.setPaymentNo(paymentNo);
         record.setOrderNo(orderNo);
         record.setChannel("WECHAT");
+
+        // 3️金额（✅ 必须从回调取）
+        BigDecimal paidAmount = parsePaidAmount(params);
+        record.setPaidAmount(paidAmount);
+
+        // 4️商户 / 应用
+        record.setMchId(params.get("mch_id"));
+        record.setAppId(params.get("appid"));
+
+        // 5️状态 & 次数
         record.setNotifyStatus(1);
-        record.setRawData(JSON.toJSONString(params));
+//        record.setNotifyCount(1); // ❌ 删掉 第一次插入时默认就是 1（数据库默认值） 后续只用 incrNotifyCount
         record.setLastNotifyTime(LocalDateTime.now());
+
+        // 6️原始数据（✅ 必须有）
+        record.setRawData(JSON.toJSONString(params));
+
+        // 7️租户（✅ 从上下文取）
+//        record.setTenantId(TenantContext.getTenantId());
+
+        save(record);
+
+    }
+
+    private BigDecimal parsePaidAmount(Map<String, String> params) {
+        try {
+            String totalFee = params.get("total_fee");
+            if (totalFee == null) {
+                return BigDecimal.ZERO;
+            }
+            return new BigDecimal(totalFee)
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        } catch (Exception e) {
+            log.error("解析回调金额失败", e);
+            return BigDecimal.ZERO;
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void markFailed(
+            String transactionId,
+            String paymentNo,
+            String orderNo,
+            Map<String, String> params,
+            String errorMsg) {
+
+        PayCallbackRecord record = new PayCallbackRecord();
+
+        record.setTransactionId(transactionId);
+        record.setPaymentNo(paymentNo);
+        record.setOrderNo(orderNo);
+        record.setChannel("WECHAT");
+        record.setPaidAmount(parsePaidAmount(params));
+        record.setMchId(params.get("mch_id"));
+        record.setAppId(params.get("appid"));
+        record.setNotifyStatus(2);          // ✅ 失败
+        record.setNotifyCount(1);
+        record.setLastNotifyTime(LocalDateTime.now());
+        record.setErrorMsg(errorMsg);        // ✅ 必须有
+        record.setRawData(JSON.toJSONString(params));
+//        record.setTenantId(TenantContext.getTenantId());
 
         save(record);
     }
+
+    @Override
+    public void incrNotifyCount(String transactionId) {
+        lambdaUpdate()
+                .eq(PayCallbackRecord::getTransactionId, transactionId)
+                .setSql("notify_count = notify_count + 1")
+                .update();
+    }
+
+
+    /*
+     * 根据transactionId查找支付回调记录
+     * */
+    @Override
+    public PayCallbackRecord getByTransactionId(String transactionId) {
+
+        if (StringUtils.isBlank(transactionId)) {
+            return null;
+        }
+
+        return lambdaQuery()
+                .eq(PayCallbackRecord::getTransactionId, transactionId)
+//                .eq(PayCallbackRecord::getTenantId, tenantId)
+                .eq(PayCallbackRecord::getIsDeleted, 0)
+                .last("LIMIT 1")
+                .one();
+    }
+
 }
