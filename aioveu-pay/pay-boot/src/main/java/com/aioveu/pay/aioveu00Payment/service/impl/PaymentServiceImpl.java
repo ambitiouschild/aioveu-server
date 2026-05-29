@@ -369,8 +369,11 @@ public class PaymentServiceImpl implements PaymentService {
                 return; // ✅ 合法
             }
 
-            // 2. 验证金额
-            if (!verifyAmount(payOrder, params)) {
+            // mock 回调跳过金额校验
+            boolean isMock = transactionId != null && transactionId.startsWith("MOCK_");
+
+            // 2. 验证金额  方案二（✅ 推荐）：mock 跳过金额校验（仅 dev）
+            if (!isMock && !verifyAmount(payOrder, params)) {
                 log.error("【微信回调】金额不匹配: paymentNo={}, 订单金额={}, 回调金额={}",
                         paymentNo, payOrder.getPaymentAmount(), getCallbackAmount(params));
                 throw new BizException("金额不匹配");
