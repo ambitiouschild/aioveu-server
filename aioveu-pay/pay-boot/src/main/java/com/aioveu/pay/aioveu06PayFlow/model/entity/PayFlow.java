@@ -2,6 +2,9 @@ package com.aioveu.pay.aioveu06PayFlow.model.entity;
 
 import com.aioveu.common.base.BaseEntity;
 import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.pay.aioveu06PayFlow.enums.FlowDirectionEnum;
+import com.aioveu.pay.aioveu06PayFlow.enums.FlowStatusEnum;
+import com.aioveu.pay.aioveu06PayFlow.enums.FlowTypeEnum;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Builder;
 import lombok.Getter;
@@ -50,11 +53,11 @@ public class PayFlow extends BaseEntityWithTenantId {
     /**
      * 流水类型：PAYMENT-支付 REFUND-退款 SETTLEMENT-结算 ADJUST-调账
      */
-    private String flowType;
+    private FlowTypeEnum flowType;
     /**
      * 资金方向：IN-入金 OUT-出金
      */
-    private String flowDirection;
+    private FlowDirectionEnum flowDirection;
     /**
      * 流水金额
      */
@@ -78,7 +81,7 @@ public class PayFlow extends BaseEntityWithTenantId {
     /**
      * 流水状态：0-处理中 1-成功 2-失败
      */
-    private Integer flowStatus;
+    private FlowStatusEnum flowStatus;
     /**
      * 交易时间
      */

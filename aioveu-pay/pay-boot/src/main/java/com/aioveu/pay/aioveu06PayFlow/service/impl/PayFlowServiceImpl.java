@@ -142,14 +142,14 @@ public class PayFlowServiceImpl extends ServiceImpl<PayFlowMapper, PayFlow> impl
                 .paymentNo(payOrder.getPaymentNo())
                 .orderNo(payOrder.getOrderNo())
                 .userId(payOrder.getUserId())
-                .flowType(FlowTypeEnum.PAYMENT.name())
+                .flowType(FlowTypeEnum.PAYMENT)
                 .flowDirection(FlowDirectionEnum.IN.name()) // 支付是入金
                 .amount(callback.getPaidAmount())
                 .balanceBefore(null)   // ✅ 不使用
                 .balanceAfter(null)    // ✅ 不使用
                 .channelCode(callback.getChannel())
                 .thirdFlowNo(callback.getThirdTransactionId())
-                .flowStatus(FlowStatusEnum.SUCCESS.getValue())
+                .flowStatus(FlowStatusEnum.SUCCESS)
                 .tradeTime(callback.getPaidTime())
                 .completeTime(now)
 //                .callbackData(callback.getRawData())
