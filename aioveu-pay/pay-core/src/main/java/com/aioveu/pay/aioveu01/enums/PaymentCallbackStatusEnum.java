@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu13PayCallbackRecord.enums;
+package com.aioveu.pay.aioveu01.enums;
 
 
 import lombok.Getter;
@@ -14,14 +14,16 @@ import lombok.Getter;
 @Getter
 public enum PaymentCallbackStatusEnum {
 
+    PENDING(0, "待支付"),
+    PROCESSING(1, "支付中"),
     /** 支付成功 */
-    SUCCESS(1, "支付成功"),
+    SUCCESS(2, "支付成功"),
 
     /** 支付失败 */
-    FAILED(2, "支付失败"),
+    FAILED(3, "支付失败"),
 
     /** 已关闭 */
-    CLOSED(3, "已关闭");
+    CLOSED(4, "已关闭");
 
     private final int code;
     private final String desc;

@@ -128,7 +128,7 @@ public class MockStrategyAdapter implements PaymentStrategy {
     public boolean verifyCallback(PaymentCallbackDTO callback) {
         try {
             log.info("【Mock】Mock回调验证, 订单号: {}, Mock交易号: {}",
-                    callback.getPaymentNo(), callback.getThirdPaymentNo());
+                    callback.getPaymentNo(), callback.getThirdTransactionId());
 
             // 这里可以实现支付宝回调签名验证
             // 通常支付宝回调验证在回调Controller中实现

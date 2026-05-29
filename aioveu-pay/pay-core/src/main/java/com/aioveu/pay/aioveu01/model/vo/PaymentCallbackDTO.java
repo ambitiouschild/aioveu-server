@@ -1,5 +1,7 @@
 package com.aioveu.pay.aioveu01.model.vo;
 
+import com.aioveu.pay.aioveu01.enums.PaymentCallbackStatusEnum;
+import com.aioveu.pay.aioveu01.enums.PaymentStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,8 +39,8 @@ public class PaymentCallbackDTO implements Serializable {
    @Schema(description = "支付金额（元）")
    private BigDecimal paidAmount;
 
-   @Schema(description = "支付状态")
-   private int status; // SUCCESS / FAILED
+   @Schema(description = "支付状态")  //正确做法（✅ 支付系统标准）
+   private PaymentCallbackStatusEnum status; // SUCCESS / FAILED
 
    @Schema(description = "支付完成时间")
    private LocalDateTime paidTime;

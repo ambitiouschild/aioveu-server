@@ -12,6 +12,7 @@ import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
 import com.aioveu.pay.aioveu01.enums.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01.model.vo.PaymentCallbackDTO;
 import com.aioveu.pay.aioveu01PayOrder.utils.PayOrderNoGenerator;
+import com.aioveu.pay.aioveu01.enums.PaymentCallbackStatusEnum;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -207,11 +208,12 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
     @Transactional(rollbackFor = Exception.class)
     public Boolean updateOrderStatus(PayOrder order, PaymentCallbackDTO callback){
 
+        PaymentCallbackStatusEnum status = callback.getStatus();
         // 设置状态
-        if (Boolean.TRUE.equals(callback.getSuccess())) {
+        if (status == PaymentCallbackStatusEnum.SUCCESS) {
             order.setPaymentStatus(PaymentStatusEnum.SUCCESS.getValue());
-            order.setPaymentTime(callback.getPaymentTime());
-            order.setThirdPaymentNo(callback.getThirdPaymentNo());
+            order.setPaymentTime(callback.getPaidTime());
+            order.setThirdPaymentNo(callback.getThirdTransactionId());
             order.setErrorCode(null);
             order.setErrorMessage(null);
         } else {

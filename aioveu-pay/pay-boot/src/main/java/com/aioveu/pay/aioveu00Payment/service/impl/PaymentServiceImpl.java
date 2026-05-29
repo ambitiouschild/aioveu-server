@@ -23,7 +23,7 @@ import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
 import com.aioveu.pay.aioveu12MqProducerPayment.enums.PaymentMqBizType;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.SendPaymentMqDTO;
 import com.aioveu.pay.aioveu12MqProducerPayment.service.PayCommonMessageProducerService;
-import com.aioveu.pay.aioveu13PayCallbackRecord.enums.PaymentCallbackStatusEnum;
+import com.aioveu.pay.aioveu01.enums.PaymentCallbackStatusEnum;
 import com.aioveu.pay.aioveu13PayCallbackRecord.service.PayCallbackRecordService;
 import com.alibaba.fastjson.JSON;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +38,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -433,7 +432,7 @@ public class PaymentServiceImpl implements PaymentService {
         dto.setThirdTransactionId(params.get("transaction_id"));
         dto.setPaidAmount(getCallbackAmount(params));
         dto.setPaidTime(LocalDateTime.now());
-        dto.setStatus(PaymentCallbackStatusEnum.SUCCESS.getCode());
+        dto.setStatus(PaymentCallbackStatusEnum.SUCCESS);
         dto.setRawData(JSON.toJSONString(params));
         return dto;
     }

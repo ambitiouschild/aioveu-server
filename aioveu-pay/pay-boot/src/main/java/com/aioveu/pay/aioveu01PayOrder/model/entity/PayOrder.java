@@ -49,7 +49,7 @@ public class PayOrder extends BaseEntityWithTenantId {
      */
     private BigDecimal paymentAmount;
     /**
-     * 支付状态：0-待支付 1-支付中 2-支付成功 3-支付失败 4-已关闭 5-已退款
+     * 支付状态：0-待支付 1-支付中 2-支付成功 3-支付失败 4-已关闭 5-已退款   支付状态永远用枚举，不用布尔值
      */
     private Integer paymentStatus;
     /**
