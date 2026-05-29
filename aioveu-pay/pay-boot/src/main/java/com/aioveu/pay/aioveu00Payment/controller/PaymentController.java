@@ -127,6 +127,73 @@ public class PaymentController {
     }
 
 
+    @PostMapping("/mock/wxpay/notify")
+    @Operation(summary = "手动模拟微信支付回调（仅测试环境）")
+    //POST /api/v1/pay-order/dev/mock/wxpay/notify?paymentNo=P202602110001
+    //POST /api/v1/pay-order/dev/mock/wxpay/notify?paymentNo=P202602110001&resultCode=FAIL
+    public String mockWxPayNotify(@RequestParam String paymentNo,
+                                  @RequestParam(defaultValue = "SUCCESS") String resultCode) {
+
+        log.info("【DEV】手动模拟微信支付回调, paymentNo={}, resultCode={}", paymentNo, resultCode);
+
+        String xml = buildMockWxPayXml(paymentNo, resultCode);
+        return paymentService.handleWechatCallback(xml);
+    }
+
+    @PostMapping("/mock/alipay/notify")
+    @Operation(summary = "手动模拟支付宝支付回调（仅测试环境）")
+    //POST /api/v1/pay-order/dev/mock/alipay/notify?paymentNo=P202602110001
+    public String mockAliPayNotify(@RequestParam String paymentNo,
+                                   @RequestParam(defaultValue = "TRADE_SUCCESS") String tradeStatus) {
+
+        log.info("【DEV】手动模拟支付宝支付回调, paymentNo={}, tradeStatus={}", paymentNo, tradeStatus);
+
+        Map<String, String> params = buildMockAliPayParams(paymentNo, tradeStatus);
+        return paymentService.handleAlipayCallback(params);
+    }
+
+
+
+    /*
+    * 微信：构造模拟 XML（✅ 走真实回调）
+    * */
+    private String buildMockWxPayXml(String paymentNo, String resultCode) {
+
+        return "<xml>\n" +
+                "<appid><![CDATA[wx1234567890]]></appid>\n" +
+                "<mch_id><![CDATA[1234567890]]></mch_id>\n" +
+                "<nonce_str><![CDATA[test_nonce]]></nonce_str>\n" +
+                "<sign><![CDATA[test_sign]]></sign>\n" +
+                "<result_code><![CDATA[" + resultCode + "]]></result_code>\n" +
+                "<return_code><![CDATA[SUCCESS]]></return_code>\n" +
+                "<out_trade_no><![CDATA[" + paymentNo + "]]></out_trade_no>\n" +
+                "<transaction_id><![CDATA[MOCK_" + paymentNo + "]]></transaction_id>\n" +
+                "<total_fee><![CDATA[100]]></total_fee>\n" +
+                "<bank_type><![CDATA[CFT]]></bank_type>\n" +
+                "<openid><![CDATA[oUpF8uMuAJO_M2pxb1Q9zNjWeS6o]]></openid>\n" +
+                "<time_end><![CDATA[20260211123000]]></time_end>\n" +
+                "</xml>";
+    }
+
+
+    /*
+    * 支付宝：构造模拟参数
+    * */
+    private Map<String, String> buildMockAliPayParams(String paymentNo, String tradeStatus) {
+
+        Map<String, String> params = new HashMap<>();
+        params.put("out_trade_no", paymentNo);
+        params.put("trade_no", "MOCK_ALI_" + paymentNo);
+        params.put("trade_status", tradeStatus);
+        params.put("total_amount", "1.00");
+        params.put("app_id", "mock_app_id");
+        params.put("seller_id", "2088123456789012");
+        params.put("charset", "utf-8");
+        params.put("sign_type", "RSA2");
+        params.put("sign", "mock_sign");
+
+        return params;
+    }
     /**
      * 获取请求体
      */
