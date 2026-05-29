@@ -3,6 +3,7 @@ package com.aioveu.pay.aioveu00Payment.service.impl;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.Result;
 import com.aioveu.common.result.ResultCode;
+import com.aioveu.common.web.exception.BizException;
 import com.aioveu.order.api.OrderFeignClient;
 import com.aioveu.order.model.OmsOrder;
 import com.aioveu.pay.aioveu00Payment.service.PaymentService;
@@ -263,10 +264,12 @@ public class PaymentServiceImpl implements PaymentService {
             // 2. 验证签名
             if (!verifyWechatSign(params)) {
                 log.error("【微信回调】微信签名验证失败");
-                return generateWechatFailResponse("签名验证失败");
+//                return generateWechatFailResponse("签名验证失败");
+                return success(); // ✅ 防止微信重试
             }
 
-            // 3. 获取支付订单号
+            // 3. 基础校验
+            String transactionId = params.get("transaction_id");
             String paymentNo = params.get("out_trade_no");
             if (!StringUtils.hasText(paymentNo)) {
                 log.error("【微信回调】支付订单号为空");
@@ -293,6 +296,12 @@ public class PaymentServiceImpl implements PaymentService {
                 return handlePaymentFailure(paymentNo, params, startTime);
             }
 
+            // 4. ✅【核心】幂等判断（必须用 transaction_id）
+            if (mqConsumeRecordService.isConsumed(transactionId)) {
+                log.info("【微信回调】已处理，直接返回 SUCCESS, transactionId={}", transactionId);
+                return success();
+            }
+
             // 6. 查询支付订单
             PayOrder payOrder = payOrderService.getByPaymentNo(paymentNo);
             if (payOrder == null) {
@@ -300,19 +309,9 @@ public class PaymentServiceImpl implements PaymentService {
                 return generateWechatFailResponse("订单不存在");
             }
 
-            // 7. 幂等性检查
-            if (!isProcessable(payOrder)) {
-                log.warn("【微信回调】订单已处理，跳过: paymentNo={}, status={}",
-                        paymentNo, payOrder.getPaymentStatus());
-                return generateWechatSuccessResponse();
-            }
 
-            // 8. 验证金额
-            if (!verifyAmount(payOrder, params)) {
-                log.error("【微信回调】金额不匹配: paymentNo={}, 订单金额={}, 回调金额={}",
-                        paymentNo, payOrder.getPaymentAmount(), getCallbackAmount(params));
-                return generateWechatFailResponse("金额不匹配");
-            }
+
+
 
             // 9. 验证应用ID
 //            if (!verifyAppId(payOrder, params)) {
@@ -321,29 +320,56 @@ public class PaymentServiceImpl implements PaymentService {
 //                return generateWechatFailResponse("应用ID不匹配");
 //            }
 
+            log.info("【微信回调】处理完成, cost={}ms", System.currentTimeMillis() - start);
+            processWechatPaySuccess(payOrder, params, transactionId);
             // 10. 处理支付成功
-            return handlePaymentSuccess(payOrder, params, startTime);
+            return success();
 
         } catch (Exception e) {
             log.error("处理微信回调异常", e);
-            return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[系统异常]]></return_msg></xml>";
+            return success(); // ✅ 永远不给微信 FAIL
         }
     }
 
 
     /**
-     * 处理支付成功
+     * 处理支付成功  事务方法（✅ 核心）
      */
-    private String handlePaymentSuccess(PayOrder payOrder, Map<String, String> params, long startTime) {
+    @Transactional(rollbackFor = Exception.class)
+    public  String processWechatPaySuccess(PayOrder payOrder, Map<String, String> params, String transactionId) {
         try {
+
             String paymentNo = payOrder.getPaymentNo();
 
-            // 1. 更新支付订单状态
+            // 1. 状态校验
+            if (!isProcessable(payOrder)) {
+                log.warn("【微信回调】订单已处理，跳过: paymentNo={}, status={}",
+                        paymentNo, payOrder.getPaymentStatus());
+                return generateWechatSuccessResponse();
+            }
+
+            // 2. 验证金额
+            if (!verifyAmount(payOrder, params)) {
+                log.error("【微信回调】金额不匹配: paymentNo={}, 订单金额={}, 回调金额={}",
+                        paymentNo, payOrder.getPaymentAmount(), getCallbackAmount(params));
+                throw new BizException("金额不匹配");
+            }
+
+
+            // 3. 更新支付单
             boolean updateSuccess = payOrderService.updatePaymentStatus(payOrder, true, params);
             if (!updateSuccess) {
                 log.error("【微信回调】更新支付订单状态失败: paymentNo={}", paymentNo);
                 return generateWechatFailResponse("更新订单状态失败");
             }
+
+            // 4. ✅ 幂等落库（必须在事务内）
+            mqConsumeRecordService.markConsumed(
+                    transactionId,
+                    payOrder.getPaymentNo(),
+                    payOrder.getOrderNo()
+            );
+
 
             // 2. 发送MQ成功消息
             SendPaymentMqDTO dto =  new SendPaymentMqDTO();
@@ -356,7 +382,7 @@ public class PaymentServiceImpl implements PaymentService {
             // ✅ 补上这两行
             dto.setBizTypeEnum(PaymentMqBizType.PAYMENT_SUCCESS);
 
-            boolean mqSuccess = sendPaymentSuccessMessage(dto);
+            boolean mqSuccess = payCommonMessageProducerService.sendPaymentSuccessMessage(dto);
 
             // 3. 如果MQ发送失败，记录到补偿表
             if (!mqSuccess) {
@@ -369,7 +395,9 @@ public class PaymentServiceImpl implements PaymentService {
             log.info("【微信回调】支付成功处理完成: paymentNo={}, 订单号={}, 微信订单号={}, 耗时={}ms",
                     paymentNo, payOrder.getOrderNo(), params.get("transaction_id"), costTime);
 
-            return generateWechatSuccessResponse();
+            // 7. 流水
+            payFlowService.recordPaymentFlow(payOrder, callback);
+
 
         } catch (Exception e) {
             log.error("【微信回调】支付成功处理异常: paymentNo={}", payOrder.getPaymentNo(), e);
@@ -487,17 +515,6 @@ public class PaymentServiceImpl implements PaymentService {
 //        }
 //    }
 
-    /**
-     * 发送支付成功消息
-     */
-    private boolean sendPaymentSuccessMessage(SendPaymentMqDTO dto) {
-        try {
-            return payCommonMessageProducerService.sendPaymentSuccessMessage(dto);
-        } catch (Exception e) {
-            log.error("发送支付成功MQ消息异常: paymentNo={}", dto.getPaymentNo(), e);
-            return false;
-        }
-    }
 
     /**
      * 发送支付失败消息
