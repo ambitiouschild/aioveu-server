@@ -193,6 +193,7 @@ public class MqConsumeRecordServiceImpl extends ServiceImpl<MqConsumeRecordMappe
                 existingRecord.setUpdateTime(LocalDateTime.now());
                 existingRecord.setRetryCount(existingRecord.getRetryCount() + 1);
 
+                log.info("已存在消费记录，更新状态为处理中");
                 int rows = this.baseMapper.updateById(existingRecord);
                 return rows > 0;
             }
