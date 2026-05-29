@@ -73,7 +73,7 @@ public class PaymentController {
     public String wxPayNotify(HttpServletRequest request) {
 
 
-        //   https://crush.aioveu.com/api/v1/pay-order/wxpay/notify
+        //   https://crushapi.aioveu.com/api/v1/pay-order/wxpay/notify
 //        return paymentService.handleCallback(request);
 
         log.info("接收到微信支付回调");
