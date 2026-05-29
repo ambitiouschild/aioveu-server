@@ -22,42 +22,34 @@ import java.time.LocalDateTime;
 @Schema( description = "支付回调请求参数")
 public class PaymentCallbackDTO implements Serializable {
 
-   @Schema(description = "支付单号", required = true, example = "P202502110001")
+   @Schema(description = "内部支付单号", required = true)
    private String paymentNo;
 
-   @Schema(description = "商户订单号", example = "202502110001")
+   @Schema(description = "业务订单号")
    private String orderNo;
 
-   @Schema(description = "第三方支付单号", example = "4200002009202402111234567890")
-   private String thirdPaymentNo;
+   @Schema(description = "支付渠道")
+   private String channel; // WECHAT / ALIPAY
 
-   @Schema(description = "交易状态", example = "SUCCESS")
-   private String tradeStatus;  // SUCCESS/FAILED/CLOSED
+   @Schema(description = "第三方交易号")
+   private String thirdTransactionId;
 
-   @Schema(description = "支付金额(元)", example = "100.00")
-   private BigDecimal amount;
+   @Schema(description = "支付金额（元）")
+   private BigDecimal paidAmount;
 
-   @Schema(description = "支付时间", example = "2024-02-11 18:30:00")
-   private LocalDateTime paymentTime;
+   @Schema(description = "支付状态")
+   private int status; // SUCCESS / FAILED
 
-   @Schema(description = "签名", example = "C380BEC2BFD727A4B6845133519F3AD6")
-   private String sign;
+   @Schema(description = "支付完成时间")
+   private LocalDateTime paidTime;
 
-   @Schema(description = "签名类型", example = "MD5")
-   private String signType;
-
-   @Schema(description = "渠道返回的原始数据", example = "{\"trade_no\":\"202502110001\"}")
+   @Schema(description = "渠道原始数据（JSON）")
    private String rawData;
 
-   @Schema(description = "错误码", example = "ORDER_NOT_EXIST")
+   @Schema(description = "错误码")
    private String errorCode;
 
-   @Schema(description = "错误信息", example = "订单不存在")
+   @Schema(description = "错误信息")
    private String errorMessage;
 
-   @Schema(description = "支付渠道", example = "wechat")
-   private String channel;
-
-   @Schema(description = "是否成功", example = "true")
-   private Boolean success;
 }

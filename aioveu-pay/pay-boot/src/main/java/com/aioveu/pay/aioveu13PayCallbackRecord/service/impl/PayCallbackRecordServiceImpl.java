@@ -10,14 +10,19 @@ import com.aioveu.pay.aioveu13PayCallbackRecord.model.form.PayCallbackRecordForm
 import com.aioveu.pay.aioveu13PayCallbackRecord.model.query.PayCallbackRecordQuery;
 import com.aioveu.pay.aioveu13PayCallbackRecord.model.vo.PayCallbackRecordVo;
 import com.aioveu.pay.aioveu13PayCallbackRecord.service.PayCallbackRecordService;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: PayCallbackRecordServiceImpl
@@ -99,5 +104,37 @@ public class PayCallbackRecordServiceImpl extends ServiceImpl<PayCallbackRecordM
                 .map(Long::parseLong)
                 .toList();
         return this.removeByIds(idList);
+    }
+
+    /**
+     * 是否已处理过该回调（幂等判断）
+     */
+    @Override
+    public boolean isConsumed(String transactionId) {
+        if (StringUtils.isBlank(transactionId)) {
+            return false;
+        }
+
+        Long count = this.baseMapper.countByTransactionId(transactionId);
+        return count != null && count > 0;
+    }
+
+    /**
+     * 记录回调（含幂等）
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void markConsumed(String transactionId, String paymentNo, String orderNo, Map<String, String> params) {
+
+        PayCallbackRecord record = new PayCallbackRecord();
+        record.setTransactionId(transactionId);
+        record.setPaymentNo(paymentNo);
+        record.setOrderNo(orderNo);
+        record.setChannel("WECHAT");
+        record.setNotifyStatus(1);
+        record.setRawData(JSON.toJSONString(params));
+        record.setLastNotifyTime(LocalDateTime.now());
+
+        save(record);
     }
 }

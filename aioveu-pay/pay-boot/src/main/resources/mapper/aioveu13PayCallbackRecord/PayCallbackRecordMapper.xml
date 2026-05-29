@@ -61,4 +61,12 @@
         </where>
     </select>
 
+    <select id="countByTransactionId" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM pay_callback_record
+        WHERE transaction_id = #{transactionId}
+          AND is_deleted = 0
+    </select>
+
+
 </mapper>

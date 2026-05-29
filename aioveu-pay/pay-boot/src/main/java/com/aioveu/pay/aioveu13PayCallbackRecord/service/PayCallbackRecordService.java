@@ -8,6 +8,8 @@ import com.aioveu.pay.aioveu13PayCallbackRecord.model.vo.PayCallbackRecordVo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.Map;
+
 /**
  * @ClassName: PayCallbackRecordService
  * @Description TODO 支付回调记录服务类
@@ -58,4 +60,14 @@ public interface PayCallbackRecordService extends IService<PayCallbackRecord> {
      * @return 是否删除成功
      */
     boolean deletePayCallbackRecords(String ids);
+
+    /**
+     * 是否已处理过该回调（幂等判断）
+     */
+    boolean isConsumed(String transactionId);
+
+    /**
+     * 记录回调（含幂等）
+     */
+    void markConsumed(String transactionId, String paymentNo, String orderNo, Map<String, String> params);
 }

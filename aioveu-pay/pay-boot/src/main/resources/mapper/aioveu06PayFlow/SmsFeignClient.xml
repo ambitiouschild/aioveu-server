@@ -79,4 +79,14 @@
         </where>
     </select>
 
+
+    <select id="existsByPaymentNoAndFlowType" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM pay_flow
+        WHERE payment_no = #{paymentNo}
+          AND flow_type = #{flowType}
+          AND is_deleted = 0
+    </select>
+
+
 </mapper>

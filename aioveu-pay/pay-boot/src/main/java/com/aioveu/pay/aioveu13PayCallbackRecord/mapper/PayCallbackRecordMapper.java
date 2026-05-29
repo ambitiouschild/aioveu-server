@@ -7,6 +7,7 @@ import com.aioveu.pay.aioveu13PayCallbackRecord.model.vo.PayCallbackRecordVo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * @ClassName: PayCallbackRecordMapper
@@ -27,4 +28,8 @@ public interface PayCallbackRecordMapper extends BaseMapper<PayCallbackRecord> {
      * @return {@link Page<PayCallbackRecordVo>} 支付回调记录分页列表
      */
     Page<PayCallbackRecordVo> getPayCallbackRecordPage(Page<PayCallbackRecordVo> page, PayCallbackRecordQuery queryParams);
+
+
+    Long countByTransactionId(@Param("transactionId") String transactionId);
+
 }

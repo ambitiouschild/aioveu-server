@@ -4,6 +4,9 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu06PayFlow.converter.PayFlowConverter;
+import com.aioveu.pay.aioveu06PayFlow.enums.FlowDirectionEnum;
+import com.aioveu.pay.aioveu06PayFlow.enums.FlowStatusEnum;
+import com.aioveu.pay.aioveu06PayFlow.enums.FlowTypeEnum;
 import com.aioveu.pay.aioveu06PayFlow.mapper.PayFlowMapper;
 import com.aioveu.pay.aioveu06PayFlow.model.entity.PayFlow;
 import com.aioveu.pay.aioveu06PayFlow.model.form.PayFlowForm;
@@ -13,11 +16,15 @@ import com.aioveu.pay.aioveu06PayFlow.service.PayFlowService;
 import com.aioveu.pay.aioveu06PayFlow.utils.PayFlowNoGenerator;
 import com.aioveu.pay.aioveu01.model.vo.PaymentCallbackDTO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,6 +37,7 @@ import java.util.List;
  * @Version 1.0
  **/
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PayFlowServiceImpl extends ServiceImpl<PayFlowMapper, PayFlow> implements PayFlowService {
@@ -108,27 +116,95 @@ public class PayFlowServiceImpl extends ServiceImpl<PayFlowMapper, PayFlow> impl
     /**
      * 根据回调记录支付流水
      *
-     * @param order 支付流水ID，多个以英文逗号(,)分割
+     * @param payOrder 支付流水ID，多个以英文逗号(,)分割
      * @return 是否删除成功
      */
     @Override
-    public void recordPaymentFlow(PayOrder order, PaymentCallbackDTO callback) {
+    public void recordPaymentFlow(PayOrder payOrder, PaymentCallbackDTO callback) {
 
-        Long memberId = order.getUserId();
+        Long memberId = payOrder.getUserId();
+        LocalDateTime now = LocalDateTime.now();
+
+
+        //✅ 防止重复流水（兜底）
+        boolean exists = this.existsByPaymentNoAndFlowType(
+                payOrder.getPaymentNo(),
+                FlowTypeEnum.PAYMENT.name()
+        );
+
+        if (exists) {
+            log.warn("支付流水已存在，跳过: paymentNo:{}", payOrder.getPaymentNo());
+            return;
+        }
 
         PayFlow flow = PayFlow.builder()
                 .flowNo(PayFlowNoGenerator.generatePayFlowNo(memberId))
-                .paymentNo(order.getPaymentNo())
-                .orderNo(order.getOrderNo())
-//                .channel(order.getPaymentChannel())
-                .amount(order.getPaymentAmount())
-//                .status(order.getPaymentStatus())
-//                .thirdPaymentNo(order.getThirdPaymentNo())
+                .paymentNo(payOrder.getPaymentNo())
+                .orderNo(payOrder.getOrderNo())
+                .userId(payOrder.getUserId())
+                .flowType(FlowTypeEnum.PAYMENT.name())
+                .flowDirection(FlowDirectionEnum.IN.name()) // 支付是入金
+                .amount(callback.getPaidAmount())
+                .balanceBefore(null)   // ✅ 不使用
+                .balanceAfter(null)    // ✅ 不使用
+                .channelCode(callback.getChannel())
+                .thirdFlowNo(callback.getThirdTransactionId())
+                .flowStatus(FlowStatusEnum.SUCCESS.getValue())
+                .tradeTime(callback.getPaidTime())
+                .completeTime(now)
 //                .callbackData(callback.getRawData())
+                .errorCode(callback.getErrorCode())
+                .errorMessage(callback.getErrorMessage())
+                .remark("支付回调成功")
+                .isDeleted(0)
+                .createBy("system")
+                .updateBy("system")
                 .build();
 
         this.save(flow);
+    }
 
+    public boolean existsByPaymentNoAndFlowType(String paymentNo, String flowType) {
+        return this.count(
+                Wrappers.<PayFlow>lambdaQuery()
+                        .eq(PayFlow::getPaymentNo, paymentNo)
+                        .eq(PayFlow::getFlowType, flowType)
+                        .eq(PayFlow::getIsDeleted, 0)
+        ) > 0;
+    }
+    /**
+     * 构建退款流水
+     */
+    private PayFlow buildRefundFlow(
+            PayOrder payOrder,
+            PaymentCallbackDTO callback,
+            BigDecimal refundAmount
+    ) {
+        LocalDateTime now = LocalDateTime.now();
+
+        return PayFlow.builder()
+//                .tenantId(payOrder.getTenantId())
+//                .flowNo(PayFlowNoGenerator.generateRefundFlowNo(payOrder.getUserId()))
+                .paymentNo(payOrder.getPaymentNo())
+//                .refundNo(callback.getRefundNo()) // ✅ 用你现有字段
+                .orderNo(payOrder.getOrderNo())
+                .userId(payOrder.getUserId())
+                .flowType(FlowTypeEnum.REFUND.name())
+                .flowDirection(FlowDirectionEnum.OUT.name()) // 退款是出金
+                .amount(refundAmount)
+                .balanceBefore(null)
+                .balanceAfter(null)
+                .channelCode(callback.getChannel())
+                .thirdFlowNo(callback.getThirdTransactionId())
+                .flowStatus(FlowStatusEnum.FAILED.getValue())
+                .tradeTime(callback.getPaidTime())
+                .completeTime(now)
+//                .callbackData(callback.getRawData())
+                .remark("退款回调成功")
+                .isDeleted(0)
+                .createBy("system")
+                .updateBy("system")
+                .build();
     }
 
 }

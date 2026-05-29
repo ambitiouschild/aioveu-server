@@ -6,6 +6,7 @@ import com.aioveu.pay.aioveu06PayFlow.model.vo.PayFlowVO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * @ClassName: PayFlowMapper
@@ -26,5 +27,11 @@ public interface PayFlowMapper extends BaseMapper<PayFlow> {
      * @return {@link Page<PayFlowVO>} 支付流水分页列表
      */
     Page<PayFlowVO> getPayFlowPage(Page<PayFlowVO> page, PayFlowQuery queryParams);
+
+
+    Long existsByPaymentNoAndFlowType(
+            @Param("paymentNo") String paymentNo,
+            @Param("flowType") String flowType
+    );
 
 }
