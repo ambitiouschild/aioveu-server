@@ -1,5 +1,8 @@
 package com.aioveu.pay.aioveu06PayFlow.model.vo;
 
+import com.aioveu.pay.aioveu06PayFlow.enums.FlowDirectionEnum;
+import com.aioveu.pay.aioveu06PayFlow.enums.FlowStatusEnum;
+import com.aioveu.pay.aioveu06PayFlow.enums.FlowTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,9 +42,9 @@ public class PayFlowVO implements Serializable {
     @Schema(description = "用户ID")
     private Long userId;
     @Schema(description = "流水类型：PAYMENT-支付 REFUND-退款 SETTLEMENT-结算 ADJUST-调账")
-    private String flowType;
+    private FlowTypeEnum flowType;
     @Schema(description = "资金方向：IN-入金 OUT-出金")
-    private String flowDirection;
+    private FlowDirectionEnum flowDirection;
     @Schema(description = "流水金额")
     private BigDecimal amount;
     @Schema(description = "交易前余额")
@@ -53,7 +56,7 @@ public class PayFlowVO implements Serializable {
     @Schema(description = "第三方流水号")
     private String thirdFlowNo;
     @Schema(description = "流水状态：0-处理中 1-成功 2-失败")
-    private Integer flowStatus;
+    private FlowStatusEnum flowStatus;
     @Schema(description = "交易时间")
     private LocalDateTime tradeTime;
     @Schema(description = "完成时间")
