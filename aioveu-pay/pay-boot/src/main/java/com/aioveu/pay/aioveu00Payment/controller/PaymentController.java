@@ -69,7 +69,7 @@ public class PaymentController {
     @Operation(summary ="微信支付回调")
     @PostMapping("/wxpay/notify")
 //    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrder:oms-order:query')")
-    @Log( value = "微信支付回调",module = LogModuleEnum.PAY)
+    @Log( value = "微信支付回调,微信只认 XML",module = LogModuleEnum.PAY)
     public String wxPayNotify(HttpServletRequest request) {
 
 //        return paymentService.handleCallback(request);
@@ -107,7 +107,7 @@ public class PaymentController {
     @PostMapping("/callback/alipay")
 //    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrder:oms-order:query')")
     @Log( value = "支付宝回调",module = LogModuleEnum.PAY)
-    public String alipayCallback(HttpServletRequest request) {
+    public String  alipayCallback(HttpServletRequest request) {
 
         try {
             // 1. 获取所有参数
@@ -131,25 +131,27 @@ public class PaymentController {
     @Operation(summary = "手动模拟微信支付回调（仅测试环境）")
     //POST /api/v1/pay-order/dev/mock/wxpay/notify?paymentNo=P202602110001
     //POST /api/v1/pay-order/dev/mock/wxpay/notify?paymentNo=P202602110001&resultCode=FAIL
-    public String mockWxPayNotify(@RequestParam String paymentNo,
+    public Result<String> mockWxPayNotify(@RequestParam String paymentNo,
                                   @RequestParam(defaultValue = "SUCCESS") String resultCode) {
 
         log.info("【DEV】手动模拟微信支付回调, paymentNo={}, resultCode={}", paymentNo, resultCode);
 
         String xml = buildMockWxPayXml(paymentNo, resultCode);
-        return paymentService.handleWechatCallback(xml);
+        paymentService.handleWechatCallback(xml);
+        return Result.success();
     }
 
     @PostMapping("/mock/alipay/notify")
     @Operation(summary = "手动模拟支付宝支付回调（仅测试环境）")
     //POST /api/v1/pay-order/dev/mock/alipay/notify?paymentNo=P202602110001
-    public String mockAliPayNotify(@RequestParam String paymentNo,
+    public Result<String> mockAliPayNotify(@RequestParam String paymentNo,
                                    @RequestParam(defaultValue = "TRADE_SUCCESS") String tradeStatus) {
 
         log.info("【DEV】手动模拟支付宝支付回调, paymentNo={}, tradeStatus={}", paymentNo, tradeStatus);
 
         Map<String, String> params = buildMockAliPayParams(paymentNo, tradeStatus);
-        return paymentService.handleAlipayCallback(params);
+        paymentService.handleAlipayCallback(params);
+        return Result.success();
     }
 
 
