@@ -55,16 +55,14 @@ public class PaymentSuccessConsumer{
             concurrency = "4-8",   // ✅ 并发控制
             ackMode = "MANUAL"     // ✅ 手动 ACK（非常重要）
     )
-    @Transactional(rollbackFor = Exception.class)
+    //ACK 不能包在事务里
     public void onMessage(Message message, Channel channel) throws IOException {
 
         long startTime = System.currentTimeMillis();
-
+        long deliveryTag = message.getMessageProperties().getDeliveryTag();
         String messageId = null;
         String orderNo = null;
-        boolean success = false;
 
-        long deliveryTag = message.getMessageProperties().getDeliveryTag();
 
         try {
             String body = new String(message.getBody(), StandardCharsets.UTF_8);
@@ -81,17 +79,18 @@ public class PaymentSuccessConsumer{
             log.info("✅ RabbitMQ Consumer\n" +
                     "   └── 只负责：反序列化 + ACK");
 
+            // ✅【1】幂等判断（第一件事）
+            if (mqConsumeRecordService.isConsumed(messageId)) {
+                log.info("【Pay-Consumer】消息已消费，直接 ACK, messageId={}", messageId);
+                channel.basicAck(deliveryTag, false);
+                return;
+            }
 
             // ✅ 2. 处理业务（不要在这里抛系统异常） ✅ 业务处理（不含 ACK）
             mqConsumerService.handlePaymentSuccess(msg);
 
-
-            // ✅ 4. 手动 ACK ✅ 成功 → ACK
+            // ✅【3】业务成功 → ACK
             channel.basicAck(deliveryTag, false);
-            success = true;
-            log.info("同一条消息发 2 次\n" +
-                    "\n" +
-                    "第 2 次直接 ACK，不处理订单");
 
         } catch (BizException e) {
             // ❌ 业务异常 → 不重试，进 DLQ
@@ -99,9 +98,11 @@ public class PaymentSuccessConsumer{
             rejectToDlq(channel, deliveryTag);
 
         } catch (Exception e) {
-            // ❌ 系统异常 → NACK 重试
-            log.error("【Pay-Consumer】系统异常，等待重试, messageId={}", messageId, e);
-            nackAndRequeue(channel, deliveryTag, messageId, orderNo);
+            // ❌ 系统异常 → DLQ（永不 requeue）
+//            log.error("【Pay-Consumer】系统异常，等待重试, messageId={}", messageId, e);
+//            nackAndRequeue(channel, deliveryTag, messageId, orderNo);
+            log.error("【Pay-Consumer】系统异常,防止重复消费 ,messageId={}", messageId, e);
+            channel.basicReject(deliveryTag, false);
 
         } finally {
             long costTime = System.currentTimeMillis() - startTime;
@@ -119,6 +120,7 @@ public class PaymentSuccessConsumer{
 
     /**
      * ⚠️ 系统异常 → 重试 → 超过 3 次进 DLQ
+     * DLQ 才是正确做法
      */
     private void nackAndRequeue(
             Channel channel,
