@@ -4,6 +4,8 @@ package com.aioveu.auth.service.impl;
 import com.aioveu.auth.aioveu04Oauth2RegisteredClient.mapper.Oauth2RegisteredClientMapper;
 import com.aioveu.auth.aioveu04Oauth2RegisteredClient.model.entity.Oauth2RegisteredClient;
 import com.aioveu.auth.service.ClientWhitelistService;
+import com.aioveu.tenant.api.TenantFeignClient;
+import com.aioveu.tenant.dto.TenantWxAppInfo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,7 +40,7 @@ public class ClientWhitelistServiceImpl implements ClientWhitelistService {
     //Redis 缓存（防止高频打库） 进阶优化（强烈推荐）
     private static final String CACHE_KEY = "CLIENT_WHITELIST";
     private static final long CACHE_TTL = 30; // 分钟
-
+    private final TenantFeignClient tenantFeignClient;
     /**
      * 校验 clientId 是否合法
      */
@@ -118,18 +120,26 @@ public class ClientWhitelistServiceImpl implements ClientWhitelistService {
             return false;
         }
 
-//        try {
-//            JsonNode node = objectMapper.readTree(clientSettings);
-//            JsonNode settings = node.get("settings");
-//            if (settings == null || !settings.has("enabled")) {
-//                log.warn("clientSettings 不包含 enabled，clientId={}", clientId);
-//                return false;
-//            }
-//            return settings.get("enabled").asBoolean();
-//        } catch (Exception e) {
-//            log.error("解析 clientSettings 失败", e);
-//            return false;
-//        }
+        try {
+        // 1. 通过clientId获取tenantId
+        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
+
+        log.info("【ClientWhitelistService】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
+
+        Long tenantId = tenantWxAppInfo.getTenantId();
+
+        // 2. 业务校验
+        if (tenantWxAppInfo == null || tenantWxAppInfo.getIsDeleted() == 1 || tenantWxAppInfo.getEnabled() == 0) {
+            log.warn("客户端被业务禁用或已删除, clientId={}", clientId);
+            return false;
+        }
+        } catch (Exception e) {
+            log.error("解析 clientSettings 失败", e);
+            return false;
+        }
+
+        // 3. 继续走 Spring Security 流程...
+        return true;
 
     }
 
