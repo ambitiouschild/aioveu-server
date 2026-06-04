@@ -34,4 +34,10 @@ public class OauthClientWxAppQuery extends BasePageQuery {
      * 微信小程序注册邮箱
      */
     private String registeredEmail;
+
+    /**
+     * 是否被允许接入：0-禁用 1-启用
+     */
+    @Schema(description = "是否被允许接入：0-禁用 1-启用")
+    private Integer enabled;
 }

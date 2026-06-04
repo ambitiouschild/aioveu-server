@@ -44,6 +44,14 @@ public class OauthClientWxAppVo implements Serializable {
 
     @Schema(description = "逻辑删除：0-未删除 1-已删除")
     private Integer isDeleted;
+
+    /**
+     * 是否被允许接入：0-禁用 1-启用
+     */
+    @Schema(description = "是否被允许接入：0-禁用 1-启用")
+    private Integer enabled;
+
+
     @Schema(description = "创建时间")
     @JsonInclude(value = JsonInclude.Include.NON_NULL)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
