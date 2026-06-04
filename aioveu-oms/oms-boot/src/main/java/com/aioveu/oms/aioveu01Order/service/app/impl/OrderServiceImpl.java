@@ -849,6 +849,11 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             Integer paymentMethod= submitForm.getPaymentMethod() != null ? submitForm.getPaymentMethod() : 1;
             log.info("【创建订单】14.支付方式: {}", paymentMethod);
 
+            // 前端指定 clientId
+            String clientId= submitForm.getClientId() != null ? submitForm.getClientId() : "订单创建时必须“选定一个 clientId”";
+            log.info("【创建订单】15.前端指定 clientId: {}", clientId);
+
+
             log.info("【创建订单】开始赋值===========");
 
             order.setOrderSn(orderSn);
@@ -867,6 +872,9 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             order.setPaymentTime(paymentTime);
             order.setPaymentMethod(paymentMethod);
 
+            //订单创建时就绑定微信身份
+            // 发货时不再依赖 tenant 查 client
+            order.setClientId(clientId);
 
             //支付时间
             //支付方式
@@ -1770,6 +1778,36 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         }
     }
 
+
+    /**
+     * 根据订单号获取订单ID
+     */
+    @Override
+    public Long getOrderIdByOrderNo(String orderSn) {
+
+        if (org.springframework.util.StringUtils.isEmpty(orderSn)) {
+            throw new IllegalArgumentException("订单号不能为空");
+        }
+
+        LambdaQueryWrapper<OmsOrder> wrapper =
+                new LambdaQueryWrapper<>();
+
+        wrapper
+                .eq(OmsOrder::getOrderSn, orderSn)
+                .eq(OmsOrder::getDeleted, 0)
+                .select(OmsOrder::getId)
+                .last("limit 1");
+
+        OmsOrder order = this.baseMapper.selectOne(wrapper);
+
+        if (order == null) {
+            throw new RuntimeException(
+                    "订单不存在，orderSn=" + orderSn
+            );
+        }
+
+        return order.getId();
+    }
 
 
 }
