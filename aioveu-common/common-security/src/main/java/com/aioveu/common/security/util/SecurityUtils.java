@@ -705,5 +705,23 @@ public class SecurityUtils {
     }
 
 
+    /**
+     * 获取当前请求的客户端ID (ClientId)
+     * <p>
+     * 该值通常在 Authorization Server 的 JwtTokenCustomizer 中被注入到 JWT 中。
+     *
+     * @return ClientId，如果不存在则返回 null
+     */
+    public static String getClientId() {
+        Map<String, Object> tokenAttributes = getTokenAttributes();
+        if (tokenAttributes != null) {
+            // JWT 里的字段通常是字符串
+            String clientId = (String) tokenAttributes.get("client_id");
+            log.info("SecurityUtils 获取当前 ClientId: {}", clientId);
+            return clientId;
+        }
+        return null;
+    }
+
 
 }

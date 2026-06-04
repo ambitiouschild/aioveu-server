@@ -65,8 +65,8 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
     private final boolean reuseRefreshTokens; // 是否重用刷新令牌
 
 
-    @Autowired
-    private WxMiniAppConfig wxMiniAppConfig;
+//    @Autowired
+//    private WxMiniAppConfig wxMiniAppConfig;
 
     // 微信小程序服务，用于调用微信API
 
