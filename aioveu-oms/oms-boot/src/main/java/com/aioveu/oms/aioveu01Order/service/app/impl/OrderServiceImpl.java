@@ -74,6 +74,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
+import org.springframework.web.util.WebUtils;
+
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
@@ -435,6 +437,22 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         long startTime = System.currentTimeMillis();
         String orderSn = null;
+
+
+
+        // ✅ 重点：在 Service 内部获取 clientId
+        // 这个值是由你的 Auth 微服务/拦截器从 Header 里取出来放到 ThreadLocal 里的
+        String clientId = WebUtils.getClientIdFromHeader();
+        // 或者：TenantContext.getCurrentClientId();
+
+        // 如果拦截器没取到，直接抛异常（防止脏数据）
+        if (StringUtils.isBlank(clientId)) {
+            throw new BusinessException("非法请求，缺少客户端标识");
+        }
+
+        // ✅ 固化 clientId 到订单（这一步是必须的）
+        submitForm.setClientId(clientId);
+
 
         try {
             log.info("【订单提交】开始处理，订单令牌: {}", submitForm.getOrderToken());
