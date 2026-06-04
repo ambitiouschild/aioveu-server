@@ -3,6 +3,7 @@ package com.aioveu.auth.controller.app;
 import com.aioveu.auth.TokenManager.service.AuthTokenManagerService;
 import com.aioveu.auth.model.CaptchaResult;
 import com.aioveu.auth.service.AuthService;
+import com.aioveu.auth.service.ClientWhitelistService;
 import com.aioveu.common.annotation.Log;
 import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.result.PageResult;
@@ -30,6 +31,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Description: TODO 认证控制器 获取验证码、退出登录等接口
@@ -61,6 +63,8 @@ public class AuthForAppController {
     private final PmsFeignClient pmsFeignClient;
 
     private final PmsFeignClientWithoutConfig pmsFeignClientWithoutConfig;
+
+    private final ClientWhitelistService clientWhitelistService;
     /**
      * 生成图形验证码接口
      * 用于用户登录或注册时的安全验证，防止机器人恶意请求
@@ -165,9 +169,14 @@ public class AuthForAppController {
      */
     @GetMapping("/banners")
     public Result<List<BannerVO>> getHomeBanners(
-            @RequestParam String clientId) {
+            @RequestHeader("X-Client-Id") String clientId,
+            @RequestParam Map<String,Object> params) {
 
         log.info("【auth-app-banners】前端传递的客户端clientId:{}",clientId);
+
+        if (!clientWhitelistService.isValid(clientId)) {
+            throw new RuntimeException("非法 clientId");
+        }
 
         // 1. 通过clientId获取tenantId
         TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
@@ -189,10 +198,16 @@ public class AuthForAppController {
      */
     @GetMapping("/categories")
     public Result<List<SmsHomeCategoryVO>> getHomeCategories(
-            @RequestParam String clientId) {
+            @RequestHeader("X-Client-Id") String clientId,
+            @RequestParam Map<String,Object> params) {
 
 
         log.info("【auth-app-categories】前端传递的客户端clientId:{}",clientId);
+
+        if (!clientWhitelistService.isValid(clientId)) {
+            throw new RuntimeException("非法 clientId");
+        }
+
         // 1. 通过clientId获取tenantId
         TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
 
@@ -216,9 +231,14 @@ public class AuthForAppController {
      */
     @GetMapping("/adverts")
     public Result<List<SmsHomeAdvertVO>> getHomeAdverts(
-            @RequestParam String clientId) {
+            @RequestHeader("X-Client-Id") String clientId,
+            @RequestParam Map<String,Object> params) {
 
         log.info("【auth-app-adverts】前端传递的客户端clientId:{}",clientId);
+        if (!clientWhitelistService.isValid(clientId)) {
+            throw new RuntimeException("非法 clientId");
+        }
+
 
         // 1. 通过clientId获取tenantId
         TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
@@ -241,9 +261,14 @@ public class AuthForAppController {
      */
     @GetMapping("/seckilling")
     public Result<List<SeckillingSpuVO>> getHomeSeckilling(
-            @RequestParam String clientId) {
+            @RequestHeader("X-Client-Id") String clientId,
+            @RequestParam Map<String,Object> params) {
 
         log.info("【auth-app-Seckilling】前端传递的客户端clientId:{}",clientId);
+
+        if (!clientWhitelistService.isValid(clientId)) {
+            throw new RuntimeException("非法 clientId");
+        }
 
         // 1. 通过clientId获取tenantId
         TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
@@ -265,9 +290,14 @@ public class AuthForAppController {
      */
     @GetMapping("/goodsCategories")
     public Result<List<CategoryVO>> getGoods(
-            @RequestParam String clientId) {
+            @RequestHeader("X-Client-Id") String clientId,
+            @RequestParam Map<String,Object> params) {
 
         log.info("【auth-app-goodsCategories】前端传递的客户端clientId:{}",clientId);
+
+        if (!clientWhitelistService.isValid(clientId)) {
+            throw new RuntimeException("非法 clientId");
+        }
 
         // 1. 通过clientId获取tenantId
         TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
@@ -290,9 +320,14 @@ public class AuthForAppController {
     @GetMapping("/spuLists")
     public PageResult<SpuPageVO> getSpuLists(
             PmsSpuQuery queryParams,
-            @RequestParam String clientId) {
+            @RequestHeader("X-Client-Id") String clientId,
+            @RequestParam Map<String,Object> params) {
 
         log.info("【auth-app-spuLists】前端传递的客户端clientId:{}",clientId);
+
+        if (!clientWhitelistService.isValid(clientId)) {
+            throw new RuntimeException("非法 clientId");
+        }
 
         // 1. 通过clientId获取tenantId
         TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
@@ -315,9 +350,14 @@ public class AuthForAppController {
     @GetMapping("/spuDetail/{spuId}")
     public Result<SpuDetailVO> getSpuDetail(
             @Parameter(name ="spu ID") @PathVariable Long spuId,
-            @RequestParam String clientId) {
+            @RequestHeader("X-Client-Id") String clientId,
+            @RequestParam Map<String,Object> params) {
 
         log.info("【auth-app-spuDetail】前端传递的客户端clientId:{}",clientId);
+
+        if (!clientWhitelistService.isValid(clientId)) {
+            throw new RuntimeException("非法 clientId");
+        }
 
         // 1. 通过clientId获取tenantId
         TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
@@ -340,11 +380,17 @@ public class AuthForAppController {
     @Operation(summary = "获取用户的工作台菜单（包含分类和菜单项）")
     @GetMapping("/manager-categories-with-items")
     public Result<List<ManagerMenuCategoryWithItemsVO>> getWorkbenchCategoriesWithItems(
-            @RequestParam String clientId
+            @RequestHeader("X-Client-Id") String clientId,
+            @RequestParam Map<String,Object> params
     ) {
 
 
         log.info("【auth-manager-app-categories】前端传递的客户端clientId:{}",clientId);
+
+        if (!clientWhitelistService.isValid(clientId)) {
+            throw new RuntimeException("非法 clientId");
+        }
+
         // 1. 通过clientId获取tenantId
         TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
 
@@ -370,10 +416,17 @@ public class AuthForAppController {
      */
     @GetMapping("/manager-home-categories")
     public Result<List<ManagerMenuHomeCategoryVo>> getManagerHomeCategories(
-            @RequestParam String clientId) {
+            @RequestHeader("X-Client-Id") String clientId,
+            @RequestParam Map<String,Object> params) {
 
 
         log.info("【auth-manager-app-home-categories】前端传递的客户端clientId:{}",clientId);
+
+        if (!clientWhitelistService.isValid(clientId)) {
+            throw new RuntimeException("非法 clientId");
+        }
+
+
         // 1. 通过clientId获取tenantId
         TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
 
@@ -398,10 +451,17 @@ public class AuthForAppController {
      */
     @GetMapping("/manager-home-banner")
     public Result<List<ManagerMenuHomeBannerVo>> getManagerMenuHomeBanners(
-            @RequestParam String clientId) {
+            @RequestHeader("X-Client-Id") String clientId,
+            @RequestParam Map<String,Object> params) {
 
 
         log.info("【auth-manager-app-home-banner】前端传递的客户端clientId:{}",clientId);
+
+
+        if (!clientWhitelistService.isValid(clientId)) {
+            throw new RuntimeException("非法 clientId");
+        }
+
         // 1. 通过clientId获取tenantId
         TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
 

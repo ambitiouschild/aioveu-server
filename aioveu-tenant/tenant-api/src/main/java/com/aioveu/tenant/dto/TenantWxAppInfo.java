@@ -24,6 +24,10 @@ public class TenantWxAppInfo {
     private String clientId;     // 客户端ID（查询条件）
     private String tenantName;   // 租户名称（可选）
 
+
+    @Schema(description = "逻辑删除：0-未删除 1-已删除")
+    private Integer isDeleted;
+
     /**
      * 是否被允许接入：0-禁用 1-启用
      */
