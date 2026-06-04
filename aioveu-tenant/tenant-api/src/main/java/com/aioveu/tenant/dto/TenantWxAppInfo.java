@@ -1,5 +1,6 @@
 package com.aioveu.tenant.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
@@ -22,4 +23,10 @@ public class TenantWxAppInfo {
 
     private String clientId;     // 客户端ID（查询条件）
     private String tenantName;   // 租户名称（可选）
+
+    /**
+     * 是否被允许接入：0-禁用 1-启用
+     */
+    @Schema(description = "是否被允许接入：0-禁用 1-启用")
+    private Integer enabled;
 }
