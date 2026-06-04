@@ -64,6 +64,13 @@ public class JwtTokenCustomizerConfig {
                     JwtClaimsSet.Builder claims = context.getClaims();
 
 
+                    // ✅ 1️.统一注入 clientId（核心）
+                    String clientId = context.getRegisteredClient().getClientId();
+                    claims.claim("client_id", clientId);
+                    log.info("【JwtTokenCustomizer】✅ 添加 client_id = {}", clientId);
+
+
+                    // ✅ 2️系统用户
                     if (principal instanceof SysUserDetails userDetails) { // 系统用户添加自定义字段
                         log.info("【JwtTokenCustomizer】✅ 系统用户SysUserDetails添加自定义字段");
                         // 调试日志
@@ -140,6 +147,7 @@ public class JwtTokenCustomizerConfig {
                                 .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
                         claims.claim(JwtClaimConstants.AUTHORITIES, authorities);
 
+                        // ✅ 3️会员用户
                     } else if (principal instanceof MemberDetails userDetails) {
                         log.info("【JwtTokenCustomizer】✅ 会员用户MemberDetails添加自定义字段");
                         log.info("【JwtTokenCustomizer】✅ 找到MemberDetails，开始添加租户ID");
