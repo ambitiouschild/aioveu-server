@@ -8,6 +8,7 @@ import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.common.security.util.SecurityUtils;
+import com.aioveu.common.tenant.ClientContextHolder;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.model.vo.*;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
@@ -442,14 +443,17 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         // ✅ 重点：在 Service 内部获取 clientId
         // 这个值是由你的 Auth 微服务/拦截器从 Header 里取出来放到 ThreadLocal 里的
-        String clientId = WebUtils.getClientIdFromHeader();
+        // ✅ 推荐：直接从 ThreadLocal 获取
+        // 这个值是由 Gateway 保证存在的
+        String clientId = ClientContextHolder.getClientId();
         // 或者：TenantContext.getCurrentClientId();
 
         // 如果拦截器没取到，直接抛异常（防止脏数据）
         if (StringUtils.isBlank(clientId)) {
-            throw new BusinessException("非法请求，缺少客户端标识");
+            // 理论上 Gateway 会兜底，这里做个防御性编程
+            throw new BusinessException("系统异常：无法识别客户端");
         }
-
+        log.info("订单提交，ClientId: {}", clientId);
         // ✅ 固化 clientId 到订单（这一步是必须的）
         submitForm.setClientId(clientId);
 
