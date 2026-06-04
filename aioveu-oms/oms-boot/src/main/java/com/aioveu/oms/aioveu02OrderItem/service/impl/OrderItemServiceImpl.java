@@ -368,4 +368,28 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
 
 
 
+    /*
+     * 通过 orderId查 oms_order_item
+     * item_desc应该从 OmsOrderItem查
+     * OmsOrder本身不存商品描述是合理的
+     * */
+    @Override
+    public List<OmsOrderItem> listByOrderId(Long orderId) {
+
+        if (orderId == null) {
+            throw new IllegalArgumentException("订单ID不能为空");
+        }
+
+        LambdaQueryWrapper<OmsOrderItem> wrapper =
+                new LambdaQueryWrapper<>();
+
+        wrapper
+                .eq(OmsOrderItem::getOrderId, orderId)
+                .eq(OmsOrderItem::getDeleted, 0);
+
+        return this.baseMapper.selectList(wrapper);
+    }
+
+
+
 }

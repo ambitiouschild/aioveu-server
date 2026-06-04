@@ -8,6 +8,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.aioveu.oms.aioveu02OrderItem.model.entity.OmsOrderItem;
 
+import java.util.List;
+
 /**
  * @Description: TODO 订单商品信息服务类
  * @Author: 雒世松
@@ -79,6 +81,16 @@ public interface OmsOrderItemService extends IService<OmsOrderItem> {
      * @return 订单详情VO
      */
     OmsOrderDetailVO getOrderDetailById(Long orderId, Integer channel);
+
+
+
+
+    /*
+    * 通过 orderId查 oms_order_item
+    * item_desc应该从 OmsOrderItem查
+    * OmsOrder本身不存商品描述是合理的
+    * */
+    List<OmsOrderItem> listByOrderId(Long orderId);
 
 
 

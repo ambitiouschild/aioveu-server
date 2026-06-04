@@ -7,6 +7,7 @@ import com.aioveu.oms.aioveu03OrderDelivery.model.form.OmsOrderDeliveryForm;
 import com.aioveu.oms.aioveu03OrderDelivery.model.query.OmsOrderDeliveryQuery;
 import com.aioveu.oms.aioveu03OrderDelivery.model.vo.OmsOrderDeliveryVO;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -100,6 +101,38 @@ public class OmsOrderDeliveryServiceImpl extends ServiceImpl<OmsOrderDeliveryMap
                 .map(Long::parseLong)
                 .toList();
         return this.removeByIds(idList);
+    }
+
+
+    /**
+     * 根据订单ID查询发货信息
+     */
+    @Override
+    public OmsOrderDelivery selectByOrderId(Long orderId) {
+
+        if (orderId == null) {
+            throw new IllegalArgumentException("订单ID不能为空");
+        }
+
+        LambdaQueryWrapper<OmsOrderDelivery> wrapper =
+                new LambdaQueryWrapper<>();
+
+        wrapper
+                .eq(OmsOrderDelivery::getOrderId, orderId)
+                .eq(OmsOrderDelivery::getDeleted, 0)
+                .orderByDesc(OmsOrderDelivery::getCreateTime)
+                .last("limit 1");
+
+        OmsOrderDelivery delivery =
+                this.baseMapper.selectOne(wrapper);
+
+        if (delivery == null) {
+            throw new RuntimeException(
+                    "未找到订单发货信息，orderId=" + orderId
+            );
+        }
+
+        return delivery;
     }
 
 }

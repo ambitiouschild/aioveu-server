@@ -106,5 +106,10 @@ public interface OrderService extends IService<OmsOrder> {
      */
     OmsOrder getByOrderNo(String orderNo);
 
+    /**
+     * 根据订单号获取订单ID
+     */
+    Long getOrderIdByOrderNo(String orderSn);
+
 }
 

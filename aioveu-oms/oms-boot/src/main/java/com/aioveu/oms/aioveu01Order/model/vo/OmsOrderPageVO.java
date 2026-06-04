@@ -26,6 +26,11 @@ public class OmsOrderPageVO {
     @Schema(description="订单编号")
     private String orderSn;
 
+    /**
+     * 微信应用ID（发货身份）  clientId = 微信能力
+     */
+    private String clientId;
+
     @Schema(description="订单总金额(分)")
     private BigDecimal totalAmount;
 

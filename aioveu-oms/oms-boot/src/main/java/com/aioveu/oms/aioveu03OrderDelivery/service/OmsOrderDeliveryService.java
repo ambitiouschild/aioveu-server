@@ -56,5 +56,11 @@ public interface OmsOrderDeliveryService extends IService<OmsOrderDelivery> {
      * @return 是否删除成功
      */
     boolean deleteOmsOrderDeliverys(String ids);
+
+
+    /**
+     * 根据订单ID查询发货信息
+     */
+    OmsOrderDelivery selectByOrderId(Long orderId);
 }
 
