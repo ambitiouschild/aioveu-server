@@ -33,6 +33,17 @@ public class OmsOrder extends BaseEntityWithTenantId {
 	 * 订单号
 	 */
 	private String orderSn;
+
+	/**
+	 * 租户ID（数据隔离） tenantId = 数据隔离
+	 */
+//	private Long tenantId;
+
+	/**
+	 * 微信应用ID（发货身份）  clientId = 微信能力
+	 */
+	private String clientId;
+
 	/**
 	 * 订单总额（分）
 	 */
