@@ -2,6 +2,7 @@ package com.aioveu.oms.aioveu02OrderItem.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum;
 import com.aioveu.oms.aioveu01Order.mapper.OmsOrderMapper;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
@@ -28,6 +29,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum.*;
 
 /*
  * @Author 可我不敌可爱
@@ -259,25 +262,25 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
      * 设置操作权限
      */
     private void setOperationPermissions(OmsOrderDetailVO orderDetail, OmsOrder order) {
-        Integer status = order.getStatus();
+        OrderStatusEnum status = order.getStatus();
 
         // 待付款订单
-        if (status == 1) {
+        if (status == UNPAID) {
             orderDetail.setCanRefund(false);
             orderDetail.setCanReturn(false);
         }
         // 待发货订单
-        else if (status == 2) {
+        else if (status == PAID) {
             orderDetail.setCanRefund(true);  // 可以申请退款
             orderDetail.setCanReturn(false);
         }
         // 已发货订单
-        else if (status == 3) {
+        else if (status == SHIPPED) {
             orderDetail.setCanRefund(true);  // 可以申请退款
             orderDetail.setCanReturn(true);  // 可以申请退货
         }
         // 已完成订单
-        else if (status == 4) {
+        else if (status == COMPLETE) {
             // 检查是否在售后期限内（比如7天内）
             boolean inAfterSalePeriod = checkAfterSalePeriod(order.getReceiveTime());
             orderDetail.setCanRefund(inAfterSalePeriod);
@@ -290,7 +293,7 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
         }
 
         // 是否可以重新购买（除了已关闭/已取消的订单都可以重新购买，这里简化处理）
-        orderDetail.setCanRebuy(status >= 1 && status <= 4);
+        orderDetail.setCanRebuy(status != OrderStatusEnum.CLOSED && status != OrderStatusEnum.CANCELED);
 
         // 是否已评价（根据评价时间判断）
         orderDetail.setIsCommented(order.getCommentTime() != null);
@@ -311,26 +314,26 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
 
     // ==================== 状态文本转换方法 ====================
 
-    private String getOrderStatusText(Integer status) {
+    private String getOrderStatusText(OrderStatusEnum status) {
         switch (status) {
-            case 0: return "待付款";
-            case 1: return "待发货";
-            case 2: return "已发货";
-            case 3: return "已完成";
-            case 4: return "已取消";
-            case 5: return "售后中";
+            case UNPAID: return "待付款";
+            case PAID: return "待发货";
+            case SHIPPED: return "已发货";
+            case COMPLETE: return "已完成";
+            case CANCELED: return "已取消";
+            case SERVICING: return "售后中";
             default: return "未知";
         }
     }
 
-    private String getOrderStatusDesc(Integer status) {
+    private String getOrderStatusDesc(OrderStatusEnum status) {
         switch (status) {
-            case 0: return "等待买家付款";
-            case 1: return "等待卖家发货";
-            case 2: return "商品已发出";
-            case 3: return "交易已完成";
-            case 4: return "交易已取消";
-            case 5: return "售后处理中";
+            case UNPAID: return "等待买家付款";
+            case PAID: return "等待卖家发货";
+            case SHIPPED: return "商品已发出";
+            case COMPLETE: return "交易已完成";
+            case CANCELED: return "交易已取消";
+            case SERVICING: return "售后处理中";
             default: return "";
         }
     }

@@ -1,5 +1,6 @@
 package com.aioveu.oms.aioveu01Order.model.form;
 
+import com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -47,7 +48,7 @@ public class OmsOrderForm implements Serializable {
 
     @Schema(description = "订单状态：")
     @NotNull(message = "订单状态：")
-    private Integer status;
+    private OrderStatusEnum status;
 
     @Schema(description = "订单备注")
     @NotBlank(message = "订单备注不能为空")

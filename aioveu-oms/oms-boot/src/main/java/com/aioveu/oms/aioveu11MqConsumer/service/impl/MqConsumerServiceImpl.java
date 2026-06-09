@@ -161,7 +161,7 @@ public class MqConsumerServiceImpl implements MqConsumerService {
             }
 
             // 5. 幂等性检查订单状态
-            if (order.getStatus() != OrderStatusEnum.UNPAID.getValue()) {
+            if (order.getStatus() != OrderStatusEnum.UNPAID) {
                 log.warn("【MQ消费者】订单状态不是待支付，跳过: orderSn={}, status={}",
                         orderSn, order.getStatus());
                 mqConsumeRecordService.updateConsumeStatus(messageId, consumerGroup,

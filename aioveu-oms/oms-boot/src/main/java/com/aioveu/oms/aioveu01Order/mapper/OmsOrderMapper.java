@@ -1,5 +1,6 @@
 package com.aioveu.oms.aioveu01Order.mapper;
 
+import com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
@@ -198,7 +199,7 @@ public interface OmsOrderMapper extends BaseMapper<OmsOrder> {
     /**
      * 更新订单状态
      */
-    default boolean updateOrderStatus(Long orderId, Integer oldStatus, Integer newStatus) {
+    default boolean updateOrderStatus(Long orderId, Integer oldStatus, OrderStatusEnum newStatus) {
         OmsOrder order = new OmsOrder();
         order.setId(orderId);
         order.setStatus(newStatus);
@@ -215,7 +216,7 @@ public interface OmsOrderMapper extends BaseMapper<OmsOrder> {
     /**
      * 批量更新订单状态
      */
-    default int batchUpdateStatus(List<Long> orderIds, Integer status) {
+    default int batchUpdateStatus(List<Long> orderIds, OrderStatusEnum status) {
         OmsOrder order = new OmsOrder();
         order.setStatus(status);
         order.setUpdateTime(LocalDateTime.now());
@@ -254,5 +255,21 @@ public interface OmsOrderMapper extends BaseMapper<OmsOrder> {
                                          @Param("status") Integer status,
                                          @Param("transactionId") String transactionId,
                                          @Param("paymentTime") Date paymentTime);
+
+
+
+    /*
+    * 查询 已支付但未发货的订单
+    * */
+    default List<OmsOrder> listPaidButNotShipped() {
+
+        LambdaQueryWrapper<OmsOrder> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(OmsOrder::getStatus, OrderStatusEnum.PAID.getValue())
+                .ne(OmsOrder::getStatus, OrderStatusEnum.SHIPPED.getValue());
+        List<OmsOrder> list = this.selectList(wrapper);
+
+        return  list;
+    }
+
 
 }

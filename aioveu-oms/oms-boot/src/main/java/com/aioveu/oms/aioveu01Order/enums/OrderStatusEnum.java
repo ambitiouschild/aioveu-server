@@ -33,10 +33,18 @@ public enum OrderStatusEnum implements IBaseEnum<Integer> {
      * 已取消
      */
     CANCELED(4, "已取消"),
+
+    /**
+     * 已关闭
+     */
+    CLOSED(5, "已关闭"),
     /**
      * 售后中
      */
-    SERVICING(5, "售后中");
+    SERVICING(6, "售后中");
+
+
+
 
     OrderStatusEnum(Integer value, String label) {
         this.value = value;

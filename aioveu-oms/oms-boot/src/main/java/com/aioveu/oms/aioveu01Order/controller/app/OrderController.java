@@ -4,8 +4,6 @@ import com.aioveu.common.annotation.Log;
 import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.ResultCode;
-import com.aioveu.oms.aioveu01Order.model.vo.OmsOrderPageVO;
-import com.aioveu.oms.aioveu01Order.model.vo.OrderPageWithStatsVO;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.aioveu.common.result.PageResult;
@@ -16,6 +14,7 @@ import com.aioveu.oms.aioveu01Order.model.query.OrderPageQuery;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderConfirmVO;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderPageVO;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -169,6 +167,35 @@ public class OrderController {
     public Result deleteOrder(@PathVariable Long orderId) {
         boolean deleted = orderService.deleteOrder(orderId);
         return Result.judge(deleted);
+    }
+
+
+    /**
+     * 手动发货（商家后台 / 小程序）
+     * ✅ **前端触发**
+     * ✅ **微信发货**
+     * ✅ **本地状态同步**
+     */
+    @Operation(summary ="手动发货（商家后台 / 小程序）")
+    @PostMapping("/{orderSn}/ship")
+//    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrder:oms-order:statistics')")
+    @Log( value = "手动发货（商家后台 / 小程序）",module = LogModuleEnum.OMS)
+    public Result<JsonNode> ship(@PathVariable String orderSn) {
+
+        log.info("【发货】手动发货 orderSn={}", orderSn);
+
+        try {
+            JsonNode result = orderService.uploadShipping(orderSn);
+
+            if (result.has("errcode") && result.get("errcode").asInt() == 0) {
+                orderService.markAsShipped(orderSn);
+            }
+            return Result.success(result);
+
+        } catch (Exception e) {
+            log.error("获取订单统计失败：", e);
+            return Result.failed("获取统计信息失败");
+        }
     }
 
 }

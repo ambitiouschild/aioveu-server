@@ -2,6 +2,7 @@ package com.aioveu.oms.aioveu01Order.model.entity;
 
 import com.aioveu.common.base.BaseEntity;
 import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum;
 import com.aioveu.oms.aioveu02OrderItem.model.entity.OmsOrderItem;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
@@ -60,7 +61,7 @@ public class OmsOrder extends BaseEntityWithTenantId {
 	/**
 	 * 订单状态(1-待付款;2-待发货;3-已发货;4-已完成;)
 	 */
-	private Integer status;
+	private OrderStatusEnum status;
 	/**
 	 * 订单备注
 	 */

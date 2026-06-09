@@ -5,7 +5,6 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import com.aioveu.common.exception.BusinessException;
-import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.common.tenant.ClientContextHolder;
@@ -13,27 +12,22 @@ import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.model.vo.*;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
 import com.aioveu.oms.aioveu01Order.utils.OrderNoGenerator;
+import com.aioveu.oms.aioveu01Order.utils.WeChatApiClient;
 import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
-import com.aioveu.oms.aioveu11MqConsumer.model.vo.OrderPaySuccessDTO;
 import com.aioveu.pay.api.PayFeignClient;
 import com.aioveu.pay.model.*;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.alibaba.nacos.shaded.com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.alibaba.nacos.shaded.io.grpc.netty.shaded.io.netty.handler.codec.DateFormatter;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.github.binarywang.wxpay.bean.notify.SignatureHeader;
-import com.github.binarywang.wxpay.bean.notify.WxPayOrderNotifyV3Result;
-import com.github.binarywang.wxpay.bean.notify.WxPayRefundNotifyV3Result;
-import com.github.binarywang.wxpay.constant.WxPayConstants;
-import com.github.binarywang.wxpay.exception.WxPayException;
-import com.github.binarywang.wxpay.service.WxPayService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.aioveu.common.result.Result;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.oms.aioveu01Order.constant.OrderConstants;
@@ -56,33 +50,27 @@ import com.aioveu.ums.api.MemberFeignClient;
 import com.aioveu.ums.dto.MemberAddressDTO;
 import feign.FeignException;
 import io.seata.spring.annotation.GlobalTransactional;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
-import org.springframework.web.util.WebUtils;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Function;
@@ -173,6 +161,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
     private final OmsOrderDeliveryService omsOrderDeliveryService;
 
+    private final WeChatApiClient weChatApiClient;
 
 
     // 开启模拟支付
@@ -840,7 +829,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             log.info("【创建订单】5.订单来源: {}", source);
 
             // 订单状态
-            int  status = OrderStatusEnum.UNPAID.getValue();
+            OrderStatusEnum status = OrderStatusEnum.UNPAID;
             log.info("【创建订单】6.订单状态: {}", status);
 
             // 订单备注
@@ -1367,7 +1356,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         // 更新订单状态
         log.info("3. 更新订单状态为已支付");
-        order.setStatus(OrderStatusEnum.PAID.getValue());
+        order.setStatus(OrderStatusEnum.PAID);
         order.setPaymentMethod(PaymentMethodEnum.BALANCE.getValue());
         order.setPaymentTime(LocalDateTime.now());
         this.updateById(order);
@@ -1734,7 +1723,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     public boolean updateOrderPaymentStatus(OmsOrder order, PaymentSuccessMessage message) {
         try {
             // 更新订单状态
-            order.setStatus(OrderStatusEnum.PAID.getValue());  // 待发货
+            order.setStatus(OrderStatusEnum.PAID);  // 待发货
 //            order.setPayStatus(PayStatusEnum.PAID.getCode());     // 已支付
             order.setTransactionId(message.getTransactionId());
 
@@ -1831,5 +1820,184 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         return order.getId();
     }
 
+
+
+    //微信发货管理服务实现（生产级）-----------------------------------------------------------------------------
+
+
+    /**
+     * 状态变为【已发货】
+     * ✅ **业务驱动**
+     * ✅ **事务保护**
+     */
+    @Override
+    @Transactional
+    public void markAsShipped(String orderSn) {
+
+        OmsOrder order = this.getByOrderNo(orderSn);
+
+        if (order == null) {
+            throw new BusinessException("订单不存在");
+        }
+
+        if (!OrderStatusEnum.PAID.equals(order.getStatus())) {
+            throw new BusinessException("订单状态异常");
+        }
+
+        // 1️微信发货
+        JsonNode json = this.uploadShipping(orderSn);
+
+        if (json.has("errcode") && json.get("errcode").asInt() == 0) {
+
+            // 2️本地状态变更
+            order.setStatus(OrderStatusEnum.SHIPPED);
+            this.baseMapper.updateById(order);
+
+            log.info("✅ 订单发货成功 orderSn={}", orderSn);
+        } else {
+            throw new BusinessException("微信发货失败");
+        }
+    }
+
+
+
+    /**
+     * 1. 录入发货信息（以自有系统为准）
+     * @param orderSn 自家系统的订单orderSn
+     */
+    @Override
+    public JsonNode uploadShipping(String orderSn) {
+
+        // ====== Step 1: 从自家数据库取订单 （唯一真理源）======
+        OmsOrder order = this.getByOrderNo(orderSn);
+        if (order == null) {
+            throw new RuntimeException("订单不存在，orderSn: " + orderSn);
+        }
+
+        Long orderId = this.getOrderIdByOrderNo(orderSn);
+        if (orderId == null) {
+            throw new RuntimeException("订单不存在，orderId: " + orderId);
+        }
+
+        // ====== Step 2: 取发货信息 ======
+        OmsOrderDelivery delivery = omsOrderDeliveryService.selectByOrderId(orderId);
+        if (delivery == null) {
+            throw new RuntimeException("发货信息不存在，订单ID: " + orderId);
+        }
+
+        // 	 * 物流状态【0->运输中；1->已收货】
+        if (delivery.getDeliveryStatus() == 0) {
+            log.warn("订单已同步微信，跳过。orderId={}", orderId);
+            ObjectNode skipNode = weChatApiClient.createObjectNode();
+            skipNode.put("code", "SKIPPED");
+            skipNode.put("msg", "already synced");
+            return skipNode;
+        }
+
+        // ====== Step 3: 查订单商品 ======
+        List<OmsOrderItem> orderItems=  omsOrderItemService.listByOrderId(orderId);
+
+        String itemDesc = orderItems.stream()
+                .map(i -> i.getSpuName()
+                        + (org.apache.commons.lang3.StringUtils.isNotBlank(i.getSkuName())
+                        ? "【" + i.getSkuName() + "】"
+                        : "")
+                        + " x" + i.getQuantity())
+                .collect(Collectors.joining("；"));
+
+        //iPhone 15 Pro【黑色 256G】 x1；官方硅胶壳【午夜色】 x2
+        log.info("生成 item_desc（微信推荐格式）:{}",itemDesc);
+
+        // ====== Step 4: 从订单中获取用户OpenID======
+        // 1. 从订单中获取会员ID
+        Long memberId = order.getMemberId();
+        // 2. 根据 memberId 远程调用或查库获取用户信息,获取用户的微信OpenID
+        log.info("【会员微服务】获取用户OpenID，会员ID: {}", memberId);
+        Result<String> openIdResult = memberFeignClient.getOpenIdByMemberId(memberId);
+
+        String openId = openIdResult.getData();
+        log.info("【会员微服务】用户OpenID获取成功: {}", openId);
+
+        if (org.apache.commons.lang3.StringUtils.isBlank(openId)) {
+            throw new RuntimeException(
+                    "用户openid不存在，memberId=" + order.getMemberId()
+            );
+        }
+
+
+        // ====== Step 5: 组装微信需要的 Body ======
+        ObjectNode body = weChatApiClient.createObjectNode();
+
+        // order_key 订单标识（用微信支付单号）
+        ObjectNode orderKey = body.putObject("order_key");
+        orderKey.put("order_number_type", 2); // 2: 微信支付单号
+        orderKey.put("transaction_id", order.getTransactionId());
+
+        body.put("logistics_type", 1); // 1: 实体物流
+        body.put("delivery_mode", 1);  // 1: 统一发货
+
+        // shipping_list 物流信息
+        ArrayNode shippingList = body.putArray("shipping_list");
+        ObjectNode shippingItem = shippingList.addObject();
+        shippingItem.put("tracking_no", delivery.getDeliverySn());
+        shippingItem.put("express_company", delivery.getDeliveryCompany());
+        shippingItem.put("item_desc", itemDesc); // 商品概述
+
+        //  微信发货参数 time & payer  时间 & 支付人
+        body.put("upload_time", java.time.OffsetDateTime.now().toString());
+        ObjectNode payer = body.putObject("payer");
+        payer.put("openid", openId);
+
+
+        // 发货时直接使用 clientId（✅ 正确）
+        return weChatApiClient.uploadShippingInfo(order.getClientId(), body);
+    }
+
+    /**
+     * 2. 提醒用户确认收货
+     * @param orderSn 自家系统的订单orderSn
+     */
+    @Override
+    public JsonNode notifyConfirmReceive(String orderSn) {
+
+        // ====== Step 1: 从自家数据库取订单 ======
+        OmsOrder order = this.getByOrderNo(orderSn);
+        if (order == null) {
+            throw new RuntimeException("订单不存在，orderSn: " + orderSn);
+        }
+
+        ObjectNode body = weChatApiClient.createObjectNode();
+
+        ObjectNode orderKey = body.putObject("order_key");
+        orderKey.put("order_number_type", 2);
+        orderKey.put("transaction_id", order.getTransactionId());
+
+        // 秒级时间戳
+        body.put("received_time", System.currentTimeMillis() / 1000);
+
+        return weChatApiClient.notifyConfirmReceive(order.getClientId(), body);
+    }
+
+    /**
+     * 3. 查询订单状态
+     * @param orderSn 自家系统的订单orderSn
+     */
+    @Override
+    public JsonNode queryOrder( String orderSn) {
+
+        // ====== Step 1: 从自家数据库取订单 ======
+        OmsOrder order = this.getByOrderNo(orderSn);
+        if (order == null) {
+            throw new RuntimeException("订单不存在，orderSn: " + orderSn);
+        }
+
+
+        ObjectNode body = weChatApiClient.createObjectNode();
+        body.put("transaction_id", order.getTransactionId());
+
+        return weChatApiClient.getOrderStatus(order.getClientId(), body);
+    }
+
+    //-----------------------------------------------------------------------------
 
 }

@@ -7,6 +7,7 @@ import com.aioveu.oms.aioveu11MqConsumer.model.vo.OrderPaySuccessDTO;
 import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.binarywang.wxpay.bean.notify.SignatureHeader;
 import com.github.binarywang.wxpay.exception.WxPayException;
 import com.aioveu.oms.aioveu05OrderPay.model.form.OrderPaymentForm;
@@ -110,6 +111,41 @@ public interface OrderService extends IService<OmsOrder> {
      * 根据订单号获取订单ID
      */
     Long getOrderIdByOrderNo(String orderSn);
+
+
+    /**
+     * 状态变为【已发货】
+     */
+    void markAsShipped(String orderSn);
+
+
+
+
+    /*
+    * 微信发货管理的三个核心接口------------------------------------------------------------------
+    * */
+    /**
+     * 1. 录入发货信息
+     * @param orderSn 自家系统的订单orderSn
+     */
+    JsonNode uploadShipping(String orderSn);
+
+    /**
+     * 2. 提醒用户确认收货（以自有系统为准）
+     * @param orderSn 自家系统的订单orderSn
+     */
+    JsonNode notifyConfirmReceive(String orderSn);
+
+    /**
+     * 3. 查询订单状态
+     * @param orderSn 自家系统的订单orderSn
+     */
+    JsonNode queryOrder(String orderSn);
+
+    /*
+     * --------------------------------------------------------------------------
+     * */
+
 
 }
 
