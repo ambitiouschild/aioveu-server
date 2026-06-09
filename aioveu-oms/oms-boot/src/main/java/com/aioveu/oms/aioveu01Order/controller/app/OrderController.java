@@ -4,6 +4,7 @@ import com.aioveu.common.annotation.Log;
 import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.ResultCode;
+import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.aioveu.common.result.PageResult;
@@ -175,20 +176,23 @@ public class OrderController {
      * ✅ **前端触发**
      * ✅ **微信发货**
      * ✅ **本地状态同步**
+     * 订单号（orderSn / orderId）一定要放在 URL 路径里
+     * 物流信息（公司、运单号、备注）放在 body（data）里
      */
     @Operation(summary ="手动发货（商家后台 / 小程序）")
     @PostMapping("/{orderSn}/ship")
 //    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrder:oms-order:statistics')")
     @Log( value = "手动发货（商家后台 / 小程序）",module = LogModuleEnum.OMS)
-    public Result<JsonNode> ship(@PathVariable String orderSn) {
+    public Result<JsonNode> ship(@PathVariable String orderSn,
+                                 @RequestBody ShipOrderDTO dto) {
 
         log.info("【发货】手动发货 orderSn={}", orderSn);
 
         try {
-            JsonNode result = orderService.uploadShipping(orderSn);
+            JsonNode result = orderService.uploadShipping(orderSn, dto);
 
             if (result.has("errcode") && result.get("errcode").asInt() == 0) {
-                orderService.markAsShipped(orderSn);
+                orderService.markAsShipped(orderSn, dto);
             }
             return Result.success(result);
 

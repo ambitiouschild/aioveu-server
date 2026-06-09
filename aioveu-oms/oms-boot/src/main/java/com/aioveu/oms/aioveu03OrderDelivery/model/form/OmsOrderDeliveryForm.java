@@ -1,5 +1,6 @@
 package com.aioveu.oms.aioveu03OrderDelivery.model.form;
 
+import com.aioveu.oms.aioveu03OrderDelivery.enums.DeliveryStatusEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -88,8 +89,8 @@ public class OmsOrderDeliveryForm implements Serializable {
     @Size(max=500, message="备注长度不能超过500个字符")
     private String remark;
 
-    @Schema(description = "物流状态【0->运输中；1->已收货】")
-    private Integer deliveryStatus;
+    @Schema(description = "物流状态【0->已同步微信（已上传发货信息）；1->未同步微信（可发货）】")
+    private DeliveryStatusEnum deliveryStatus;
 
     @Schema(description = "发货时间")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")

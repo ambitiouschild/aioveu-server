@@ -3,17 +3,20 @@ package com.aioveu.oms.aioveu01Order.service.app.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.common.tenant.ClientContextHolder;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
+import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
 import com.aioveu.oms.aioveu01Order.model.vo.*;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
 import com.aioveu.oms.aioveu01Order.utils.OrderNoGenerator;
 import com.aioveu.oms.aioveu01Order.utils.WeChatApiClient;
 import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
+import com.aioveu.oms.aioveu03OrderDelivery.enums.DeliveryStatusEnum;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
 import com.aioveu.pay.api.PayFeignClient;
@@ -1832,7 +1835,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
      */
     @Override
     @Transactional
-    public void markAsShipped(String orderSn) {
+    public void markAsShipped(String orderSn,ShipOrderDTO dto) {
 
         OmsOrder order = this.getByOrderNo(orderSn);
 
@@ -1845,7 +1848,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         }
 
         // 1️微信发货
-        JsonNode json = this.uploadShipping(orderSn);
+        JsonNode json = this.uploadShipping(orderSn,dto);
 
         if (json.has("errcode") && json.get("errcode").asInt() == 0) {
 
@@ -1862,11 +1865,11 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
 
     /**
-     * 1. 录入发货信息（以自有系统为准）
+     * 1. 录入发货信息（以自有系统为准） 人工发货（完整完善版）
      * @param orderSn 自家系统的订单orderSn
      */
     @Override
-    public JsonNode uploadShipping(String orderSn) {
+    public JsonNode uploadShipping(String orderSn, ShipOrderDTO dto) {
 
         // ====== Step 1: 从自家数据库取订单 （唯一真理源）======
         OmsOrder order = this.getByOrderNo(orderSn);
@@ -1874,19 +1877,27 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             throw new RuntimeException("订单不存在，orderSn: " + orderSn);
         }
 
-        Long orderId = this.getOrderIdByOrderNo(orderSn);
+        Long orderId = order.getId(); // ✅ 直接用
+
         if (orderId == null) {
             throw new RuntimeException("订单不存在，orderId: " + orderId);
         }
 
-        // ====== Step 2: 取发货信息 ======
+        // ====== Step 2: 取发货信息 查下单时已保存的发货信息======
+
+        /*
+        *       下单✅ 订单服务
+                发货❌ 只读地址
+                发货✅ 回填物流信息
+        * */
         OmsOrderDelivery delivery = omsOrderDeliveryService.selectByOrderId(orderId);
+
         if (delivery == null) {
             throw new RuntimeException("发货信息不存在，订单ID: " + orderId);
         }
 
-        // 	 * 物流状态【0->运输中；1->已收货】
-        if (delivery.getDeliveryStatus() == 0) {
+        // 	 * 物流状态只回填物流字段 ======
+        if (delivery.getDeliveryStatus() == DeliveryStatusEnum.SYNCED) {
             log.warn("订单已同步微信，跳过。orderId={}", orderId);
             ObjectNode skipNode = weChatApiClient.createObjectNode();
             skipNode.put("code", "SKIPPED");
@@ -1894,14 +1905,74 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             return skipNode;
         }
 
-        // ====== Step 3: 查订单商品 ======
-        List<OmsOrderItem> orderItems=  omsOrderItemService.listByOrderId(orderId);
+        // 回填前端传来的物流信息 回填物流信息（人工）
+        delivery.setDeliveryCompany(dto.getLogisticsCompany());
+        delivery.setDeliverySn(dto.getTrackingNo());
+        delivery.setRemark(dto.getRemark());
+        delivery.setDeliveryStatus(DeliveryStatusEnum.SYNCED);        // 已同步
+        delivery.setDeliveryTime(new Date()); // 发货时间
+        omsOrderDeliveryService.updateById(delivery);
+
+        // ✅ 微信发货
+        return doUploadShipping(order, delivery);
+
+
+    }
+
+
+    @Override
+    public JsonNode uploadShipping(String orderSn) {
+
+        OmsOrder order = getByOrderNo(orderSn);
+        if (order == null) {
+            throw new RuntimeException("订单不存在");
+        }
+
+        OmsOrderDelivery delivery =
+                omsOrderDeliveryService.selectByOrderId(order.getId());
+
+        if (delivery == null) {
+            throw new RuntimeException("发货信息不存在");
+        }
+
+        if (StrUtil.hasBlank(
+                delivery.getDeliveryCompany(),
+                delivery.getDeliverySn())) {
+            throw new RuntimeException("物流信息不完整");
+        }
+
+        if (delivery.getDeliveryStatus() == DeliveryStatusEnum.SYNCED) {
+            log.info("微信发货已同步，跳过 orderSn={}", orderSn);
+            return buildSkippedResult();
+        }
+
+        // ✅ 微信发货
+        // 发货时直接使用 clientId（✅ 正确）
+        return doUploadShipping(order, delivery);
+    }
+
+
+    /*
+    * 微信发货「真正干活的方法（核心）」
+    * */
+    private JsonNode doUploadShipping(OmsOrder order, OmsOrderDelivery delivery){
+
+        // ====== 查订单商品  商品描述 ======
+        List<OmsOrderItem> orderItems=  omsOrderItemService.listByOrderId(order.getId());
+
+//        String itemDesc = orderItems.stream()
+//                .map(i -> i.getSpuName()
+//                        + (org.apache.commons.lang3.StringUtils.isNotBlank(i.getSkuName())
+//                        ? "【" + i.getSkuName() + "】"
+//                        : "")
+//                        + " x" + i.getQuantity())
+//                .collect(Collectors.joining("；"));
 
         String itemDesc = orderItems.stream()
                 .map(i -> i.getSpuName()
-                        + (org.apache.commons.lang3.StringUtils.isNotBlank(i.getSkuName())
-                        ? "【" + i.getSkuName() + "】"
-                        : "")
+                        + Optional.ofNullable(i.getSkuName())
+                        .map(sku -> "【" + sku + "】")
+                        .orElse("")
                         + " x" + i.getQuantity())
                 .collect(Collectors.joining("；"));
 
@@ -1918,7 +1989,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         String openId = openIdResult.getData();
         log.info("【会员微服务】用户OpenID获取成功: {}", openId);
 
-        if (org.apache.commons.lang3.StringUtils.isBlank(openId)) {
+        if (StrUtil.isBlank(openId)) {
             throw new RuntimeException(
                     "用户openid不存在，memberId=" + order.getMemberId()
             );
@@ -1949,9 +2020,32 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         payer.put("openid", openId);
 
 
-        // 发货时直接使用 clientId（✅ 正确）
-        return weChatApiClient.uploadShippingInfo(order.getClientId(), body);
+        // 调用微信
+        JsonNode result = weChatApiClient.uploadShippingInfo(
+                order.getClientId(),
+                body
+        );
+
+        // ✅ 成功才标记
+        if (result.has("errcode") && result.get("errcode").asInt() == 0) {
+            delivery.setDeliveryStatus(DeliveryStatusEnum.SYNCED);
+            delivery.setDeliveryTime(new Date());
+            omsOrderDeliveryService.updateById(delivery);
+        }
+
+        return result;
     }
+
+    /*
+    * 公共跳过返回（幂等）
+    * */
+    private JsonNode buildSkippedResult() {
+        ObjectNode node = weChatApiClient.createObjectNode();
+        node.put("code", "SKIPPED");
+        node.put("msg", "already synced");
+        return node;
+    }
+
 
     /**
      * 2. 提醒用户确认收货

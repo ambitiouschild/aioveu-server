@@ -1,5 +1,6 @@
 package com.aioveu.oms.aioveu02OrderItem.model.vo;
 
+import com.aioveu.oms.aioveu03OrderDelivery.enums.DeliveryStatusEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -145,8 +146,8 @@ public class OmsOrderDetailVO implements Serializable {
     @Schema(description = "物流单号")
     private String deliverySn;
 
-    @Schema(description = "物流状态【0->运输中；1->已收货】")
-    private Integer deliveryStatus;
+    @Schema(description = "物流状态【0->已同步微信（已上传发货信息）；1->未同步微信（可发货）】")
+    private DeliveryStatusEnum deliveryStatus;
 
     @Schema(description = "物流状态文本")
     private String deliveryStatusText;

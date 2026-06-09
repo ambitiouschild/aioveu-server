@@ -10,6 +10,7 @@ import com.aioveu.oms.aioveu02OrderItem.model.form.OmsOrderItemForm;
 import com.aioveu.oms.aioveu02OrderItem.model.query.OmsOrderItemQuery;
 import com.aioveu.oms.aioveu02OrderItem.model.vo.OmsOrderDetailVO;
 import com.aioveu.oms.aioveu02OrderItem.model.vo.OmsOrderItemVO;
+import com.aioveu.oms.aioveu03OrderDelivery.enums.DeliveryStatusEnum;
 import com.aioveu.oms.aioveu03OrderDelivery.mapper.OmsOrderDeliveryMapper;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.alibaba.nacos.client.naming.utils.CollectionUtils;
@@ -361,10 +362,10 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
         }
     }
 
-    private String getDeliveryStatusText(Integer status) {
+    private String getDeliveryStatusText(DeliveryStatusEnum status) {
         switch (status) {
-            case 0: return "运输中";
-            case 1: return "已收货";
+            case SYNCED: return "已同步微信（已上传发货信息）";
+            case PENDING: return "未同步微信（可发货）";
             default: return "未知";
         }
     }

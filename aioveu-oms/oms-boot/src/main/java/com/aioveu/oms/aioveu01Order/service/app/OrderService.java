@@ -2,6 +2,7 @@ package com.aioveu.oms.aioveu01Order.service.app;
 
 import com.aioveu.common.result.PageResult;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
+import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderPageWithStatsVO;
 import com.aioveu.oms.aioveu11MqConsumer.model.vo.OrderPaySuccessDTO;
 import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
@@ -116,7 +117,7 @@ public interface OrderService extends IService<OmsOrder> {
     /**
      * 状态变为【已发货】
      */
-    void markAsShipped(String orderSn);
+    void markAsShipped(String orderSn,ShipOrderDTO dto);
 
 
 
@@ -128,6 +129,13 @@ public interface OrderService extends IService<OmsOrder> {
      * 1. 录入发货信息
      * @param orderSn 自家系统的订单orderSn
      */
+    JsonNode uploadShipping(String orderSn, ShipOrderDTO dto);
+
+
+
+    /*
+    * （✅ 强烈推荐）：自动发货不用 DTO
+    * */
     JsonNode uploadShipping(String orderSn);
 
     /**
