@@ -7,6 +7,7 @@ import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -34,10 +35,17 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
     private final ReactiveJwtDecoder jwtDecoder;
 
-    // 构造函数注入
-    public ClientIdGatewayFilter(ReactiveJwtDecoder jwtDecoder) {
+     //构造函数注入
+     // ✅ 关键：@Lazy 方案 A（强烈推荐）：把构造函数注入改成 @Lazy
+    public ClientIdGatewayFilter(@Lazy ReactiveJwtDecoder jwtDecoder) {
         this.jwtDecoder = jwtDecoder;
     }
+
+
+    /*
+      方案 ①（✅ 推荐）：真正用 JWT 校验
+    * 方案 ②（✅ 网关常用）：不校验 JWT，只解析
+    * */
 
 
     /*
@@ -148,6 +156,25 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
         return jwtDecoder.decode(token)
                 .map(jwt -> jwt.getClaimAsString("client_id"))
                 .doOnError(e -> log.warn("JWT 解析失败", e));
+
+
+        /*
+        ✅ 不依赖 Spring Security
+        ✅ 最干净、最推荐
+        * */
+//        return Mono.fromCallable(() -> {
+//            Claims claims = Jwts.parserBuilder()
+//                    .setSigningKey(getSecretKey())
+//                    .build()
+//                    .parseClaimsJws(token)
+//                    .getBody();
+//            return claims.get("client_id", String.class);
+//        }).onErrorResume(e -> {
+//            log.warn("JWT 解析失败", e);
+//            return Mono.empty();
+//        });
+
+
     }
 
 }

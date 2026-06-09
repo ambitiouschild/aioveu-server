@@ -6,6 +6,12 @@ spring:
     allow-bean-definition-overriding: true
   application:
     name: aioveu-tenant-gateway
+
+  #WebFlux 的自动配置只认 spring.config.import
+  # 关键：import 必须放在最前，且建议带上后缀
+  config:
+    import: optional:nacos:aioveu-common.yaml?group=AIOVEU_GROUP&refreshEnabled=true
+
   cloud:
     nacos:
       # 配置中心  # 配置中心配置  先获取配置，后执行服务发现”
@@ -41,3 +47,12 @@ spring:
 #  1.历史版本兼容：旧版本的 Spring Cloud Alibaba 支持命名空间名称
 #  2.新版本要求ID：2023.0.0.0-RC1 版本要求必须使用命名空间ID
 #  3.空值处理：如果使用名称，Nacos 客户端可能将其视为空字符串，连接到默认命名空间（public）
+
+
+  # ===== 触发 ReactiveJwtDecoder =====
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${JWT_JWK_SET_URI}
+          issuer-uri: ${JWT_ISSUER_URI}
