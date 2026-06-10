@@ -89,7 +89,7 @@ public class TenantFeignFallbackClient implements TenantFeignClient {
      * 通过 clientId 获取租户和小程序信息
      */
     @Override
-    public TenantWxAppInfo getTenantWxAppInfoByClientId(String  clientId){
+    public TenantWxAppInfo getTenantWxAppInfoByClientId(String clientId){
         log.error("通过 clientId 获取租户和小程序信息失败");
         return null;
     }

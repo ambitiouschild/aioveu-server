@@ -113,8 +113,12 @@ public interface TenantFeignClient {
     @Operation(summary = "通过 clientId 获取租户和小程序信息")
     @GetMapping("/api/v1/oauth-client-wx-app/getTenantWxAppInfoByClientId") // ✅ 应该改为GET
     @Log(value = "通过 clientId 获取租户和小程序信息）", module = LogModuleEnum.TENANT)
+//    TenantWxAppInfo getTenantWxAppInfoByClientId(
+//            @Parameter(description = "clientId") @RequestParam("clientId") String  clientId
+//    );
+    //「Feign 调用透传 Header」
     TenantWxAppInfo getTenantWxAppInfoByClientId(
-            @Parameter(description = "clientId") @RequestParam("clientId") String  clientId
+            @Parameter(description = "clientId") @RequestHeader("X-Client-Id") String clientId
     );
 
 
@@ -122,7 +126,7 @@ public interface TenantFeignClient {
     @GetMapping("/api/v1/oauth-client-wx-app/getTenantWxAppInfoByTenantId") // ✅ 应该改为GET
     @Log(value = "通过 tenantId 获取租户和小程序信息）", module = LogModuleEnum.TENANT)
     TenantWxAppInfo getTenantWxAppInfoByTenantId(
-            @Parameter(description = "clientId") @RequestParam("clientId") Long  tenantId
+            @Parameter(description = "tenantId") @RequestParam("tenantId") Long  tenantId
     );
 
 

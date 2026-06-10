@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -201,5 +202,33 @@ public class OrderController {
             return Result.failed("获取统计信息失败");
         }
     }
+
+
+    /**
+     * 导出订单（商家后台 / 小程序）
+     */
+    @Operation(summary ="导出订单（商家后台 / 小程序）")
+    @PostMapping("/export")
+//    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrder:oms-order:statistics')")
+    @Log( value = "导出订单（商家后台 / 小程序）",module = LogModuleEnum.OMS)
+    public Result<JsonNode> exportOrders(OrderExportQuery query,
+                                         HttpServletResponse response) {
+
+        log.info("【发货】手动发货 orderSn={}", orderSn);
+
+        try {
+            JsonNode result = orderService.uploadShipping(orderSn, dto);
+
+            if (result.has("errcode") && result.get("errcode").asInt() == 0) {
+                orderService.markAsShipped(orderSn, dto);
+            }
+            return Result.success(result);
+
+        } catch (Exception e) {
+            log.error("获取订单统计失败：", e);
+            return Result.failed("获取统计信息失败");
+        }
+    }
+
 
 }
