@@ -91,11 +91,14 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
         String path = exchange.getRequest().getURI().getPath();
 
+        log.info("【ClientIdGatewayFilter】解析 clientId（优先级从高到低）path:{}", path);
+
+
         // ✅ 1. 敏感接口：必须用 JWT
         if (isSensitivePath(path)) {
             return resolveClientIdFromJwt(exchange)
-                    .doOnNext(clientId -> log.info("敏感接口，Gateway 使用 JWT clientId = {}", clientId))
-                    .switchIfEmpty(Mono.error(new RuntimeException("非法请求：敏感接口缺少 clientId")));
+                    .doOnNext(clientId -> log.info("【ClientIdGatewayFilter】敏感接口，Gateway 使用 JWT clientId = {}", clientId))
+                    .switchIfEmpty(Mono.error(new RuntimeException("【ClientIdGatewayFilter】非法请求：敏感接口缺少 clientId")));
         }
 
 
@@ -104,8 +107,10 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
                 .getHeaders()
                 .getFirst(HEADER_CLIENT_ID);
 
+        log.info("【ClientIdGatewayFilter】前端带了就用（小程序 / H5） 公共接口：信任前端 Header:{}", clientIdFromHeader);
+
         if (StringUtils.isNotBlank(clientIdFromHeader)) {
-            log.debug("公共接口，Gateway 透传 clientId = {}", clientIdFromHeader);
+            log.debug("【ClientIdGatewayFilter】公共接口，Gateway 透传 clientId = {}", clientIdFromHeader);
             return Mono.just(clientIdFromHeader);
         }
 
@@ -113,9 +118,12 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
         String host = exchange.getRequest().getURI().getHost();
         if (host != null) {
             if (host.contains("miniapp")) {
+                log.debug("【ClientIdGatewayFilter】 miniapp兜底（域名 / 默认）根据域名 / 路径判断（SaaS 常用） clientIdFromHeader： {}", clientIdFromHeader);
                 return Mono.just("default_miniapp");
+
             }
             if (host.contains("h5")) {
+                log.debug("【ClientIdGatewayFilter】 h5兜底（域名 / 默认）根据域名 / 路径判断（SaaS 常用） clientIdFromHeader： {}", clientIdFromHeader);
                 return Mono.just("default_miniapp");
             }
         }
