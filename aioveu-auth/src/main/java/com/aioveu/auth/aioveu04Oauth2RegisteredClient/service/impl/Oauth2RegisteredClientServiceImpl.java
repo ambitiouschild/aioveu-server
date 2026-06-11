@@ -9,6 +9,9 @@ import com.aioveu.auth.aioveu04Oauth2RegisteredClient.model.form.Oauth2Registere
 import com.aioveu.auth.aioveu04Oauth2RegisteredClient.model.query.Oauth2RegisteredClientQuery;
 import com.aioveu.auth.aioveu04Oauth2RegisteredClient.model.vo.Oauth2RegisteredClientVo;
 import com.aioveu.auth.aioveu04Oauth2RegisteredClient.service.Oauth2RegisteredClientService;
+import com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.enums.RegisteredClientBizStatusEnum;
+import com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.mapper.Oauth2RegisteredClientBizMapper;
+import com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.model.entity.Oauth2RegisteredClientBiz;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.ResultCode;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -53,6 +56,8 @@ public class Oauth2RegisteredClientServiceImpl extends ServiceImpl<Oauth2Registe
 
     private final JdbcRegisteredClientRepository registeredClientRepository;
     private final PasswordEncoder passwordEncoder;
+
+    private final Oauth2RegisteredClientBizMapper oauth2RegisteredClientBizMapper;
 
     /**
      * 获取OAuth2注册客户端，存储所有已注册的客户端应用信息分页列表
@@ -112,10 +117,24 @@ public class Oauth2RegisteredClientServiceImpl extends ServiceImpl<Oauth2Registe
         // 构建RegisteredClient
         RegisteredClient registeredClient = buildRegisteredClient(formData, encodedSecret);
 
-
-        Oauth2RegisteredClient entity = oauth2RegisteredClientConverter.toEntity(formData);
-        // 保存到数据库
+//这一段是“多余的”
+//        Oauth2RegisteredClient entity = oauth2RegisteredClientConverter.toEntity(formData);
+        // 保存到数据库 写 OAuth2 官方表
         registeredClientRepository.save(registeredClient);
+        log.info("构建并保存官方客户端: registeredClient:{}", registeredClient);
+
+
+        //正确姿势：在同一个事务里写两张表
+        //2️写业务状态表（✅ 同一 clientId）
+        Oauth2RegisteredClientBiz biz = new Oauth2RegisteredClientBiz();
+        biz.setClientUUId(registeredClient.getId()); // ⚠️ 用同一个 clientId
+        biz.setClientId(registeredClient.getClientId()); // ⚠️ 用同一个 clientId
+        biz.setEnabled(RegisteredClientBizStatusEnum.NORMAL);                         // 默认正常
+//        biz.setValidFrom(LocalDateTime.now());
+//        biz.setValidTo(dto.getValidTo());
+        oauth2RegisteredClientBizMapper.insert(biz);
+        log.info("写业务状态表");
+
 
         log.info("客户端注册成功: clientId={}", formData.getClientId());
 
@@ -379,6 +398,18 @@ public class Oauth2RegisteredClientServiceImpl extends ServiceImpl<Oauth2Registe
     @Override
     public void toggleClientStatus(String clientId, boolean enabled) {
         // 这里需要扩展RegisteredClient来支持启用/禁用状态
+
+        Oauth2RegisteredClientBiz biz =
+                oauth2RegisteredClientBizMapper.selectById(clientId);
+        Assert.notNull(biz, () -> new BusinessException("客户端业务状态不存在"));
+
+        biz.setEnabled(
+                enabled
+                        ? RegisteredClientBizStatusEnum.NORMAL
+                        : RegisteredClientBizStatusEnum.DISABLED
+        );
+
+        oauth2RegisteredClientBizMapper.updateById(biz);
         // 实际实现中可能需要添加自定义字段
         log.info("修改客户端状态: clientId={}, enabled={}", clientId, enabled);
         // 实现细节根据业务需求决定

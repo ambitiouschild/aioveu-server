@@ -3,7 +3,11 @@ package com.aioveu.auth.service.impl;
 
 import com.aioveu.auth.aioveu04Oauth2RegisteredClient.mapper.Oauth2RegisteredClientMapper;
 import com.aioveu.auth.aioveu04Oauth2RegisteredClient.model.entity.Oauth2RegisteredClient;
+import com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.enums.RegisteredClientBizStatusEnum;
+import com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.mapper.Oauth2RegisteredClientBizMapper;
+import com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.model.entity.Oauth2RegisteredClientBiz;
 import com.aioveu.auth.service.ClientWhitelistService;
+import com.aioveu.common.exception.BusinessException;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -15,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -33,7 +38,7 @@ public class ClientWhitelistServiceImpl implements ClientWhitelistService {
 
 
     private final Oauth2RegisteredClientMapper oauth2RegisteredClientMapper;
-
+    private final Oauth2RegisteredClientBizMapper oauth2RegisteredClientBizMapper;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final RedisTemplate<String, Object> redisTemplate;
@@ -42,7 +47,7 @@ public class ClientWhitelistServiceImpl implements ClientWhitelistService {
     private static final long CACHE_TTL = 30; // 分钟
     private final TenantFeignClient tenantFeignClient;
     /**
-     * 校验 clientId 是否合法
+     * 校验 clientId 是否合法 （✅ 完全本地化，无 Feign）
      */
     @Override
     public boolean isValid(String clientId) {
@@ -55,7 +60,7 @@ public class ClientWhitelistServiceImpl implements ClientWhitelistService {
             return true;
         }
 
-        // 2️.DB 校验
+        // 2️.DB 校验 （✅ 唯一信任源）
         boolean valid = checkFromDb(clientId);
 
         // 3️合法则写缓存（带 TTL）
@@ -73,7 +78,7 @@ public class ClientWhitelistServiceImpl implements ClientWhitelistService {
     }
 
     /*
-    * DB 校验
+    * DB 校验 （✅ 完全本地，无任何 Feign）
     * */
     private boolean checkFromDb(String clientId) {
 
@@ -113,30 +118,53 @@ public class ClientWhitelistServiceImpl implements ClientWhitelistService {
         * */
 
         // 4️.是否被禁用 启用校验（非常重要）
-        // ✅ 从 clientSettings 判断是否启用
+        // ✅ 从 clientSettings 判断是否启用 （✅ 本地 JSON）
         String clientSettings = client.getClientSettings();
         if (StringUtils.isBlank(clientSettings)) {
             log.warn("clientSettings 为空，clientId={}", clientId);
             return false;
         }
 
-        try {
-        // 1. 通过clientId获取tenantId
-        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
+        // 2️业务状态校验（✅ 独立表）
+        Oauth2RegisteredClientBiz biz =
+                oauth2RegisteredClientBizMapper.selectById(clientId);
 
-        log.info("【ClientWhitelistService】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
-
-        Long tenantId = tenantWxAppInfo.getTenantId();
-
-        // 2. 业务校验
-        if (tenantWxAppInfo == null || tenantWxAppInfo.getIsDeleted() == 1 || tenantWxAppInfo.getEnabled() == 0) {
-            log.warn("客户端被业务禁用或已删除, clientId={}", clientId);
+        if (biz == null) {
+            log.info("客户端不存在");
             return false;
         }
-        } catch (Exception e) {
-            log.error("解析 clientSettings 失败", e);
+
+        if (biz.getIsDeleted() == 1 || biz.getEnabled() == RegisteredClientBizStatusEnum.DISABLED) {
+            log.info("客户端已被禁用或已删除");
             return false;
         }
+
+        // 有效期校验（可选）
+        LocalDateTime now = LocalDateTime.now();
+//        if (biz.getValidFrom() != null && now.isBefore(biz.getValidFrom())) {
+//            throw new BusinessException("客户端尚未生效");
+//        }
+//        if (biz.getValidTo() != null && now.isAfter(biz.getValidTo())) {
+//            throw new BusinessException("客户端已过期");
+//        }
+
+//        try {
+//        // 1. 通过clientId获取tenantId
+//        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
+//
+//        log.info("【ClientWhitelistService】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
+//
+//        Long tenantId = tenantWxAppInfo.getTenantId();
+//
+//        // 2. 业务校验
+//        if (tenantWxAppInfo == null || tenantWxAppInfo.getIsDeleted() == 1 || tenantWxAppInfo.getEnabled() == 0) {
+//            log.warn("客户端被业务禁用或已删除, clientId={}", clientId);
+//            return false;
+//        }
+//        } catch (Exception e) {
+//            log.error("解析 clientSettings 失败", e);
+//            return false;
+//        }
 
         // 3. 继续走 Spring Security 流程...
         return true;

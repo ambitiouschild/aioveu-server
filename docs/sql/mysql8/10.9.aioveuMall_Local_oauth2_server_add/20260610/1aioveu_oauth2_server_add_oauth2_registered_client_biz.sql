@@ -23,6 +23,7 @@ DROP TABLE IF EXISTS `oauth2_registered_client_biz`;
 
 CREATE TABLE `oauth2_registered_client_biz`  (
                                       `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+                                      `client_uuid` varchar(64) NOT NULL COMMENT 'OAuth2 客户端UUID',
                                       `client_id` varchar(64) NOT NULL COMMENT 'OAuth2 客户端ID',
                                       `tenant_id` bigint DEFAULT NULL COMMENT '租户ID',
                                       `enabled` tinyint(1) NOT NULL DEFAULT 1 COMMENT '是否启用：1-启用 0-禁用',

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.mapper.Oauth2RegisteredClientBizMapper">
+
+    <!-- 获取OAuth2 客户端业务状态（auth 服务本地校验用）分页列表 -->
+    <select id="getOauth2RegisteredClientBizPage" resultType="com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.model.vo.Oauth2RegisteredClientBizVo">
+        SELECT
+                id,
+                client_uuid,
+                client_id,
+                tenant_id,
+                enabled,
+                remark,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            oauth2_registered_client_biz
+        <where>
+            <if test="queryParams.clientId != null and queryParams.clientId != ''">
+                AND client_id LIKE CONCAT(#{queryParams.clientId}, '%')
+            </if>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.enabled != null">
+                AND enabled LIKE CONCAT(#{queryParams.enabled}, '%')
+            </if>
+            <if test="queryParams.isDeleted != null">
+                AND is_deleted LIKE CONCAT(#{queryParams.isDeleted}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectById" resultType="com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.model.entity.Oauth2RegisteredClientBiz">
+        SELECT
+            client_uuid,
+            client_id,
+               tenant_id,
+               enabled,
+               remark,
+               is_deleted,
+               create_time,
+               update_time
+        FROM oauth2_registered_client_biz
+        WHERE client_id = #{clientId}
+    </select>
+
+</mapper>
