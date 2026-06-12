@@ -33,6 +33,11 @@ public enum ResultCode implements IResultCode, Serializable {
     /** 一级宏观错误码  */
     USER_ERROR("A0001", "用户端错误"),
 
+
+    OAUTH_CLIENT_WX_APP_NOT_FOUND("A0405", "客户端与小程序映射配置不存在"),
+    WX_APP_TENANT_NOT_FOUND("A0406", "小程序与租户映射配置不存在"),
+    TENANT_NOT_FOUND("A0407", "租户信息不存在"),
+
     INSUFFICIENT_STOCK("L0001", "库存不足"),
 
     Order_submission_system_exception("L0001", "【订单提交】系统异常"),

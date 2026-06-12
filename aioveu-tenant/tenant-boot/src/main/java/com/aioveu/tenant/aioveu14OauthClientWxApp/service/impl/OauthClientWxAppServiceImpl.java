@@ -2,6 +2,8 @@ package com.aioveu.tenant.aioveu14OauthClientWxApp.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.common.exception.BusinessException;
+import com.aioveu.common.result.ResultCode;
 import com.aioveu.tenant.aioveu01Tenant.model.vo.TenantVO;
 import com.aioveu.tenant.aioveu01Tenant.service.TenantService;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.converter.OauthClientWxAppConverter;
@@ -133,20 +135,32 @@ public class OauthClientWxAppServiceImpl extends ServiceImpl<OauthClientWxAppMap
                         OauthClientWxApp::getWxAppid,
                         OauthClientWxApp::getWxAppname
                 ));
-        Assert.isTrue(entity != null, "clientId不存在");
+//        Assert.isTrue(entity != null, "clientId不存在");
+
+        if (entity == null) {
+            throw new BusinessException(ResultCode.OAUTH_CLIENT_WX_APP_NOT_FOUND, "客户端与小程序映射配置,不存在");
+        }
 
         String wxAppid = entity.getWxAppid();
         String wxAppname = entity.getWxAppname();
         log.info("【Tenant OauthClientWxApp】通过 clientId 获取小程序信息wxAppid:{},wxAppname:{}",wxAppid,wxAppname);
 
-        Long tenantId = tenantWxAppService.getTenantIdByWxAppid(wxAppid);
 
         TenantWxAppVo tenantWxAppVo = tenantWxAppService.getConfigByWxAppid(wxAppid);
+        if (tenantWxAppVo == null) {
+            throw new BusinessException(ResultCode.WX_APP_TENANT_NOT_FOUND, "小程序与租户映射配置不存在");
+        }
 
         String appSecret = tenantWxAppVo.getAppSecret();
         log.info("【Tenant OauthClientWxApp】通过 wxAppid 获取小程序配置信息wxAppid:{},appSecret:{}",wxAppid,appSecret);
 
+
+        Long tenantId = tenantWxAppService.getTenantIdByWxAppid(wxAppid);
         TenantVO tenant = tenantService.getTenantById(tenantId);
+        if (tenant == null) {
+            throw new BusinessException(ResultCode.TENANT_NOT_FOUND, "租户信息不存在");
+        }
+
         String tenantName = tenant.getName();
         log.info("【Tenant OauthClientWxApp】通过 wxAppid 获取租户信息tenantId:{},tenantName:{}",tenantId,tenantName);
 
