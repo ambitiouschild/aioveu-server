@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aioveu.oms.aioveu12OrderExportTask.mapper.OmsOrderExportTaskMapper">
+
+    <!-- 获取订单导出任务分页列表 -->
+    <select id="getOmsOrderExportTaskPage" resultType="com.aioveu.oms.aioveu12OrderExportTask.model.vo.OmsOrderExportTaskVo">
+        SELECT
+                id,
+                order_export_task_no,
+                tenant_id,
+                operator_id,
+                client_id,
+                order_status,
+                order_start_time,
+                order_end_time,
+                export_format,
+                total_count,
+                status,
+                file_url,
+                fail_reason,
+                start_time_actual,
+                finish_time,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            oms_order_export_task
+        <where>
+            <if test="queryParams.orderExportTaskNo != null and queryParams.orderExportTaskNo != ''">
+                AND order_export_task_no LIKE CONCAT(#{queryParams.orderExportTaskNo}, '%')
+            </if>
+            <if test="queryParams.tenantId != null">
+                AND tenant_id LIKE CONCAT(#{queryParams.tenantId}, '%')
+            </if>
+            <if test="queryParams.operatorId != null and queryParams.operatorId != ''">
+                AND operator_id LIKE CONCAT(#{queryParams.operatorId}, '%')
+            </if>
+            <if test="queryParams.clientId != null and queryParams.clientId != ''">
+                AND client_id LIKE CONCAT(#{queryParams.clientId}, '%')
+            </if>
+            <if test="queryParams.orderStatus != null">
+                AND order_status LIKE CONCAT(#{queryParams.orderStatus}, '%')
+            </if>
+            <if test="queryParams.orderStartTime != null">
+                AND order_start_time LIKE CONCAT(#{queryParams.orderStartTime}, '%')
+            </if>
+            <if test="queryParams.orderEndTime != null">
+                AND order_end_time LIKE CONCAT(#{queryParams.orderEndTime}, '%')
+            </if>
+            <if test="queryParams.exportFormat != null and queryParams.exportFormat != ''">
+                AND export_format LIKE CONCAT(#{queryParams.exportFormat}, '%')
+            </if>
+            <if test="queryParams.totalCount != null">
+                AND total_count LIKE CONCAT(#{queryParams.totalCount}, '%')
+            </if>
+            <if test="queryParams.status != null and queryParams.status != ''">
+                AND status LIKE CONCAT(#{queryParams.status}, '%')
+            </if>
+            <if test="queryParams.startTimeActual != null">
+                AND start_time_actual LIKE CONCAT(#{queryParams.startTimeActual}, '%')
+            </if>
+            <if test="queryParams.finishTime != null">
+                AND finish_time LIKE CONCAT(#{queryParams.finishTime}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
