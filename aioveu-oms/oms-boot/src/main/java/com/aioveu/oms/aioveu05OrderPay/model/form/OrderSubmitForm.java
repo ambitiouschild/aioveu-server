@@ -77,9 +77,9 @@ public class OrderSubmitForm {
     @Size(max = 500, message = "订单备注长度不能超过500")
     private String remark;
 
-    @Schema(description="订单创建时必须“选定一个 clientId”")
-    @NotNull(message = "clientId不能为空")
-    private String clientId;
+//    @Schema(description="订单创建时必须“选定一个 clientId”")
+//    @NotNull(message = "clientId不能为空")
+//    private String clientId;
 
     @Schema(description ="收获地址")
     @Data
