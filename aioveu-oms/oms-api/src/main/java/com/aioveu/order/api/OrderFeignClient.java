@@ -4,7 +4,6 @@ import com.aioveu.common.annotation.Log;
 import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.result.Result;
 import com.aioveu.common.web.config.FeignDecoderConfig;
-import com.aioveu.order.config.OrderFeignConfig;
 import com.aioveu.order.model.OmsOrder;
 import com.aioveu.order.model.OrderDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,8 +21,7 @@ import org.springframework.web.bind.annotation.*;
  **/
 //@FeignClient(value = "aioveu-oms", contextId = "order", configuration = {FeignDecoderConfig.class})
 
-@FeignClient(value = "aioveu-tenant-oms",
-        configuration = OrderFeignConfig.class // ✅ 绑定配置
+@FeignClient(value = "aioveu-tenant-oms"
 )
 public interface OrderFeignClient {
 
