@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +29,8 @@ import org.springframework.web.bind.annotation.*;
  * @Date 2026/3/19 16:54
  * @Version 1.0
  **/
+
+@Slf4j
 @Tag(name = "OAuth2客户端与微信小程序映射接口")
 @RestController
 @RequestMapping("/api/v1/oauth-client-wx-app")
@@ -103,6 +106,8 @@ public class OauthClientWxAppController {
                     in = ParameterIn.HEADER   // ✅ 关键
             )
             @RequestHeader("X-Client-Id") String clientId) {
+
+        log.info("【Tenant】收到 clientId = {}", clientId);
         TenantWxAppInfo tenantWxAppInfo  = oauthClientWxAppService.getTenantWxAppInfoByClientId(clientId);
         return Result.success(tenantWxAppInfo);
     }
