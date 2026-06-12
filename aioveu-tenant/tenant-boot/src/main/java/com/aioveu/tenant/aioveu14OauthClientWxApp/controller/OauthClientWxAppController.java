@@ -12,6 +12,7 @@ import com.aioveu.tenant.aioveu14OauthClientWxApp.model.vo.TenantWxAppInfo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -95,6 +96,12 @@ public class OauthClientWxAppController {
     @GetMapping("/getTenantWxAppInfoByClientId")  // ✅ 应该改为GET
     @Log(value = "通过 clientId 获取租户和小程序信息）", module = LogModuleEnum.TENANT)
     public Result<TenantWxAppInfo> getTenantWxAppInfoByClientId(
+            @Parameter(
+                    name = "X-Client-Id",
+                    description = "客户端ID",
+                    required = true,
+                    in = ParameterIn.HEADER   // ✅ 关键
+            )
             @RequestHeader("X-Client-Id") String clientId) {
         TenantWxAppInfo tenantWxAppInfo  = oauthClientWxAppService.getTenantWxAppInfoByClientId(clientId);
         return Result.success(tenantWxAppInfo);

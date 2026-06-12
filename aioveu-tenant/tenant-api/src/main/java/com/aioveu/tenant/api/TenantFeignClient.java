@@ -118,7 +118,7 @@ public interface TenantFeignClient {
 //    );
     //「Feign 调用透传 Header」
     TenantWxAppInfo getTenantWxAppInfoByClientId(
-            @Parameter(description = "clientId") @RequestHeader("X-Client-Id") String clientId
+            @RequestHeader("X-Client-Id") String clientId
     );
 
 
