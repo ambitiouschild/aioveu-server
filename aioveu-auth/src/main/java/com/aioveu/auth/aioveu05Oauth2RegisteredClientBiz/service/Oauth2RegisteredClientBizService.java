@@ -58,4 +58,20 @@ public interface Oauth2RegisteredClientBizService extends IService<Oauth2Registe
      * @return 是否删除成功
      */
     boolean deleteOauth2RegisteredClientBizs(String ids);
+
+
+
+
+    /*
+    * 开启客户端
+    * */
+    void enableClient(String clientId);
+
+
+    /*
+     * 禁用客户端
+     * */
+    void disableClient(String clientId);
+
+
 }

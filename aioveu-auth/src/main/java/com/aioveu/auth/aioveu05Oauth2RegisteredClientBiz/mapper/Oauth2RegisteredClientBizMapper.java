@@ -35,4 +35,9 @@ public interface Oauth2RegisteredClientBizMapper extends BaseMapper<Oauth2Regist
      */
     Oauth2RegisteredClientBiz selectById(@Param("clientId") String clientId);
 
+
+
+    int disable(@Param("clientId") String clientId);
+
+    int enable(@Param("clientId") String clientId);
 }

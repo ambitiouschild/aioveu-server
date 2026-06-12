@@ -46,4 +46,26 @@
         WHERE client_id = #{clientId}
     </select>
 
+
+    <update id="disable" parameterType="string">
+        UPDATE oauth2_registered_client_biz
+        SET
+            enabled = 0,
+            is_deleted = 1,
+            update_time = NOW()
+        WHERE
+            client_id = #{clientId}
+    </update>
+
+
+    <update id="enable" parameterType="string">
+        UPDATE oauth2_registered_client_biz
+        SET
+            enabled = 1,
+            is_deleted = 0,
+            update_time = NOW()
+        WHERE
+            client_id = #{clientId}
+    </update>
+
 </mapper>
