@@ -21,6 +21,8 @@ import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
 import com.aioveu.pay.api.PayFeignClient;
 import com.aioveu.pay.model.*;
+import com.aioveu.tenant.api.TenantFeignClient;
+import com.aioveu.tenant.dto.TenantWxAppInfo;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.alibaba.nacos.shaded.com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -166,6 +168,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
     private final WeChatApiClient weChatApiClient;
 
+    private final TenantFeignClient tenantFeignClient;
 
     // 开启模拟支付
     @Value("${pay.mock.enabled:true}")
@@ -449,9 +452,22 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         // 如果拦截器没取到，直接抛异常（防止脏数据）
         if (StringUtils.isBlank(clientId)) {
             // 理论上 Gateway 会兜底，这里做个防御性编程
-            throw new BusinessException("系统异常：无法识别客户端");
+            throw new BusinessException("【Oms-submitOrder】系统异常：无法识别客户端");
         }
-        log.info("订单提交，ClientId: {}", clientId);
+        log.info("【Oms-submitOrder】订单提交，ClientId: {}", clientId);
+
+        log.info("【Oms-submitOrder】开始查询clientId: {}", clientId);
+        // 这里需要你实现数据库查询
+        TenantWxAppInfo tenantWxAppInfo =
+                tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
+
+        log.info("【Oms-submitOrder】查询到的tenantWxAppInfo: {}", tenantWxAppInfo);
+
+        if (tenantWxAppInfo == null || tenantWxAppInfo.getWxAppid() == null) {
+            throw new RuntimeException("【Oms-submitOrder】租户微信配置不存在，clientId=" + clientId);
+        }
+
+
         // ✅ 固化 clientId 到订单（这一步是必须的）
         submitForm.setClientId(clientId);
 
