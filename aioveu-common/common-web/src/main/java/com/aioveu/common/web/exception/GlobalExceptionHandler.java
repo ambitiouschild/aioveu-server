@@ -1,6 +1,7 @@
 package com.aioveu.common.web.exception;
 
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.common.exception.BusinessException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.aioveu.common.result.Result;
 import com.aioveu.common.result.ResultCode;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import java.nio.file.AccessDeniedException;
 import java.sql.SQLSyntaxErrorException;
 import java.util.concurrent.CompletionException;
 import java.util.regex.Matcher;
@@ -72,6 +74,7 @@ public class GlobalExceptionHandler {
      * @param <T>
      * @return
      */
+    /* ================= 参数校验异常 ================= */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public <T> Result<T> processException(MethodArgumentNotValidException e) {
@@ -117,6 +120,7 @@ public class GlobalExceptionHandler {
         return Result.failed(e.getMessage());
     }
 
+    /* ================= 非法参数 ================= */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(IllegalArgumentException.class)
     public <T> Result<T> handleIllegalArgumentException(IllegalArgumentException e) {
@@ -199,6 +203,8 @@ public class GlobalExceptionHandler {
         return Result.failed(e.getMessage());
     }
 
+
+    /* ================= 兜底异常（⚠️ 关键） ================= */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(Exception.class)
     public <T> Result<T> handleException(Exception e) {
@@ -233,4 +239,20 @@ public class GlobalExceptionHandler {
         }
         return group;
     }
+
+
+    /* ================= 业务异常（最重要） ================= */
+//    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    // 方案一（✅ 强烈推荐，平台级）
+    //Feign 调用公共接口时，HTTP 必须返回 2xx
+    @ExceptionHandler(BusinessException.class)
+    public <T> Result<T> handleBusinessException(BusinessException e) {
+        log.error("自定义异常 business exception: code={}, msg={}",
+                e.getResultCode(), e.getMessage(), e);
+        return Result.failed(e.getResultCode(), e.getMessage());
+    }
+
+
+
+
 }
