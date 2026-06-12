@@ -1,6 +1,7 @@
 package com.aioveu.gateway.filter;
 
 
+import com.aioveu.gateway.service.ClientWhitelistWithRedisService;
 import com.alibaba.nacos.common.utils.StringUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -35,11 +36,13 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
 
     private final ReactiveJwtDecoder jwtDecoder;
+    private final ClientWhitelistWithRedisService clientWhitelistWithRedisService;
 
-     //构造函数注入
+    //构造函数注入
      // ✅ 关键：@Lazy 方案 A（强烈推荐）：把构造函数注入改成 @Lazy
-    public ClientIdGatewayFilter(@Lazy ReactiveJwtDecoder jwtDecoder) {
+    public ClientIdGatewayFilter(@Lazy ReactiveJwtDecoder jwtDecoder, ClientWhitelistWithRedisService clientWhitelistWithRedisService) {
         this.jwtDecoder = jwtDecoder;
+        this.clientWhitelistWithRedisService = clientWhitelistWithRedisService;
     }
 
 
@@ -73,7 +76,7 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
 
                     // ✅✅✅ 检测就放在这里 ✅✅✅
-                    if (!clientWhitelistService.isValid(clientId)) {
+                    if (!clientWhitelistWithRedisService.isValid(clientId)) {
                         exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
                         return exchange.getResponse().setComplete();
                     }
