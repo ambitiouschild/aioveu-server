@@ -98,7 +98,7 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
         if (isSensitivePath(path)) {
             return resolveClientIdFromJwt(exchange)
                     .doOnNext(clientId -> log.info("【ClientIdGatewayFilter】敏感接口，Gateway 使用 JWT clientId = {}", clientId))
-                    .switchIfEmpty(Mono.error(new RuntimeException("【ClientIdGatewayFilter】非法请求：敏感接口缺少 clientId")));
+                    .defaultIfEmpty("system_default"); // ✅
         }
 
 
@@ -155,7 +155,7 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
         if (StringUtils.isBlank(authHeader)
                 || !authHeader.startsWith("Bearer ")) {
-            return null;
+            return Mono.empty(); // ✅ 不是 null
         }
 
         String token = authHeader.substring(7);
@@ -163,7 +163,10 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
         // 关键点：decode 返回 Mono<Jwt>，完全非阻塞
         return jwtDecoder.decode(token)
                 .map(jwt -> jwt.getClaimAsString("client_id"))
-                .doOnError(e -> log.warn("JWT 解析失败", e));
+                .onErrorResume(e -> {
+                    log.warn("JWT 解析失败", e);
+                    return Mono.empty(); // ✅ 不炸
+                });
 
 
         /*
