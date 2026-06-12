@@ -7,11 +7,8 @@ import com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.enums.RegisteredClientB
 import com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.mapper.Oauth2RegisteredClientBizMapper;
 import com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.model.entity.Oauth2RegisteredClientBiz;
 import com.aioveu.auth.service.ClientWhitelistService;
-import com.aioveu.common.exception.BusinessException;
 import com.aioveu.tenant.api.TenantFeignClient;
-import com.aioveu.tenant.dto.TenantWxAppInfo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

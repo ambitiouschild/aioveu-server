@@ -10,6 +10,7 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
@@ -69,6 +70,15 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
                 .defaultIfEmpty("system_default")
                 // 3. 使用 flatMap 确保非阻塞
                 .flatMap(clientId -> {
+
+
+                    // ✅✅✅ 检测就放在这里 ✅✅✅
+                    if (!clientWhitelistService.isValid(clientId)) {
+                        exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+                        return exchange.getResponse().setComplete();
+                    }
+
+
                     log.debug("Gateway 注入 X-Client-Id = {}", clientId);
 
                     ServerHttpRequest newRequest = exchange.getRequest()
