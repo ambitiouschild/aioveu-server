@@ -50,12 +50,12 @@ public class OrderBO extends BaseEntity {
 	/**
 	 * 订单来源 {@link OrderSourceEnum}
 	 */
-	private Integer source;
+	private OrderSourceEnum source;
 
 	/**
 	 * 订单状态 {@link OrderStatusEnum}
 	 */
-	private Integer status;
+	private OrderStatusEnum status;
 
 	/**
 	 * 应付总额（分）
@@ -65,7 +65,7 @@ public class OrderBO extends BaseEntity {
 	/**
 	 * 支付方式 {@link  PaymentMethodEnum}
 	 */
-	private Integer paymentMethod;
+	private PaymentMethodEnum paymentMethod;
 
 	/**
 	 * 订单创建时间

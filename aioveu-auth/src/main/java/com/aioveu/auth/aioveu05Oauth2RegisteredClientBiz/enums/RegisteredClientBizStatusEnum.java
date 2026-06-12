@@ -1,6 +1,7 @@
 package com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.enums;
 
 import com.aioveu.common.base.IBaseEnum;
+import com.baomidou.mybatisplus.annotation.IEnum;
 import lombok.Getter;
 
 /**
@@ -12,7 +13,7 @@ import lombok.Getter;
  **/
 
 
-public enum RegisteredClientBizStatusEnum implements IBaseEnum<Integer> {
+public enum RegisteredClientBizStatusEnum implements IEnum<Integer> {
 
     DISABLED(0, "禁用"),
     NORMAL(1, "正常"),

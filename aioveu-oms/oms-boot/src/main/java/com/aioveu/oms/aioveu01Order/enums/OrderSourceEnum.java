@@ -1,6 +1,7 @@
 package com.aioveu.oms.aioveu01Order.enums;
 
 import com.aioveu.common.base.IBaseEnum;
+import com.baomidou.mybatisplus.annotation.IEnum;
 import lombok.Getter;
 
 /**
@@ -12,7 +13,7 @@ import lombok.Getter;
  **/
 
 
-public enum OrderSourceEnum implements IBaseEnum<Integer> {
+public enum OrderSourceEnum implements IEnum<Integer> {
 
     WX(1, "WX"), // APP订单
     APP(2, "APP"),

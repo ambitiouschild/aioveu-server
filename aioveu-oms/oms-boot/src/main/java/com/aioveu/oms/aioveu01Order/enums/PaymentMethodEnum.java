@@ -1,7 +1,7 @@
 package com.aioveu.oms.aioveu01Order.enums;
 
 
-import com.aioveu.common.base.IBaseEnum;
+import com.baomidou.mybatisplus.annotation.IEnum;
 import lombok.Getter;
 
 /**
@@ -12,7 +12,7 @@ import lombok.Getter;
  * @return:
  **/
 
-public enum PaymentMethodEnum implements IBaseEnum<Integer> {
+public enum PaymentMethodEnum implements IEnum<Integer> {
 
 
     WX_JSAPI(1, "微信JSAPI支付"),

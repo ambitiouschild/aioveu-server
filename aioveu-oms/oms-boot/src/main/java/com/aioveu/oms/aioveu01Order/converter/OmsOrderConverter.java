@@ -40,15 +40,15 @@ public interface OmsOrderConverter {
     @Mappings({
             @Mapping(
                     target = "paymentMethodLabel",
-                    expression = "java(com.aioveu.common.base.IBaseEnum.getLabelByValue(bo.getPaymentMethod(), com.aioveu.oms.aioveu01Order.enums.PaymentMethodEnum.class))"
+                    expression = "java(bo.getPaymentMethod() != null ? bo.getPaymentMethod().getLabel() : \"未知\")"
             ),
             @Mapping(
                     target = "sourceLabel",
-                    expression = "java(com.aioveu.common.base.IBaseEnum.getLabelByValue(bo.getSource(), com.aioveu.oms.aioveu01Order.enums.OrderSourceEnum.class))"
+                    expression = "java(bo.getSource() != null ? bo.getSource().getLabel() : \"未知\")"
             ),
             @Mapping(
                     target = "statusLabel",
-                    expression = "java(com.aioveu.common.base.IBaseEnum.getLabelByValue(bo.getStatus(), com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum.class))"
+                    expression = "java(bo.getSource() != null ? bo.getSource().getLabel() : \"未知\")"
             ),
             @Mapping(
                     target = "orderItems",
@@ -67,15 +67,15 @@ public interface OmsOrderConverter {
     @Mappings({
             @Mapping(
                     target = "paymentMethodLabel",
-                    expression = "java(com.aioveu.common.base.IBaseEnum.getLabelByValue(bo.getPaymentMethod(), com.aioveu.oms.aioveu01Order.enums.PaymentMethodEnum.class))"
+                    expression = "java(bo.getPaymentMethod() != null ? bo.getPaymentMethod().getLabel() : \"未知\")"
             ),
             @Mapping(
                     target = "sourceLabel",
-                    expression = "java(com.aioveu.common.base.IBaseEnum.getLabelByValue(bo.getSource(), com.aioveu.oms.aioveu01Order.enums.OrderSourceEnum.class))"
+                    expression = "java(bo.getSource() != null ? bo.getSource().getLabel() : \"未知\")"
             ),
             @Mapping(
                     target = "statusLabel",
-                    expression = "java(com.aioveu.common.base.IBaseEnum.getLabelByValue(bo.getStatus(), com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum.class))"
+                    expression = "java(bo.getStatus() != null ? bo.getStatus().getLabel() : \"未知\")"
             ),
             // 关键：明确指定商品列表的转换方法
       /*      MapStruct 的自动行为：

@@ -1,5 +1,8 @@
 package com.aioveu.oms.aioveu01Order.model.vo;
 
+import com.aioveu.oms.aioveu01Order.enums.OrderSourceEnum;
+import com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum;
+import com.aioveu.oms.aioveu01Order.enums.PaymentMethodEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -41,7 +44,7 @@ public class OmsOrderPageVO {
     private String paymentMethodLabel;
 
     @Schema(description="订单状态")
-    private Integer status;
+    private OrderStatusEnum status;
 
     @Schema(description="订单状态标签")
     private String statusLabel;
