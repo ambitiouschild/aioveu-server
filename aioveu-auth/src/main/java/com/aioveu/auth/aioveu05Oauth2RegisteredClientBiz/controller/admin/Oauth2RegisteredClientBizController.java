@@ -1,4 +1,4 @@
-package com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.controller;
+package com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.controller.admin;
 
 
 import com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.model.form.Oauth2RegisteredClientBizForm;

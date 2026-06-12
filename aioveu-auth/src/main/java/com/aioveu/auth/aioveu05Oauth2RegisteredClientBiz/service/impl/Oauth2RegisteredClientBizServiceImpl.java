@@ -121,13 +121,14 @@ public class Oauth2RegisteredClientBizServiceImpl extends ServiceImpl<Oauth2Regi
      * */
     @Transactional
     @Override
-    public void disableClient(String clientId) {
+    public boolean disableClient(String clientId) {
 
         // 1️改 DB（禁用）
         int rows = this.baseMapper.disable(clientId);
 
         if (rows == 0) {
-            throw new BusinessException("客户端不存在或已禁用");
+            log.warn("【Auth】禁用失败，客户端不存在或已禁用，clientId={}", clientId);
+            return false;
         }
 
         // 2️✅ 同步删除 Redis 白名单
@@ -136,6 +137,8 @@ public class Oauth2RegisteredClientBizServiceImpl extends ServiceImpl<Oauth2Regi
 
         log.info("【Auth】禁用 clientId={}，DB影响行数={}，Redis移除={}",
                 clientId, rows, removed);
+
+        return true;
     }
 
 
@@ -144,21 +147,28 @@ public class Oauth2RegisteredClientBizServiceImpl extends ServiceImpl<Oauth2Regi
      * */
     @Transactional
     @Override
-    public void enableClient(String clientId) {
+    public boolean enableClient(String clientId) {
 
         // 1️改 DB（启用）
-        this.baseMapper.enable(clientId);
+        int rows = baseMapper.enable(clientId);
+        if (rows == 0) {
+            log.warn("【Auth】启用失败，客户端不存在或未变更，clientId={}", clientId);
+            return false;
+        }
 
         // 2️✅ 同步加入 Redis 白名单
-        redisTemplate.opsForSet()
+        Long added =redisTemplate.opsForSet()
                 .add(CACHE_KEY, clientId);
-        redisTemplate.expire(
+        Boolean expire = redisTemplate.expire(
                 CACHE_KEY,
                 CACHE_TTL,
                 TimeUnit.MINUTES
         );
 
-        log.info("【Auth】启用 clientId={}，已加入 Redis 白名单", clientId);
+        log.info("【Auth】启用 clientId={}，Redis 新增={}，设置过期={}",
+                clientId, added, expire);
+
+        return true;
     }
 
 }
