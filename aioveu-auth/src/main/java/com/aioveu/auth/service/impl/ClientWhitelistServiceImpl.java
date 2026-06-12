@@ -57,8 +57,10 @@ public class ClientWhitelistServiceImpl implements ClientWhitelistService {
                 .isMember(CACHE_KEY, clientId);
 
         if (Boolean.TRUE.equals(cached)) {
+            log.info("【ClientWhitelistService】Redis 校验完成：通过");
             return true;
         }
+
 
         // 2️.DB 校验 （✅ 唯一信任源）
         boolean valid = checkFromDb(clientId);
@@ -73,6 +75,7 @@ public class ClientWhitelistServiceImpl implements ClientWhitelistService {
                     TimeUnit.MINUTES
             );
         }
+        log.info("【ClientWhitelistService】合法则写缓存（带 TTL）完成：通过");
 
         return valid;
     }
@@ -167,6 +170,7 @@ public class ClientWhitelistServiceImpl implements ClientWhitelistService {
 //        }
 
         // 3. 继续走 Spring Security 流程...
+        log.info("【ClientWhitelistService】DB（✅完全本地，无任何 Feign）校验完成：通过");
         return true;
 
     }
