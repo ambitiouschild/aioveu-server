@@ -8,6 +8,9 @@ import com.aioveu.oms.aioveu12OrderExportTask.model.query.OmsOrderExportTaskQuer
 import com.aioveu.oms.aioveu12OrderExportTask.model.vo.OmsOrderExportTaskVo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
 
 /**
  * @ClassName: OmsOrderExportTaskService
@@ -65,5 +68,11 @@ public interface OmsOrderExportTaskService extends IService<OmsOrderExportTask> 
      * 创建订单导出任务
      * */
     Long createExportTask(OrderExportQuery query, String token, String clientId);
+
+
+    /*
+     * 下载订单
+     * */
+    boolean download(String exportNo, HttpServletResponse response) throws IOException;
 
 }

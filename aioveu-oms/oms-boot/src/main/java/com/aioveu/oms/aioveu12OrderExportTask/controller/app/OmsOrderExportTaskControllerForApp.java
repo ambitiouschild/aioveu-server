@@ -14,12 +14,16 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 /**
  * @ClassName: OmsOrderExportTaskController
@@ -64,4 +68,21 @@ public class OmsOrderExportTaskControllerForApp {
             return Result.failed("导出失败");
         }
     }
+
+
+    /**
+     * 下载订单（商家后台 / 小程序）
+     */
+    @Operation(summary ="下载订单（商家后台 / 小程序）")
+    @GetMapping("/download")
+//    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrder:oms-order:statistics')")
+    @Log( value = "下载订单（商家后台 / 小程序）",module = LogModuleEnum.OMS)
+    public Result<Void> download(
+            @RequestParam("exportNo") String exportNo,
+            HttpServletResponse response
+    )throws IOException {
+        boolean result = omsOrderExportTaskService.download(exportNo,response);
+        return Result.judge(result);
+    }
+
 }

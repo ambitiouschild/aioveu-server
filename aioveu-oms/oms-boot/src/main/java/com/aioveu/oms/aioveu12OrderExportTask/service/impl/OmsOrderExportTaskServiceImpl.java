@@ -16,11 +16,17 @@ import com.aioveu.oms.aioveu12OrderExportTask.service.OmsOrderExportTaskService;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -136,6 +142,63 @@ public class OmsOrderExportTaskServiceImpl extends ServiceImpl<OmsOrderExportTas
 
         omsOrderExportTaskMapper.insert(task);
         return task.getId();
+    }
+
+
+    /*
+     * 下载订单
+     * */
+    @Override
+    public boolean download(String exportNo,
+             HttpServletResponse response) throws IOException {
+
+        Long operatorId = SecurityUtils.getMemberId();
+        Long tenantId = SecurityUtils.getTenantId();
+
+        // 2️查询任务
+        OmsOrderExportTask task =
+                omsOrderExportTaskMapper.getByExportNo(exportNo, tenantId);
+
+        if (task == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "导出任务不存在");
+            return false;
+        }
+
+        // 3️校验权限（只能下载自己的）
+        if (!task.getOperatorId().equals(operatorId)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "无权限下载");
+            return false;
+        }
+
+        // 4️校验状态
+        if (!"SUCCESS".equals(task.getStatus())) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "文件尚未生成");
+            return false;
+        }
+
+        // 5️下载文件
+        return downloadFile(task.getFileUrl(), response);
+    }
+
+
+    private boolean downloadFile(String fileUrl, HttpServletResponse response) throws IOException {
+        Path path = Paths.get(fileUrl);
+        if (!Files.exists(path)) {
+            response.sendError(HttpServletResponse.SC_GONE, "文件不存在");
+            return false;
+        }
+
+        String fileName = path.getFileName().toString();
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Content-Disposition",
+                "attachment; filename*=UTF-8''" + URLEncoder.encode(fileName, "UTF-8"));
+
+        Files.copy(path, response.getOutputStream());
+        response.getOutputStream().flush();
+
+        return true;
     }
 
 }
