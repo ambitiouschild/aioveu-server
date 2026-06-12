@@ -8,6 +8,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -30,6 +31,11 @@ public class ClientWhitelistWithRedisServiceImpl implements ClientWhitelistWithR
     //Redis 缓存（防止高频打库） 进阶优化（强烈推荐）
     private static final String CACHE_KEY = "CLIENT_WHITELIST";
     private static final long CACHE_TTL = 30; // 分钟
+
+
+    private static final Set<String> PUBLIC_CLIENTS =
+            Set.of("public-app", "h5-app");
+
     /**
      * 校验 clientId 是否合法 （✅ 完全本地化，无 Feign）
      */
@@ -42,7 +48,13 @@ public class ClientWhitelistWithRedisServiceImpl implements ClientWhitelistWithR
         }
 
 
-        // 1️.Redis 校验
+        // 1️公共 client（小程序 / H5）
+        if (PUBLIC_CLIENTS.contains(clientId)) {
+            log.debug("【Gateway】公共 client 放行：{}", clientId);
+            return true;
+        }
+
+        // 2.Redis 校验 校验（后台 / 合作 client）
         Boolean cached = redisTemplate.opsForSet()
                 .isMember(CACHE_KEY, clientId);
 
@@ -54,8 +66,10 @@ public class ClientWhitelistWithRedisServiceImpl implements ClientWhitelistWithR
 
 
         // ❌ Redis 没有，直接拦截
-        log.warn("【Gateway】Redis 未命中，拦截 clientId={}", clientId);
-        return false;
+        // ✅ Redis 没有 → 仍然放行（交给 Auth 查库）
+        // 3️默认放行（Auth 兜底）
+        log.warn("【Gateway】Redis 未命中，放行给 Auth 校验，clientId={}", clientId);
+        return true;
     }
 
 
