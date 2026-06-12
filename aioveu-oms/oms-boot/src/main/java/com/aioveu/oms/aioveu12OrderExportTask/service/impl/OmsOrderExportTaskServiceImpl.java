@@ -3,7 +3,10 @@ package com.aioveu.oms.aioveu12OrderExportTask.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.common.security.util.SecurityUtils;
+import com.aioveu.oms.aioveu01Order.model.query.OrderExportQuery;
 import com.aioveu.oms.aioveu12OrderExportTask.converter.OmsOrderExportTaskConverter;
+import com.aioveu.oms.aioveu12OrderExportTask.enums.OrdeExportTaskStatusEnum;
 import com.aioveu.oms.aioveu12OrderExportTask.mapper.OmsOrderExportTaskMapper;
 import com.aioveu.oms.aioveu12OrderExportTask.model.entity.OmsOrderExportTask;
 import com.aioveu.oms.aioveu12OrderExportTask.model.form.OmsOrderExportTaskForm;
@@ -14,8 +17,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -100,6 +106,36 @@ public class OmsOrderExportTaskServiceImpl extends ServiceImpl<OmsOrderExportTas
                 .map(Long::parseLong)
                 .toList();
         return this.removeByIds(idList);
+    }
+
+
+    private final OmsOrderExportTaskMapper omsOrderExportTaskMapper;
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Long createExportTask(OrderExportQuery query, String token, String clientId) {
+
+        // 1️解析用户
+//        Jwt jwt = jwtDecoder.decode(token.replace("Bearer ", ""));
+//        Long operatorId = jwt.getClaim("userId", Long.class);
+//        Long tenantId = jwt.getClaim("tenantId", Long.class);
+        Long operatorId = SecurityUtils.getMemberId();
+        Long tenantId = SecurityUtils.getTenantId();
+
+        // 2️权限校验
+//        checkExportPermission(operatorId, tenantId);
+
+        // 3️创建任务
+        OmsOrderExportTask task = new OmsOrderExportTask();
+        BeanUtils.copyProperties(query, task);
+        task.setTenantId(tenantId);
+        task.setOperatorId(operatorId);
+        task.setClientId(clientId);
+        task.setStatus(OrdeExportTaskStatusEnum.PENDING);
+        task.setCreateTime(LocalDateTime.now());
+
+        omsOrderExportTaskMapper.insert(task);
+        return task.getId();
     }
 
 }

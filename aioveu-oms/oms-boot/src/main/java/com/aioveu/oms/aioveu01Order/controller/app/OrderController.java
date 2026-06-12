@@ -5,8 +5,6 @@ import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
-import com.aioveu.oms.aioveu01Order.model.query.OrderExportQuery;
-import com.aioveu.oms.aioveu01Order.service.app.OrderExportService;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.aioveu.common.result.PageResult;
@@ -21,8 +19,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -46,7 +42,6 @@ import java.util.Map;
 public class OrderController {
 
     private final OrderService orderService;
-    private final OrderExportService orderExportService;
 
     //包含多个筛选条件（如时间范围、订单状态、关键词等）。使用 POST可以通过请求体传递复杂的结构化数据
     //前端发送的是JSON请求体（POST + data参数），但后端没有用@RequestBody接收，所以Spring无法将请求体解析为对象。
@@ -208,30 +203,7 @@ public class OrderController {
     }
 
 
-    /**
-     * 导出订单（商家后台 / 小程序）
-     */
-    @Operation(summary ="导出订单（商家后台 / 小程序）")
-    @PostMapping("/export")
-//    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrder:oms-order:statistics')")
-    @Log( value = "导出订单（商家后台 / 小程序）",module = LogModuleEnum.OMS)
-    public Result<Long> exportOrders(
-            @Valid @RequestBody OrderExportQuery query,
-            @RequestHeader("Authorization") String token,
-            @RequestHeader("X-Client-Id") String clientId
-    ) {
 
-
-        try {
-            Long taskId = orderExportService.createExportTask(query, token, clientId);
-
-            return Result.success(taskId);
-
-        } catch (Exception e) {
-            log.error("获取订单统计失败：", e);
-            return Result.failed("导出失败");
-        }
-    }
 
 
 }

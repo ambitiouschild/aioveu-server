@@ -1,6 +1,7 @@
 package com.aioveu.oms.aioveu12OrderExportTask.service;
 
 
+import com.aioveu.oms.aioveu01Order.model.query.OrderExportQuery;
 import com.aioveu.oms.aioveu12OrderExportTask.model.entity.OmsOrderExportTask;
 import com.aioveu.oms.aioveu12OrderExportTask.model.form.OmsOrderExportTaskForm;
 import com.aioveu.oms.aioveu12OrderExportTask.model.query.OmsOrderExportTaskQuery;
@@ -58,5 +59,11 @@ public interface OmsOrderExportTaskService extends IService<OmsOrderExportTask> 
      * @return 是否删除成功
      */
     boolean deleteOmsOrderExportTasks(String ids);
+
+
+    /*
+     * 创建订单导出任务
+     * */
+    Long createExportTask(OrderExportQuery query, String token, String clientId);
 
 }
