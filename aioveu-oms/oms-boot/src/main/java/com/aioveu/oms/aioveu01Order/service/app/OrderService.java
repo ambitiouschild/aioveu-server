@@ -48,7 +48,7 @@ public interface OrderService extends IService<OmsOrder> {
      * @param orderSubmitForm {@link OrderSubmitForm}
      * @return 订单编号
      */
-    String submitOrder(OrderSubmitForm orderSubmitForm);
+    String submitOrder(OrderSubmitForm orderSubmitForm,String clientId);
 
     /**
      * 订单支付

@@ -425,8 +425,8 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     //需要检查事务传播行为
     //配置 Seata 不包装异常
     //seata 全局事务拦截器包装了你的业务异常，需要解开这个包装，让真正的 BusinessException能够被全局异常处理器捕获和处理。
-    public String submitOrder(OrderSubmitForm submitForm) throws BusinessException{
-
+    public String submitOrder(OrderSubmitForm submitForm,
+                              String clientId) throws BusinessException{
 
         long startTime = System.currentTimeMillis();
         String orderSn = null;
@@ -437,7 +437,13 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         // 这个值是由你的 Auth 微服务/拦截器从 Header 里取出来放到 ThreadLocal 里的
         // ✅ 推荐：直接从 ThreadLocal 获取
         // 这个值是由 Gateway 保证存在的
-        String clientId = ClientContextHolder.getClientId();
+
+        /*
+        * ❌ 不能保证一定能取到
+        * ✅ 必须显式从请求头里拿，或者由 Controller 传进来
+        * */
+//        String clientId = ClientContextHolder.getClientId();
+
         // 或者：TenantContext.getCurrentClientId();
 
         // 如果拦截器没取到，直接抛异常（防止脏数据）

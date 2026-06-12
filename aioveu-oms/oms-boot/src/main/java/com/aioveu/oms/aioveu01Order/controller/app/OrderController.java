@@ -4,6 +4,7 @@ import com.aioveu.common.annotation.Log;
 import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.ResultCode;
+import com.aioveu.common.tenant.ClientContextHolder;
 import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -23,6 +24,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
 import java.util.Map;
 
@@ -98,12 +101,18 @@ public class OrderController {
 
     @Operation(summary ="订单提交")
     @PostMapping("/submit")
-    public Result<String> submitOrder(@Validated @RequestBody OrderSubmitForm submitForm) {
+    public Result<String> submitOrder(
+            @RequestHeader("X-Client-Id") String clientId,
+            @Validated @RequestBody OrderSubmitForm submitForm) {
 
         //在 Controller 中统一处理（最简单直接）
         //Seata 的拦截器捕获了这个异常，把它包装成了 RuntimeException
+        //方案二（✅ 如果你非要 Service 里取）
+        //必须在 Controller 里先存到 ThreadLocal，并且手动继承
+
+
         try {
-            String orderSn = orderService.submitOrder(submitForm);
+            String orderSn = orderService.submitOrder(submitForm, clientId);
             log.info("=== 订单提交成功: {} ===", orderSn);
             return Result.success(orderSn);
 
