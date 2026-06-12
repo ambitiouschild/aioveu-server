@@ -95,11 +95,11 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
 
         // ✅ 1. 敏感接口：必须用 JWT
-//        if (isSensitivePath(path)) {
-//            return resolveClientIdFromJwt(exchange)
-//                    .doOnNext(clientId -> log.info("【ClientIdGatewayFilter】敏感接口，Gateway 使用 JWT clientId = {}", clientId))
-//                    .defaultIfEmpty("system_default"); // ✅
-//        }
+        if (isSensitivePath(path)) {
+            return resolveClientIdFromJwt(exchange)
+                    .doOnNext(clientId -> log.info("【ClientIdGatewayFilter】敏感接口，Gateway 使用 JWT clientId = {}", clientId))
+                    .defaultIfEmpty("system_default"); // ✅
+        }
 
 
         // 2前端带了就用（小程序 / H5） 公共接口：信任前端 Header
