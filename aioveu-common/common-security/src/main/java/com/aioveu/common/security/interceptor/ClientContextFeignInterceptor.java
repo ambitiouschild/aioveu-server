@@ -16,7 +16,10 @@ import feign.RequestInterceptor;
 
 //只定义
 import feign.RequestTemplate;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
  * Feign 请求拦截器（透传 clientId）
@@ -29,10 +32,28 @@ public class ClientContextFeignInterceptor implements RequestInterceptor {
     @Override
     public void apply(RequestTemplate template) {
 
-        String clientId = ClientContextHolder.getClientId();
+//        String clientId = ClientContextHolder.getClientId();
+
+
+        ServletRequestAttributes attributes =
+                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
+
+
+
+        if (attributes == null) {
+            log.warn("Feign 拦截器：无 HTTP 请求上下文，跳过 clientId 透传");
+            return;
+        }
+
+        HttpServletRequest request = attributes.getRequest();
+        String clientId = request.getHeader(HEADER_CLIENT_ID);
+
         if (clientId != null) {
             template.header(HEADER_CLIENT_ID, clientId);
             log.debug("Feign 透传 clientId = {}", clientId);
+        }else {
+            log.warn("Feign 拦截器：请求头中未找到 X-Client-Id");
         }
     }
 }
