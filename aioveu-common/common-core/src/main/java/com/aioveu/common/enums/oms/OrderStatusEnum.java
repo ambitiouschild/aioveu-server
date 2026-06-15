@@ -1,5 +1,6 @@
 package com.aioveu.common.enums.oms;
 
+import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.baomidou.mybatisplus.annotation.IEnum;
 import lombok.Getter;
 
@@ -51,6 +52,7 @@ public enum OrderStatusEnum {
         this.label = label;
     }
 
+    @EnumValue
     @Getter
     private Integer value;
 
