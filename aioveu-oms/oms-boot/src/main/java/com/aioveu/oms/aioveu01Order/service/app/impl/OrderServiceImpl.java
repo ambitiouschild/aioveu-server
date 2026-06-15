@@ -891,11 +891,11 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
             // 支付方式
             PaymentMethodEnum paymentMethod= submitForm.getPaymentMethod() != null ? submitForm.getPaymentMethod() : PaymentMethodEnum.JSAPI;
-            log.info("【创建订单】14.支付方式: {}", paymentMethod);
+            log.info("【创建订单】15.支付方式: {}", paymentMethod);
 
             // 前端指定 clientId
             String clientId= submitForm.getClientId() != null ? submitForm.getClientId() : "订单创建时必须“选定一个 clientId”";
-            log.info("【创建订单】15.前端指定 clientId: {}", clientId);
+            log.info("【创建订单】16.前端指定 clientId: {}", clientId);
 
 
             log.info("【创建订单】开始赋值===========");
@@ -913,6 +913,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             order.setFreightAmount(freightAmount);
             order.setPaymentAmount(paymentAmount);
             order.setPaymentTime(paymentTime);
+            order.setPaymentChannel(paymentChannel);
             order.setPaymentMethod(paymentMethod);
 
             //订单创建时就绑定微信身份
