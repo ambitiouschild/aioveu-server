@@ -3,6 +3,7 @@ package com.aioveu.oms.aioveu01Order.model.vo;
 import com.aioveu.common.base.BaseEntity;
 import com.aioveu.common.enums.oms.OrderSourceEnum;
 import com.aioveu.common.enums.oms.OrderStatusEnum;
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -61,9 +62,9 @@ public class OrderBO extends BaseEntity {
 	private Long paymentAmount;
 
 	/**
-	 * 支付方式 {@link  PaymentMethodEnum}
+	 * 支付方式 {@link  PaymentChannelEnum}
 	 */
-	private PaymentMethodEnum paymentMethod;
+	private PaymentChannelEnum paymentMethod;
 
 	/**
 	 * 订单创建时间

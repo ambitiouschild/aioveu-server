@@ -17,7 +17,9 @@ public enum PaymentChannelEnum{
     ALIPAY(1, "ALIPAY", "支付宝"),
     WECHAT(2, "WECHAT", "微信支付"),
     UNIONPAY(3, "UNIONPAY", "银联"),
-    BALANCE(4, "BALANCE", "余额");
+    BALANCE(4, "BALANCE", "余额"),
+    MOCK(5, "MOCK", "模拟支付"),
+    UNKNOWN(6, "UNKNOWN", "未知");
 
     ;
 

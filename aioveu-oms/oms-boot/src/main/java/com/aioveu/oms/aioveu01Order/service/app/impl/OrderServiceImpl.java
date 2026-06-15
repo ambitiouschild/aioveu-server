@@ -1107,7 +1107,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     public Object payOrder(OrderPaymentForm paymentForm) {
 
         String orderSn = paymentForm.getOrderSn();
-        PaymentMethodEnum paymentMethod  = paymentForm.getPaymentMethod();
+        PaymentChannelEnum paymentMethod  = paymentForm.getPaymentMethod();
         Long paymentAmount = paymentForm.getPaymentAmount();
 
         log.info("【支付】开始处理，订单号: {}, 支付方式: {}, 支付金额: {},模拟模式: {}",
@@ -1206,7 +1206,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
      * 处理真实支付
      */
     private Result<PaymentParamsVO> processRealPayment(OrderPaymentForm paymentForm,
-                                      PaymentMethodEnum paymentMethod,
+                                      PaymentChannelEnum paymentMethod,
                                       OmsOrder order,
                                       RLock lock) {
         // 原有的真实支付逻辑
@@ -1261,7 +1261,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     /**
      * 构建支付请求
      */
-    private PaymentRequestDTO buildPaymentRequest(OmsOrder order, PaymentMethodEnum paymentMethod,
+    private PaymentRequestDTO buildPaymentRequest(OmsOrder order, PaymentChannelEnum paymentMethod,
                                                   Long memberId, String openId) {
 
         Long PaymentAmount = order.getPaymentAmount();
@@ -1284,7 +1284,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
                 request.setPayType("JSAPI");
                 request.setOpenId(openId);
                 break;
-            case WX_JSAPI:
+            case WECHAT:
                 request.setChannel("WECHAT");
                 request.setPayType("JSAPI");
                 request.setOpenId(openId);
@@ -1296,10 +1296,6 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             case BALANCE:
                 request.setChannel("BALANCE");
                 request.setPayType("BALANCE");
-                break;
-            case WX_APP:
-                request.setChannel("WECHAT");
-                request.setPayType("APP");
                 break;
             default:
                 throw new BizException("不支持的支付方式: " + paymentMethod);
@@ -1318,11 +1314,10 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     /**
      * 根据支付方式获取AppId
      */
-    private String getAppIdByMethod(PaymentMethodEnum paymentMethod) {
+    private String getAppIdByMethod(PaymentChannelEnum paymentMethod) {
         // 这里可以从配置文件中读取
         switch (paymentMethod) {
-            case WX_JSAPI:
-            case WX_APP:
+            case WECHAT:
                 return "wx1234567890abcdef"; // 替换为实际的微信AppId
             case ALIPAY:
                 return "2021000118691234";   // 替换为实际的支付宝AppId
@@ -1334,15 +1329,15 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     /**
      * 检查支付方式是否有效
      */
-    private boolean isValidPaymentMethod(PaymentMethodEnum paymentMethod) {
+    private boolean isValidPaymentMethod(PaymentChannelEnum paymentMethod) {
 
-        return paymentMethod != null && paymentMethod != PaymentMethodEnum.UNKNOWN;
+        return paymentMethod != null && paymentMethod != PaymentChannelEnum.UNKNOWN;
     }
 
     /**
      * 支付后更新订单
      */
-    private void updateOrderAfterPayment(String orderSn, PaymentMethodEnum paymentMethod, boolean success) {
+    private void updateOrderAfterPayment(String orderSn, PaymentChannelEnum paymentMethod, boolean success) {
         if (success) {
             // 支付成功，更新订单状态
             this.update(new LambdaUpdateWrapper<OmsOrder>()

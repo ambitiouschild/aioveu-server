@@ -55,6 +55,10 @@ public class PayOrder extends BaseEntityWithTenantId {
     /**
      * 支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额
      */
+    /**
+     * 数据库：VARCHAR
+     * 使用 @EnumValue
+     */
     private PaymentChannelEnum paymentChannel;
     /**
      * 支付方式：APP-APP支付 H5-H5支付 JSAPI-小程序/公众号 NATIVE-扫码支付

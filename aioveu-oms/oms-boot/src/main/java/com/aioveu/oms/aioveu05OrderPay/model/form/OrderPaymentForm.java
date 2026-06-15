@@ -1,5 +1,6 @@
 package com.aioveu.oms.aioveu05OrderPay.model.form;
 
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -22,7 +23,7 @@ public class OrderPaymentForm {
     private String appId;
 
     @Schema(description="支付方式")
-    private PaymentMethodEnum paymentMethod;
+    private PaymentChannelEnum paymentMethod;
 
     @Schema(description="支付金额")
     private Long paymentAmount;
