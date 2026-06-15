@@ -1,4 +1,4 @@
-package com.aioveu.pay.model.aioveu01PayOrder;
+package com.aioveu.pay.aioveu01PayOrder.model.form;
 
 import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
 import com.aioveu.common.enums.pay.PaymentChannelEnum;

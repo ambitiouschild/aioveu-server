@@ -7,7 +7,7 @@ import com.aioveu.common.result.Result;
 import com.aioveu.pay.aioveu01PayOrder.model.query.PayOrderQuery;
 import com.aioveu.pay.aioveu01PayOrder.model.vo.PayOrderVO;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
-import com.aioveu.pay.model.aioveu01PayOrder.PayOrderForm;
+import com.aioveu.pay.aioveu01PayOrder.model.form.PayOrderForm;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

@@ -3,6 +3,7 @@ package com.aioveu.pay.aioveu01PayOrder.service.impl;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
@@ -13,7 +14,8 @@ import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
 import com.aioveu.pay.aioveu01.model.vo.PaymentCallbackDTO;
 import com.aioveu.pay.aioveu01PayOrder.utils.PayOrderNoGenerator;
 import com.aioveu.pay.aioveu01.enums.PaymentCallbackStatusEnum;
-import com.aioveu.pay.model.aioveu01PayOrder.PayOrderForm;
+import com.aioveu.pay.aioveu01PayOrder.model.form.PayOrderForm;
+import com.aioveu.pay.model.aioveu01PayOrder.PayOrderCreateForm;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -130,7 +132,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String createPayOrder(PayOrderForm formData) {
+    public String createPayOrder(PayOrderCreateForm formData) {
 
         String orderNo = formData.getOrderNo();
 
@@ -142,12 +144,34 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
             return orderNo;
         }
 
-        // 生成支付单号
-        formData.setPaymentNo(payOrderNoGenerator.generatePaymentNo());
 
-        // 转换并保存
-        PayOrder entity = payOrderConverter.toEntity(formData);
-        return orderNo;
+        // 2️初始化支付单（Pay 主权）
+        PayOrder entity = new PayOrder();
+        // 生成支付单号
+        entity.setPaymentNo(payOrderNoGenerator.generatePaymentNo());
+
+
+        // 3️拷贝业务字段（OMS 主权）
+        entity.setOrderNo(formData.getOrderNo());
+        entity.setBizType(formData.getBizType());
+        entity.setUserId(formData.getUserId());
+        entity.setPaymentAmount(formData.getPaymentAmount());
+        entity.setPaymentChannel(formData.getPaymentChannel()); // ✅ 不写死
+        entity.setPaymentMethod(formData.getPaymentMethod());
+
+        //Pay 在 PayOrderForm 中显式指定 bizType = ORDER
+        // 4️⃣ Pay 自己控制的字段
+        entity.setPaymentStatus(PaymentStatusEnum.UNPAID);
+        entity.setIsDeleted(0);
+        entity.setNotifyStatus(0);
+        entity.setNotifyCount(0);
+        entity.setVersion(0);
+
+        // 5️落库
+        this.baseMapper.insert(entity);
+
+        // 6️返回支付单号（不是 orderNo！）
+        return entity.getPaymentNo();
     }
 
 

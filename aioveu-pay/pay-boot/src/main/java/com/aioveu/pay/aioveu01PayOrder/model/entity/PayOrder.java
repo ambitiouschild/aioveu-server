@@ -3,6 +3,7 @@ package com.aioveu.pay.aioveu01PayOrder.model.entity;
 import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.math.BigDecimal;  // 必须是java.math.BigDecimal
@@ -65,7 +66,7 @@ public class PayOrder extends BaseEntityWithTenantId {
     /**
      * 支付方式：APP-APP支付 H5-H5支付 JSAPI-小程序/公众号 NATIVE-扫码支付
      */
-    private String paymentMethod;
+    private PaymentMethodEnum paymentMethod;
     /**
      * 支付时间
      */

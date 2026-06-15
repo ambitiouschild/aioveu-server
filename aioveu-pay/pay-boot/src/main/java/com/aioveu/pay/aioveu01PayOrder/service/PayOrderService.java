@@ -4,7 +4,8 @@ import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu01PayOrder.model.query.PayOrderQuery;
 import com.aioveu.pay.aioveu01PayOrder.model.vo.*;
 import com.aioveu.pay.aioveu01.model.vo.PaymentCallbackDTO;
-import com.aioveu.pay.model.aioveu01PayOrder.PayOrderForm;
+import com.aioveu.pay.aioveu01PayOrder.model.form.PayOrderForm;
+import com.aioveu.pay.model.aioveu01PayOrder.PayOrderCreateForm;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -55,7 +56,7 @@ public interface PayOrderService extends IService<PayOrder> {
      * 必须：用 orderNo做幂等
      *
      */
-    String createPayOrder(PayOrderForm formData);
+    String createPayOrder(PayOrderCreateForm formData);
 
     /**
      * 修改支付订单

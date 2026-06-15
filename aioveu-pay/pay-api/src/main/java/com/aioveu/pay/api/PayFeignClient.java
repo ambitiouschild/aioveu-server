@@ -3,7 +3,7 @@ package com.aioveu.pay.api;
 import com.aioveu.common.result.Result;
 import com.aioveu.common.web.config.FeignDecoderConfig;
 import com.aioveu.pay.model.*;
-import com.aioveu.pay.model.aioveu01PayOrder.PayOrderForm;
+import com.aioveu.pay.model.aioveu01PayOrder.PayOrderCreateForm;
 import jakarta.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -54,16 +54,10 @@ public interface PayFeignClient {
 
 
     /*
-    * 新增支付订单
-    * */
-    @PostMapping("/api/v1/pay-order")
-    Result<Void> savePayOrder(@RequestBody @Valid PayOrderForm formData );
-
-    /*
      * 新增支付订单APP
      * */
     @PostMapping("/app-api/v1/pay-order")
-    String createPayOrder(@RequestBody @Valid PayOrderForm formData );
+    String createPayOrder(@RequestBody @Valid PayOrderCreateForm formData );
 
 
     /**

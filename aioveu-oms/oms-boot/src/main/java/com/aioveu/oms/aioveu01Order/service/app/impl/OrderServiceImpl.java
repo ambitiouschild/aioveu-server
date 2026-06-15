@@ -24,7 +24,7 @@ import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
 import com.aioveu.pay.api.PayFeignClient;
 import com.aioveu.pay.model.*;
-import com.aioveu.pay.model.aioveu01PayOrder.PayOrderForm;
+import com.aioveu.pay.model.aioveu01PayOrder.PayOrderCreateForm;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
 import com.alibaba.nacos.common.utils.StringUtils;
@@ -502,17 +502,15 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
             // ==================== 7. 调用支付服务（Feign）创建支付订单 ====================
             // 2. 调用支付微服务
-            PayOrderForm formData =  new PayOrderForm();
+            PayOrderCreateForm formData =  new PayOrderCreateForm();
             formData.setUserId(omsOrder.getMemberId());
             formData.setOrderNo(omsOrder.getOrderSn());
-            //OMS 在 PayOrderForm 中显式指定 bizType = ORDER
             formData.setBizType(PaymentBizTypeEnum.ORDER_PAY);
-            formData.setPaymentChannel(PaymentChannelEnum.WECHAT);
             formData.setPaymentMethod(omsOrder.getPaymentMethod());
             formData.setPaymentAmount(
                     BigDecimal.valueOf(omsOrder.getTotalAmount())
             );
-            formData.setPaymentStatus(PaymentStatusEnum.UNPAID);
+
             //订单服务里「只负责调用」（✅ 正确）
 
 
