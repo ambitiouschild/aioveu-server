@@ -8,7 +8,6 @@ import cn.hutool.json.JSONUtil;
 import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.common.enums.pay.PaymentMethodEnum;
-import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.common.security.util.SecurityUtils;
@@ -24,7 +23,7 @@ import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
 import com.aioveu.pay.api.PayFeignClient;
 import com.aioveu.pay.model.*;
-import com.aioveu.pay.model.aioveu01PayOrder.PayOrderCreateForm;
+import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderCreateForm;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
 import com.alibaba.nacos.common.utils.StringUtils;
@@ -1139,7 +1138,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
 
         //✅ 2查支付订单（✅ 必须补）
-        PayOrderVO payOrder = payFeignClient.getByOrderNo(orderSn);
+        com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO payOrder = payFeignClient.getByOrderNo(orderSn);
         Assert.notNull(payOrder, "支付订单不存在");
         log.info("查支付订单（✅ 必须补）,根据订单号查询支付订单PayOrder:{}",payOrder);
 

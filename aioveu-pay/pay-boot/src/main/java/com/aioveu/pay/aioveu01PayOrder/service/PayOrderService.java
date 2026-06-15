@@ -2,10 +2,9 @@ package com.aioveu.pay.aioveu01PayOrder.service;
 
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu01PayOrder.model.query.PayOrderQuery;
-import com.aioveu.pay.aioveu01PayOrder.model.vo.*;
 import com.aioveu.pay.aioveu01.model.vo.PaymentCallbackDTO;
-import com.aioveu.pay.aioveu01PayOrder.model.form.PayOrderForm;
-import com.aioveu.pay.model.aioveu01PayOrder.PayOrderCreateForm;
+import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderForm;
+import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderCreateForm;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -25,9 +24,9 @@ public interface PayOrderService extends IService<PayOrder> {
     /**
      *支付订单分页列表
      *
-     * @return {@link IPage<PayOrderVO>} 支付订单分页列表
+     * @return {@link IPage< com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO >} 支付订单分页列表
      */
-    IPage<PayOrderVO> getPayOrderPage(PayOrderQuery queryParams);
+    IPage<com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO> getPayOrderPage(PayOrderQuery queryParams);
 
     /**
      * 获取支付订单表单数据
@@ -141,7 +140,7 @@ public interface PayOrderService extends IService<PayOrder> {
     /**
      * 根据订单号查询支付订单
      */
-    PayOrderVO getByOrderNo(String orderNo);
+    com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO getByOrderNo(String orderNo);
 
 
     /**

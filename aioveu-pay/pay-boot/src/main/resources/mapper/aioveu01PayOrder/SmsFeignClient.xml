@@ -3,7 +3,7 @@
 <mapper namespace="com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper">
 
     <!-- 获取支付订单分页列表 -->
-    <select id="getPayOrderPage" resultType="com.aioveu.pay.aioveu01PayOrder.model.vo.PayOrderVO">
+    <select id="getPayOrderPage" resultType="com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO">
         SELECT
                 id,
                 payment_no,

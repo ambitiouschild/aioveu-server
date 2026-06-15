@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu01PayOrder.model.vo;
+package com.aioveu.pay.model.aioveu01PayOrder.vo;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -10,7 +10,7 @@ import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
-import java.time.LocalDateTime;
+
 import java.math.BigDecimal;
 /**
  * @ClassName: PayOrderVO
