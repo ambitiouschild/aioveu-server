@@ -23,6 +23,7 @@
            t1.order_sn,
            t1.total_amount,
            t1.payment_amount,
+           t1.payment_channel,
            t1.payment_method,
            t1.status,
            t1.total_amount,
