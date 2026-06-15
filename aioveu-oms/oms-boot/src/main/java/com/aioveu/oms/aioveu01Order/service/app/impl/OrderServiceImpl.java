@@ -505,6 +505,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             formData.setUserId(omsOrder.getMemberId());
             formData.setOrderNo(omsOrder.getOrderSn());
             formData.setBizType(PaymentBizTypeEnum.ORDER_PAY);
+            formData.setPaymentChannel(omsOrder.getPaymentChannel());
             formData.setPaymentMethod(omsOrder.getPaymentMethod());
             formData.setPaymentAmount(
                     BigDecimal.valueOf(omsOrder.getTotalAmount())
@@ -887,7 +888,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             LocalDateTime paymentTime= submitForm.getPaymentTime() != null ? submitForm.getPaymentTime() : LocalDateTime.now();
             log.info("【创建订单】13.支付时间: {}", paymentTime);
 
-            // 支付方式
+            // 支付渠道
             PaymentChannelEnum paymentChannel= submitForm.getPaymentChannel() != null ? submitForm.getPaymentChannel() : PaymentChannelEnum.WECHAT;
             log.info("【创建订单】14.支付渠道: {}", paymentChannel);
 
