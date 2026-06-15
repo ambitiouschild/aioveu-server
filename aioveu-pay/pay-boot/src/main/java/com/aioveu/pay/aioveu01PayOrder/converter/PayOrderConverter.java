@@ -39,7 +39,6 @@ public interface PayOrderConverter {
     @Mapping(target = "paymentNo", expression = "java(generateTradeNo())")
     @Mapping(target = "paymentStatus", constant = "0")
     @Mapping(target = "bizType", constant = "bizType") //必填
-    @Mapping(target = "paymentChannel", constant = "channel") //必填
     PayOrder toPayOrder(PaymentRequestDTO paymentRequestDTO);
 
     default String generateTradeNo() {

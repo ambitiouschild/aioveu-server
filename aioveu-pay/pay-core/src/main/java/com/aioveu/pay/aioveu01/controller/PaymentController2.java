@@ -23,7 +23,7 @@ public class PaymentController2 {
     private PaymentStrategyFactory strategyFactory;
 
     @PostMapping("/pay/{channel}")
-    public PaymentParamsVO pay(@PathVariable String channel,
+    public PaymentParamsVO pay(@PathVariable com.aioveu.common.enums.pay.PaymentChannelEnum channel,
                                @RequestBody PaymentRequestDTO request) {
         String paymentNo = generatePaymentNo();
 
@@ -32,14 +32,14 @@ public class PaymentController2 {
     }
 
     @GetMapping("/status/{channel}/{paymentNo}")
-    public PaymentStatusVO queryStatus(@PathVariable String channel,
+    public PaymentStatusVO queryStatus(@PathVariable com.aioveu.common.enums.pay.PaymentChannelEnum channel,
                                        @PathVariable String paymentNo) {
         PaymentStrategy strategy = strategyFactory.getStrategy(channel);
         return strategy.queryStatus(paymentNo);
     }
 
     @PostMapping("/refund/{channel}")
-    public RefundResultVO refund(@PathVariable String channel,
+    public RefundResultVO refund(@PathVariable com.aioveu.common.enums.pay.PaymentChannelEnum channel,
                                  @RequestBody RefundRequestDTO request) {
         String refundNo = generateRefundNo();
         PaymentStrategy strategy = strategyFactory.getStrategy(channel);

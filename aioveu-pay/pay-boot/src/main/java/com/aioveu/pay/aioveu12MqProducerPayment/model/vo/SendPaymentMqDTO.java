@@ -1,11 +1,10 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.model.vo;
 
 
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.pay.aioveu12MqProducerPayment.enums.PaymentMqBizType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -93,7 +92,7 @@ public class SendPaymentMqDTO {
     /**
      * 支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额
      */
-    private String channel;
+    private PaymentChannelEnum channel;
 
 
 }

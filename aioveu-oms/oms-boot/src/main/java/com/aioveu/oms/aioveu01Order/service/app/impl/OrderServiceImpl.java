@@ -500,7 +500,9 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             // ==================== 7. 调用支付服务（Feign）创建支付订单 ====================
             // 2. 调用支付微服务
             PayOrderForm formData =  new PayOrderForm();
+            formData.setUserId(omsOrder.getMemberId());
             formData.setOrderNo(omsOrder.getOrderSn());
+            formData.setPaymentChannel(omsOrder.getOrderSn());
             formData.setPaymentAmount(
                     BigDecimal.valueOf(omsOrder.getTotalAmount())
             );
@@ -899,7 +901,6 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             order.setSource(source);
             order.setStatus(status);
             order.setRemark(remark);
-            order.setMemberId(memberId);
             order.setMemberId(memberId);
             order.setCouponId(couponId);
             order.setCouponAmount(couponAmount);

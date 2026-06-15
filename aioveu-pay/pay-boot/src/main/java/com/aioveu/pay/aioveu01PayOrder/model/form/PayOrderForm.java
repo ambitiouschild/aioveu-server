@@ -2,6 +2,8 @@ package com.aioveu.pay.aioveu01PayOrder.model.form;
 
 import java.io.Serial;
 import java.io.Serializable;
+
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
@@ -61,7 +63,7 @@ public class PayOrderForm implements Serializable {
     @Schema(description = "支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额")
     @NotBlank(message = "支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额不能为空")
     @Size(max=20, message="支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额长度不能超过20个字符")
-    private String paymentChannel;
+    private PaymentChannelEnum paymentChannel;
 
     @Schema(description = "支付方式：APP-APP支付 H5-H5支付 JSAPI-小程序/公众号 NATIVE-扫码支付")
     @Size(max=20, message="支付方式：APP-APP支付 H5-H5支付 JSAPI-小程序/公众号 NATIVE-扫码支付长度不能超过20个字符")

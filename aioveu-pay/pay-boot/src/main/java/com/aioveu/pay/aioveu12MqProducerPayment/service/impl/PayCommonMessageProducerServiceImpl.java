@@ -7,6 +7,7 @@ import com.aioveu.common.rabbitmq.enums.SendStatus;
 import com.aioveu.common.rabbitmq.producer.monitor.ProducerMetricsCollector;
 import com.aioveu.common.rabbitmq.producer.monitor.ProducerMonitor;
 import com.aioveu.pay.aioveu01.enums.PaymentStatusEnum;
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu10MqSendRecord.mapper.MqSendRecordMapper;
@@ -121,9 +122,9 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
 
             // 渠道
             dto.setChannel(
-                    StringUtils.isNotBlank(payOrder.getPaymentChannel())
+                    payOrder.getPaymentChannel() != null
                             ? payOrder.getPaymentChannel()
-                            : "manual"
+                            : PaymentChannelEnum.ALIPAY
             );
 
             // 支付时间

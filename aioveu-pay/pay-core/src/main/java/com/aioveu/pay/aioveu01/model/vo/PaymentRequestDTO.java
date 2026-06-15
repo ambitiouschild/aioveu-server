@@ -57,7 +57,7 @@ public class PaymentRequestDTO implements Serializable {
     比喻：银行/支付机构，就像不同的银行*/
     @Schema(description = "支付渠道")
     @NotBlank(message = "支付渠道不能为空")
-    private String channel;
+    private com.aioveu.common.enums.pay.PaymentChannelEnum channel;
 
 /*    支付类型/方式 (Pay Type)
     定义：指具体的支付交互方式

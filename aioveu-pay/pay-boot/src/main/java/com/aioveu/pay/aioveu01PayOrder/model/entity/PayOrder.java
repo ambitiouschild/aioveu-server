@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu01PayOrder.model.entity;
 
-import com.aioveu.common.base.BaseEntity;
 import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.math.BigDecimal;  // 必须是java.math.BigDecimal
 import lombok.Getter;
@@ -55,7 +55,7 @@ public class PayOrder extends BaseEntityWithTenantId {
     /**
      * 支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额
      */
-    private String paymentChannel;
+    private PaymentChannelEnum paymentChannel;
     /**
      * 支付方式：APP-APP支付 H5-H5支付 JSAPI-小程序/公众号 NATIVE-扫码支付
      */

@@ -70,7 +70,7 @@ public class PaymentStrategyFactory {
     /**
      * 获取支付策略
      */
-    public PaymentStrategy getStrategy(String channel) {
+    public PaymentStrategy getStrategy(com.aioveu.common.enums.pay.PaymentChannelEnum channel) {
         PaymentStrategy strategy = strategyMap.get(channel);
         if (strategy == null) {
             throw new IllegalArgumentException("不支持的支付渠道: " + channel);
