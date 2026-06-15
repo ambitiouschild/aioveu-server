@@ -541,9 +541,9 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             clearCartItems(orderItems, submitForm.getMemberId());
 
             long duration = System.currentTimeMillis() - startTime;
-            log.info("【订单提交】成功，订单号: {}, 耗时: {}ms", orderSn, duration);
+            log.info("【订单提交】成功，后端返回的是 paymentNo，不是 orderSn,支付订单号paymentNo: {}, 耗时: {}ms", paymentNo, duration);
 
-            return orderSn;
+            return paymentNo;
 
         } catch (BusinessException e) {
 
