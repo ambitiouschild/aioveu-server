@@ -39,7 +39,6 @@ import com.aioveu.oms.aioveu01Order.constant.OrderConstants;
 import com.aioveu.oms.aioveu01Order.converter.OmsOrderConverter;
 import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.aioveu.common.enums.oms.OrderSourceEnum;
-import com.aioveu.common.enums.oms.PaymentMethodEnum;
 import com.aioveu.oms.aioveu01Order.mapper.OmsOrderMapper;
 import com.aioveu.oms.aioveu02OrderItem.model.vo.OrderItemDTO;
 import com.aioveu.oms.aioveu02OrderItem.model.entity.OmsOrderItem;

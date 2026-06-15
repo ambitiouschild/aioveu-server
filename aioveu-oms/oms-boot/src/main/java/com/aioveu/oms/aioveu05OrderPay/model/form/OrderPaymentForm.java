@@ -1,6 +1,5 @@
 package com.aioveu.oms.aioveu05OrderPay.model.form;
 
-import com.aioveu.common.enums.oms.PaymentMethodEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

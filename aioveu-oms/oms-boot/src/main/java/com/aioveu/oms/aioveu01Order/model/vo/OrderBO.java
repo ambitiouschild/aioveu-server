@@ -3,7 +3,6 @@ package com.aioveu.oms.aioveu01Order.model.vo;
 import com.aioveu.common.base.BaseEntity;
 import com.aioveu.common.enums.oms.OrderSourceEnum;
 import com.aioveu.common.enums.oms.OrderStatusEnum;
-import com.aioveu.common.enums.oms.PaymentMethodEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;

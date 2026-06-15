@@ -1,5 +1,6 @@
 package com.aioveu.common.enums.pay;
 
+import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.Getter;
 
 /**
@@ -27,11 +28,22 @@ public enum PaymentChannelEnum{
     }
 
     @Getter
-    private int code;
+    private int code;     // OMS 用
 
+    @EnumValue                      // 关键！
     @Getter
-    private String value;
+    private String value;    // PAY 用
 
     @Getter
     private String label;
+
+
+    public static PaymentChannelEnum fromCode(Integer code) {
+        for (PaymentChannelEnum e : values()) {
+            if (e.code == code) {
+                return e;
+            }
+        }
+        throw new IllegalArgumentException("不支持的支付渠道编码：" + code);
+    }
 }
