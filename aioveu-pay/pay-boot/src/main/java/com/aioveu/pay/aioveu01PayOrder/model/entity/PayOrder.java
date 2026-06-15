@@ -1,6 +1,7 @@
 package com.aioveu.pay.aioveu01PayOrder.model.entity;
 
 import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.math.BigDecimal;  // 必须是java.math.BigDecimal
@@ -39,7 +40,7 @@ public class PayOrder extends BaseEntityWithTenantId {
     /**
      * 业务类型：REFUND-退款 ORDER-订单 RECHARGE-充值
      */
-    private String bizType;
+    private PaymentBizTypeEnum bizType;
     /**
      * 用户ID
      */

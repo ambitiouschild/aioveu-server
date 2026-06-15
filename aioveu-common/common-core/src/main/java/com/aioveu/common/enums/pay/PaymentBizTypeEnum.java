@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.Getter;
 
 /**
- * @Description: TODO 消息发送状态枚举
+ * @Description: TODO 支付订单业务状态枚举
  * @Author: 雒世松
  * @Date: 2026/5/11 20:44
  * @param
@@ -12,18 +12,16 @@ import lombok.Getter;
  **/
 
 
-public enum PaymentChannelEnum {
+public enum PaymentBizTypeEnum {
 
-    ALIPAY(1, "ALIPAY", "支付宝"),
-    WECHAT(2, "WECHAT", "微信支付"),
-    UNIONPAY(3, "UNIONPAY", "银联"),
-    BALANCE(4, "BALANCE", "余额"),
-    MOCK(5, "MOCK", "模拟支付"),
-    UNKNOWN(6, "UNKNOWN", "未知");
+    ORDER_PAY(1, "ORDER_PAY", "订单支付"),
+    VIP_PAY(2, "VIP_PAY", "会员支付"),
+    REFUND(3, "REFUND", "退款"),
+    RECHARGE(4, "RECHARGE", "充值")
 
     ;
 
-    PaymentChannelEnum(int code, String value, String label) {
+    PaymentBizTypeEnum(int code, String value, String label) {
         this.code = code;
         this.value = value;
         this.label = label;
@@ -40,8 +38,8 @@ public enum PaymentChannelEnum {
     private String label;
 
 
-    public static PaymentChannelEnum fromCode(Integer code) {
-        for (PaymentChannelEnum e : values()) {
+    public static PaymentBizTypeEnum fromCode(Integer code) {
+        for (PaymentBizTypeEnum e : values()) {
             if (e.code == code) {
                 return e;
             }

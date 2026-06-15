@@ -12,7 +12,7 @@ import lombok.Getter;
  **/
 
 
-public enum OrderSourceEnum implements IEnum<Integer> {
+public enum OrderSourceEnum {
 
     WX(1, "WX"), // APP订单
     APP(2, "APP"),

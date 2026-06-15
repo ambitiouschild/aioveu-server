@@ -2,6 +2,7 @@ package com.aioveu.pay.aioveu01PayOrder.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
 import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
@@ -251,17 +252,17 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         }
 
         // 根据业务类型处理
-        String bizType = order.getBizType();
+        PaymentBizTypeEnum bizType = order.getBizType();
 //        String bizId = order.getBizId();
 
         switch (bizType) {
-            case "ORDER_PAY":  // 订单支付
+            case ORDER_PAY:  // 订单支付
 //                orderService.paySuccess(bizId, order);
                 break;
-            case "RECHARGE":   // 充值
+            case RECHARGE:   // 充值
 //                userBalanceService.recharge(bizId, order);
                 break;
-            case "VIP_PAY":    // VIP购买
+            case VIP_PAY:    // VIP购买
 //                vipService.activateVip(bizId, order);
                 break;
             default:

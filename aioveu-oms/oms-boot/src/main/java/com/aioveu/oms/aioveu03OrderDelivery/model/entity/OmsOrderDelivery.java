@@ -1,7 +1,7 @@
 package com.aioveu.oms.aioveu03OrderDelivery.model.entity;
 
 import com.aioveu.common.base.BaseEntityWithTenantId;
-import com.aioveu.common.enums.oms.DeliveryStatusEnum;
+import com.aioveu.common.enums.oms.OrderDeliveryStatusEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -82,7 +82,7 @@ public class OmsOrderDelivery extends BaseEntityWithTenantId {
 	/**
 	 * 物流状态【0->已同步微信（已上传发货信息）；1->未同步微信（可发货）】
 	 */
-	private DeliveryStatusEnum deliveryStatus;
+	private OrderDeliveryStatusEnum deliveryStatus;
 	/**
 	 * 发货时间
 	 */

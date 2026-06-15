@@ -16,7 +16,7 @@ import com.aioveu.oms.aioveu01Order.service.app.OrderService;
 import com.aioveu.oms.aioveu01Order.utils.OrderNoGenerator;
 import com.aioveu.oms.aioveu01Order.utils.WeChatApiClient;
 import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
-import com.aioveu.common.enums.oms.DeliveryStatusEnum;
+import com.aioveu.common.enums.oms.OrderDeliveryStatusEnum;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
 import com.aioveu.pay.api.PayFeignClient;
@@ -1914,7 +1914,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         }
 
         // 	 * 物流状态只回填物流字段 ======
-        if (delivery.getDeliveryStatus() == DeliveryStatusEnum.SYNCED) {
+        if (delivery.getDeliveryStatus() == OrderDeliveryStatusEnum.SYNCED) {
             log.warn("订单已同步微信，跳过。orderId={}", orderId);
             ObjectNode skipNode = weChatApiClient.createObjectNode();
             skipNode.put("code", "SKIPPED");
@@ -1926,7 +1926,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         delivery.setDeliveryCompany(dto.getLogisticsCompany());
         delivery.setDeliverySn(dto.getTrackingNo());
         delivery.setRemark(dto.getRemark());
-        delivery.setDeliveryStatus(DeliveryStatusEnum.SYNCED);        // 已同步
+        delivery.setDeliveryStatus(OrderDeliveryStatusEnum.SYNCED);        // 已同步
         delivery.setDeliveryTime(new Date()); // 发货时间
         omsOrderDeliveryService.updateById(delivery);
 
@@ -1958,7 +1958,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             throw new RuntimeException("物流信息不完整");
         }
 
-        if (delivery.getDeliveryStatus() == DeliveryStatusEnum.SYNCED) {
+        if (delivery.getDeliveryStatus() == OrderDeliveryStatusEnum.SYNCED) {
             log.info("微信发货已同步，跳过 orderSn={}", orderSn);
             return buildSkippedResult();
         }
@@ -2045,7 +2045,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         // ✅ 成功才标记
         if (result.has("errcode") && result.get("errcode").asInt() == 0) {
-            delivery.setDeliveryStatus(DeliveryStatusEnum.SYNCED);
+            delivery.setDeliveryStatus(OrderDeliveryStatusEnum.SYNCED);
             delivery.setDeliveryTime(new Date());
             omsOrderDeliveryService.updateById(delivery);
         }

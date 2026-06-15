@@ -1,7 +1,7 @@
 package com.aioveu.oms.aioveu12OrderExportTask.model.form;
 
 
-import com.aioveu.common.enums.oms.OrdeExportTaskStatusEnum;
+import com.aioveu.common.enums.oms.OrderExportTaskStatusEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -73,7 +73,7 @@ public class OmsOrderExportTaskForm implements Serializable {
 
     @Schema(description = "任务状态：PENDING/RUNNING/SUCCESS/FAILED")
     @Size(max=32, message="任务状态：PENDING/RUNNING/SUCCESS/FAILED长度不能超过32个字符")
-    private OrdeExportTaskStatusEnum status;
+    private OrderExportTaskStatusEnum status;
 
     @Schema(description = "导出文件地址")
     @Size(max=255, message="导出文件地址长度不能超过255个字符")

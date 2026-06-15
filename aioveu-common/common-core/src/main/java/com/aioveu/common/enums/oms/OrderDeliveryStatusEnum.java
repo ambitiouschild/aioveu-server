@@ -12,7 +12,7 @@ import lombok.Getter;
  **/
 
 
-public enum DeliveryStatusEnum implements IBaseEnum<Integer> {
+public enum OrderDeliveryStatusEnum {
 
 
     /**
@@ -32,7 +32,7 @@ public enum DeliveryStatusEnum implements IBaseEnum<Integer> {
      */
     UNKNOWN(3, "未知状态");
 
-    DeliveryStatusEnum(Integer value, String label) {
+    OrderDeliveryStatusEnum(Integer value, String label) {
         this.value = value;
         this.label = label;
     }

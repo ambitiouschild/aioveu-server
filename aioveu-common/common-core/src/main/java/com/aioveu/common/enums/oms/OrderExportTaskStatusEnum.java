@@ -13,7 +13,7 @@ import lombok.Getter;
  **/
 
 
-public enum OrdeExportTaskStatusEnum implements IBaseEnum<String>, IEnum<String> {
+public enum OrderExportTaskStatusEnum {
 
     PENDING("PENDING", "待执行"),
     RUNNING("RUNNING", "执行中"),
@@ -21,7 +21,7 @@ public enum OrdeExportTaskStatusEnum implements IBaseEnum<String>, IEnum<String>
     FAILED("FAILED", "失败"),
     ;
 
-    OrdeExportTaskStatusEnum(String value, String label) {
+    OrderExportTaskStatusEnum(String value, String label) {
         this.value = value;
         this.label = label;
     }

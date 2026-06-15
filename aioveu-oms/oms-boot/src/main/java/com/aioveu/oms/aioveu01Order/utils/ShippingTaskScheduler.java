@@ -6,7 +6,7 @@ import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.aioveu.oms.aioveu01Order.mapper.OmsOrderMapper;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
-import com.aioveu.common.enums.oms.DeliveryStatusEnum;
+import com.aioveu.common.enums.oms.OrderDeliveryStatusEnum;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -77,7 +77,7 @@ public class ShippingTaskScheduler {
                 }
 
                 // ✅ 已发货直接跳过（幂等）
-                if (delivery.getDeliveryStatus() == DeliveryStatusEnum.SYNCED) {
+                if (delivery.getDeliveryStatus() == OrderDeliveryStatusEnum.SYNCED) {
                     log.info("⏭ 已上传微信，跳过 orderSn={}", orderSn);
                     continue;
                 }
@@ -93,7 +93,7 @@ public class ShippingTaskScheduler {
                     omsorderMapper.updateById(order);
 
                     // ✅ 标记发货已同步
-                    delivery.setDeliveryStatus(DeliveryStatusEnum.SYNCED);
+                    delivery.setDeliveryStatus(OrderDeliveryStatusEnum.SYNCED);
                     delivery.setDeliveryTime(new Date());
                     omsOrderDeliveryService.updateById(delivery);
 

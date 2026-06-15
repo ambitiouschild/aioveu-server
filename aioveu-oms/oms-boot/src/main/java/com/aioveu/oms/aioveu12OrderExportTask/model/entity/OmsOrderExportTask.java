@@ -2,7 +2,7 @@ package com.aioveu.oms.aioveu12OrderExportTask.model.entity;
 
 
 import com.aioveu.common.base.BaseEntityWithTenantId;
-import com.aioveu.common.enums.oms.OrdeExportTaskStatusEnum;
+import com.aioveu.common.enums.oms.OrderExportTaskStatusEnum;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;
@@ -63,7 +63,7 @@ public class OmsOrderExportTask extends BaseEntityWithTenantId {
     /**
      * 任务状态：PENDING/RUNNING/SUCCESS/FAILED
      */
-    private OrdeExportTaskStatusEnum status;
+    private OrderExportTaskStatusEnum status;
     /**
      * 导出文件地址
      */

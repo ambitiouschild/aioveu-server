@@ -63,7 +63,7 @@ public class PayOrderForm implements Serializable {
     private Integer paymentStatus;
 
     @Schema(description = "支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额")
-    @NotBlank(message = "支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额不能为空")
+    @NotNull(message = "支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额不能为空")
     @Size(max=20, message="支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额长度不能超过20个字符")
     private PaymentChannelEnum paymentChannel;
 

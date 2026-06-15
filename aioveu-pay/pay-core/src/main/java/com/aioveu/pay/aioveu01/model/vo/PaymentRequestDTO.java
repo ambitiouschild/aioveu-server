@@ -1,5 +1,6 @@
 package com.aioveu.pay.aioveu01.model.vo;
 
+import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -35,8 +36,8 @@ public class PaymentRequestDTO implements Serializable {
     /**
      * 业务类型：REFUND-退款 ORDER-订单 RECHARGE-充值
      */
-    @NotBlank(message = "业务类型不能为空")
-    private String bizType;
+    @NotNull(message = "业务类型不能为空")
+    private PaymentBizTypeEnum bizType;
 
     @NotNull(message = "用户ID不能为空")
     private Long userId;

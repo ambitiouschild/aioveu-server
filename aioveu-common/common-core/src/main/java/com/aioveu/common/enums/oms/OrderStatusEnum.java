@@ -11,7 +11,7 @@ import lombok.Getter;
  * @return:
  **/
 
-public enum OrderStatusEnum implements IEnum<Integer> {
+public enum OrderStatusEnum {
 
     /**
      * 待付款

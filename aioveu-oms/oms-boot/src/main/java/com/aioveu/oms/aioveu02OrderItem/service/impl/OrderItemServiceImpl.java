@@ -3,7 +3,6 @@ package com.aioveu.oms.aioveu02OrderItem.service.impl;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.enums.oms.OrderStatusEnum;
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.oms.aioveu01Order.mapper.OmsOrderMapper;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
@@ -11,7 +10,7 @@ import com.aioveu.oms.aioveu02OrderItem.model.form.OmsOrderItemForm;
 import com.aioveu.oms.aioveu02OrderItem.model.query.OmsOrderItemQuery;
 import com.aioveu.oms.aioveu02OrderItem.model.vo.OmsOrderDetailVO;
 import com.aioveu.oms.aioveu02OrderItem.model.vo.OmsOrderItemVO;
-import com.aioveu.common.enums.oms.DeliveryStatusEnum;
+import com.aioveu.common.enums.oms.OrderDeliveryStatusEnum;
 import com.aioveu.oms.aioveu03OrderDelivery.mapper.OmsOrderDeliveryMapper;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.alibaba.nacos.client.naming.utils.CollectionUtils;
@@ -349,7 +348,7 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
         }
     }
 
-    private String getDeliveryStatusText(DeliveryStatusEnum status) {
+    private String getDeliveryStatusText(OrderDeliveryStatusEnum status) {
         switch (status) {
             case SYNCED: return "已同步微信（已上传发货信息）";
             case PENDING: return "未同步微信（可发货）";

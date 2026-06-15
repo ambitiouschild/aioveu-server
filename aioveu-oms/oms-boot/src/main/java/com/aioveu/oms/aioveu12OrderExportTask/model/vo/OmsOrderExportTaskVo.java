@@ -1,7 +1,7 @@
 package com.aioveu.oms.aioveu12OrderExportTask.model.vo;
 
 
-import com.aioveu.common.enums.oms.OrdeExportTaskStatusEnum;
+import com.aioveu.common.enums.oms.OrderExportTaskStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
@@ -47,7 +47,7 @@ public class OmsOrderExportTaskVo implements Serializable {
     @Schema(description = "导出数据总量")
     private Integer totalCount;
     @Schema(description = "任务状态：PENDING/RUNNING/SUCCESS/FAILED")
-    private OrdeExportTaskStatusEnum status;
+    private OrderExportTaskStatusEnum status;
     @Schema(description = "导出文件地址")
     private String fileUrl;
     @Schema(description = "失败原因")
