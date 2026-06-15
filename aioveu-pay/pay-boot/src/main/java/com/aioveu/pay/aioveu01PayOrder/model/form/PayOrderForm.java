@@ -34,7 +34,8 @@ public class PayOrderForm implements Serializable {
     private Long id;
 
     @Schema(description = "支付单号，唯一，格式：PAYyyyyMMddHHmmss+6位随机")
-    @NotBlank(message = "支付单号，唯一，格式：PAYyyyyMMddHHmmss+6位随机不能为空")
+//    @NotBlank(message = "支付单号，唯一，格式：PAYyyyyMMddHHmmss+6位随机不能为空")
+    //paymentNo只在 Pay 内部生成
     @Size(max=32, message="支付单号，唯一，格式：PAYyyyyMMddHHmmss+6位随机长度不能超过32个字符")
     private String paymentNo;
 
