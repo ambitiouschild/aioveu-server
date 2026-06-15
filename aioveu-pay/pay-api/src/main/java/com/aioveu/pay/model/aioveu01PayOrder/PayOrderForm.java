@@ -38,7 +38,7 @@ public class PayOrderForm implements Serializable {
     private Long id;
 
     @Schema(description = "支付单号，唯一，格式：PAYyyyyMMddHHmmss+6位随机")
-    @NotBlank(message = "支付单号，唯一，格式：PAYyyyyMMddHHmmss+6位随机不能为空")
+//    @NotBlank(message = "支付单号，唯一，格式：PAYyyyyMMddHHmmss+6位随机不能为空")
     @Size(max=32, message="支付单号，唯一，格式：PAYyyyyMMddHHmmss+6位随机长度不能超过32个字符")
     private String paymentNo;
 
@@ -49,7 +49,6 @@ public class PayOrderForm implements Serializable {
 
     @Schema(description = "业务类型：REFUND-退款 ORDER-订单 RECHARGE-充值")
     @NotNull(message = "业务类型：REFUND-退款 ORDER_PAY-订单 RECHARGE-充值不能为空")
-    @Size(max=20, message="业务类型：REFUND-退款 ORDER-订单 RECHARGE-充值长度不能超过20个字符")
     private PaymentBizTypeEnum bizType;
 
     @Schema(description = "用户ID")
@@ -66,11 +65,10 @@ public class PayOrderForm implements Serializable {
 
     @Schema(description = "支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额")
     @NotNull(message = "支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额不能为空")
-    @Size(max=20, message="支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额长度不能超过20个字符")
     private PaymentChannelEnum paymentChannel;
 
     @Schema(description = "支付方式：APP-APP支付 H5-H5支付 JSAPI-小程序/公众号 NATIVE-扫码支付")
-    @Size(max=20, message="支付方式：APP-APP支付 H5-H5支付 JSAPI-小程序/公众号 NATIVE-扫码支付长度不能超过20个字符")
+    @NotNull(message = "支付方式不能为空")
     private PaymentMethodEnum paymentMethod;
 
     @Schema(description = "支付时间")

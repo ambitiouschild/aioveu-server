@@ -1,6 +1,7 @@
 package com.aioveu.common.rabbitmq.producer.model.payment;
 
 
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,7 +41,7 @@ public class PaymentSuccessMessage implements Serializable {
     private String orderNo;
     private String transactionId;
     private BigDecimal amount;
-    private com.aioveu.common.enums.pay.PaymentChannelEnum channel;  // wechat/alipay
+    private PaymentChannelEnum channel;  // wechat/alipay
 
     // 业务信息
     private Long tenantId;
