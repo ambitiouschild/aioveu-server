@@ -2,6 +2,7 @@ package com.aioveu.common.rabbitmq.producer.model.payment;
 
 
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import lombok.Builder;
 import lombok.Data;
 
@@ -66,7 +67,7 @@ public class PaymentFailedMessage implements Serializable {
     /**
      * 支付状态（PAY_FAILED / CLOSED）
      */
-    private Integer paymentStatus;
+    private PaymentStatusEnum paymentStatus;
 
     /**
      * 错误码（微信 / 支付宝）

@@ -3,13 +3,13 @@ package com.aioveu.pay.aioveu01PayOrder.service.impl;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu01PayOrder.model.query.PayOrderQuery;
 import com.aioveu.pay.aioveu01PayOrder.model.vo.PayOrderVO;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
-import com.aioveu.pay.aioveu01.enums.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01.model.vo.PaymentCallbackDTO;
 import com.aioveu.pay.aioveu01PayOrder.utils.PayOrderNoGenerator;
 import com.aioveu.pay.aioveu01.enums.PaymentCallbackStatusEnum;
@@ -212,13 +212,13 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         PaymentCallbackStatusEnum status = callback.getStatus();
         // 设置状态
         if (status == PaymentCallbackStatusEnum.SUCCESS) {
-            order.setPaymentStatus(PaymentStatusEnum.SUCCESS.getValue());
+            order.setPaymentStatus(PaymentStatusEnum.PAID);
             order.setPaymentTime(callback.getPaidTime());
             order.setThirdPaymentNo(callback.getThirdTransactionId());
             order.setErrorCode(null);
             order.setErrorMessage(null);
         } else {
-            order.setPaymentStatus(PaymentStatusEnum.FAILED.getValue());
+            order.setPaymentStatus(PaymentStatusEnum.FAILED);
             order.setErrorCode(callback.getErrorCode());
             order.setErrorMessage(callback.getErrorMessage());
         }
@@ -247,7 +247,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
     @Override
     public void handleBusinessLogic(PayOrder order, PaymentCallbackDTO callback) {
 
-        if (!PaymentStatusEnum.SUCCESS.getValue().equals(order.getPaymentStatus())) {
+        if (!PaymentStatusEnum.PAID.equals(order.getPaymentStatus())) {
             return;  // 只有支付成功才处理业务
         }
 
@@ -327,7 +327,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
 
         try {
             // 1. 更新订单状态
-            int newStatus = success ? PaymentStatusEnum.SUCCESS.getValue() : PaymentStatusEnum.FAILED.getValue();
+            PaymentStatusEnum newStatus = success ? PaymentStatusEnum.PAID : PaymentStatusEnum.FAILED;
             payOrder.setPaymentStatus(newStatus);
 
             // 2. 更新支付完成时间

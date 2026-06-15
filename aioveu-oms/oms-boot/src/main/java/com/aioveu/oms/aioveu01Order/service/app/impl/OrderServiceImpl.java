@@ -7,6 +7,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.common.enums.pay.PaymentMethodEnum;
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.common.security.util.SecurityUtils;
@@ -508,6 +509,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             formData.setPaymentAmount(
                     BigDecimal.valueOf(omsOrder.getTotalAmount())
             );
+            formData.setPaymentStatus(PaymentStatusEnum.UNPAID);
             //订单服务里「只负责调用」（✅ 正确）
 
 

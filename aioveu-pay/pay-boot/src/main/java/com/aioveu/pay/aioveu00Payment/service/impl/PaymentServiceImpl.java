@@ -1,5 +1,6 @@
 package com.aioveu.pay.aioveu00Payment.service.impl;
 
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.Result;
 import com.aioveu.common.result.ResultCode;
@@ -16,7 +17,6 @@ import com.aioveu.pay.aioveu08PayAccount.service.PayAccountService;
 import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategy;
 import com.aioveu.pay.aioveu01.PaymentStrategy.impl.PaymentStrategyFactory;
 //import com.aioveu.pay.aioveuModule.channelRouter.ChannelRouter;
-import com.aioveu.pay.aioveu01.enums.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01.model.vo.*;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
@@ -135,7 +135,7 @@ public class PaymentServiceImpl implements PaymentService {
         OmsOrder order = orderFeignClient.getOrderDetailByOrderNo(orderNo);
         if (order == null) {
             paymentStatusVO.setErrorMessage("订单不存在");
-            paymentStatusVO.setPaymentStatus(-1); // 特殊状态：订单不存在
+            paymentStatusVO.setPaymentStatus(PaymentStatusEnum.UNKNOWN); // 特殊状态：订单不存在
             log.info("【前端调用：查询支付状态】订单不存在");
             return paymentStatusVO;
         }

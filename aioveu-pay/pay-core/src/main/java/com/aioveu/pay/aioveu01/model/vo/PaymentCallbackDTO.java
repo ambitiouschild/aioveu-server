@@ -1,7 +1,6 @@
 package com.aioveu.pay.aioveu01.model.vo;
 
 import com.aioveu.pay.aioveu01.enums.PaymentCallbackStatusEnum;
-import com.aioveu.pay.aioveu01.enums.PaymentStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;

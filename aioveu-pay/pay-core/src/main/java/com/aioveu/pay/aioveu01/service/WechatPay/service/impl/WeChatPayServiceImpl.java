@@ -1,12 +1,11 @@
 package com.aioveu.pay.aioveu01.service.WechatPay.service.impl;
 
 import cn.hutool.core.date.DateUtil;
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01.model.vo.*;
 import com.aioveu.pay.aioveu01.service.WechatPay.config.WeChatPayConfig;
-import com.aioveu.pay.aioveu01.service.WechatPay.config.WeChatPayConfigFromSQL;
 import com.aioveu.pay.aioveu01.service.WechatPay.requestFactory.WeChatPayRequestFactory;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
-import com.aioveu.pay.aioveu01.enums.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01.enums.RefundStatusEnum;
 import com.aioveu.pay.aioveu01.service.WechatPay.utils.weChatPay.aioveuWeChatPayGeneratePayParamsUtil;
 
@@ -582,21 +581,21 @@ public class WeChatPayServiceImpl implements WeChatPayService {
     /**
      * 转换微信支付状态
      */
-    private Integer convertWechatStatus(String wechatStatus) {
+    private PaymentStatusEnum convertWechatStatus(String wechatStatus) {
         switch (wechatStatus) {
             case "SUCCESS":
-                return PaymentStatusEnum.SUCCESS.getValue();
+                return PaymentStatusEnum.PAID;
             case "REFUND":
-                return PaymentStatusEnum.REFUNDED.getValue();
+                return PaymentStatusEnum.REFUNDED;
             case "NOTPAY":
             case "USERPAYING":
-                return PaymentStatusEnum.PENDING.getValue();
+                return PaymentStatusEnum.PAYING;
             case "CLOSED":
-                return PaymentStatusEnum.CLOSED.getValue();
+                return PaymentStatusEnum.CLOSED;
             case "REVOKED":
             case "PAYERROR":
             default:
-                return PaymentStatusEnum.FAILED.getValue();
+                return PaymentStatusEnum.FAILED;
         }
     }
 

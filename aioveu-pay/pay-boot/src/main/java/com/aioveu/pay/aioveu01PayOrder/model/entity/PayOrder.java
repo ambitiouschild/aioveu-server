@@ -3,6 +3,7 @@ package com.aioveu.pay.aioveu01PayOrder.model.entity;
 import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.math.BigDecimal;  // 必须是java.math.BigDecimal
 import lombok.Getter;
@@ -52,7 +53,7 @@ public class PayOrder extends BaseEntityWithTenantId {
     /**
      * 支付状态：0-待支付 1-支付中 2-支付成功 3-支付失败 4-已关闭 5-已退款   支付状态永远用枚举，不用布尔值
      */
-    private Integer paymentStatus;
+    private PaymentStatusEnum paymentStatus;
     /**
      * 支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额
      */

@@ -1,5 +1,6 @@
 package com.aioveu.oms.aioveu05OrderPay.model.form;
 
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -53,7 +54,7 @@ public class OmsOrderPayForm  implements Serializable {
     private Integer payType;
 
     @Schema(description = "支付状态")
-    private Integer payStatus;
+    private PaymentStatusEnum payStatus;
 
     @Schema(description = "确认时间")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")

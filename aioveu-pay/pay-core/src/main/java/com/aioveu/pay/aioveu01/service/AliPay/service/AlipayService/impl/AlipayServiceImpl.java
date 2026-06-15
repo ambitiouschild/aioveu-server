@@ -1,11 +1,11 @@
 package com.aioveu.pay.aioveu01.service.AliPay.service.AlipayService.impl;
 
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01.service.WechatPay.utils.aliPay.aioveuAlipayGeneratePayParamsUtil;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.request.*;
 import com.alipay.api.response.*;
-import com.aioveu.pay.aioveu01.enums.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01.enums.RefundStatusEnum;
 import com.aioveu.pay.aioveu01.model.vo.*;
 import com.aioveu.pay.aioveu01.service.AliPay.AlipayRequestFactory.AlipayRequestFactory;
@@ -393,21 +393,21 @@ public class AlipayServiceImpl implements AlipayService {
     /**
      * 转换支付宝状态
      */
-    private Integer convertAlipayStatus(String tradeStatus) {
+    private PaymentStatusEnum convertAlipayStatus(String tradeStatus) {
         if (tradeStatus == null) {
-            return PaymentStatusEnum.FAILED.getValue();
+            return PaymentStatusEnum.FAILED;
         }
 
         switch (tradeStatus) {
             case "TRADE_SUCCESS":
             case "TRADE_FINISHED":
-                return PaymentStatusEnum.SUCCESS.getValue();
+                return PaymentStatusEnum.PAID;
             case "WAIT_BUYER_PAY":
-                return PaymentStatusEnum.PENDING.getValue();
+                return PaymentStatusEnum.PAYING;
             case "TRADE_CLOSED":
-                return PaymentStatusEnum.CLOSED.getValue();
+                return PaymentStatusEnum.CLOSED;
             default:
-                return PaymentStatusEnum.FAILED.getValue();
+                return PaymentStatusEnum.FAILED;
         }
     }
 

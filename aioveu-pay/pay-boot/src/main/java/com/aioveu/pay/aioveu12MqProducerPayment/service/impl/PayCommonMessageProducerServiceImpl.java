@@ -1,12 +1,12 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.service.impl;
 
 
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.rabbitmq.constant.PayCommonMqConstantWithBizName;
 import com.aioveu.common.rabbitmq.enums.SendStatus;
 import com.aioveu.common.rabbitmq.producer.monitor.ProducerMetricsCollector;
 import com.aioveu.common.rabbitmq.producer.monitor.ProducerMonitor;
-import com.aioveu.pay.aioveu01.enums.PaymentStatusEnum;
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
@@ -519,7 +519,7 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
                 .amount(payOrder.getPaymentAmount())
                 .channel(payOrder.getPaymentChannel())
                 .bizType("PAY")
-                .paymentStatus(PaymentStatusEnum.FAILED.getValue())
+                .paymentStatus(PaymentStatusEnum.FAILED)
 //                .errorCode(params.get("err_code"))
 //                .errorMsg(params.get("err_code_des"))
                 .retryable(true)

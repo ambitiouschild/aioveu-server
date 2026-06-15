@@ -3,6 +3,7 @@ package com.aioveu.pay.model.aioveu01PayOrder;
 import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.common.enums.pay.PaymentMethodEnum;
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -61,7 +62,7 @@ public class PayOrderForm implements Serializable {
 
     @Schema(description = "支付状态：0-待支付 1-支付中 2-支付成功 3-支付失败 4-已关闭 5-已退款")
     @NotNull(message = "支付状态：0-待支付 1-支付中 2-支付成功 3-支付失败 4-已关闭 5-已退款不能为空")
-    private Integer paymentStatus;
+    private PaymentStatusEnum paymentStatus;
 
     @Schema(description = "支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额")
     @NotNull(message = "支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额不能为空")

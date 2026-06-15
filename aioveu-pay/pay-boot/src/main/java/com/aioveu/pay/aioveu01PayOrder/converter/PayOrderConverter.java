@@ -37,7 +37,6 @@ public interface PayOrderConverter {
     //是的，MapStruct 只会映射你显式指定的字段。如果没有添加 @Mapping注解，它只会自动映射同名同类型的字段。
     // 没有 @Mapping 注解时，只映射同名同类型字段
     @Mapping(target = "paymentNo", expression = "java(generateTradeNo())")
-    @Mapping(target = "paymentStatus", constant = "0")
     PayOrder toPayOrder(PaymentRequestDTO paymentRequestDTO);
 
     default String generateTradeNo() {

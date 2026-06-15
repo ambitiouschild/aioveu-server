@@ -1,6 +1,7 @@
 package com.aioveu.oms.aioveu05OrderPay.model.entity;
 
 import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.aioveu.common.base.BaseEntity;
@@ -65,7 +66,7 @@ public class OmsOrderPay extends BaseEntityWithTenantId {
 	/**
 	 * 支付状态
 	 */
-	private Integer payStatus;
+	private PaymentStatusEnum payStatus;
 	/**
 	 * 确认时间
 	 */

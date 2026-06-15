@@ -1,12 +1,15 @@
 package com.aioveu.oms.aioveu11MqConsumer.service.impl;
 
 
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.rabbitmq.constant.PayCommonMqConstantWithBizName;
 import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
 import com.aioveu.oms.aioveu04OrderLog.service.OmsOrderLogService;
+import com.aioveu.oms.aioveu05OrderPay.mapper.OmsOrderPayMapper;
+import com.aioveu.oms.aioveu05OrderPay.model.entity.OmsOrderPay;
 import com.aioveu.oms.aioveu08MqConsumeRecord.enums.ConsumeStatusEnum;
 import com.aioveu.oms.aioveu08MqConsumeRecord.service.MqConsumeRecordService;
 import com.aioveu.oms.aioveu11MqConsumer.model.vo.OrderPaySuccessDTO;
@@ -42,6 +45,8 @@ public class MqConsumerServiceImpl implements MqConsumerService {
     private final OrderService orderService;
     private final OmsOrderLogService omsOrderLogService;
     private final ObjectMapper objectMapper;
+
+    private final OmsOrderPayMapper omsOrderPayMapper;
 
     @Value("${spring.application.name}")
     private String applicationName;
@@ -280,6 +285,19 @@ public class MqConsumerServiceImpl implements MqConsumerService {
 
             // 5. 使用优惠券
             // couponService.useCoupon(order.getCouponId());
+
+            // Pay 回调 → OMS
+//            OmsOrderPay pay = OmsOrderPay.builder()
+//                    .orderId(order.getId())
+//                    .paySn(payOrder.getPaymentNo())
+//                    .payAmount(payOrder.getAmount())
+//                    .payType(payOrder.getPaymentChannel().getCode())
+//                    .payStatus(PaymentStatusEnum.PAID)
+//                    .payTime(now)
+//                    .build();
+//
+//            omsOrderPayMapper.insert(pay);
+
 
             log.info("支付后业务逻辑处理完成: orderNo={}", order.getOrderSn());
 

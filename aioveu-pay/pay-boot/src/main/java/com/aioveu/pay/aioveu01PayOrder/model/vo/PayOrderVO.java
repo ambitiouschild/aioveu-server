@@ -2,6 +2,11 @@ package com.aioveu.pay.aioveu01PayOrder.model.vo;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+
+import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.enums.pay.PaymentMethodEnum;
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,17 +35,17 @@ public class PayOrderVO implements Serializable{
     @Schema(description = "业务订单号（如退款单号、订单号）")
     private String orderNo;
     @Schema(description = "业务类型：REFUND-退款 ORDER-订单 RECHARGE-充值")
-    private String bizType;
+    private PaymentBizTypeEnum bizType;
     @Schema(description = "用户ID")
     private Long userId;
     @Schema(description = "支付/退款金额")
     private BigDecimal paymentAmount;
     @Schema(description = "支付状态：0-待支付 1-支付中 2-支付成功 3-支付失败 4-已关闭 5-已退款")
-    private Integer paymentStatus;
+    private PaymentStatusEnum paymentStatus;
     @Schema(description = "支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额")
-    private String paymentChannel;
+    private PaymentChannelEnum paymentChannel;
     @Schema(description = "支付方式：APP-APP支付 H5-H5支付 JSAPI-小程序/公众号 NATIVE-扫码支付")
-    private String paymentMethod;
+    private PaymentMethodEnum paymentMethod;
     @Schema(description = "支付时间")
     private LocalDateTime paymentTime;
     @Schema(description = "支付过期时间")

@@ -28,10 +28,11 @@ public enum PaymentMethodEnum {
         this.label = label;
     }
 
+    @EnumValue                      // 关键！
     @Getter
     private int code;     // OMS 用
 
-    @EnumValue                      // 关键！
+
     @Getter
     private String value;    // PAY 用
 
