@@ -159,12 +159,17 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         entity.setPaymentMethod(formData.getPaymentMethod());
 
         //Pay 在 PayOrderForm 中显式指定 bizType = ORDER
-        // 4️⃣ Pay 自己控制的字段
+        // 4️ Pay 自己控制的字段
+
         entity.setPaymentStatus(PaymentStatusEnum.UNPAID);
         entity.setIsDeleted(0);
         entity.setNotifyStatus(0);
         entity.setNotifyCount(0);
         entity.setVersion(0);
+
+
+        entity.setSubject("商品购买");
+        entity.setBody("订单号：" + formData.getOrderNo());
 
         // 5️落库
         this.baseMapper.insert(entity);
