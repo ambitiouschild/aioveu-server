@@ -3,7 +3,9 @@ package com.aioveu.oms.aioveu01Order.model.entity;
 import com.aioveu.common.base.BaseEntityWithTenantId;
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.common.enums.oms.OrderStatusEnum;
+import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import com.aioveu.oms.aioveu01Order.utils.PaymentChannelEnumCodeTypeHandler;
+import com.aioveu.oms.aioveu01Order.utils.PaymentMethodEnumCodeTypeHandler;
 import com.aioveu.oms.aioveu02OrderItem.model.entity.OmsOrderItem;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
@@ -104,11 +106,23 @@ public class OmsOrder extends BaseEntityWithTenantId {
 	 * 使用 code（1/2/3）
 	 */
 	/**
+	 * 支付渠道【1->支付宝；2->微信支付；3->银联；4->余额；】
+	 */
+	@TableField(value = "payment_channel",
+			typeHandler = PaymentChannelEnumCodeTypeHandler.class)
+	private PaymentChannelEnum paymentChannel;
+
+	/**
+	 * 数据库：INT
+	 * 使用 code（1/2/3）
+	 */
+	/**
 	 * 支付方式【1->支付宝；2->微信支付；3->银联；4->余额；】
 	 */
 	@TableField(value = "payment_method",
-			typeHandler = PaymentChannelEnumCodeTypeHandler.class)
-	private PaymentChannelEnum paymentMethod;
+			typeHandler = PaymentMethodEnumCodeTypeHandler.class)
+	private PaymentMethodEnum paymentMethod;
+
 	/**
 	 * 商户订单号
 	 */

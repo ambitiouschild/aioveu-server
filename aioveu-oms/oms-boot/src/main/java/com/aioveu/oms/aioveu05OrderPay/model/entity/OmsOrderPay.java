@@ -18,6 +18,17 @@ import java.util.Date;
  * @return:
  **/
 
+
+/*
+* ✅ oms_order_pay不是多余
+✅ 它是「订单维度的支付记录表」
+❌ 它不是支付系统的主表
+❌ 它不应该承担“支付中台”的职责
+* 从字段设计一眼就能看出来，这是“电商订单系统里的支付快照表”
+* 定位：
+OMS 内部“支付结果缓存表”
+*
+* */
 @Data
 @Builder
 @TableName("oms_order_pay")

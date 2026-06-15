@@ -6,6 +6,7 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.common.security.util.SecurityUtils;
@@ -502,7 +503,8 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             PayOrderForm formData =  new PayOrderForm();
             formData.setUserId(omsOrder.getMemberId());
             formData.setOrderNo(omsOrder.getOrderSn());
-            formData.setPaymentChannel(omsOrder.getPaymentMethod());
+            formData.setPaymentChannel(PaymentChannelEnum.WECHAT);
+            formData.setPaymentMethod(omsOrder.getPaymentMethod());
             formData.setPaymentAmount(
                     BigDecimal.valueOf(omsOrder.getTotalAmount())
             );
@@ -884,7 +886,11 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             log.info("【创建订单】13.支付时间: {}", paymentTime);
 
             // 支付方式
-            PaymentChannelEnum paymentMethod= submitForm.getPaymentMethod() != null ? submitForm.getPaymentMethod() : PaymentChannelEnum.WECHAT;
+            PaymentChannelEnum paymentChannel= submitForm.getPaymentChannel() != null ? submitForm.getPaymentChannel() : PaymentChannelEnum.WECHAT;
+            log.info("【创建订单】14.支付渠道: {}", paymentChannel);
+
+            // 支付方式
+            PaymentMethodEnum paymentMethod= submitForm.getPaymentMethod() != null ? submitForm.getPaymentMethod() : PaymentMethodEnum.JSAPI;
             log.info("【创建订单】14.支付方式: {}", paymentMethod);
 
             // 前端指定 clientId
@@ -1108,11 +1114,11 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     public Object payOrder(OrderPaymentForm paymentForm) {
 
         String orderSn = paymentForm.getOrderSn();
-        PaymentChannelEnum paymentMethod  = paymentForm.getPaymentMethod();
+        PaymentChannelEnum paymentChannel  = paymentForm.getPaymentChannel();
         Long paymentAmount = paymentForm.getPaymentAmount();
 
-        log.info("【支付】开始处理，订单号: {}, 支付方式: {}, 支付金额: {},模拟模式: {}",
-                orderSn, paymentMethod, paymentAmount, mockPayEnabled);
+        log.info("【支付】开始处理，订单号: {}, 支付渠道: {}, 支付金额: {},模拟模式: {}",
+                orderSn, paymentChannel, paymentAmount, mockPayEnabled);
 
         // 1. 验证支付金额
         if (paymentAmount == null || paymentAmount <= 0) {
@@ -1173,9 +1179,9 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         log.info("校验订单状态是否可支付");
         Assert.isTrue(OrderStatusEnum.UNPAID.getValue().equals(order.getStatus()), "订单不可支付，请检查订单状态");
 
-        // 2. 检查支付方式
-        if (!isValidPaymentMethod(paymentMethod)) {
-            throw new BizException("不支持的支付方式: " + paymentMethod);
+        // 2. 检查支付渠道
+        if (!isValidPaymentChannel(paymentChannel)) {
+            throw new BizException("不支持的支付渠道: " + paymentChannel);
         }
 
 
@@ -1187,7 +1193,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         // 继续支付流程...
 
-        return processRealPayment(paymentForm, paymentMethod, order, lock);
+        return processRealPayment(paymentForm, paymentChannel, order, lock);
 
 
         // 3. 判断使用模拟支付还是真实支付
@@ -1207,7 +1213,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
      * 处理真实支付
      */
     private Result<PaymentParamsVO> processRealPayment(OrderPaymentForm paymentForm,
-                                      PaymentChannelEnum paymentMethod,
+                                      PaymentChannelEnum paymentChannel,
                                       OmsOrder order,
                                       RLock lock) {
         // 原有的真实支付逻辑
@@ -1231,7 +1237,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
 
             // 1. 构建支付请求
-            PaymentRequestDTO paymentRequest = buildPaymentRequest(order, paymentMethod, memberId, openId);
+            PaymentRequestDTO paymentRequest = buildPaymentRequest(order, paymentChannel, memberId, openId);
             log.info("【支付微服务】Pay微服务后端createPayment需求参数PaymentRequestDTO: {}", JSONUtil.toJsonStr(paymentRequest));
 
             // 2. 调用支付微服务
@@ -1262,7 +1268,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     /**
      * 构建支付请求
      */
-    private PaymentRequestDTO buildPaymentRequest(OmsOrder order, PaymentChannelEnum paymentMethod,
+    private PaymentRequestDTO buildPaymentRequest(OmsOrder order, PaymentChannelEnum paymentChannel,
                                                   Long memberId, String openId) {
 
         Long PaymentAmount = order.getPaymentAmount();
@@ -1276,10 +1282,10 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         request.setSubject("商品购买");
         request.setBody("订单号：" + order.getOrderSn());
 
-        log.info("【构建支付请求】支付方式:{}", paymentMethod);
+        log.info("【构建支付请求】支付渠道:{}", paymentChannel);
 
         // 根据支付方式设置参数
-        switch (paymentMethod) {
+        switch (paymentChannel) {
             case MOCK:
                 request.setChannel("MOCK");
                 request.setPayType("JSAPI");
@@ -1299,12 +1305,12 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
                 request.setPayType("BALANCE");
                 break;
             default:
-                throw new BizException("不支持的支付方式: " + paymentMethod);
+                throw new BizException("不支持的支付渠道: " + paymentChannel);
         }
 
         // 额外参数
         Map<String, Object> extraParams = new HashMap<>();
-        extraParams.put("appId", getAppIdByMethod(paymentMethod));
+        extraParams.put("appId", getAppIdByMethod(paymentChannel));
         extraParams.put("memberId", memberId);
         extraParams.put("orderId", order.getId());
         request.setExtraParams(extraParams);
@@ -1315,9 +1321,9 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     /**
      * 根据支付方式获取AppId
      */
-    private String getAppIdByMethod(PaymentChannelEnum paymentMethod) {
+    private String getAppIdByMethod(PaymentChannelEnum paymentChannel) {
         // 这里可以从配置文件中读取
-        switch (paymentMethod) {
+        switch (paymentChannel) {
             case WECHAT:
                 return "wx1234567890abcdef"; // 替换为实际的微信AppId
             case ALIPAY:
@@ -1328,11 +1334,11 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     }
 
     /**
-     * 检查支付方式是否有效
+     * 检查支付渠道是否有效
      */
-    private boolean isValidPaymentMethod(PaymentChannelEnum paymentMethod) {
+    private boolean isValidPaymentChannel(PaymentChannelEnum paymentChannel) {
 
-        return paymentMethod != null && paymentMethod != PaymentChannelEnum.UNKNOWN;
+        return paymentChannel != null && paymentChannel != PaymentChannelEnum.UNKNOWN;
     }
 
     /**
@@ -1378,7 +1384,8 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         // 更新订单状态
         log.info("3. 更新订单状态为已支付");
         order.setStatus(OrderStatusEnum.PAID);
-        order.setPaymentMethod(PaymentChannelEnum.BALANCE);
+        order.setPaymentChannel(PaymentChannelEnum.BALANCE);
+        order.setPaymentMethod(PaymentMethodEnum.JSAPI);
         order.setPaymentTime(LocalDateTime.now());
         this.updateById(order);
 

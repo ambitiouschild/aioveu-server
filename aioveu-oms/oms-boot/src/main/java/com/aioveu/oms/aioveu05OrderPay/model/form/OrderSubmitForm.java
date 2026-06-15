@@ -2,6 +2,7 @@ package com.aioveu.oms.aioveu05OrderPay.model.form;
 
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.common.enums.oms.OrderSourceEnum;
+import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -20,6 +21,7 @@ import java.util.List;
  * @param
  * @return:
  **/
+
 
 @Data
 @ToString
@@ -64,10 +66,16 @@ public class OrderSubmitForm {
 
 
     /**
-     * 支付方式【1->微信jsapi；2->支付宝；3->余额；4->微信app；】
+     * 支付方式【1->支付宝；2->微信；3->银联；4->余额；】
      */
 
-    private PaymentChannelEnum paymentMethod;
+    private PaymentChannelEnum paymentChannel;
+
+    /**
+     * 支付方式【1->APP支付；2->H5支付；3->小程序/公众号支付；4->扫码支付；】
+     */
+
+    private PaymentMethodEnum paymentMethod;
 
 
     @Schema(description="收获地址")
