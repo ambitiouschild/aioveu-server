@@ -1,5 +1,8 @@
 package com.aioveu.pay.model;
 
+import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -37,7 +40,7 @@ public class PaymentRequestDTO implements Serializable {
      * 业务类型：REFUND-退款 ORDER-订单 RECHARGE-充值
      */
     @NotBlank(message = "业务类型不能为空")
-    private String bizType;
+    private PaymentBizTypeEnum bizType;
 
     @NotNull(message = "用户ID不能为空")
     private Long userId;
@@ -53,7 +56,7 @@ public class PaymentRequestDTO implements Serializable {
     比喻：银行/支付机构，就像不同的银行*/
     @Schema(description = "支付渠道")
     @NotBlank(message = "支付渠道不能为空")
-    private String channel;
+    private PaymentChannelEnum channel;
 
     /*    支付类型/方式 (Pay Type)
     定义：指具体的支付交互方式
@@ -61,7 +64,7 @@ public class PaymentRequestDTO implements Serializable {
     举例：APP支付、小程序支付、扫码支付、H5支付
     比喻：银行的支付方式，就像银行的ATM、网银、手机银行*/
     @Schema(description = "支付类型/方式")
-    private String payType;
+    private PaymentMethodEnum payType;
 
     @NotBlank(message = "订单标题不能为空")
     private String subject;

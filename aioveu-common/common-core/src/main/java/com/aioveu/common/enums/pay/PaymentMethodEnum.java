@@ -18,6 +18,7 @@ public enum PaymentMethodEnum {
     H5(2, "H5", "H5支付"),
     JSAPI(3, "JSAPI", "小程序/公众号支付"),
     NATIVE(4, "NATIVE", "扫码支付"),
+    BALANCE(5, "BALANCE", "余额支付"),
     UNKNOWN(6, "UNKNOWN", "未知");
 
     ;
