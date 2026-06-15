@@ -58,7 +58,7 @@ public class PayOrderControllerForApp {
 
     @Operation(summary = "新增支付订单")
     @PostMapping
-    @PreAuthorize("@ss.hasPerm('aioveuMallPayOrder:pay-order:add')")
+//    @PreAuthorize("@ss.hasPerm('aioveuMallPayOrder:pay-order:add')")
     public Result<String> createPayOrder(@RequestBody @Valid PayOrderCreateForm formData ) {
         String orderNo = payOrderService.createPayOrder(formData);
         return Result.success(orderNo);
