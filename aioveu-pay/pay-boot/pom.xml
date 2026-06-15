@@ -16,6 +16,8 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+
+        <pay-api.version>1.0-SNAPSHOT</pay-api.version>
         <!-- 支付模块-->
         <pay-core.version>1.0-SNAPSHOT</pay-core.version>
 
@@ -60,10 +62,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>com.github.binarywang</groupId>
-            <artifactId>weixin-java-pay</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>com.aioveu</groupId>
@@ -77,18 +75,27 @@
 
         <dependency>
             <groupId>com.aioveu</groupId>
-            <artifactId>oms-api</artifactId>
+            <artifactId>pay-api</artifactId>
+            <version>${pay-api.version}</version>  <!-- 添加这行 -->
         </dependency>
 
+
+        <!--
+
+        ✅ Boot 不依赖任何“common-web / common-mybatis”
+        ✅ 所有 common 模块只能给“工具 / 常量 / 异常”
+
+        -->
+        <!-- ✅ MyBatis（唯一入口） -->
         <dependency>
-            <groupId>com.aioveu</groupId>
-            <artifactId>common-mybatis</artifactId>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.aioveu</groupId>
-            <artifactId>common-web</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.aioveu</groupId>-->
+<!--            <artifactId>common-web</artifactId>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>com.aioveu</groupId>

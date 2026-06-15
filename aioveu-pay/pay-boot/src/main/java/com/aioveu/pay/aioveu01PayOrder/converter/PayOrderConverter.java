@@ -1,10 +1,10 @@
 package com.aioveu.pay.aioveu01PayOrder.converter;
 
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
-import com.aioveu.pay.aioveu01PayOrder.model.form.PayOrderForm;
 import com.aioveu.pay.aioveu01PayOrder.model.vo.PayOrderVO;
 import com.aioveu.pay.aioveu07PayNotify.model.vo.PayNotifyDTO;
 import com.aioveu.pay.aioveu01.model.vo.PaymentRequestDTO;
+import com.aioveu.pay.model.aioveu01PayOrder.PayOrderForm;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

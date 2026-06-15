@@ -1,16 +1,20 @@
-package com.aioveu.pay.aioveu01PayOrder.model.form;
+package com.aioveu.pay.model.aioveu01PayOrder;
+
+import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.enums.pay.PaymentMethodEnum;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
-
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Getter;
-import lombok.Setter;
-import java.time.LocalDateTime;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import java.math.BigDecimal;
-import jakarta.validation.constraints.*;
+import java.time.LocalDateTime;
 
 
 /**
@@ -34,8 +38,7 @@ public class PayOrderForm implements Serializable {
     private Long id;
 
     @Schema(description = "支付单号，唯一，格式：PAYyyyyMMddHHmmss+6位随机")
-//    @NotBlank(message = "支付单号，唯一，格式：PAYyyyyMMddHHmmss+6位随机不能为空")
-    //paymentNo只在 Pay 内部生成
+    @NotBlank(message = "支付单号，唯一，格式：PAYyyyyMMddHHmmss+6位随机不能为空")
     @Size(max=32, message="支付单号，唯一，格式：PAYyyyyMMddHHmmss+6位随机长度不能超过32个字符")
     private String paymentNo;
 
@@ -45,9 +48,9 @@ public class PayOrderForm implements Serializable {
     private String orderNo;
 
     @Schema(description = "业务类型：REFUND-退款 ORDER-订单 RECHARGE-充值")
-    @NotBlank(message = "业务类型：REFUND-退款 ORDER-订单 RECHARGE-充值不能为空")
+    @NotNull(message = "业务类型：REFUND-退款 ORDER_PAY-订单 RECHARGE-充值不能为空")
     @Size(max=20, message="业务类型：REFUND-退款 ORDER-订单 RECHARGE-充值长度不能超过20个字符")
-    private String bizType;
+    private PaymentBizTypeEnum bizType;
 
     @Schema(description = "用户ID")
     @NotNull(message = "用户ID不能为空")
@@ -62,14 +65,13 @@ public class PayOrderForm implements Serializable {
     private Integer paymentStatus;
 
     @Schema(description = "支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额")
-//    @NotBlank(message = "支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额不能为空")
-    @NotNull(message = "支付渠道不能为空")
+    @NotNull(message = "支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额不能为空")
     @Size(max=20, message="支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额长度不能超过20个字符")
     private PaymentChannelEnum paymentChannel;
 
     @Schema(description = "支付方式：APP-APP支付 H5-H5支付 JSAPI-小程序/公众号 NATIVE-扫码支付")
     @Size(max=20, message="支付方式：APP-APP支付 H5-H5支付 JSAPI-小程序/公众号 NATIVE-扫码支付长度不能超过20个字符")
-    private String paymentMethod;
+    private PaymentMethodEnum paymentMethod;
 
     @Schema(description = "支付时间")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
