@@ -2,11 +2,10 @@ package com.aioveu.oms.aioveu01Order.controller.admin;
 
 import com.aioveu.common.annotation.Log;
 import com.aioveu.common.enums.LogModuleEnum;
-import com.aioveu.oms.aioveu01Order.model.form.OmsOrderForm;
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
+import com.aioveu.order.model.aioveu01Order.OmsOrderForm;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderDTO;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
-import com.aioveu.oms.aioveu01Order.model.vo.OrderOptionVO;
-import com.aioveu.oms.aioveu02OrderItem.model.form.OmsOrderItemForm;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.aioveu.common.result.PageResult;
@@ -28,7 +27,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -68,17 +66,17 @@ public class OmsOrderController {
     @Operation(summary = "根据订单编号查询订单详情")
     @GetMapping("/orderNo/{orderNo}")
     @Log( value = "根据订单编号查询订单详情",module = LogModuleEnum.OMS)
-    public OmsOrder getOrderDetailByOrderNo(
+    public OmsOrderForm getOrderDetailByOrderNo(
             @Parameter(name ="订单ID") @PathVariable String orderNo
     ) {
 
         log.info("根据订单编号查询订单详情");
 
-        OmsOrder omsOrder = omsOrderService.getOrderDetailByOrderNo(orderNo);
+        OmsOrderForm omsOrderForm = omsOrderService.getOrderDetailByOrderNo(orderNo);
 
-        log.info("根据订单编号查询订单详情omsOrder:{}", omsOrder);
+        log.info("根据订单编号查询订单详情omsOrderForm:{}", omsOrderForm);
 
-        return omsOrder;
+        return omsOrderForm;
     }
 
     @Operation(summary = "根据微信返回结果更新订单状态操作")
@@ -86,7 +84,7 @@ public class OmsOrderController {
     @Log( value = "根据微信返回结果更新订单状态操作",module = LogModuleEnum.OMS)
     boolean updateOrderStatusByWechatPay(
             @Parameter(name ="订单编号") @PathVariable String orderNo,
-            @Parameter(description = "微信返回结果") @PathVariable Integer status
+            @Parameter(description = "微信返回结果") @PathVariable PaymentStatusEnum status
     ) {
         boolean result = omsOrderService.updateOrderStatusByWechatPay(orderNo, status);
 

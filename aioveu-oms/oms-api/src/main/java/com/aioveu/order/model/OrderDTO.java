@@ -1,5 +1,7 @@
 package com.aioveu.order.model;
 
+import com.aioveu.order.model.aioveu01Order.OmsOrderForm;
+import com.aioveu.order.model.aioveu02OrderItem.OmsOrderItemForm;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -18,7 +20,7 @@ import java.util.List;
 @Accessors(chain = true)
 public class OrderDTO {
 
-    private OmsOrder order;
+    private OmsOrderForm orderForm;
 
-    private List<OmsOrderItem> orderItems;
+    private List<OmsOrderItemForm> orderItemForms;
 }

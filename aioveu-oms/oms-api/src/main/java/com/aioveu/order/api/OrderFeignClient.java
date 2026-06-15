@@ -1,12 +1,7 @@
 package com.aioveu.order.api;
 
-import com.aioveu.common.annotation.Log;
-import com.aioveu.common.enums.LogModuleEnum;
-import com.aioveu.common.result.Result;
-import com.aioveu.common.web.config.FeignDecoderConfig;
-import com.aioveu.order.model.OmsOrder;
-import com.aioveu.order.model.OrderDTO;
-import io.swagger.v3.oas.annotations.Operation;
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
+import com.aioveu.order.model.aioveu01Order.OmsOrderForm;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +24,7 @@ public interface OrderFeignClient {
      * 根据订单编号查询订单详情
      */
     @GetMapping("/api/v1/oms-order/orderNo/{orderNo}")
-    OmsOrder getOrderDetailByOrderNo(@Parameter(name ="订单编号") @PathVariable String orderNo);
+    OmsOrderForm getOrderDetailByOrderNo(@Parameter(name ="订单编号") @PathVariable String orderNo);
 
     /**
      * 根据微信返回结果更新订单状态操作
@@ -38,7 +33,7 @@ public interface OrderFeignClient {
     @PutMapping("/api/v1/oms-order/{orderNo}/{status}")
     boolean updateOrderStatusByWechatPay(
             @Parameter(name ="订单编号") @PathVariable String orderNo,
-            @Parameter(description = "微信返回结果") @PathVariable Integer status
+            @Parameter(description = "微信返回结果") @PathVariable PaymentStatusEnum status
     );
 
 

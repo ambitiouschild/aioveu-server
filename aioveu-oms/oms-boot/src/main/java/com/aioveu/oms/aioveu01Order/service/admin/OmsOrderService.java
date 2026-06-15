@@ -1,8 +1,8 @@
 package com.aioveu.oms.aioveu01Order.service.admin;
 
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
-import com.aioveu.oms.aioveu01Order.model.form.OmsOrderForm;
-import com.aioveu.oms.aioveu01Order.model.vo.OrderDTO;
+import com.aioveu.order.model.aioveu01Order.OmsOrderForm;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.aioveu.oms.aioveu01Order.model.query.OrderPageQuery;
@@ -31,7 +31,7 @@ public interface OmsOrderService extends IService<OmsOrder> {
      * @param orderNo {@link OrderPageQuery}
      * @return
      */
-    OmsOrder getOrderDetailByOrderNo(String orderNo);
+    OmsOrderForm getOrderDetailByOrderNo(String orderNo);
 
 
     /**
@@ -41,7 +41,7 @@ public interface OmsOrderService extends IService<OmsOrder> {
      * @param status
      * @return
      */
-    boolean updateOrderStatusByWechatPay(String orderNo, Integer status);
+    boolean updateOrderStatusByWechatPay(String orderNo, PaymentStatusEnum status);
 
 
     /**

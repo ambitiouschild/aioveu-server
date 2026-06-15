@@ -1,4 +1,4 @@
-package com.aioveu.oms.aioveu02OrderItem.model.form;
+package com.aioveu.order.model.aioveu02OrderItem;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

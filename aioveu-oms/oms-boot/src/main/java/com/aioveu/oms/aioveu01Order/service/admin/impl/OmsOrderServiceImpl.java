@@ -2,11 +2,10 @@ package com.aioveu.oms.aioveu01Order.service.admin.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
-import com.aioveu.oms.aioveu01Order.model.form.OmsOrderForm;
-import com.aioveu.oms.aioveu01Order.model.vo.OrderDTO;
+import com.aioveu.order.model.aioveu01Order.OmsOrderForm;
 import com.aioveu.oms.aioveu01Order.service.admin.OmsOrderService;
-import com.aioveu.oms.aioveu02OrderItem.model.entity.OmsOrderItem;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -22,9 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @Description: TODO Admin-订单业务实现类
@@ -65,13 +62,16 @@ public class OmsOrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> i
      * @return
      */
     @Override
-    public OmsOrder getOrderDetailByOrderNo(String orderNo) {
+    public OmsOrderForm getOrderDetailByOrderNo(String orderNo) {
 
         // 订单明细
         OmsOrder order = this.getOne(new LambdaQueryWrapper<OmsOrder>()
                 .eq(OmsOrder::getOrderSn, orderNo)
         );
-        return order;
+
+
+
+        return omsOrderConverter.toForm(order);
     }
 
     /**
@@ -82,7 +82,7 @@ public class OmsOrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> i
      * @return
      */
     @Override
-    public boolean updateOrderStatusByWechatPay(String orderNo, Integer status) {
+    public boolean updateOrderStatusByWechatPay(String orderNo, PaymentStatusEnum status) {
 
         log.info("更新订单状态, orderNo: {}, status: {}", orderNo, status);
 

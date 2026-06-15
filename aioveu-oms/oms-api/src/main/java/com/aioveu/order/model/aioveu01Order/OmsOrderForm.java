@@ -1,10 +1,8 @@
-package com.aioveu.oms.aioveu01Order.model.form;
+package com.aioveu.order.model.aioveu01Order;
 
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.aioveu.common.enums.pay.PaymentMethodEnum;
-import com.aioveu.oms.aioveu01Order.utils.PaymentChannelEnumCodeTypeHandler;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

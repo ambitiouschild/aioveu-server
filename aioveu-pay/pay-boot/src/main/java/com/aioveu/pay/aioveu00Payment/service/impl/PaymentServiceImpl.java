@@ -1,12 +1,13 @@
 package com.aioveu.pay.aioveu00Payment.service.impl;
 
+import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.Result;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.order.api.OrderFeignClient;
-import com.aioveu.order.model.OmsOrder;
+import com.aioveu.order.model.aioveu01Order.OmsOrderForm;
 import com.aioveu.pay.aioveu00Payment.service.PaymentService;
 import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
@@ -132,8 +133,8 @@ public class PaymentServiceImpl implements PaymentService {
 
         log.info("【前端调用：查询支付状态】调用orderFeignClient，查询本地oms数据库");
 
-        OmsOrder order = orderFeignClient.getOrderDetailByOrderNo(orderNo);
-        if (order == null) {
+        OmsOrderForm orderForm = orderFeignClient.getOrderDetailByOrderNo(orderNo);
+        if (orderForm == null) {
             paymentStatusVO.setErrorMessage("订单不存在");
             paymentStatusVO.setPaymentStatus(PaymentStatusEnum.UNKNOWN); // 特殊状态：订单不存在
             log.info("【前端调用：查询支付状态】订单不存在");
@@ -141,23 +142,23 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         // 2. 如果订单已支付，直接返回
-        if (order.getStatus() == 2 ||order.getStatus() == 3 ||order.getStatus() == 4) {
+        if (orderForm.getStatus() == OrderStatusEnum.SHIPPED ||orderForm.getStatus() == OrderStatusEnum.COMPLETE ||orderForm.getStatus() == OrderStatusEnum.CANCELED) {
             paymentStatusVO.setPaymentNo(orderNo);
-            paymentStatusVO.setPaymentStatus(order.getStatus());
+            paymentStatusVO.setPaymentStatus(PaymentStatusEnum.PAID);
             paymentStatusVO.setErrorMessage("订单已支付");
-            log.info("【前端调用：查询支付状态】本地订单已支付，状态: {}", order.getStatus());
+            log.info("【前端调用：查询支付状态】本地订单已支付，状态: {}", orderForm.getStatus());
             return paymentStatusVO;
         }else{
 
-            log.info("【前端调用：查询支付状态】订单状态: {}，调用微信查询接口", order.getStatus());
+            log.info("【前端调用：查询支付状态】订单状态: {}，调用微信查询接口", orderForm.getStatus());
             // 3. 如果订单未支付，调用微信查询接口
             try {
                 paymentStatusVO = wechatPayService.queryPayment(orderNo);
                 log.info("【wechatPayService】微信支付状态返回结果:{}",paymentStatusVO);
 
-                Integer weChatPaymentStatus =  paymentStatusVO.getPaymentStatus();
+                PaymentStatusEnum weChatPaymentStatus =  paymentStatusVO.getPaymentStatus();
 
-                log.info("【wechatPayService】更新本地订单状态为:{}",weChatPaymentStatus);
+                log.info("【wechatPayService】准备更新本地订单状态为微信支付状态weChatPaymentStatus:{}",weChatPaymentStatus);
                 // 4. 查询成功后，直接更新本地订单状态
                 log.info("【前端调用：查询支付状态】开始更新本地订单状态");
 
@@ -209,17 +210,17 @@ public class PaymentServiceImpl implements PaymentService {
 //            }
 
             // ============ 2. 查询支付订单 ============
-            PayOrder order = payOrderService.selectByPaymentNo(paymentNo);
-            if (order == null) {
-                log.error("【支付回调】订单不存在: {}", paymentNo);
+            PayOrder payorder = payOrderService.selectByPaymentNo(paymentNo);
+            if (payorder == null) {
+                log.error("【支付回调】支付订单不存在: {}", paymentNo);
                 throw new BusinessException(ResultCode.ORDER_NOT_FOUND, "支付订单不存在");
             }
 
             // ============ 3. 避免重复处理 ============
-            if (order.getPaymentStatus() != PaymentStatusEnum.PENDING.getValue()
-                    && order.getPaymentStatus() != PaymentStatusEnum.PROCESSING.getValue()) {
+            if (payorder.getPaymentStatus() != PaymentStatusEnum.UNPAID
+                    && payorder.getPaymentStatus() != PaymentStatusEnum.PAYING) {
                 log.warn("订单已处理，跳过回调: paymentNo={}, status={}",
-                        callback.getPaymentNo(), order.getPaymentStatus());
+                        callback.getPaymentNo(), payorder.getPaymentStatus());
                 return Result.success();
             }
 
@@ -227,21 +228,21 @@ public class PaymentServiceImpl implements PaymentService {
 
 
             // ============ 5. 更新订单状态 ============
-            Boolean result = payOrderService.updateOrderStatus(order,callback);
+            Boolean result = payOrderService.updateOrderStatus(payorder,callback);
 
 
             // ============ 6. 处理业务逻辑 ============
-            payOrderService.handleBusinessLogic(order,callback);
+            payOrderService.handleBusinessLogic(payorder,callback);
 
 
             // ============ 7. 记录支付流水 ============
-            payFlowService.recordPaymentFlow(order, callback);
+            payFlowService.recordPaymentFlow(payorder, callback);
 
 
             // ============ 8. 发送异步通知 ============
-            payNotifyService.sendPaymentNotify(order, callback);
+            payNotifyService.sendPaymentNotify(payorder, callback);
 
-            log.info("【支付回调】处理完成: {}，状态: {}", paymentNo, order.getPaymentStatus());
+            log.info("【支付回调】处理完成: {}，状态: {}", paymentNo, payorder.getPaymentStatus());
 
             return Result.success();
 
@@ -526,9 +527,9 @@ public class PaymentServiceImpl implements PaymentService {
      * 检查订单是否可处理
      */
     private boolean isProcessable(PayOrder payOrder) {
-        int status = payOrder.getPaymentStatus();
-        return status == PaymentStatusEnum.PENDING.getValue()
-                || status == PaymentStatusEnum.PROCESSING.getValue();
+        PaymentStatusEnum status = payOrder.getPaymentStatus();
+        return status == PaymentStatusEnum.UNPAID
+                || status == PaymentStatusEnum.PAYING;
     }
 
 
