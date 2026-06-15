@@ -1,7 +1,7 @@
 package com.aioveu.oms.aioveu01Order.converter;
 
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
-import com.aioveu.order.model.aioveu01Order.OmsOrderForm;
+import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderBO;

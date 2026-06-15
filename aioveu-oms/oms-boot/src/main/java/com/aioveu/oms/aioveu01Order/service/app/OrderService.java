@@ -6,6 +6,7 @@ import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderPageWithStatsVO;
 import com.aioveu.oms.aioveu11MqConsumer.model.vo.OrderPaySuccessDTO;
 import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
+import com.aioveu.order.model.aioveu01Order.vo.OrderSubmitVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -48,7 +49,7 @@ public interface OrderService extends IService<OmsOrder> {
      * @param orderSubmitForm {@link OrderSubmitForm}
      * @return 订单编号
      */
-    String submitOrder(OrderSubmitForm orderSubmitForm,String clientId);
+    OrderSubmitVO submitOrder(OrderSubmitForm orderSubmitForm, String clientId);
 
     /**
      * 订单支付

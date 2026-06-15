@@ -3,7 +3,7 @@ package com.aioveu.oms.aioveu01Order.controller.admin;
 import com.aioveu.common.annotation.Log;
 import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
-import com.aioveu.order.model.aioveu01Order.OmsOrderForm;
+import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderDTO;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;

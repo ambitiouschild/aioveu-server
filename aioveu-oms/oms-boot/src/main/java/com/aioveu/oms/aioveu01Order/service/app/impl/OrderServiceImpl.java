@@ -21,6 +21,7 @@ import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
 import com.aioveu.common.enums.oms.OrderDeliveryStatusEnum;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
+import com.aioveu.order.model.aioveu01Order.vo.OrderSubmitVO;
 import com.aioveu.pay.api.PayFeignClient;
 import com.aioveu.pay.model.*;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderCreateForm;
@@ -430,8 +431,8 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     //需要检查事务传播行为
     //配置 Seata 不包装异常
     //seata 全局事务拦截器包装了你的业务异常，需要解开这个包装，让真正的 BusinessException能够被全局异常处理器捕获和处理。
-    public String submitOrder(OrderSubmitForm submitForm,
-                              String clientId) throws BusinessException{
+    public OrderSubmitVO submitOrder(OrderSubmitForm submitForm,
+                                     String clientId) throws BusinessException{
 
         long startTime = System.currentTimeMillis();
         String orderSn = null;
@@ -543,7 +544,17 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             long duration = System.currentTimeMillis() - startTime;
             log.info("【订单提交】成功，后端返回的是 paymentNo，不是 orderSn,支付订单号paymentNo: {}, 耗时: {}ms", paymentNo, duration);
 
-            return paymentNo;
+            /*
+            *   ✅ orderSn 从订单来
+                ✅ paymentNo 从支付来
+                ✅ 前端一个不少
+            * */
+            // ✅ 关键：两个号一起返回
+            return new OrderSubmitVO(
+                    omsOrder.getOrderSn(),
+                    paymentNo,
+                    omsOrder.getPaymentAmount()
+            );
 
         } catch (BusinessException e) {
 

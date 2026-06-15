@@ -1,7 +1,7 @@
 package com.aioveu.order.model;
 
-import com.aioveu.order.model.aioveu01Order.OmsOrderForm;
-import com.aioveu.order.model.aioveu02OrderItem.OmsOrderItemForm;
+import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
+import com.aioveu.order.model.aioveu02OrderItem.form.OmsOrderItemForm;
 import lombok.Data;
 import lombok.experimental.Accessors;
 

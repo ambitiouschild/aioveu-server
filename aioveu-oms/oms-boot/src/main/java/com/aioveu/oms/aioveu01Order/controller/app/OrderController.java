@@ -6,6 +6,7 @@ import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.common.tenant.ClientContextHolder;
 import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
+import com.aioveu.order.model.aioveu01Order.vo.OrderSubmitVO;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.aioveu.common.result.PageResult;
@@ -101,7 +102,7 @@ public class OrderController {
 
     @Operation(summary ="订单提交")
     @PostMapping("/submit")
-    public Result<String> submitOrder(
+    public Result<OrderSubmitVO> submitOrder(
             @RequestHeader("X-Client-Id") String clientId,
             @Validated @RequestBody OrderSubmitForm submitForm) {
 
@@ -112,9 +113,9 @@ public class OrderController {
 
 
         try {
-            String orderSn = orderService.submitOrder(submitForm, clientId);
-            log.info("=== 订单提交成功: {} ===", orderSn);
-            return Result.success(orderSn);
+            OrderSubmitVO orderSubmitVO = orderService.submitOrder(submitForm, clientId);
+            log.info("=== 订单提交成功: {} ===", orderSubmitVO);
+            return Result.success(orderSubmitVO);
 
         } catch (RuntimeException e) {
             // 专门处理 Seata 包装的异常

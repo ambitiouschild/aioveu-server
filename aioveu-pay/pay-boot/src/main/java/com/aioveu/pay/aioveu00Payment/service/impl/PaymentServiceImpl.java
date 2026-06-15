@@ -7,7 +7,7 @@ import com.aioveu.common.result.Result;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.order.api.OrderFeignClient;
-import com.aioveu.order.model.aioveu01Order.OmsOrderForm;
+import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
 import com.aioveu.pay.aioveu00Payment.service.PaymentService;
 import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;

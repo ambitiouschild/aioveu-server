@@ -4,7 +4,7 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
-import com.aioveu.order.model.aioveu01Order.OmsOrderForm;
+import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
 import com.aioveu.oms.aioveu01Order.service.admin.OmsOrderService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;

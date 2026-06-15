@@ -1,6 +1,6 @@
 package com.aioveu.oms.aioveu02OrderItem.service;
 
-import com.aioveu.order.model.aioveu02OrderItem.OmsOrderItemForm;
+import com.aioveu.order.model.aioveu02OrderItem.form.OmsOrderItemForm;
 import com.aioveu.oms.aioveu02OrderItem.model.query.OmsOrderItemQuery;
 import com.aioveu.oms.aioveu02OrderItem.model.vo.OmsOrderDetailVO;
 import com.aioveu.oms.aioveu02OrderItem.model.vo.OmsOrderItemVO;
