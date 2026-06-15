@@ -2,6 +2,9 @@ package com.aioveu.oms.aioveu01Order.model.form;
 
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.common.enums.oms.OrderStatusEnum;
+import com.aioveu.common.enums.pay.PaymentMethodEnum;
+import com.aioveu.oms.aioveu01Order.utils.PaymentChannelEnumCodeTypeHandler;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -80,8 +83,18 @@ public class OmsOrderForm implements Serializable {
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime paymentTime;
 
+
+    /**
+     * 数据库：INT
+     * 使用 code（1/2/3）
+     */
+    /**
+     * 支付渠道【1->支付宝；2->微信支付；3->银联；4->余额；5->模拟支付；6->未知；】
+     */
+    private PaymentChannelEnum paymentChannel;
+
     @Schema(description = "支付方式(1：微信JSAPI；2：支付宝；3：余额；4：微信APP)")
-    private PaymentChannelEnum paymentMethod;
+    private PaymentMethodEnum paymentMethod;
 
     @Schema(description = "微信支付等第三方支付平台的商户订单号")
     @Size(max=32, message="微信支付等第三方支付平台的商户订单号长度不能超过32个字符")
