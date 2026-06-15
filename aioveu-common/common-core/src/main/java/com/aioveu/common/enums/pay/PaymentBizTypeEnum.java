@@ -16,9 +16,9 @@ public enum PaymentBizTypeEnum {
 
     ORDER_PAY(1, "ORDER_PAY", "订单支付"),
     VIP_PAY(2, "VIP_PAY", "会员支付"),
-    REFUND(3, "REFUND", "退款"),
-    RECHARGE(4, "RECHARGE", "充值")
-
+    RECHARGE(3, "RECHARGE", "账户充值"),
+    DEPOSIT(4,"DEPOSIT", "押金"),
+    REFUND(5, "REFUND", "退款")
     ;
 
     PaymentBizTypeEnum(int code, String value, String label) {

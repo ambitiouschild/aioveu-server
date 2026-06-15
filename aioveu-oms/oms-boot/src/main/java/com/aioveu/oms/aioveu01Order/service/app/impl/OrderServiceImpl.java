@@ -5,6 +5,7 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
@@ -504,6 +505,8 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             PayOrderForm formData =  new PayOrderForm();
             formData.setUserId(omsOrder.getMemberId());
             formData.setOrderNo(omsOrder.getOrderSn());
+            //OMS 在 PayOrderForm 中显式指定 bizType = ORDER
+            formData.setBizType(PaymentBizTypeEnum.ORDER_PAY);
             formData.setPaymentChannel(PaymentChannelEnum.WECHAT);
             formData.setPaymentMethod(omsOrder.getPaymentMethod());
             formData.setPaymentAmount(
