@@ -1,6 +1,7 @@
 package com.aioveu.oms.aioveu11MqConsumer.utils;
 
 
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu08MqConsumeRecord.enums.ConsumeStatusEnum;
 import com.aioveu.oms.aioveu08MqConsumeRecord.mapper.MqConsumeRecordMapper;
@@ -66,7 +67,13 @@ public class MqConsumerUtils {
                 dto.setAmount(amount);
             }
 
-            dto.setChannel(json.getString("channel"));
+            String channelStr = json.getString("channel");
+
+            dto.setChannel(
+                    PaymentChannelEnum.valueOf(channelStr.toUpperCase())
+            );
+
+
             dto.setMemberId(json.getLong("memberId"));
 
             // 时间处理

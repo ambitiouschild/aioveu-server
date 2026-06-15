@@ -1,6 +1,6 @@
 package com.aioveu.oms.aioveu01Order.model.vo;
 
-import com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum;
+import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

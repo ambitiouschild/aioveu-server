@@ -2,7 +2,8 @@ package com.aioveu.oms.aioveu02OrderItem.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum;
+import com.aioveu.common.enums.oms.OrderStatusEnum;
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.oms.aioveu01Order.mapper.OmsOrderMapper;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
@@ -10,7 +11,7 @@ import com.aioveu.oms.aioveu02OrderItem.model.form.OmsOrderItemForm;
 import com.aioveu.oms.aioveu02OrderItem.model.query.OmsOrderItemQuery;
 import com.aioveu.oms.aioveu02OrderItem.model.vo.OmsOrderDetailVO;
 import com.aioveu.oms.aioveu02OrderItem.model.vo.OmsOrderItemVO;
-import com.aioveu.oms.aioveu03OrderDelivery.enums.DeliveryStatusEnum;
+import com.aioveu.common.enums.oms.DeliveryStatusEnum;
 import com.aioveu.oms.aioveu03OrderDelivery.mapper.OmsOrderDeliveryMapper;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.alibaba.nacos.client.naming.utils.CollectionUtils;
@@ -31,7 +32,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum.*;
+import static com.aioveu.common.enums.oms.OrderStatusEnum.*;
 
 /*
  * @Author 可我不敌可爱
@@ -187,7 +188,7 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
         orderDetail.setStatusDesc(getOrderStatusDesc(order.getStatus()));
 
         // 2.3 设置支付方式文本
-        orderDetail.setPaymentMethodText(getPaymentMethodText(order.getPaymentMethod()));
+        orderDetail.setPaymentMethodText(order.getPaymentMethod().getLabel());
 
         // 2.4 设置来源文本
         orderDetail.setSourceText(getSourceText(order.getSource()));
@@ -339,20 +340,6 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
         }
     }
 
-    private String getPaymentMethodText(Integer paymentMethod) {
-
-        if (paymentMethod == null) {
-            return "微信支付";  // 或者返回 "未支付"
-        }
-
-        switch (paymentMethod) {
-            case 1: return "微信支付";
-            case 2: return "支付宝支付";
-            case 3: return "余额支付";
-            case 4: return "微信app支付";
-            default: return "未知";
-        }
-    }
 
     private String getSourceText(Integer source) {
         switch (source) {

@@ -1,6 +1,6 @@
 package com.aioveu.oms.aioveu01Order.mapper;
 
-import com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum;
+import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;

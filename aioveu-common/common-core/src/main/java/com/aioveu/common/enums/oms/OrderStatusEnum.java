@@ -1,6 +1,5 @@
-package com.aioveu.oms.aioveu01Order.enums;
+package com.aioveu.common.enums.oms;
 
-import com.aioveu.common.base.IBaseEnum;
 import com.baomidou.mybatisplus.annotation.IEnum;
 import lombok.Getter;
 

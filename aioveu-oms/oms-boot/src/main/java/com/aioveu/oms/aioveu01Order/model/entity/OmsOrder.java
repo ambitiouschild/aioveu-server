@@ -1,8 +1,8 @@
 package com.aioveu.oms.aioveu01Order.model.entity;
 
-import com.aioveu.common.base.BaseEntity;
 import com.aioveu.common.base.BaseEntityWithTenantId;
-import com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum;
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.aioveu.oms.aioveu02OrderItem.model.entity.OmsOrderItem;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
@@ -100,7 +100,7 @@ public class OmsOrder extends BaseEntityWithTenantId {
 	/**
 	 * 支付方式【1->微信jsapi；2->支付宝；3->余额；4->微信app；】
 	 */
-	private Integer paymentMethod;
+	private PaymentChannelEnum paymentMethod;
 	/**
 	 * 商户订单号
 	 */

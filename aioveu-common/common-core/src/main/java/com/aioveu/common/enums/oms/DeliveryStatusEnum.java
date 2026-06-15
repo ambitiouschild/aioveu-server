@@ -1,4 +1,4 @@
-package com.aioveu.oms.aioveu03OrderDelivery.enums;
+package com.aioveu.common.enums.oms;
 
 import com.aioveu.common.base.IBaseEnum;
 import lombok.Getter;

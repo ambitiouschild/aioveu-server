@@ -2,12 +2,11 @@ package com.aioveu.oms.aioveu01Order.utils;
 
 
 import cn.hutool.core.collection.CollUtil;
-import com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum;
+import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.aioveu.oms.aioveu01Order.mapper.OmsOrderMapper;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
-import com.aioveu.oms.aioveu01Order.service.admin.OmsOrderService;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
-import com.aioveu.oms.aioveu03OrderDelivery.enums.DeliveryStatusEnum;
+import com.aioveu.common.enums.oms.DeliveryStatusEnum;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
 import com.fasterxml.jackson.databind.JsonNode;

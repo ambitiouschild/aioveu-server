@@ -1,4 +1,4 @@
-package com.aioveu.oms.aioveu01Order.enums;
+package com.aioveu.common.enums.oms;
 
 
 import com.baomidou.mybatisplus.annotation.IEnum;

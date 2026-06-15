@@ -13,18 +13,21 @@ import lombok.Getter;
 
 public enum PaymentChannelEnum{
 
-    ALIPAY("ALIPAY", "支付宝"),
-    WECHAT("WECHAT", "微信"),
-    UNIONPAY("UNIONPAY", "银联"),
-    BALANCE("BALANCE", "余额");
+    ALIPAY(1, "ALIPAY", "支付宝"),
+    WECHAT(2, "WECHAT", "微信支付"),
+    UNIONPAY(3, "UNIONPAY", "银联"),
+    BALANCE(4, "BALANCE", "余额");
 
     ;
 
-    PaymentChannelEnum(String value, String label) {
+    PaymentChannelEnum(int code, String value, String label) {
+        this.code = code;
         this.value = value;
         this.label = label;
     }
 
+    @Getter
+    private int code;
 
     @Getter
     private String value;

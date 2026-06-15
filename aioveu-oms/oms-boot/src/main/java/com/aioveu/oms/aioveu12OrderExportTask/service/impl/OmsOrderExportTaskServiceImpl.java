@@ -6,7 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.oms.aioveu01Order.model.query.OrderExportQuery;
 import com.aioveu.oms.aioveu12OrderExportTask.converter.OmsOrderExportTaskConverter;
-import com.aioveu.oms.aioveu12OrderExportTask.enums.OrdeExportTaskStatusEnum;
+import com.aioveu.common.enums.oms.OrdeExportTaskStatusEnum;
 import com.aioveu.oms.aioveu12OrderExportTask.mapper.OmsOrderExportTaskMapper;
 import com.aioveu.oms.aioveu12OrderExportTask.model.entity.OmsOrderExportTask;
 import com.aioveu.oms.aioveu12OrderExportTask.model.form.OmsOrderExportTaskForm;

@@ -5,10 +5,10 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.common.security.util.SecurityUtils;
-import com.aioveu.common.tenant.ClientContextHolder;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
 import com.aioveu.oms.aioveu01Order.model.vo.*;
@@ -16,7 +16,7 @@ import com.aioveu.oms.aioveu01Order.service.app.OrderService;
 import com.aioveu.oms.aioveu01Order.utils.OrderNoGenerator;
 import com.aioveu.oms.aioveu01Order.utils.WeChatApiClient;
 import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
-import com.aioveu.oms.aioveu03OrderDelivery.enums.DeliveryStatusEnum;
+import com.aioveu.common.enums.oms.DeliveryStatusEnum;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
 import com.aioveu.pay.api.PayFeignClient;
@@ -37,9 +37,9 @@ import com.aioveu.common.result.Result;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.oms.aioveu01Order.constant.OrderConstants;
 import com.aioveu.oms.aioveu01Order.converter.OmsOrderConverter;
-import com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum;
-import com.aioveu.oms.aioveu01Order.enums.OrderSourceEnum;
-import com.aioveu.oms.aioveu01Order.enums.PaymentMethodEnum;
+import com.aioveu.common.enums.oms.OrderStatusEnum;
+import com.aioveu.common.enums.oms.OrderSourceEnum;
+import com.aioveu.common.enums.oms.PaymentMethodEnum;
 import com.aioveu.oms.aioveu01Order.mapper.OmsOrderMapper;
 import com.aioveu.oms.aioveu02OrderItem.model.vo.OrderItemDTO;
 import com.aioveu.oms.aioveu02OrderItem.model.entity.OmsOrderItem;
@@ -502,7 +502,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             PayOrderForm formData =  new PayOrderForm();
             formData.setUserId(omsOrder.getMemberId());
             formData.setOrderNo(omsOrder.getOrderSn());
-            formData.setPaymentChannel(omsOrder.getOrderSn());
+            formData.setPaymentChannel(omsOrder.getPaymentMethod());
             formData.setPaymentAmount(
                     BigDecimal.valueOf(omsOrder.getTotalAmount())
             );
@@ -884,7 +884,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             log.info("【创建订单】13.支付时间: {}", paymentTime);
 
             // 支付方式
-            Integer paymentMethod= submitForm.getPaymentMethod() != null ? submitForm.getPaymentMethod() : 1;
+            PaymentChannelEnum paymentMethod= submitForm.getPaymentMethod() != null ? submitForm.getPaymentMethod() : PaymentChannelEnum.WECHAT;
             log.info("【创建订单】14.支付方式: {}", paymentMethod);
 
             // 前端指定 clientId
@@ -1383,7 +1383,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         // 更新订单状态
         log.info("3. 更新订单状态为已支付");
         order.setStatus(OrderStatusEnum.PAID);
-        order.setPaymentMethod(PaymentMethodEnum.BALANCE.getValue());
+        order.setPaymentMethod(PaymentChannelEnum.BALANCE);
         order.setPaymentTime(LocalDateTime.now());
         this.updateById(order);
 

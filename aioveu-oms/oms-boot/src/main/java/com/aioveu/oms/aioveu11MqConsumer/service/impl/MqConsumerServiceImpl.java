@@ -3,7 +3,7 @@ package com.aioveu.oms.aioveu11MqConsumer.service.impl;
 
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.rabbitmq.constant.PayCommonMqConstantWithBizName;
-import com.aioveu.oms.aioveu01Order.enums.OrderStatusEnum;
+import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
 import com.aioveu.oms.aioveu04OrderLog.service.OmsOrderLogService;
