@@ -49,10 +49,14 @@ spring:
 #  3.空值处理：如果使用名称，Nacos 客户端可能将其视为空字符串，连接到默认命名空间（public）
 
 
-  # ===== 触发 ReactiveJwtDecoder =====
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          jwk-set-uri: ${JWT_JWK_SET_URI}
-          issuer-uri: ${JWT_ISSUER_URI}
+  # ===== 触发 ReactiveJwtDecoder 不能“全局配置 jwt 路径 =====
+#  security:
+#    oauth2:
+#      resourceserver:
+#        jwt:
+#          jwk-set-uri: ${JWT_JWK_SET_URI}
+#          issuer-uri: ${JWT_ISSUER_URI}
+
+# 网关地址
+gateway:
+  endpoint: http://localhost:6699

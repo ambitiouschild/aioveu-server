@@ -6,6 +6,7 @@ import com.alibaba.nacos.common.utils.StringUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.context.annotation.Lazy;
@@ -38,9 +39,13 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
     private final ReactiveJwtDecoder jwtDecoder;
     private final ClientWhitelistWithRedisService clientWhitelistWithRedisService;
 
+
+
+
     //构造函数注入
      // ✅ 关键：@Lazy 方案 A（强烈推荐）：把构造函数注入改成 @Lazy
-    public ClientIdGatewayFilter(@Lazy ReactiveJwtDecoder jwtDecoder, ClientWhitelistWithRedisService clientWhitelistWithRedisService) {
+    public ClientIdGatewayFilter(@Lazy @Qualifier("gatewayJwtDecoder") ReactiveJwtDecoder jwtDecoder,
+                                 ClientWhitelistWithRedisService clientWhitelistWithRedisService) {
         this.jwtDecoder = jwtDecoder;
         this.clientWhitelistWithRedisService = clientWhitelistWithRedisService;
     }
@@ -67,10 +72,14 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange,
                              GatewayFilterChain chain) {
 
+
+        // ✅ 关键：先保存引用
+        GatewayFilterChain finalChain = chain;
+
         // 1. 解析 clientId (返回 Mono<String>)
         return resolveClientId(exchange)
                 // 2. 如果解析失败或为空，给一个默认值
-                .defaultIfEmpty("system_default")
+//                .defaultIfEmpty("system_default")
                 // 3. 使用 flatMap 确保非阻塞
                 .flatMap(clientId -> {
 
@@ -91,7 +100,20 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
                     // 4. 放行请求
                     return chain.filter(exchange.mutate().request(newRequest).build());
-                });
+                }).switchIfEmpty(Mono.defer(() -> {
+                    String path = exchange.getRequest().getURI().getPath();
+                    if (isSensitivePath(path)) {
+                        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                        return exchange.getResponse().setComplete();
+                    }
+
+                    ServerHttpRequest newReq = exchange.getRequest()
+                            .mutate()
+                            .header(HEADER_CLIENT_ID, "system_default")
+                            .build();
+
+                    return finalChain.filter(exchange.mutate().request(newReq).build());
+                }));
     }
 
     /**
@@ -109,11 +131,8 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
         // ✅ 1. 敏感接口：必须用 JWT
         if (isSensitivePath(path)) {
-            return resolveClientIdFromJwt(exchange)
-                    .doOnNext(clientId -> log.info("【ClientIdGatewayFilter】敏感接口，Gateway 使用 JWT clientId = {}", clientId))
-                    .defaultIfEmpty("system_default"); // ✅
+            return resolveClientIdFromJwt(exchange);
         }
-
 
         // 2前端带了就用（小程序 / H5） 公共接口：信任前端 Header
         String clientIdFromHeader = exchange.getRequest()

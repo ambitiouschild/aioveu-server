@@ -44,12 +44,14 @@ spring:
           env: prod
           zone: zone1
 
+# 网关地址
+gateway:
+  endpoint: http://localhost:6699
 
-
-  # ===== 触发 ReactiveJwtDecoder =====
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          jwk-set-uri: ${JWT_JWK_SET_URI}
-          issuer-uri: ${JWT_ISSUER_URI}
+  # ===== 触发 ReactiveJwtDecoder 不能“全局配置 jwt 路径 =====
+#  security:
+#    oauth2:
+#      resourceserver:
+#        jwt:
+#          jwk-set-uri: ${JWT_JWK_SET_URI}
+#          issuer-uri: ${JWT_ISSUER_URI}
