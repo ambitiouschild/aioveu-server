@@ -34,7 +34,7 @@ public interface PayFeignClient {
      */
     @Operation(summary ="来自oms-pay的订单支付请求")
     @PostMapping("/api/v1/pay-order/createPaymentOmsToPay")
-    Result<PaymentParamsVO> createPaymentOmsToPay(@RequestBody PaymentRequestOmsToPayDTO paymentForm);
+    PaymentParamsVO createPaymentOmsToPay(@RequestBody PaymentRequestOmsToPayDTO paymentForm);
 
 
     /**
@@ -42,7 +42,7 @@ public interface PayFeignClient {
      */
     @Operation(summary ="来自pay-wechat的订单支付请求,创建前端调用第三方支付所需的支付参数")
     @PostMapping("/api/v1/pay-order/createPaymentPayToTPP")
-    Result<PaymentParamsVO> createPaymentPayToTPP(@RequestBody PaymentRequestPayToTPPDTO request);
+    PaymentParamsVO createPaymentPayToTPP(@RequestBody PaymentRequestPayToTPPDTO request);
 
     /**
      * JSAPI支付

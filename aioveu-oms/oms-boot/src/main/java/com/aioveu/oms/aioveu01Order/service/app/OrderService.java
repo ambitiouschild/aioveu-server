@@ -8,7 +8,9 @@ import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
 import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
 import com.aioveu.order.model.aioveu01Order.vo.OrderSubmitVO;
 import com.aioveu.order.model.aioveu05OrderPay.form.OrderPaymentForm;
+import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
 import com.aioveu.pay.model.aioveuPayment.PaymentResultVO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestOmsToPayDTO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -157,6 +159,6 @@ public interface OrderService extends IService<OmsOrder> {
     /*
     * 订单支付
     * */
-    PaymentResultVO payOrder(OrderPaymentForm form);
+    PaymentParamsVO payOrder(PaymentRequestOmsToPayDTO form);
 }
 

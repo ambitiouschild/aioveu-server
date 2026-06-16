@@ -24,9 +24,10 @@ import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
 import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
 import com.aioveu.order.model.aioveu01Order.vo.OrderSubmitVO;
 import com.aioveu.pay.api.PayFeignClient;
-import com.aioveu.pay.model.*;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderCreateForm;
+import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
 import com.aioveu.pay.model.aioveuPayment.PaymentResultVO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestOmsToPayDTO;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
 import com.alibaba.nacos.common.utils.StringUtils;
@@ -1921,16 +1922,16 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
      * */
     @Override
     @GlobalTransactional
-    public PaymentResultVO payOrder(OrderPaymentForm form) {
+    public PaymentParamsVO payOrder(PaymentRequestOmsToPayDTO form) {
 
         // 1. 校验订单状态（OMS 职责）
-        OmsOrderForm order = this.getOmsOrderByOrderNo(form.getOrderSn());
+        OmsOrderForm order = this.getOmsOrderByOrderNo(form.getOrderNo());
         if (!OrderStatusEnum.UNPAID.equals(order.getStatus())) {
             throw new BizException("订单不可支付");
         }
 
         // 2. 调用 Pay（只调一次）
-        return payFeignClient.payOrder(form);
+        return payFeignClient.createPaymentOmsToPay(form);
 
     }
 
