@@ -82,7 +82,7 @@ public class AlipayUtil {
 
         // 业务参数
         Map<String, String> bizParams = new HashMap<>();
-        bizParams.put("out_trade_no", request.getOrderNo());
+        bizParams.put("out_trade_no", request.getPayOrderNo());
         bizParams.put("total_amount", request.getPaymentAmount().toString());
         bizParams.put("subject", request.getSubject());
         bizParams.put("body", request.getBody());

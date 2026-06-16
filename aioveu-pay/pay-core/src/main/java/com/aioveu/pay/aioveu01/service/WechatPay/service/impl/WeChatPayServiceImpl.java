@@ -1,6 +1,8 @@
 package com.aioveu.pay.aioveu01.service.WechatPay.service.impl;
 
 import cn.hutool.core.date.DateUtil;
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01.service.WechatPay.config.WeChatPayConfig;
 import com.aioveu.pay.aioveu01.service.WechatPay.requestFactory.WeChatPayRequestFactory;
@@ -141,8 +143,8 @@ public class WeChatPayServiceImpl implements WeChatPayService {
 
             log.info("【微信支付-JSAPI支付（小程序/公众号）】创建JSAPI服务:{}",jsapiService);
 
-            log.info("【微信支付-JSAPI】开始支付，订单号: {}, 金额: {}",
-                    request.getOrderNo(), request.getPaymentAmount());
+            log.info("【微信支付-JSAPI】开始支付，支付订单号PayOrderNo: {}, 金额PaymentAmount: {}",
+                    request.getPayOrderNo(), request.getPaymentAmount());
 
             // 使用工厂创建请求
             com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest prepayRequest =
@@ -162,21 +164,21 @@ public class WeChatPayServiceImpl implements WeChatPayService {
             // 4. 构建返回结果
 
             return PaymentParamsVO.builder()
-                    .paymentNo(request.getOrderNo())
-                    .orderNo(request.getOrderNo())
-                    .amount(request.getPaymentAmount())
-                    .subject(request.getSubject())
-                    .body(request.getBody())
-                    .payType("JSAPI")
-                    .channel("WECHAT")
+//                    .payOrderNo(request.getPayOrderNo())
+                    .orderSn(request.getOrderSn())
+//                    .amount(request.getPaymentAmount())
+//                    .subject(request.getSubject())
+//                    .body(request.getBody())
+                    .paymentChannel(PaymentChannelEnum.WECHAT)
+                    .paymentMethod(PaymentMethodEnum.JSAPI)
                     .prepayId(response.getPrepayId())
-                    .createTime(System.currentTimeMillis())
-                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
+//                    .createTime(System.currentTimeMillis())
+//                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
 //                    .paymentParams(JSON.toJSONString(payParams))
                     .payParams(payParams)
                     .build();
         } catch (Exception e) {
-            log.error("JSAPI支付失败, 订单号: {}", request.getOrderNo(), e);
+            log.error("JSAPI支付失败, 支付订单号: {}", request.getPayOrderNo(), e);
             throw new RuntimeException("JSAPI支付失败", e);
         }
     }
@@ -188,8 +190,8 @@ public class WeChatPayServiceImpl implements WeChatPayService {
         if (request == null) {
             throw new IllegalArgumentException("支付请求不能为空");
         }
-        if (StringUtils.isBlank(request.getOrderNo())) {
-            throw new IllegalArgumentException("订单号不能为空");
+        if (StringUtils.isBlank(request.getPayOrderNo())) {
+            throw new IllegalArgumentException("支付订单号不能为空");
         }
         if (StringUtils.isBlank(request.getOpenId())) {
             throw new IllegalArgumentException("JSAPI支付必须提供openId");
@@ -243,8 +245,8 @@ public class WeChatPayServiceImpl implements WeChatPayService {
             AppService appService = aioveuWeChatPayGetServiceUtil.getAppService();
 
             log.info("【微信支付-App支付）】创建App服务:{}",appService);
-            log.info("【微信支付-APP】开始支付，订单号: {}, 金额: {}",
-                    request.getOrderNo(), request.getPaymentAmount());
+            log.info("【微信支付-APP】开始支付，支付订单号: {}, 金额: {}",
+                    request.getPayOrderNo(), request.getPaymentAmount());
 
             // 使用工厂创建请求
             com.wechat.pay.java.service.payments.app.model.PrepayRequest prepayRequest =
@@ -262,21 +264,22 @@ public class WeChatPayServiceImpl implements WeChatPayService {
 
 
             return PaymentParamsVO.builder()
-                    .paymentNo(request.getOrderNo())
-                    .orderNo(request.getOrderNo())
-                    .amount(request.getPaymentAmount())
-                    .subject(request.getSubject())
-                    .body(request.getBody())
-                    .payType("APP")
-                    .channel("WECHAT")
+//                    .paymentNo(request.getPayOrderNo())
+//                    .orderNo(request.getOrderSn())
+//                    .amount(request.getPaymentAmount())
+//                    .subject(request.getSubject())
+//                    .body(request.getBody())
+                    .paymentChannel(PaymentChannelEnum.WECHAT)
+                    .paymentMethod(PaymentMethodEnum.APP)
+
                     .prepayId(response.getPrepayId())
                     .payParams(payParams)
-                    .createTime(System.currentTimeMillis())
-                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
+//                    .createTime(System.currentTimeMillis())
+//                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
                     .build();
             //简单就是美，特别是业务逻辑代码。等真的出现大量重复时，再考虑提取公共方法。现在这样写最清晰、最易维护。
         } catch (Exception e) {
-            log.error("App支付失败, 订单号: {}", request.getOrderNo(), e);
+            log.error("App支付失败, 订单号: {}", request.getPayOrderNo(), e);
             throw new RuntimeException("App支付失败", e);
         }
     }
@@ -285,7 +288,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
         if (request == null) {
             throw new IllegalArgumentException("支付请求不能为空");
         }
-        if (StringUtils.isBlank(request.getOrderNo())) {
+        if (StringUtils.isBlank(request.getPayOrderNo())) {
             throw new IllegalArgumentException("订单号不能为空");
         }
         if (StringUtils.isBlank(request.getClientIp())) {
@@ -311,8 +314,8 @@ public class WeChatPayServiceImpl implements WeChatPayService {
             H5Service h5Service = aioveuWeChatPayGetServiceUtil.getH5Service();
 
             log.info("【微信支付-H5支付）】创建H5服务:{}",h5Service);
-            log.info("【微信支付-H5】开始支付，订单号: {}, 金额: {}",
-                    request.getOrderNo(), request.getPaymentAmount());
+            log.info("【微信支付-H5】开始支付，支付订单号: {}, 金额: {}",
+                    request.getPayOrderNo(), request.getPaymentAmount());
 
             // 使用工厂创建请求
             com.wechat.pay.java.service.payments.h5.model.PrepayRequest prepayRequest =
@@ -329,21 +332,22 @@ public class WeChatPayServiceImpl implements WeChatPayService {
 
 
             return PaymentParamsVO.builder()
-                    .orderNo(request.getOrderNo())
-                    .amount(request.getPaymentAmount())
-                    .subject(request.getSubject())
-                    .body(request.getBody())
-                    .payType("JSAPI")
-                    .channel("WECHAT")
+                    .orderSn(request.getOrderSn())
+//                    .amount(request.getPaymentAmount())
+//                    .subject(request.getSubject())
+//                    .body(request.getBody())
+                    .paymentChannel(PaymentChannelEnum.WECHAT)
+                    .paymentMethod(PaymentMethodEnum.H5)
+
 //                    .prepayId(response.getPrepayId())
                     .payParams(payParams)
-                    .createTime(System.currentTimeMillis())
-                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
+//                    .createTime(System.currentTimeMillis())
+//                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
                     .build();
 
 
         } catch (Exception e) {
-            log.error("H5支付失败, 订单号: {}", request.getOrderNo(), e);
+            log.error("H5支付失败, 支付订单号: {}", request.getPayOrderNo(), e);
             throw new RuntimeException("H5支付失败", e);
         }
     }
@@ -352,8 +356,8 @@ public class WeChatPayServiceImpl implements WeChatPayService {
         if (request == null) {
             throw new IllegalArgumentException("支付请求不能为空");
         }
-        if (StringUtils.isBlank(request.getOrderNo())) {
-            throw new IllegalArgumentException("订单号不能为空");
+        if (StringUtils.isBlank(request.getPayOrderNo())) {
+            throw new IllegalArgumentException("支付订单号不能为空");
         }
         if (StringUtils.isBlank(request.getClientIp())) {
             throw new IllegalArgumentException("H5支付必须提供客户端IP");

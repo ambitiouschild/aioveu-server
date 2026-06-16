@@ -884,7 +884,7 @@ public class PaymentServiceImpl implements PaymentService {
 //    public <T> T payOrder(OrderPaymentForm paymentForm) {
     public PaymentParamsVO createPaymentOmsToPay(PaymentRequestOmsToPayDTO paymentForm) {
 
-        String orderSn = paymentForm.getOrderNo();
+        String orderSn = paymentForm.getOrderSn();
         PaymentChannelEnum paymentChannel  = paymentForm.getPaymentChannel();
         PaymentMethodEnum paymentMethod  = paymentForm.getPaymentMethod();
         Long reqAmountFen = paymentForm.getPaymentAmount();
@@ -1047,7 +1047,7 @@ public class PaymentServiceImpl implements PaymentService {
         PaymentRequestPayToTPPDTO request = new PaymentRequestPayToTPPDTO();
         request.setUserId(memberId);
         request.setBizType(PaymentBizTypeEnum.ORDER_PAY);
-        request.setOrderNo(payOrder.getOrderNo());
+        request.setOrderSn(payOrder.getOrderNo());
         request.setPaymentAmount(PaymentAmount);
 
         request.setSubject("商品购买");

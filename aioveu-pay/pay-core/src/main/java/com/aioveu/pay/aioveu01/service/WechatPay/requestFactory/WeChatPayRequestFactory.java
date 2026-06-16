@@ -149,7 +149,7 @@ public class WeChatPayRequestFactory {
             requestClass.getMethod("setNotifyUrl", String.class).invoke(prepayRequest, config.getNotifyUrl());
 
             // 设置商户订单号
-            requestClass.getMethod("setOutTradeNo", String.class).invoke(prepayRequest, request.getOrderNo());
+            requestClass.getMethod("setOutTradeNo", String.class).invoke(prepayRequest, request.getPayOrderNo());
 
         } catch (Exception e) {
             throw new RuntimeException("设置支付请求公共参数失败", e);

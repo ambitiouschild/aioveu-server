@@ -1,5 +1,7 @@
 package com.aioveu.pay.model.aioveuPayment;
 
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,28 +31,28 @@ public class PaymentParamsVO implements Serializable {
 
     // ==================== 基础信息 ====================
     @Schema(description = "支付单号(系统内部)", example = "P202502110001", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String paymentNo;
+    private String orderSn;
 
-    @Schema(description = "商户订单号", example = "202502110001", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String orderNo;
+//    @Schema(description = "商户订单号", example = "202502110001", requiredMode = Schema.RequiredMode.REQUIRED)
+//    private String payOrderNo;
 
-    @Schema(description = "支付金额(元)", example = "100.00", requiredMode = Schema.RequiredMode.REQUIRED)
-    private BigDecimal amount;
+//    @Schema(description = "支付金额(元)", example = "100.00", requiredMode = Schema.RequiredMode.REQUIRED)
+//    private BigDecimal amount;
 
-    @Schema(description = "商品标题", example = "iPhone 15 Pro", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String subject;
+//    @Schema(description = "商品标题", example = "iPhone 15 Pro", requiredMode = Schema.RequiredMode.REQUIRED)
+//    private String subject;
 
-    @Schema(description = "商品描述", example = "苹果手机 iPhone 15 Pro 256GB")
-    private String body;
+//    @Schema(description = "商品描述", example = "苹果手机 iPhone 15 Pro 256GB")
+//    private String body;
 
     // ==================== 支付信息 ====================
 
     @Schema(description = "支付渠道: WECHAT-微信 ALIPAY-支付宝")
-    private String channel;
+    private PaymentChannelEnum paymentChannel;
 
 
     @Schema(description = "支付类型: JSAPI-小程序/公众号 APP-APP支付 NATIVE-扫码支付 H5-H5支付")
-    private String payType;
+    private PaymentMethodEnum paymentMethod;
 
     @Schema(description = "预支付ID(微信)", example = "wx20250212170724abc123")
     private String prepayId;
@@ -60,11 +62,11 @@ public class PaymentParamsVO implements Serializable {
     private Map<String, Object> payParams;
 
     // ==================== 时间信息 ====================
-    @Schema(description = "创建时间戳(毫秒)", example = "1739257200000")
-    private Long createTime;
+//    @Schema(description = "创建时间戳(毫秒)", example = "1739257200000")
+//    private Long createTime;
 
-    @Schema(description = "过期时间戳(毫秒)", example = "1739259000000")
-    private Long expireTime;
+//    @Schema(description = "过期时间戳(毫秒)", example = "1739259000000")
+//    private Long expireTime;
 
     // ==================== 快捷方法 ====================
     public Object getPayParam(String key) {

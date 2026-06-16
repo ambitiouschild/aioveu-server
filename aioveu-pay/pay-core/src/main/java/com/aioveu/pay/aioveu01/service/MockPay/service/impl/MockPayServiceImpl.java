@@ -1,5 +1,7 @@
 package com.aioveu.pay.aioveu01.service.MockPay.service.impl;
 
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.common.enums.pay.RefundStatusEnum;
 import com.aioveu.pay.aioveu01.service.MockPay.MockRequestFactory.MockRequestFactory;
@@ -68,14 +70,14 @@ public class MockPayServiceImpl implements MockPayService {
                 }
 
 
-                String orderNo = request.getOrderNo();
+                String payOrderNo = request.getPayOrderNo();
                 BigDecimal amount = request.getPaymentAmount();
                 String openId = request.getOpenId();
 
                 // 记录请求
                 if (mockPayConfig.getLogRequest()) {
-                    log.info("【Mock】订单: {}, 金额: {}分, OpenID: {}",
-                            orderNo, amount, openId);
+                    log.info("【Mock】支付订单: {}, 金额: {}分, OpenID: {}",
+                            payOrderNo, amount, openId);
                 }
 
                 // 模拟延迟
@@ -90,21 +92,21 @@ public class MockPayServiceImpl implements MockPayService {
 
                 // 生成支付参数
                 return PaymentParamsVO.builder()
-                        .paymentNo(request.getOrderNo())
-                        .orderNo(request.getOrderNo())
-                        .amount(request.getPaymentAmount())
-                        .subject(request.getSubject())
-                        .body(request.getBody())
-                        .payType("JSAPI")
-                        .channel("MOCK")
+//                        .payOrderNo(request.getPayOrderNo())
+                        .orderSn(request.getOrderSn())
+//                        .amount(request.getPaymentAmount())
+//                        .subject(request.getSubject())
+//                        .body(request.getBody())
+                        .paymentChannel(PaymentChannelEnum.MOCK)
+                        .paymentMethod(PaymentMethodEnum.JSAPI)
                         .prepayId(prepayId)
                         .payParams(payParams)
-                        .createTime(System.currentTimeMillis())
-                        .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
+//                        .createTime(System.currentTimeMillis())
+//                        .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
                         .build();
 
             }catch (Exception e) {
-                log.error("【Mock】模拟支付jsapiPay支付失败, 订单号: {}", request.getOrderNo(), e);
+                log.error("【Mock】模拟支付jsapiPay支付失败, 支付订单号: {}", request.getPayOrderNo(), e);
                 throw new RuntimeException("【Mock】模拟支付jsapiPay支付失败", e);  //你调用了一个声明抛出 Exception的方法，但没有处理这个异常。
         }
 
@@ -121,14 +123,14 @@ public class MockPayServiceImpl implements MockPayService {
             }
 
 
-            String orderNo = request.getOrderNo();
+            String payOrderNo = request.getPayOrderNo();
             BigDecimal amount = request.getPaymentAmount();
             String openId = request.getOpenId();
 
             // 记录请求
             if (mockPayConfig.getLogRequest()) {
-                log.info("【Mock】 订单: {}, 金额: {}分, OpenID: {}",
-                        orderNo, amount, openId);
+                log.info("【Mock】 支付订单: {}, 金额: {}分, OpenID: {}",
+                        payOrderNo, amount, openId);
             }
 
             // 模拟延迟
@@ -143,22 +145,22 @@ public class MockPayServiceImpl implements MockPayService {
 
             // 生成支付参数
             return PaymentParamsVO.builder()
-                    .paymentNo(request.getOrderNo())
-                    .orderNo(request.getOrderNo())
-                    .amount(request.getPaymentAmount())
-                    .subject(request.getSubject())
-                    .body(request.getBody())
-                    .payType("JSAPI")
-                    .channel("WECHAT")
+//                    .payOrderNo(request.getPayOrderNo())
+                    .orderSn(request.getOrderSn())
+//                    .amount(request.getPaymentAmount())
+//                    .subject(request.getSubject())
+//                    .body(request.getBody())
+                    .paymentChannel(PaymentChannelEnum.MOCK)
+                    .paymentMethod(PaymentMethodEnum.APP)
                     .prepayId(prepayId)
                     .payParams(payParams)
-                    .createTime(System.currentTimeMillis())
-                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
+//                    .createTime(System.currentTimeMillis())
+//                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
                     .build();
 
         }catch (Exception e) {
-            log.error("【Mock】模拟支付jsapiPay支付失败, 订单号: {}", request.getOrderNo(), e);
-            throw new RuntimeException("【Mock】模拟支付jsapiPay支付失败", e);  //你调用了一个声明抛出 Exception的方法，但没有处理这个异常。
+            log.error("【Mock】模拟支付app支付失败, 订单号: {}", request.getPayOrderNo(), e);
+            throw new RuntimeException("【Mock】模拟支付app支付失败", e);  //你调用了一个声明抛出 Exception的方法，但没有处理这个异常。
         }
     }
 
@@ -171,14 +173,14 @@ public class MockPayServiceImpl implements MockPayService {
             }
 
 
-            String orderNo = request.getOrderNo();
+            String payOrderNo = request.getPayOrderNo();
             BigDecimal amount = request.getPaymentAmount();
             String openId = request.getOpenId();
 
             // 记录请求
             if (mockPayConfig.getLogRequest()) {
-                log.info("【Mock】 订单: {}, 金额: {}分, OpenID: {}",
-                        orderNo, amount, openId);
+                log.info("【Mock】 支付订单: {}, 金额: {}分, OpenID: {}",
+                        payOrderNo, amount, openId);
             }
 
             // 模拟延迟
@@ -193,22 +195,22 @@ public class MockPayServiceImpl implements MockPayService {
 
             // 生成支付参数
             return PaymentParamsVO.builder()
-                    .paymentNo(request.getOrderNo())
-                    .orderNo(request.getOrderNo())
-                    .amount(request.getPaymentAmount())
-                    .subject(request.getSubject())
-                    .body(request.getBody())
-                    .payType("JSAPI")
-                    .channel("WECHAT")
+//                    .payOrderNo(request.getPayOrderNo())
+                    .orderSn(request.getOrderSn())
+//                    .amount(request.getPaymentAmount())
+//                    .subject(request.getSubject())
+//                    .body(request.getBody())
+                    .paymentChannel(PaymentChannelEnum.MOCK)
+                    .paymentMethod(PaymentMethodEnum.H5)
                     .prepayId(prepayId)
                     .payParams(payParams)
-                    .createTime(System.currentTimeMillis())
-                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
+//                    .createTime(System.currentTimeMillis())
+//                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
                     .build();
 
         }catch (Exception e) {
-            log.error("【Mock】模拟支付jsapiPay支付失败, 订单号: {}", request.getOrderNo(), e);
-            throw new RuntimeException("【Mock】模拟支付jsapiPay支付失败", e);  //你调用了一个声明抛出 Exception的方法，但没有处理这个异常。
+            log.error("【Mock】模拟支付H5支付失败, 支付订单号: {}", request.getPayOrderNo(), e);
+            throw new RuntimeException("【Mock】模拟支付H5支付失败", e);  //你调用了一个声明抛出 Exception的方法，但没有处理这个异常。
         }
     }
 

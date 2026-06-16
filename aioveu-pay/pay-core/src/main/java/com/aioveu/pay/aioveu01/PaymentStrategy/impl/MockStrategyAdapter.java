@@ -242,7 +242,7 @@ public class MockStrategyAdapter implements PaymentStrategy {
             throw new IllegalArgumentException("【Mock】支付请求不能为空");
         }
 
-        if (request.getOrderNo() == null || request.getOrderNo().trim().isEmpty()) {
+        if (request.getPayOrderNo() == null || request.getPayOrderNo().trim().isEmpty()) {
             throw new IllegalArgumentException("【Mock】订单号不能为空");
         }
 

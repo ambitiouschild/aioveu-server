@@ -1,5 +1,7 @@
 package com.aioveu.pay.aioveu01.service.AliPay.service.AlipayEasyService.impl;
 
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.common.enums.pay.RefundStatusEnum;
 import com.aioveu.pay.aioveu01.service.AliPay.AlipayRequestFactory.AlipayRequestFactory;
@@ -108,8 +110,8 @@ public class AlipayEasyServiceImpl implements AlipayEasyService {
     @Override
     public PaymentParamsVO appPay(PaymentRequestPayToTPPDTO request) {
         try {
-            log.info("支付宝APP支付, 订单号: {}, 金额: {}",
-                    request.getOrderNo(), request.getPaymentAmount());
+            log.info("支付宝APP支付, 支付订单号: {}, 金额: {}",
+                    request.getPayOrderNo(), request.getPaymentAmount());
 
             // 验证请求参数
             validatePaymentRequest(request);
@@ -120,7 +122,7 @@ public class AlipayEasyServiceImpl implements AlipayEasyService {
 
             // 使用EasySDK进行支付
             AlipayTradeAppPayResponse response  = requestFactory.createEasyAppClient()
-                    .pay(request.getSubject(), request.getOrderNo(), request.getPaymentAmount().toString());
+                    .pay(request.getSubject(), request.getPayOrderNo(), request.getPaymentAmount().toString());
 
 //            if (!ALIPAY_SUCCESS_CODE.equals(response.code)) {
 //                throw new RuntimeException(String.format("支付宝APP支付失败: %s - %s",
@@ -130,24 +132,24 @@ public class AlipayEasyServiceImpl implements AlipayEasyService {
             Map<String, Object> payParams = aioveuAlipayGeneratePayParamsUtil.generateAppPayParams(response.getBody());
 
             PaymentParamsVO result = PaymentParamsVO.builder()
-                    .paymentNo(request.getOrderNo())
-                    .orderNo(request.getOrderNo())
-                    .amount(request.getPaymentAmount())
-                    .subject(request.getSubject())
-                    .body(request.getBody())
-                    .payType("JSAPI")
-                    .channel("WECHAT")
+//                    .payOrderNo(request.getPayOrderNo())
+                    .orderSn(request.getOrderSn())
+//                    .amount(request.getPaymentAmount())
+//                    .subject(request.getSubject())
+//                    .body(request.getBody())
+                    .paymentChannel(PaymentChannelEnum.ALIPAY)
+                    .paymentMethod(PaymentMethodEnum.APP)
                     .prepayId("111")
                     .payParams(payParams)
-                    .createTime(System.currentTimeMillis())
-                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
+//                    .createTime(System.currentTimeMillis())
+//                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
                     .build();
 
-            log.info("支付宝APP支付成功, 订单号: {}", request.getOrderNo());
+            log.info("支付宝APP支付成功, 支付订单号: {}", request.getPayOrderNo());
             return result;
 
         } catch (Exception e) {
-            log.error("支付宝APP支付失败, 订单号: {}", request.getOrderNo(), e);
+            log.error("支付宝APP支付失败, 支付订单号: {}", request.getPayOrderNo(), e);
             throw new RuntimeException("支付宝APP支付失败: " + e.getMessage(), e);
         }
     }
@@ -161,8 +163,8 @@ public class AlipayEasyServiceImpl implements AlipayEasyService {
     @Override
     public PaymentParamsVO pagePay(PaymentRequestPayToTPPDTO request) {
         try {
-            log.info("支付宝网页支付, 订单号: {}, 金额: {}",
-                    request.getOrderNo(), request.getPaymentAmount());
+            log.info("支付宝网页支付, 支付订单号: {}, 金额: {}",
+                    request.getPayOrderNo(), request.getPaymentAmount());
 
             // 验证请求参数
             validatePaymentRequest(request);
@@ -173,7 +175,7 @@ public class AlipayEasyServiceImpl implements AlipayEasyService {
 
             // 使用EasySDK进行支付
             AlipayTradePagePayResponse response  = requestFactory.createEasyPageClient()
-                    .pay(request.getSubject(), request.getOrderNo(),
+                    .pay(request.getSubject(), request.getPayOrderNo(),
                             request.getPaymentAmount().toString(), alipayConfig.getReturnUrl());
 
 
@@ -185,24 +187,24 @@ public class AlipayEasyServiceImpl implements AlipayEasyService {
             Map<String, Object> payParams = aioveuAlipayGeneratePayParamsUtil.generateAppPayParams(response.getBody());
 
             PaymentParamsVO result = PaymentParamsVO.builder()
-                    .paymentNo(request.getOrderNo())
-                    .orderNo(request.getOrderNo())
-                    .amount(request.getPaymentAmount())
-                    .subject(request.getSubject())
-                    .body(request.getBody())
-                    .payType("JSAPI")
-                    .channel("WECHAT")
+//                    .payOrderNo(request.getPayOrderNo())
+                    .orderSn(request.getOrderSn())
+//                    .amount(request.getPaymentAmount())
+//                    .subject(request.getSubject())
+//                    .body(request.getBody())
+                    .paymentChannel(PaymentChannelEnum.ALIPAY)
+                    .paymentMethod(PaymentMethodEnum.PAGE)
                     .prepayId("111")
                     .payParams(payParams)
-                    .createTime(System.currentTimeMillis())
-                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
+//                    .createTime(System.currentTimeMillis())
+//                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
                     .build();
 
-            log.info("支付宝网页支付成功, 订单号: {}", request.getOrderNo());
+            log.info("支付宝网页支付成功, 支付订单号: {}", request.getPayOrderNo());
             return result;
 
         } catch (Exception e) {
-            log.error("支付宝网页支付失败, 订单号: {}", request.getOrderNo(), e);
+            log.error("支付宝网页支付失败, 支付订单号: {}", request.getPayOrderNo(), e);
             throw new RuntimeException("支付宝网页支付失败: " + e.getMessage(), e);
         }
     }
@@ -216,8 +218,8 @@ public class AlipayEasyServiceImpl implements AlipayEasyService {
     @Override
     public PaymentParamsVO wapPay(PaymentRequestPayToTPPDTO request) {
         try {
-            log.info("支付宝手机网站支付, 订单号: {}, 金额: {}",
-                    request.getOrderNo(), request.getPaymentAmount());
+            log.info("支付宝手机网站支付, 支付订单号: {}, 金额: {}",
+                    request.getPayOrderNo(), request.getPaymentAmount());
 
             // 验证请求参数
             validatePaymentRequest(request);
@@ -228,7 +230,7 @@ public class AlipayEasyServiceImpl implements AlipayEasyService {
 
             // 使用EasySDK进行支付
             AlipayTradeWapPayResponse response = requestFactory.createEasyWapClient()
-                    .pay(request.getSubject(), request.getOrderNo(),
+                    .pay(request.getSubject(), request.getPayOrderNo(),
                             request.getPaymentAmount().toString(), "", alipayConfig.getReturnUrl());
 
 //            if (!ALIPAY_SUCCESS_CODE.equals(response.code)) {
@@ -239,24 +241,24 @@ public class AlipayEasyServiceImpl implements AlipayEasyService {
             Map<String, Object> payParams = aioveuAlipayGeneratePayParamsUtil.generateAppPayParams(response.getBody());
 
             PaymentParamsVO result = PaymentParamsVO.builder()
-                    .paymentNo(request.getOrderNo())
-                    .orderNo(request.getOrderNo())
-                    .amount(request.getPaymentAmount())
-                    .subject(request.getSubject())
-                    .body(request.getBody())
-                    .payType("JSAPI")
-                    .channel("WECHAT")
+//                    .payOrderNo(request.getPayOrderNo())
+                    .orderSn(request.getOrderSn())
+//                    .amount(request.getPaymentAmount())
+//                    .subject(request.getSubject())
+//                    .body(request.getBody())
+                    .paymentChannel(PaymentChannelEnum.ALIPAY)
+                    .paymentMethod(PaymentMethodEnum.WAP)
                     .prepayId("111")
                     .payParams(payParams)
-                    .createTime(System.currentTimeMillis())
-                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
+//                    .createTime(System.currentTimeMillis())
+//                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
                     .build();
 
-            log.info("支付宝手机网站支付成功, 订单号: {}", request.getOrderNo());
+            log.info("支付宝手机网站支付成功, 支付订单号: {}", request.getPayOrderNo());
             return result;
 
         } catch (Exception e) {
-            log.error("支付宝手机网站支付失败, 订单号: {}", request.getOrderNo(), e);
+            log.error("支付宝手机网站支付失败, 支付订单号: {}", request.getPayOrderNo(), e);
             throw new RuntimeException("支付宝手机网站支付失败: " + e.getMessage(), e);
         }
     }
@@ -462,8 +464,8 @@ public class AlipayEasyServiceImpl implements AlipayEasyService {
             throw new IllegalArgumentException("支付请求不能为空");
         }
 
-        if (request.getOrderNo() == null || request.getOrderNo().trim().isEmpty()) {
-            throw new IllegalArgumentException("订单号不能为空");
+        if (request.getPayOrderNo() == null || request.getPayOrderNo().trim().isEmpty()) {
+            throw new IllegalArgumentException("支付订单号不能为空");
         }
 
         if (request.getPaymentAmount() == null || request.getPaymentAmount().compareTo(BigDecimal.ZERO) <= 0) {

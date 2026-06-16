@@ -32,8 +32,11 @@ public class PaymentRequestOmsToPayDTO implements Serializable {
 
 
     private String userAgent;
-    @NotBlank(message = "订单号不能为空")
-    private String orderNo;
+
+
+    @NotBlank(message = "业务订单号不能为空")
+    @Schema(description = "OMS 业务订单号")
+    private String orderSn;
 
     /**
      * 业务类型：REFUND-退款 ORDER-订单 RECHARGE-充值

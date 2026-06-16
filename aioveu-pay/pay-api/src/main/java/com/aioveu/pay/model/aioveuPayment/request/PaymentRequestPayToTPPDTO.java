@@ -33,8 +33,14 @@ public class PaymentRequestPayToTPPDTO implements Serializable {
 
 
     private String userAgent;
-    @NotBlank(message = "订单号不能为空")
-    private String orderNo;
+
+    @NotBlank(message = "业务订单号不能为空")
+    @Schema(description = "OMS 业务订单号")
+    private String orderSn;
+
+    @NotBlank(message = "支付订单号不能为空")
+    @Schema(description = "支付订单号（对应微信 out_trade_no）")
+    private String payOrderNo;
 
     /**
      * 业务类型：REFUND-退款 ORDER-订单 RECHARGE-充值

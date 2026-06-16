@@ -18,8 +18,8 @@ public enum PaymentMethodEnum {
     H5(2, "H5", "H5支付"),
     JSAPI(3, "JSAPI", "小程序/公众号支付"),
     NATIVE(4, "NATIVE", "扫码支付"),
-    PAGE(5, "PAGE", "PAGE支付"),
-    WAP(6, "WAP", "WAP支付"),
+    PAGE(5, "PAGE", "网页支付"),
+    WAP(6, "WAP", "WAP,手机浏览器（非 App、非微信内）唤起微信 / 支付宝 完成支付,现在一般叫 H5 支付，WAP 是旧称"),
     BALANCE(7, "BALANCE", "余额支付"),
     UNKNOWN(8, "UNKNOWN", "未知");
 

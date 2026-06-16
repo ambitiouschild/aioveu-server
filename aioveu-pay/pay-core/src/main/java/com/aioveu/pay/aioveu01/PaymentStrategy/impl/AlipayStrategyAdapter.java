@@ -99,7 +99,7 @@ public class AlipayStrategyAdapter implements PaymentStrategy{
                     paymentNo, request.getPaymentMethod(), request.getPaymentAmount());
 
             // 设置订单号
-            request.setOrderNo(paymentNo);
+            request.setPayOrderNo(paymentNo);
 
             PaymentMethodEnum paymentMethod = request.getPaymentMethod();
 
@@ -275,7 +275,7 @@ public class AlipayStrategyAdapter implements PaymentStrategy{
             throw new IllegalArgumentException("支付请求不能为空");
         }
 
-        if (request.getOrderNo() == null || request.getOrderNo().trim().isEmpty()) {
+        if (request.getPayOrderNo() == null || request.getPayOrderNo().trim().isEmpty()) {
             throw new IllegalArgumentException("订单号不能为空");
         }
 

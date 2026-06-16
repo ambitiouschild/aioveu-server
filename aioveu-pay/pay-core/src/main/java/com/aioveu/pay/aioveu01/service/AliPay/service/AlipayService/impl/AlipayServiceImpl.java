@@ -1,5 +1,7 @@
 package com.aioveu.pay.aioveu01.service.AliPay.service.AlipayService.impl;
 
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01.service.WechatPay.utils.aliPay.aioveuAlipayGeneratePayParamsUtil;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
@@ -80,8 +82,8 @@ public class AlipayServiceImpl implements AlipayService {
     @Override
     public PaymentParamsVO appPay(PaymentRequestPayToTPPDTO request) {
         try {
-            log.info("支付宝APP支付, 订单号: {}, 金额: {}",
-                    request.getOrderNo(), request.getPaymentAmount());
+            log.info("支付宝APP支付, 支付订单号: {}, 金额: {}",
+                    request.getPayOrderNo(), request.getPaymentAmount());
 
             // 验证请求参数
             validatePaymentRequest(request);
@@ -108,21 +110,21 @@ public class AlipayServiceImpl implements AlipayService {
 
             // 生成支付参数
             return PaymentParamsVO.builder()
-                    .paymentNo(request.getOrderNo())
-                    .orderNo(request.getOrderNo())
-                    .amount(request.getPaymentAmount())
-                    .subject(request.getSubject())
-                    .body(request.getBody())
-                    .payType("JSAPI")
-                    .channel("WECHAT")
+//                    .payOrderNo(request.getPayOrderNo())
+                    .orderSn(request.getOrderSn())
+//                    .amount(request.getPaymentAmount())
+//                    .subject(request.getSubject())
+//                    .body(request.getBody())
+                    .paymentChannel(PaymentChannelEnum.ALIPAY)
+                    .paymentMethod(PaymentMethodEnum.APP)
                     .prepayId("111")
                     .payParams(payParams)
-                    .createTime(System.currentTimeMillis())
-                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
+//                    .createTime(System.currentTimeMillis())
+//                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
                     .build();
 
         } catch (Exception e) {
-            log.error("支付宝APP支付失败, 订单号: {}", request.getOrderNo(), e);
+            log.error("支付宝APP支付失败, 支付订单号: {}", request.getPayOrderNo(), e);
             throw new RuntimeException("支付宝APP支付失败: " + e.getMessage(), e);
         }
     }
@@ -133,8 +135,8 @@ public class AlipayServiceImpl implements AlipayService {
     @Override
     public PaymentParamsVO pagePay(PaymentRequestPayToTPPDTO request)  {
         try {
-            log.info("支付宝网页支付, 订单号: {}, 金额: {}",
-                    request.getOrderNo(), request.getPaymentAmount());
+            log.info("支付宝网页支付, 支付订单号: {}, 金额: {}",
+                    request.getPayOrderNo(), request.getPaymentAmount());
 
             // 验证请求参数
             validatePaymentRequest(request);
@@ -162,21 +164,21 @@ public class AlipayServiceImpl implements AlipayService {
 
             // 生成支付参数
             return PaymentParamsVO.builder()
-                    .paymentNo(request.getOrderNo())
-                    .orderNo(request.getOrderNo())
-                    .amount(request.getPaymentAmount())
-                    .subject(request.getSubject())
-                    .body(request.getBody())
-                    .payType("JSAPI")
-                    .channel("WECHAT")
+//                    .payOrderNo(request.getPayOrderNo())
+                    .orderSn(request.getOrderSn())
+//                    .amount(request.getPaymentAmount())
+//                    .subject(request.getSubject())
+//                    .body(request.getBody())
+                    .paymentChannel(PaymentChannelEnum.ALIPAY)
+                    .paymentMethod(PaymentMethodEnum.WAP)
                     .prepayId("111")
                     .payParams(payParams)
-                    .createTime(System.currentTimeMillis())
-                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
+//                    .createTime(System.currentTimeMillis())
+//                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
                     .build();
 
         } catch (Exception e) {
-            log.error("支付宝网页支付失败, 订单号: {}", request.getOrderNo(), e);
+            log.error("支付宝网页支付失败, 支付订单号: {}", request.getPayOrderNo(), e);
             throw new RuntimeException("支付宝网页支付失败: " + e.getMessage(), e);
         }
     }
@@ -187,8 +189,8 @@ public class AlipayServiceImpl implements AlipayService {
     @Override
     public PaymentParamsVO wapPay(PaymentRequestPayToTPPDTO request)  {
         try {
-            log.info("支付宝手机网站支付, 订单号: {}, 金额: {}",
-                    request.getOrderNo(), request.getPaymentAmount());
+            log.info("支付宝手机网站支付, 支付订单号: {}, 金额: {}",
+                    request.getPayOrderNo(), request.getPaymentAmount());
 
             // 验证请求参数
             validatePaymentRequest(request);
@@ -216,21 +218,21 @@ public class AlipayServiceImpl implements AlipayService {
 
             // 生成支付参数
             return PaymentParamsVO.builder()
-                    .paymentNo(request.getOrderNo())
-                    .orderNo(request.getOrderNo())
-                    .amount(request.getPaymentAmount())
-                    .subject(request.getSubject())
-                    .body(request.getBody())
-                    .payType("JSAPI")
-                    .channel("WECHAT")
+//                    .payOrderNo(request.getPayOrderNo())
+                    .orderSn(request.getOrderSn())
+//                    .amount(request.getPaymentAmount())
+//                    .subject(request.getSubject())
+//                    .body(request.getBody())
+                    .paymentChannel(PaymentChannelEnum.ALIPAY)
+                    .paymentMethod(PaymentMethodEnum.PAGE)
                     .prepayId("111")
                     .payParams(payParams)
-                    .createTime(System.currentTimeMillis())
-                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
+//                    .createTime(System.currentTimeMillis())
+//                    .expireTime(System.currentTimeMillis() + 30 * 60 * 1000) // 30分钟
                     .build();
 
         } catch (Exception e) {
-            log.error("支付宝手机网站支付失败, 订单号: {}", request.getOrderNo(), e);
+            log.error("支付宝手机网站支付失败, 支付订单号: {}", request.getPayOrderNo(), e);
             throw new RuntimeException("支付宝手机网站支付失败: " + e.getMessage(), e);
         }
     }
@@ -440,8 +442,8 @@ public class AlipayServiceImpl implements AlipayService {
             throw new IllegalArgumentException("支付请求不能为空");
         }
 
-        if (request.getOrderNo() == null || request.getOrderNo().trim().isEmpty()) {
-            throw new IllegalArgumentException("订单号不能为空");
+        if (request.getPayOrderNo() == null || request.getPayOrderNo().trim().isEmpty()) {
+            throw new IllegalArgumentException("支付订单号不能为空");
         }
 
         if (request.getPaymentAmount() == null || request.getPaymentAmount().compareTo(BigDecimal.ZERO) <= 0) {

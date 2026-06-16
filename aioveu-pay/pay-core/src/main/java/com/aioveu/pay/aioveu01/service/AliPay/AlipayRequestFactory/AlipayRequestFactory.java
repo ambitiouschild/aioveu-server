@@ -162,8 +162,8 @@ public class AlipayRequestFactory {
      * @return 请求参数
      */
     public Map<String, String> createAppRequest(PaymentRequestPayToTPPDTO request, AlipayConfig config) {
-        log.info("创建APP支付请求, 订单号: {}, 金额: {}",
-                request.getOrderNo(), request.getPaymentAmount());
+        log.info("创建APP支付请求, 支付订单号: {}, 金额: {}",
+                request.getPayOrderNo(), request.getPaymentAmount());
 
         Map<String, String> params = new HashMap<>();
 
@@ -186,8 +186,8 @@ public class AlipayRequestFactory {
      * @return 请求参数
      */
     public Map<String, String> createPageRequest(PaymentRequestPayToTPPDTO request, AlipayConfig config) {
-        log.info("创建网页支付请求, 订单号: {}, 金额: {}",
-                request.getOrderNo(), request.getPaymentAmount());
+        log.info("创建网页支付请求, 支付订单号: {}, 金额: {}",
+                request.getPayOrderNo(), request.getPaymentAmount());
 
         Map<String, String> params = new HashMap<>();
 
@@ -211,8 +211,8 @@ public class AlipayRequestFactory {
      * @return 请求参数
      */
     public Map<String, String> createWapRequest(PaymentRequestPayToTPPDTO request, AlipayConfig config) {
-        log.info("创建手机网站支付请求, 订单号: {}, 金额: {}",
-                request.getOrderNo(), request.getPaymentAmount());
+        log.info("创建手机网站支付请求, 支付订单号: {}, 金额: {}",
+                request.getPayOrderNo(), request.getPaymentAmount());
 
         Map<String, String> params = new HashMap<>();
 
@@ -347,7 +347,7 @@ public class AlipayRequestFactory {
         // 业务参数 - 只有在支付请求时才设置
         if (request != null) {
             Map<String, Object> bizContent = new HashMap<>();
-            bizContent.put(OUT_TRADE_NO_KEY, request.getOrderNo());
+            bizContent.put(OUT_TRADE_NO_KEY, request.getPayOrderNo());
             bizContent.put(TOTAL_AMOUNT_KEY, request.getPaymentAmount().toString());
             bizContent.put(SUBJECT_KEY, request.getSubject());
 
@@ -427,7 +427,7 @@ public class AlipayRequestFactory {
     public String createEasyOrderModel(PaymentRequestPayToTPPDTO request, String productCode) {
         Map<String, Object> order = new HashMap<>();
         order.put(SUBJECT_KEY, request.getSubject());
-        order.put(OUT_TRADE_NO_KEY, request.getOrderNo());
+        order.put(OUT_TRADE_NO_KEY, request.getPayOrderNo());
         order.put(TOTAL_AMOUNT_KEY, request.getPaymentAmount().toString());
         order.put("product_code", productCode);
 
@@ -472,8 +472,8 @@ public class AlipayRequestFactory {
             throw new IllegalArgumentException("支付请求不能为空");
         }
 
-        if (request.getOrderNo() == null || request.getOrderNo().trim().isEmpty()) {
-            throw new IllegalArgumentException("订单号不能为空");
+        if (request.getPayOrderNo() == null || request.getPayOrderNo().trim().isEmpty()) {
+            throw new IllegalArgumentException("支付订单号不能为空");
         }
 
         if (request.getPaymentAmount() == null || request.getPaymentAmount().compareTo(BigDecimal.ZERO) <= 0) {
