@@ -30,27 +30,27 @@ import java.math.BigDecimal;
 public class PayOrderCreateForm implements Serializable {
 
     @Schema(description = "业务订单号")
-    @NotBlank(message = "业务订单号不能为空")
+    @NotBlank(message = "【PayOrderCreateForm】业务订单号不能为空")
     private String orderNo;
 
     @Schema(description = "业务类型")
-    @NotNull(message = "业务类型不能为空")
+    @NotNull(message = "【PayOrderCreateForm】业务类型不能为空")
     private PaymentBizTypeEnum bizType;
 
     @Schema(description = "用户ID")
-    @NotNull(message = "用户ID不能为空")
+    @NotNull(message = "【PayOrderCreateForm】用户ID不能为空")
     private Long userId;
 
     @Schema(description = "支付金额")
-    @NotNull(message = "支付金额不能为空")
+    @NotNull(message = "【PayOrderCreateForm】支付金额不能为空")
     private BigDecimal paymentAmount;
 
     @Schema(description = "支付渠道")
-    @NotNull(message = "支付渠道不能为空")
+    @NotNull(message = "【PayOrderCreateForm】支付渠道不能为空")
     private PaymentChannelEnum paymentChannel;
 
     @Schema(description = "支付方式")
-    @NotNull(message = "支付方式不能为空")
+    @NotNull(message = "【PayOrderCreateForm】支付方式不能为空")
     private PaymentMethodEnum paymentMethod;
 
     @Schema(description = "订单标题")

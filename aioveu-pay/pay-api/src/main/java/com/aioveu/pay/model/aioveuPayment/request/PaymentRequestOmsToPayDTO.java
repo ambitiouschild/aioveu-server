@@ -34,20 +34,20 @@ public class PaymentRequestOmsToPayDTO implements Serializable {
     private String userAgent;
 
 
-    @NotBlank(message = "业务订单号不能为空")
+    @NotBlank(message = "【PaymentRequestOmsToPayDTO】业务订单号不能为空")
     @Schema(description = "OMS 业务订单号")
     private String orderSn;
 
     /**
      * 业务类型：REFUND-退款 ORDER-订单 RECHARGE-充值
      */
-    @NotNull(message = "业务类型不能为空")
+    @NotNull(message = "【PaymentRequestOmsToPayDTO】业务类型不能为空")
     private PaymentBizTypeEnum bizType;
 
 //    @NotNull(message = "用户ID不能为空")
     private Long userId;
 
-    @NotNull(message = "支付金额不能为空")
+    @NotNull(message = "【PaymentRequestOmsToPayDTO】支付金额不能为空")
     @DecimalMin(value = "0.01", message = "支付金额必须大于0")
     private Long paymentAmount;
 
@@ -57,7 +57,7 @@ public class PaymentRequestOmsToPayDTO implements Serializable {
     举例：微信支付、支付宝、银联、Apple Pay、PayPal
     比喻：银行/支付机构，就像不同的银行*/
     @Schema(description = "支付渠道")
-    @NotNull(message = "支付渠道不能为空")
+    @NotNull(message = "【PaymentRequestOmsToPayDTO】支付渠道不能为空")
     private PaymentChannelEnum paymentChannel;
 
     /*    支付类型/方式 (Pay Type)
@@ -66,7 +66,7 @@ public class PaymentRequestOmsToPayDTO implements Serializable {
     举例：APP支付、小程序支付、扫码支付、H5支付
     比喻：银行的支付方式，就像银行的ATM、网银、手机银行*/
     @Schema(description = "支付类型/方式")
-    @NotNull(message = "支付类型/方式不能为空")
+    @NotNull(message = "【PaymentRequestOmsToPayDTO】支付类型/方式不能为空")
     private PaymentMethodEnum paymentMethod;
 
 }

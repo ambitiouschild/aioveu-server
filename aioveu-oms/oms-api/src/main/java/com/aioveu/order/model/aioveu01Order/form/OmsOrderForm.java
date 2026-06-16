@@ -33,48 +33,48 @@ public class OmsOrderForm implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "订单号")
-    @NotBlank(message = "订单号不能为空")
+    @NotBlank(message = "【OmsOrderForm】订单号不能为空")
     @Size(max=64, message="订单号长度不能超过64个字符")
     private String orderSn;
 
     @Schema(description = "订单总额（分）")
-    @NotNull(message = "订单总额（分）不能为空")
+    @NotNull(message = "【OmsOrderForm】订单总额（分）不能为空")
     private Long totalAmount;
 
     @Schema(description = "商品总数")
-    @NotNull(message = "商品总数不能为空")
+    @NotNull(message = "【OmsOrderForm】商品总数不能为空")
     private Integer totalQuantity;
 
     @Schema(description = "订单来源(1:APP；2:网页)")
     private Integer source;
 
     @Schema(description = "订单状态：")
-    @NotNull(message = "订单状态：")
+    @NotNull(message = "【OmsOrderForm】订单状态不能为空")
     private OrderStatusEnum status;
 
     @Schema(description = "订单备注")
-    @NotBlank(message = "订单备注不能为空")
+    @NotBlank(message = "【OmsOrderForm】订单备注不能为空")
     @Size(max=500, message="订单备注长度不能超过500个字符")
     private String remark;
 
     @Schema(description = "会员id")
-    @NotNull(message = "会员id不能为空")
+    @NotNull(message = "【OmsOrderForm】会员id不能为空")
     private Long memberId;
 
     @Schema(description = "使用的优惠券")
-    @NotNull(message = "使用的优惠券不能为空")
+    @NotNull(message = "【OmsOrderForm】使用的优惠券不能为空")
     private Long couponId;
 
     @Schema(description = "优惠券抵扣金额（分）")
-    @NotNull(message = "优惠券抵扣金额（分）不能为空")
+    @NotNull(message = "【OmsOrderForm】优惠券抵扣金额（分）不能为空")
     private Long couponAmount;
 
     @Schema(description = "运费金额（分）")
-    @NotNull(message = "运费金额（分）不能为空")
+    @NotNull(message = "【OmsOrderForm】运费金额（分）不能为空")
     private Long freightAmount;
 
     @Schema(description = "应付总额（分）")
-    @NotNull(message = "应付总额（分）不能为空")
+    @NotNull(message = "【OmsOrderForm】应付总额（分）不能为空")
     private Long paymentAmount;
 
     @Schema(description = "支付时间")

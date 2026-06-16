@@ -1925,7 +1925,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     public PaymentParamsVO payOrder(PaymentRequestOmsToPayDTO form) {
 
         // 1. 校验订单状态（OMS 职责）
-        OmsOrderForm order = this.getOmsOrderByOrderNo(form.getOrderNo());
+        OmsOrderForm order = this.getOmsOrderByOrderNo(form.getOrderSn());
         if (!OrderStatusEnum.UNPAID.equals(order.getStatus())) {
             throw new BizException("订单不可支付");
         }
