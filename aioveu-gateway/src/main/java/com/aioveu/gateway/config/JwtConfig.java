@@ -1,15 +1,13 @@
 package com.aioveu.gateway.config;
 
 
-import org.springframework.beans.factory.annotation.Value;
+import com.aioveu.gateway.config.property.GatewayProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
-
-import java.time.Duration;
 
 /**
  * @ClassName: JwtConfig
@@ -34,7 +32,7 @@ public class JwtConfig {
     @Bean("gatewayJwtDecoder")
     public ReactiveJwtDecoder reactiveJwtDecoder() {
 
-        String jwksUri = gatewayProperties.getEndpoint() + "/aioveu-auth/oauth2/jwks";
+        String jwksUri = gatewayProperties.getEndpoint() + "/aioveu-tenant-auth/oauth2/jwks";
 
         NimbusReactiveJwtDecoder decoder =
                 NimbusReactiveJwtDecoder.withJwkSetUri(jwksUri).build();

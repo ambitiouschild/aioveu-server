@@ -1,4 +1,4 @@
-package com.aioveu.gateway.config;
+package com.aioveu.gateway.config.property;
 
 
 import lombok.Data;
