@@ -1,10 +1,17 @@
 package com.aioveu.pay.aioveu00Payment.service.impl;
 
+import cn.hutool.core.lang.Assert;
+import cn.hutool.json.JSONUtil;
+import com.aioveu.common.constant.OrderConstants;
 import com.aioveu.common.enums.oms.OrderStatusEnum;
+import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.Result;
 import com.aioveu.common.result.ResultCode;
+import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.order.api.OrderFeignClient;
 import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
@@ -18,18 +25,27 @@ import com.aioveu.pay.aioveu08PayAccount.service.PayAccountService;
 import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategy;
 import com.aioveu.pay.aioveu01.PaymentStrategy.impl.PaymentStrategyFactory;
 //import com.aioveu.pay.aioveuModule.channelRouter.ChannelRouter;
-import com.aioveu.pay.aioveu01.model.vo.*;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
 import com.aioveu.pay.aioveu12MqProducerPayment.enums.PaymentMqBizType;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.SendPaymentMqDTO;
 import com.aioveu.pay.aioveu12MqProducerPayment.service.PayCommonMessageProducerService;
-import com.aioveu.pay.aioveu01.enums.PaymentCallbackStatusEnum;
+import com.aioveu.common.enums.pay.PaymentCallbackStatusEnum;
 import com.aioveu.pay.aioveu13PayCallbackRecord.model.entity.PayCallbackRecord;
 import com.aioveu.pay.aioveu13PayCallbackRecord.service.PayCallbackRecordService;
+import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestOmsToPayDTO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
+import com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO;
+import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
+import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
+import com.aioveu.ums.api.MemberFeignClient;
 import com.alibaba.fastjson.JSON;
+import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +60,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import com.aioveu.common.rabbitmq.producer.util.MessageIdGenerator;
+
+import static cn.hutool.core.util.NumberUtil.toBigDecimal;
+
 /**
  * @ClassName: aa
  * @Description TODO 主要业务逻辑接口实现
@@ -79,15 +98,22 @@ public class PaymentServiceImpl implements PaymentService {
     @Value("${pay.alipay.public-key:}")
     private String aliPublicKey;
 
+    // 开启模拟支付
+    @Value("${pay.mock.enabled:true}")
+    private Boolean mockPayEnabled;
 
+    // 分布式锁客户端
+    private final RedissonClient redissonClient;
+    // 会员服务Feign客户端
+    private final MemberFeignClient memberFeignClient;
     /**
      * 统一支付接口
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<PaymentParamsVO> unifiedPayment(PaymentRequestDTO request) {
+    public PaymentParamsVO createPaymentPayToTPP(PaymentRequestPayToTPPDTO request) {
         try {
-            log.info("============【Pay】统一支付接口============");
+            log.info("============【Pay】unifiedPayment统一支付接口============");
 
             // 1. 参数校验
 //            validatePaymentRequest(request);
@@ -99,7 +125,7 @@ public class PaymentServiceImpl implements PaymentService {
             log.info("【Pay】支付订单支付单号paymentNo：{}",paymentNo);
 
             // 3. 根据支付渠道选择支付策略
-            PaymentStrategy strategy = strategyFactory.getStrategy(request.getChannel());
+            PaymentStrategy strategy = strategyFactory.getStrategy(request.getPaymentChannel());
             log.info("【Pay】获取支付策略：{}",strategy.getClass().getSimpleName());
 
             // 4. 调用策略获取支付参数
@@ -107,7 +133,7 @@ public class PaymentServiceImpl implements PaymentService {
             log.info("【Pay】调用策略支付后获取的请求参数：{}", params);
 
             // 5. 直接返回支付参数VO
-            return Result.success(params);
+            return params;
 
         } catch (BusinessException e) {
             log.error("支付业务异常", e);
@@ -840,4 +866,283 @@ public class PaymentServiceImpl implements PaymentService {
 //            throw new BusinessException("退款系统异常");
 //        }
 //    }
+
+
+
+    /**
+     *         TODO             订单支付
+     *                      支持多种支付方式：微信支付、余额支付
+     *                      支付流程：
+     *                      - 余额支付：立即扣减余额、库存，更新订单状态
+     *                      - 微信支付：生成支付参数，实际处理在支付回调中
+     *
+     * @param paymentForm 支付表单数据
+     * @return 支付结果（微信支付返回调起参数，余额支付返回布尔值）
+     */
+    @Override
+    @GlobalTransactional
+//    public <T> T payOrder(OrderPaymentForm paymentForm) {
+    public PaymentParamsVO createPaymentOmsToPay(PaymentRequestOmsToPayDTO paymentForm) {
+
+        String orderSn = paymentForm.getOrderNo();
+        PaymentChannelEnum paymentChannel  = paymentForm.getPaymentChannel();
+        PaymentMethodEnum paymentMethod  = paymentForm.getPaymentMethod();
+        Long reqAmountFen = paymentForm.getPaymentAmount();
+
+        log.info("【支付】开始处理，订单号: {}, 支付渠道: {}, 支付方式: {},支付金额: {},模拟模式: {}",
+                orderSn, paymentChannel, paymentMethod, reqAmountFen, mockPayEnabled);
+
+        // 1.  基础参数校验
+        if (reqAmountFen == null || reqAmountFen <= 0) {
+            log.error("【支付】支付金额无效: {}", reqAmountFen);
+            throw new BizException("支付金额必须大于0");
+        }
+
+
+        //✅ 2查支付订单（✅ 必须补）（✅ 金额唯一可信来源）
+        PayOrderVO payOrder = payOrderService.getPayOrderByOrderNo(orderSn);
+        Assert.notNull(payOrder, "支付订单不存在");
+        log.info("查支付订单（✅ 必须补）,根据订单号查询支付订单PayOrder:{}",payOrder);
+
+        //  验证订单金额 ✅ 用 PayOrder 校验金额（✅ 关键）
+        Long payAmountFen = yuanToFen(payOrder.getPaymentAmount()); // ✅ 转分
+        if (payAmountFen == null || payAmountFen <= 0) {
+            log.error("【支付】订单金额异常: {}", payAmountFen);
+            throw new BizException("订单金额异常");
+        }
+
+
+        // 3. 比较金额  你在验证金额时，应该用原始的分进行比较，而不是转换后的元：
+        //保持单位为分进行比较（推荐）
+        if (!payAmountFen.equals(reqAmountFen)) {
+
+            // ✅ 只用于展示：转为“元”
+            BigDecimal payYuan = fenToYuan(payAmountFen);
+            BigDecimal reqYuan = fenToYuan(reqAmountFen);
+
+            // 显示用
+            log.error("【支付】金额不匹配，支付订单金额: ¥{}，请求金额: ¥{}",
+                    payYuan.toPlainString(), reqYuan.toPlainString());
+
+            throw new BizException(String.format("支付金额不匹配，订单金额: ¥%.2f",
+                    payYuan.toPlainString()));
+        }
+        //✅ 用 PayOrder 校验金额（✅ 关键）
+        log.info("✅ 用 PayOrder 校验金额（✅） 关键");
+        log.info("✅ 永远用 PayOrder 的金额做资金判断");
+        log.info("✅ PayOrder 金额校验通过");
+
+        // 4. 查询业务订单（✅ 只校验状态，不碰金额）
+        OmsOrderForm omsOrderForm = orderFeignClient.getOmsOrderByOrderNo(orderSn);
+        Assert.notNull(omsOrderForm, "oms订单不存在");
+        log.info("校验订单状态是否可支付");
+        if (!OrderStatusEnum.UNPAID.getValue().equals(omsOrderForm.getStatus())) {
+            throw new BizException("订单不可支付，请检查订单状态");
+        }
+
+        // 5. 支付渠道校验
+        if (!isValidPaymentChannel(paymentChannel)) {
+            throw new BizException("不支持的支付渠道: " + paymentChannel);
+        }
+
+        // 6. 分布式锁（防重复支付）
+        log.info("使用分布式锁防止重复支付（同一订单同时支付）");
+        RLock lock = redissonClient.getLock(OrderConstants.ORDER_LOCK_PREFIX + payOrder.getOrderNo());
+        log.info("获取锁");
+        lock.lock();
+        log.info("【支付】获取分布式锁成功");
+
+        // 继续支付流程...
+
+        try {
+            // 7. 真实支付处理
+            return processRealPayment(paymentForm, paymentChannel, paymentMethod, payOrder, lock);
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+
+
+        // 3. 判断使用模拟支付还是真实支付
+//        if (Boolean.TRUE.equals(mockPayEnabled) && mockPayService.isMockEnabled()) {
+//            log.info("【支付】使用模拟支付");
+//            return processMockPayment(orderSn, paymentMethod, paymentAmount);
+//        } else {
+//            log.info("【支付】使用真实支付");
+//            return processRealPayment(paymentForm, paymentMethod, order, lock);
+//        }
+
+
+    }
+
+    /**
+     * 处理真实支付
+     */
+    private PaymentParamsVO processRealPayment(PaymentRequestOmsToPayDTO paymentForm,
+                                               PaymentChannelEnum paymentChannel,
+                                               PaymentMethodEnum  paymentMethod,
+                                               PayOrderVO payOrder,
+                                               RLock lock) {
+        // 原有的真实支付逻辑
+        // 这里可以留空或抛出异常，提示需要配置真实支付
+
+        try {
+
+            log.info("根据支付渠道和支付方式路由到不同的支付处理逻辑");
+
+//            String appId=paymentForm.getAppId();
+            String orderNo =   payOrder.getOrderNo();
+
+            Long memberId = SecurityUtils.getMemberId();
+
+            // 7. 获取用户的微信OpenID
+            log.info("【会员微服务】获取用户OpenID，会员ID: {}", memberId);
+            Result<String> openIdResult = memberFeignClient.getOpenIdByMemberId(memberId);
+
+            String openId = openIdResult.getData();
+            log.info("【会员微服务】用户OpenID获取成功: {}", openId);
+
+
+            // 1. 构建支付请求
+            PaymentRequestPayToTPPDTO paymentRequest = buildPaymentRequest(payOrder, paymentChannel, paymentMethod, memberId, openId);
+            log.info("【支付微服务】Pay微服务后端createPayment需求参数PaymentRequestDTO: {}", JSONUtil.toJsonStr(paymentRequest));
+
+            // 2. 调用支付微服务
+
+            PaymentParamsVO  paymentParamsVO = this.createPaymentPayToTPP(paymentRequest);
+            log.info("【支付微服务】调用支付微服务payFeignClient，获取前端调用第三方支付所需的支付参数PaymentParamsVO:{}",paymentParamsVO);
+
+
+            if (paymentParamsVO == null) {
+                throw new BizException("支付服务返回空结果");
+            }
+
+
+            return paymentParamsVO;
+        } finally {
+            //释放锁
+
+            log.info("释放锁");
+            if (lock.isLocked()) {
+                lock.unlock();
+            }
+        }
+
+//        throw new BizException("真实支付功能未配置，请启用模拟支付或配置真实支付参数");
+    }
+
+
+    /**
+     * 构建支付请求
+     */
+    private PaymentRequestPayToTPPDTO buildPaymentRequest(PayOrderVO payOrder,
+                                                              PaymentChannelEnum paymentChannel,
+                                                              PaymentMethodEnum paymentMethod,
+                                                              Long memberId,
+                                                              String openId) {
+
+        BigDecimal PaymentAmount = payOrder.getPaymentAmount();
+
+        PaymentRequestPayToTPPDTO request = new PaymentRequestPayToTPPDTO();
+        request.setUserId(memberId);
+        request.setBizType(PaymentBizTypeEnum.ORDER_PAY);
+        request.setOrderNo(payOrder.getOrderNo());
+        request.setPaymentAmount(PaymentAmount);
+
+        request.setSubject("商品购买");
+        request.setBody("订单号：" + payOrder.getOrderNo());
+
+        // ✅ 渠道
+        request.setPaymentChannel(paymentChannel);
+        log.info("【构建支付请求】支付渠道:{}", paymentChannel);
+
+        // ✅ 支付方式（不再写死）
+        request.setPaymentMethod(paymentMethod);
+        log.info("【构建支付请求】支付方式:{}", paymentMethod);
+
+        // ✅ 根据支付方式决定参数
+        Map<String, Object> extraParams = new HashMap<>();
+
+        // ✅ 根据支付方式决定参数
+        switch (paymentMethod) {
+            case JSAPI:
+                if (com.alibaba.nacos.common.utils.StringUtils.isBlank(openId)) {
+                    throw new BizException("JSAPI 支付必须传入 openId");
+                }
+                request.setOpenId(openId);
+                extraParams.put("appId", getAppIdByMethod(paymentChannel,paymentMethod));
+                break;
+            case APP:
+                extraParams.put("appId", getAppIdByMethod(paymentChannel,paymentMethod));
+                break;
+            case H5:
+                extraParams.put("appId", getAppIdByMethod(paymentChannel,paymentMethod));
+//                extraParams.put("sceneInfo", buildSceneInfo());
+                break;
+            case NATIVE:
+                extraParams.put("appId", getAppIdByMethod(paymentChannel,paymentMethod));
+                break;
+            case BALANCE:
+                // 余额支付不走三方
+                break;
+            default:
+                throw new BizException("不支持的支付渠道: " + paymentChannel);
+        }
+
+        // 额外参数
+        request.setExtraParams(extraParams);
+
+        return request;
+    }
+
+
+    /**
+     * 根据支付方式获取AppId
+     */
+    private String getAppIdByMethod(PaymentChannelEnum paymentChannel,
+                                    PaymentMethodEnum paymentMethod) {
+
+        if (paymentChannel == PaymentChannelEnum.WECHAT) {
+            return switch (paymentMethod) {
+                case JSAPI -> "wxJsapiAppId";
+                case APP -> "wxAppAppId";
+                case H5 -> "wxH5AppId";
+                default -> throw new BizException("微信不支持该支付方式");
+            };
+        }
+
+
+        if (paymentChannel == PaymentChannelEnum.ALIPAY) {
+            return "aliAppId";
+        }
+
+        return null;
+    }
+
+    private BigDecimal fenToYuan(Long fen) {
+        return BigDecimal.valueOf(fen)
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+    }
+
+
+    /**
+     * BigDecimal 元 → Long 分
+     */
+    private Long yuanToFen(BigDecimal amountYuan) {
+        return amountYuan
+                .setScale(2, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100))
+                .longValueExact();
+    }
+
+
+    /**
+     * 检查支付渠道是否有效
+     */
+    private boolean isValidPaymentChannel(PaymentChannelEnum paymentChannel) {
+
+        return paymentChannel != null && paymentChannel != PaymentChannelEnum.UNKNOWN;
+    }
+
 }

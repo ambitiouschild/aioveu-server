@@ -1,8 +1,13 @@
 package com.aioveu.pay.aioveu01.PaymentStrategy.impl;
 
+import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategy;
-import com.aioveu.pay.aioveu01.model.vo.*;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
+import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
+import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
+import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
+import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,30 +39,30 @@ public class WeChatPayStrategyAdapter implements PaymentStrategy {
     }
 
     @Override
-    public PaymentParamsVO appPay(String paymentNo, PaymentRequestDTO request) {
+    public PaymentParamsVO appPay(String paymentNo, PaymentRequestPayToTPPDTO request) {
 
 
         //如果现有的 WechatPayService已经支持多种支付方式（JSAPI、APP、Native、H5），可以这样增强
         // 根据请求类型调用不同的支付方法
-        String payType = request.getPayType();
-        log.info("【微信支付策略适配器】根据请求类型调用不同的支付方法payType：{}",payType);
+        PaymentMethodEnum paymentMethod = request.getPaymentMethod();
+        log.info("【微信支付策略适配器】根据请求类型调用不同的支付方法paymentMethod：{}",paymentMethod);
 
-        switch (payType) {
-            case "JSAPI":
+        switch (paymentMethod) {
+            case JSAPI:
                 log.info("【微信支付服务接口】调用JSAPI支付（小程序/公众号）");
                 log.info("【微信支付服务接口】请求OpenId：{}",request.getOpenId());
                 return weChatPayService.jsapiPay(request);
-            case "APP":
+            case APP:
                 log.info("【微信支付服务接口】调用App支付");
                 return weChatPayService.appPay(request);
-            case "NATIVE":
+            case NATIVE:
                 log.info("【微信支付服务接口】调用Native支付（扫码支付）");
 //                return weChatPayService.nativePay(request);
-            case "H5":
+            case H5:
                 log.info("【微信支付服务接口】调用H5支付");
                 return weChatPayService.h5Pay(request);
             default:
-                throw new IllegalArgumentException("不支持的支付类型: " + payType);
+                throw new IllegalArgumentException("不支持的支付类型: " + paymentMethod);
         }
     }
 
@@ -82,7 +87,7 @@ public class WeChatPayStrategyAdapter implements PaymentStrategy {
     }
 
     @Override
-    public RefundResultVO refund(String refundNo, RefundRequestDTO request) {
+    public com.aioveu.pay.model.aioveuPayment.RefundResultVO refund(String refundNo, RefundRequestDTO request) {
         // 直接调用现有的退款方法
         return weChatPayService.refund(request);
     }

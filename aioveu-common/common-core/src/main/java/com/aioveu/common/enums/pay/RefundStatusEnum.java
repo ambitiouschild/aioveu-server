@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu01.enums;
+package com.aioveu.common.enums.pay;
 
 
 import lombok.Getter;

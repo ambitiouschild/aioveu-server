@@ -21,10 +21,12 @@ import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
 import com.aioveu.common.enums.oms.OrderDeliveryStatusEnum;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
+import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
 import com.aioveu.order.model.aioveu01Order.vo.OrderSubmitVO;
 import com.aioveu.pay.api.PayFeignClient;
 import com.aioveu.pay.model.*;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderCreateForm;
+import com.aioveu.pay.model.aioveuPayment.PaymentResultVO;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
 import com.alibaba.nacos.common.utils.StringUtils;
@@ -46,8 +48,8 @@ import com.aioveu.common.enums.oms.OrderSourceEnum;
 import com.aioveu.oms.aioveu01Order.mapper.OmsOrderMapper;
 import com.aioveu.oms.aioveu02OrderItem.model.vo.OrderItemDTO;
 import com.aioveu.oms.aioveu02OrderItem.model.entity.OmsOrderItem;
-import com.aioveu.oms.aioveu05OrderPay.model.form.OrderPaymentForm;
-import com.aioveu.oms.aioveu05OrderPay.model.form.OrderSubmitForm;
+import com.aioveu.order.model.aioveu05OrderPay.form.OrderPaymentForm;
+import com.aioveu.order.model.aioveu05OrderPay.form.OrderSubmitForm;
 import com.aioveu.oms.aioveu01Order.model.query.OrderPageQuery;
 import com.aioveu.oms.aioveu01Order.service.CartService;
 import com.aioveu.oms.aioveu02OrderItem.service.OmsOrderItemService;
@@ -75,7 +77,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
 
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -145,8 +146,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     // 线程池执行器，用于异步任务处理
     private final ThreadPoolExecutor threadPoolExecutor;
 
-    // 会员服务Feign客户端
-    private final MemberFeignClient memberFeignClient;
+
 
     // 商品服务Feign客户端
     private final SkuFeignClient skuFeignClient;
@@ -155,9 +155,9 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     // 添加支付微服务 Feign 客户端
     private final PayFeignClient payFeignClient;
 
+    // 会员服务Feign客户端
+    private final MemberFeignClient memberFeignClient;
 
-    // 分布式锁客户端
-    private final RedissonClient redissonClient;
 
     // 订单转换器
     private final OmsOrderConverter omsOrderConverter;
@@ -173,9 +173,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
     private final TenantFeignClient tenantFeignClient;
 
-    // 开启模拟支付
-    @Value("${pay.mock.enabled:true}")
-    private Boolean mockPayEnabled;
+
 
     /**
      * TODO  订单分页列表查询
@@ -1113,268 +1111,17 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 //    }
 
 
-    /**
-     *         TODO             订单支付
-     *                      支持多种支付方式：微信支付、余额支付
-     *                      支付流程：
-     *                      - 余额支付：立即扣减余额、库存，更新订单状态
-     *                      - 微信支付：生成支付参数，实际处理在支付回调中
-     *
-     * @param paymentForm 支付表单数据
-     * @return 支付结果（微信支付返回调起参数，余额支付返回布尔值）
-     */
-    @Override
-    @GlobalTransactional
-//    public <T> T payOrder(OrderPaymentForm paymentForm) {
-    public Object payOrder(OrderPaymentForm paymentForm) {
-
-        String orderSn = paymentForm.getOrderSn();
-        PaymentChannelEnum paymentChannel  = paymentForm.getPaymentChannel();
-        PaymentMethodEnum paymentMethod  = paymentForm.getPaymentMethod();
-        Long paymentAmount = paymentForm.getPaymentAmount();
-
-        log.info("【支付】开始处理，订单号: {}, 支付渠道: {}, 支付方式: {},支付金额: {},模拟模式: {}",
-                orderSn, paymentChannel, paymentMethod, paymentAmount, mockPayEnabled);
-
-        // 1. 验证支付金额
-        if (paymentAmount == null || paymentAmount <= 0) {
-            log.error("【支付】支付金额无效: {}", paymentAmount);
-            throw new BizException("支付金额必须大于0");
-        }
 
 
 
 
-        OmsOrder order = this.getOne(new LambdaQueryWrapper<OmsOrder>().eq(OmsOrder::getOrderSn, orderSn));
-        Assert.isTrue(order != null, "订单不存在");
-        log.info("根据订单号查询订单OmsOrder:{}",order);
 
 
-        //✅ 2查支付订单（✅ 必须补）
-        com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO payOrder = payFeignClient.getByOrderNo(orderSn);
-        Assert.notNull(payOrder, "支付订单不存在");
-        log.info("查支付订单（✅ 必须补）,根据订单号查询支付订单PayOrder:{}",payOrder);
-
-        //  2. 验证订单金额 ✅ 用 PayOrder 校验金额（✅ 关键）
-        Long orderPaymentAmount = order.getPaymentAmount();
-        if (orderPaymentAmount == null || orderPaymentAmount <= 0) {
-            log.error("【支付】订单金额异常: {}", orderPaymentAmount);
-            throw new BizException("订单金额异常");
-        }
-
-        // 5. 比较金额  你在验证金额时，应该用原始的分进行比较，而不是转换后的元：
-        //保持单位为分进行比较（推荐）
-        if (!orderPaymentAmount.equals(paymentAmount)) {
-            // 只用于显示，不用于比较
-
-            /*
-                    ❌ 不要用 double 做金额
-                    ❌ 不要用除法做比较
-            * */
-            double orderAmountYuan = orderPaymentAmount / 100.00;  // 121.5
-            double requestAmountYuan = paymentAmount / 100.00;           // 121.5
-            // 显示用
-            String orderAmountStr = new DecimalFormat("#0.00")
-                    .format(orderPaymentAmount / 100.0);
-
-            log.error("【支付】金额不匹配，订单金额: {}，请求金额: {}",
-                    orderAmountYuan, requestAmountYuan);
-            throw new BizException(String.format("支付金额不匹配，订单金额: ¥%.2f",
-                    orderPaymentAmount / 100.0));
-        }
-        log.info("✅ 用 OmsOrder 校验金额（✅） 关键");
-
-        //✅ 用 PayOrder 校验金额（✅ 关键）
-        if (!payOrder.getPaymentAmount().equals(paymentAmount)) {
-            throw new BizException("支付金额不匹配");
-        }
-        log.info("✅ 用 PayOrder 校验金额（✅） 关键");
-        log.info("✅ 永远用 PayOrder 的金额做资金判断");
 
 
-        log.info("校验订单状态是否可支付");
-        Assert.isTrue(OrderStatusEnum.UNPAID.getValue().equals(order.getStatus()), "订单不可支付，请检查订单状态");
-
-        // 2. 检查支付渠道
-        if (!isValidPaymentChannel(paymentChannel)) {
-            throw new BizException("不支持的支付渠道: " + paymentChannel);
-        }
 
 
-        log.info("使用分布式锁防止重复支付（同一订单同时支付）");
-        RLock lock = redissonClient.getLock(OrderConstants.ORDER_LOCK_PREFIX + order.getOrderSn());
 
-        log.info("获取锁");
-        lock.lock();
-
-        // 继续支付流程...
-
-        return processRealPayment(paymentForm, paymentChannel, paymentMethod, order, lock);
-
-
-        // 3. 判断使用模拟支付还是真实支付
-//        if (Boolean.TRUE.equals(mockPayEnabled) && mockPayService.isMockEnabled()) {
-//            log.info("【支付】使用模拟支付");
-//            return processMockPayment(orderSn, paymentMethod, paymentAmount);
-//        } else {
-//            log.info("【支付】使用真实支付");
-//            return processRealPayment(paymentForm, paymentMethod, order, lock);
-//        }
-
-
-    }
-
-
-    /**
-     * 处理真实支付
-     */
-    private Result<PaymentParamsVO> processRealPayment(OrderPaymentForm paymentForm,
-                                      PaymentChannelEnum paymentChannel,
-                                      PaymentMethodEnum  paymentMethod,
-                                      OmsOrder order,
-                                      RLock lock) {
-        // 原有的真实支付逻辑
-        // 这里可以留空或抛出异常，提示需要配置真实支付
-
-        try {
-
-            log.info("根据支付渠道和支付方式路由到不同的支付处理逻辑");
-
-            String appId=paymentForm.getAppId();
-            String orderSn =   order.getOrderSn();
-
-            Long memberId = SecurityUtils.getMemberId();
-
-            // 7. 获取用户的微信OpenID
-            log.info("【会员微服务】获取用户OpenID，会员ID: {}", memberId);
-            Result<String> openIdResult = memberFeignClient.getOpenIdByMemberId(memberId);
-
-            String openId = openIdResult.getData();
-            log.info("【会员微服务】用户OpenID获取成功: {}", openId);
-
-
-            // 1. 构建支付请求
-            PaymentRequestDTO paymentRequest = buildPaymentRequest(order, paymentChannel, paymentMethod, memberId, openId);
-            log.info("【支付微服务】Pay微服务后端createPayment需求参数PaymentRequestDTO: {}", JSONUtil.toJsonStr(paymentRequest));
-
-            // 2. 调用支付微服务
-
-            Result<PaymentParamsVO>  paymentParamsVO = payFeignClient.createPayment(paymentRequest);
-            log.info("【支付微服务】调用支付微服务payFeignClient，获取前端调用第三方支付所需的支付参数PaymentParamsVO:{}",paymentParamsVO.getData());
-
-
-            if (paymentParamsVO == null) {
-                throw new BizException("支付服务返回空结果");
-            }
-
-
-            return paymentParamsVO;
-        } finally {
-            //释放锁
-
-            log.info("释放锁");
-            if (lock.isLocked()) {
-                lock.unlock();
-            }
-        }
-
-//        throw new BizException("真实支付功能未配置，请启用模拟支付或配置真实支付参数");
-    }
-
-
-    /**
-     * 构建支付请求
-     */
-    private PaymentRequestDTO buildPaymentRequest(OmsOrder order,
-                                                  PaymentChannelEnum paymentChannel,
-                                                  PaymentMethodEnum paymentMethod,
-                                                  Long memberId,
-                                                  String openId) {
-
-        Long PaymentAmount = order.getPaymentAmount();
-
-        PaymentRequestDTO request = new PaymentRequestDTO();
-        request.setUserId(memberId);
-        request.setBizType(PaymentBizTypeEnum.ORDER_PAY);
-        request.setOrderNo(order.getOrderSn());
-        request.setAmount(toBigDecimal(PaymentAmount));
-
-        request.setSubject("商品购买");
-        request.setBody("订单号：" + order.getOrderSn());
-
-        // ✅ 渠道
-        request.setChannel(paymentChannel);
-        log.info("【构建支付请求】支付渠道:{}", paymentChannel);
-
-        // ✅ 支付方式（不再写死）
-        request.setPayType(paymentMethod);
-        log.info("【构建支付请求】支付方式:{}", paymentMethod);
-
-        // ✅ 根据支付方式决定参数
-        Map<String, Object> extraParams = new HashMap<>();
-
-        // ✅ 根据支付方式决定参数
-        switch (paymentMethod) {
-            case JSAPI:
-                if (StringUtils.isBlank(openId)) {
-                    throw new BizException("JSAPI 支付必须传入 openId");
-                }
-                request.setOpenId(openId);
-                extraParams.put("appId", getAppIdByMethod(paymentChannel,paymentMethod));
-                break;
-            case APP:
-                extraParams.put("appId", getAppIdByMethod(paymentChannel,paymentMethod));
-                break;
-            case H5:
-                extraParams.put("appId", getAppIdByMethod(paymentChannel,paymentMethod));
-//                extraParams.put("sceneInfo", buildSceneInfo());
-                break;
-            case NATIVE:
-                extraParams.put("appId", getAppIdByMethod(paymentChannel,paymentMethod));
-                break;
-            case BALANCE:
-                // 余额支付不走三方
-                break;
-            default:
-                throw new BizException("不支持的支付渠道: " + paymentChannel);
-        }
-
-        // 额外参数
-        request.setExtraParams(extraParams);
-
-        return request;
-    }
-
-    /**
-     * 根据支付方式获取AppId
-     */
-    private String getAppIdByMethod(PaymentChannelEnum paymentChannel,
-                                    PaymentMethodEnum paymentMethod) {
-
-        if (paymentChannel == PaymentChannelEnum.WECHAT) {
-            return switch (paymentMethod) {
-                case JSAPI -> "wxJsapiAppId";
-                case APP -> "wxAppAppId";
-                case H5 -> "wxH5AppId";
-                default -> throw new BizException("微信不支持该支付方式");
-            };
-        }
-
-
-        if (paymentChannel == PaymentChannelEnum.ALIPAY) {
-            return "aliAppId";
-        }
-
-        return null;
-    }
-
-    /**
-     * 检查支付渠道是否有效
-     */
-    private boolean isValidPaymentChannel(PaymentChannelEnum paymentChannel) {
-
-        return paymentChannel != null && paymentChannel != PaymentChannelEnum.UNKNOWN;
-    }
 
     /**
      * 支付后更新订单
@@ -1487,7 +1234,22 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     }
 
 
+    /**
+     * 根据orderSn获取到订单
+     */
+    @Override
+    public OmsOrderForm getOmsOrderByOrderNo(String orderSn) {
+        OmsOrder omsOrder = this.getOne(new
+                LambdaQueryWrapper<OmsOrder>()
+                .eq(OmsOrder::getOrderSn, orderSn));
+        Assert.isTrue(omsOrder != null, "订单不存在");
+        log.info("根据订单号查询订单OmsOrder:{}",omsOrder);
 
+        OmsOrderForm omsOrderForm = omsOrderConverter.toForm(omsOrder);
+
+        return omsOrderForm;
+
+    }
 
 
 
@@ -2153,5 +1915,24 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     }
 
     //-----------------------------------------------------------------------------
+
+    /*
+     * 订单支付
+     * */
+    @Override
+    @GlobalTransactional
+    public PaymentResultVO payOrder(OrderPaymentForm form) {
+
+        // 1. 校验订单状态（OMS 职责）
+        OmsOrderForm order = this.getOmsOrderByOrderNo(form.getOrderSn());
+        if (!OrderStatusEnum.UNPAID.equals(order.getStatus())) {
+            throw new BizException("订单不可支付");
+        }
+
+        // 2. 调用 Pay（只调一次）
+        return payFeignClient.payOrder(form);
+
+    }
+
 
 }

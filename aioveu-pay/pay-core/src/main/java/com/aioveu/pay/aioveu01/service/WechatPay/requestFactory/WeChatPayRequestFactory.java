@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu01.service.WechatPay.requestFactory;
 
 import com.aioveu.pay.aioveu01.service.WechatPay.config.WeChatPayConfig;
-import com.aioveu.pay.aioveu01.model.vo.PaymentRequestDTO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -35,7 +35,7 @@ public class WeChatPayRequestFactory {
      * 创建JSAPI支付请求  构建JSAPI预支付请求
      */
     public com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest createJsapiRequest(
-            PaymentRequestDTO request, WeChatPayConfig config) {
+            PaymentRequestPayToTPPDTO request, WeChatPayConfig config) {
         com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest prepayRequest =
                 new com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest();
 
@@ -43,7 +43,7 @@ public class WeChatPayRequestFactory {
         // 设置金额
         com.wechat.pay.java.service.payments.jsapi.model.Amount amount =
                 new com.wechat.pay.java.service.payments.jsapi.model.Amount();
-        amount.setTotal(convertAmountToFen(request.getAmount()));
+        amount.setTotal(convertAmountToFen(request.getPaymentAmount()));
         prepayRequest.setAmount(amount);
 
         // totalFee 单位是分（从数据库读取的）
@@ -64,14 +64,14 @@ public class WeChatPayRequestFactory {
      * 创建APP支付请求   构建App预支付请求
      */
     public com.wechat.pay.java.service.payments.app.model.PrepayRequest createAppRequest(
-            PaymentRequestDTO request, WeChatPayConfig config) {
+            PaymentRequestPayToTPPDTO request, WeChatPayConfig config) {
         com.wechat.pay.java.service.payments.app.model.PrepayRequest prepayRequest =
                 new com.wechat.pay.java.service.payments.app.model.PrepayRequest();
 
         // 设置金额
         com.wechat.pay.java.service.payments.app.model.Amount amount =
                 new com.wechat.pay.java.service.payments.app.model.Amount();
-        amount.setTotal(convertAmountToFen(request.getAmount()));
+        amount.setTotal(convertAmountToFen(request.getPaymentAmount()));
         prepayRequest.setAmount(amount);
 
         // APP支付不需要设置payer
@@ -83,14 +83,14 @@ public class WeChatPayRequestFactory {
      * 创建Native支付请求  构建Native预支付请求
      */
     public com.wechat.pay.java.service.payments.nativepay.model.PrepayRequest createNativeRequest(
-            PaymentRequestDTO request, WeChatPayConfig config) {
+            PaymentRequestPayToTPPDTO request, WeChatPayConfig config) {
         com.wechat.pay.java.service.payments.nativepay.model.PrepayRequest prepayRequest =
                 new com.wechat.pay.java.service.payments.nativepay.model.PrepayRequest();
 
         // 设置金额
         com.wechat.pay.java.service.payments.nativepay.model.Amount amount =
                 new com.wechat.pay.java.service.payments.nativepay.model.Amount();
-        amount.setTotal(convertAmountToFen(request.getAmount()));
+        amount.setTotal(convertAmountToFen(request.getPaymentAmount()));
         prepayRequest.setAmount(amount);
 
         // Native支付不需要设置payer
@@ -102,14 +102,14 @@ public class WeChatPayRequestFactory {
      * 创建H5支付请求  构建H5预支付请求
      */
     public com.wechat.pay.java.service.payments.h5.model.PrepayRequest createH5Request(
-            PaymentRequestDTO request, WeChatPayConfig config) {
+            PaymentRequestPayToTPPDTO request, WeChatPayConfig config) {
         com.wechat.pay.java.service.payments.h5.model.PrepayRequest prepayRequest =
                 new com.wechat.pay.java.service.payments.h5.model.PrepayRequest();
 
         // 设置金额
         com.wechat.pay.java.service.payments.h5.model.Amount amount =
                 new com.wechat.pay.java.service.payments.h5.model.Amount();
-        amount.setTotal(convertAmountToFen(request.getAmount()));
+        amount.setTotal(convertAmountToFen(request.getPaymentAmount()));
         prepayRequest.setAmount(amount);
 
         // 设置场景信息（H5特有）
@@ -131,7 +131,7 @@ public class WeChatPayRequestFactory {
     /**
      * 设置公共参数
      */
-    private void setCommonParams(Object prepayRequest, PaymentRequestDTO request, WeChatPayConfig config) {
+    private void setCommonParams(Object prepayRequest, PaymentRequestPayToTPPDTO request, WeChatPayConfig config) {
         try {
             // 使用反射设置公共参数
             Class<?> requestClass = prepayRequest.getClass();

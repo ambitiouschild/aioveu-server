@@ -1,25 +1,24 @@
 package com.aioveu.oms.aioveu01Order.service.app;
 
-import com.aioveu.common.result.PageResult;
+import com.aioveu.common.result.Result;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderPageWithStatsVO;
-import com.aioveu.oms.aioveu11MqConsumer.model.vo.OrderPaySuccessDTO;
 import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
+import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
 import com.aioveu.order.model.aioveu01Order.vo.OrderSubmitVO;
+import com.aioveu.order.model.aioveu05OrderPay.form.OrderPaymentForm;
+import com.aioveu.pay.model.aioveuPayment.PaymentResultVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.binarywang.wxpay.bean.notify.SignatureHeader;
-import com.github.binarywang.wxpay.exception.WxPayException;
-import com.aioveu.oms.aioveu05OrderPay.model.form.OrderPaymentForm;
-import com.aioveu.oms.aioveu05OrderPay.model.form.OrderSubmitForm;
+import com.aioveu.order.model.aioveu05OrderPay.form.OrderSubmitForm;
 import com.aioveu.oms.aioveu01Order.model.query.OrderPageQuery;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderConfirmVO;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderPageVO;
+import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.web.bind.annotation.PostMapping;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
@@ -51,10 +50,7 @@ public interface OrderService extends IService<OmsOrder> {
      */
     OrderSubmitVO submitOrder(OrderSubmitForm orderSubmitForm, String clientId);
 
-    /**
-     * 订单支付
-     */
-    <T> T payOrder(OrderPaymentForm paymentForm);
+
 
     /**
      * 系统关闭订单
@@ -67,7 +63,10 @@ public interface OrderService extends IService<OmsOrder> {
     boolean deleteOrder(Long id);
 
 
-
+    /**
+     * 根据orderSn获取到订单
+     */
+    OmsOrderForm getOmsOrderByOrderNo(String orderSn);
 
 
     /**
@@ -155,6 +154,9 @@ public interface OrderService extends IService<OmsOrder> {
      * --------------------------------------------------------------------------
      * */
 
-
+    /*
+    * 订单支付
+    * */
+    PaymentResultVO payOrder(OrderPaymentForm form);
 }
 

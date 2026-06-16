@@ -2,9 +2,14 @@ package com.aioveu.pay.api;
 
 import com.aioveu.common.result.Result;
 import com.aioveu.common.web.config.FeignDecoderConfig;
-import com.aioveu.pay.model.*;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderCreateForm;
 import com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO;
+import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestOmsToPayDTO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
+import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
+import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,17 +28,27 @@ import org.springframework.web.bind.annotation.RequestBody;
 @FeignClient(value = "aioveu-tenant-pay", contextId = "pay", configuration = {FeignDecoderConfig.class})
 public interface PayFeignClient {
 
+
     /**
-     * 创建支付
+     * 来自oms的订单支付请求
      */
-    @PostMapping("/api/v1/pay-order/create")
-    Result<PaymentParamsVO> createPayment(@RequestBody PaymentRequestDTO request);
+    @Operation(summary ="来自oms-pay的订单支付请求")
+    @PostMapping("/api/v1/pay-order/createPaymentOmsToPay")
+    Result<PaymentParamsVO> createPaymentOmsToPay(@RequestBody PaymentRequestOmsToPayDTO paymentForm);
+
+
+    /**
+     * 来自pay-wechat的订单支付请求,创建前端调用第三方支付所需的支付参数
+     */
+    @Operation(summary ="来自pay-wechat的订单支付请求,创建前端调用第三方支付所需的支付参数")
+    @PostMapping("/api/v1/pay-order/createPaymentPayToTPP")
+    Result<PaymentParamsVO> createPaymentPayToTPP(@RequestBody PaymentRequestPayToTPPDTO request);
 
     /**
      * JSAPI支付
      */
     @PostMapping("/wechat/jsapi")
-    Result<PaymentParamsVO> jsapiPay(@RequestBody PaymentRequestDTO request);
+    Result<PaymentParamsVO> jsapiPay(@RequestBody PaymentRequestPayToTPPDTO request);
 
     /**
      * 查询支付状态
@@ -64,7 +79,7 @@ public interface PayFeignClient {
     /**
      * 根据订单号查询支付订单
      */
-    @GetMapping("/app-api/v1/pay-order/getByOrderNo")
-    PayOrderVO getByOrderNo(@RequestBody @Valid String orderNo);
+    @GetMapping("/app-api/v1/pay-order/getPayOrderByOrderNo")
+    PayOrderVO getPayOrderByOrderNo(@RequestBody @Valid String orderNo);
 
 }

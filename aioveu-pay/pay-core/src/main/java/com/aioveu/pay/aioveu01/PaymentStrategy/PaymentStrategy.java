@@ -1,6 +1,7 @@
 package com.aioveu.pay.aioveu01.PaymentStrategy;
 
-import com.aioveu.pay.aioveu01.model.vo.*;
+import com.aioveu.pay.model.aioveuPayment.*;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 
 /**
  * @ClassName: PaymentStrategy
@@ -13,7 +14,7 @@ import com.aioveu.pay.aioveu01.model.vo.*;
 
 public interface PaymentStrategy {
 
-    PaymentParamsVO appPay(String paymentNo, PaymentRequestDTO request);
+    PaymentParamsVO appPay(String paymentNo, PaymentRequestPayToTPPDTO request);
 
     boolean verifyCallback(PaymentCallbackDTO callback);
 
@@ -21,5 +22,5 @@ public interface PaymentStrategy {
 
     boolean closePayment(String paymentNo);
 
-    RefundResultVO refund(String refundNo, RefundRequestDTO request);
+    com.aioveu.pay.model.aioveuPayment.RefundResultVO refund(String refundNo, RefundRequestDTO request);
 }

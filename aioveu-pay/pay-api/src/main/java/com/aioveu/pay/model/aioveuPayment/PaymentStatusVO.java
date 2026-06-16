@@ -1,5 +1,6 @@
-package com.aioveu.pay.model;
+package com.aioveu.pay.model.aioveuPayment;
 
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
@@ -27,7 +28,7 @@ public class PaymentStatusVO implements Serializable {
     private String paymentNo;          // 支付单号
     private String thirdPaymentNo;     // 第三方支付单号
     private BigDecimal amount;         // 支付金额
-    private Integer paymentStatus;      // 支付状态
+    private PaymentStatusEnum paymentStatus;      // 支付状态
     private Date paymentTime;          // 支付时间
     private String errorMessage;       // 错误信息
 }

@@ -1,10 +1,15 @@
 package com.aioveu.pay.aioveu01.PaymentStrategy.impl;
 
 
+import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategy;
-import com.aioveu.pay.aioveu01.model.vo.*;
 import com.aioveu.pay.aioveu01.service.AliPay.service.AlipayEasyService.AlipayEasyService;
 import com.aioveu.pay.aioveu01.service.AliPay.service.AlipayService.AlipayService;
+import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
+import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
+import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
+import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -88,37 +93,37 @@ public class AlipayStrategyAdapter implements PaymentStrategy{
      * @return 支付参数
      */
     @Override
-    public PaymentParamsVO appPay(String paymentNo, PaymentRequestDTO request) {
+    public PaymentParamsVO appPay(String paymentNo, PaymentRequestPayToTPPDTO request) {
         try {
             log.info("支付宝策略支付, 订单号: {}, 支付方式: {}, 金额: {}",
-                    paymentNo, request.getPayType(), request.getAmount());
+                    paymentNo, request.getPaymentMethod(), request.getPaymentAmount());
 
             // 设置订单号
             request.setOrderNo(paymentNo);
 
-            String payType = request.getPayType();
+            PaymentMethodEnum paymentMethod = request.getPaymentMethod();
 
             // 根据支付类型调用不同的支付方法
-            switch (payType) {
-                case "APP":
+            switch (paymentMethod) {
+                case APP:
                     return alipayService.appPay(request);
-                case "PAGE":
+                case PAGE:
                     /**
                      * 处理网页支付
                      */
                     return alipayService.pagePay(request);
-                case "WAP":
+                case WAP:
                     /**
                      * 处理手机网站支付
                      */
                     return alipayService.wapPay(request);
                 default:
-                    throw new IllegalArgumentException("不支持的支付宝支付类型: " + payType);
+                    throw new IllegalArgumentException("不支持的支付宝支付类型: " + paymentMethod);
             }
 
         } catch (Exception e) {
             log.error("支付宝策略支付失败, 订单号: {}, 支付类型: {}",
-                    paymentNo, request.getPayType(), e);
+                    paymentNo, request.getPaymentMethod(), e);
             throw new RuntimeException("支付宝支付失败: " + e.getMessage(), e);
         }
     }
@@ -126,7 +131,7 @@ public class AlipayStrategyAdapter implements PaymentStrategy{
     /**
      * 自动检测支付类型
      */
-    private String autoDetectPayType(PaymentRequestDTO request) {
+    private String autoDetectPayType(PaymentRequestPayToTPPDTO request) {
         // 这里可以根据设备类型、用户代理等自动判断
         String userAgent = request.getUserAgent();
 
@@ -229,7 +234,7 @@ public class AlipayStrategyAdapter implements PaymentStrategy{
      * @return 退款结果
      */
     @Override
-    public RefundResultVO refund(String refundNo, RefundRequestDTO request) {
+    public com.aioveu.pay.model.aioveuPayment.RefundResultVO refund(String refundNo, RefundRequestDTO request) {
         try {
             log.info("支付宝退款, 退款单号: {}, 支付订单号: {}, 退款金额: {}",
                     refundNo, request.getPaymentNo(), request.getRefundAmount());
@@ -265,7 +270,7 @@ public class AlipayStrategyAdapter implements PaymentStrategy{
      *
      * @param request 支付请求
      */
-    public void validatePaymentRequest(PaymentRequestDTO request) {
+    public void validatePaymentRequest(PaymentRequestPayToTPPDTO request) {
         if (request == null) {
             throw new IllegalArgumentException("支付请求不能为空");
         }
@@ -274,7 +279,7 @@ public class AlipayStrategyAdapter implements PaymentStrategy{
             throw new IllegalArgumentException("订单号不能为空");
         }
 
-        if (request.getAmount() == null || request.getAmount().doubleValue() <= 0) {
+        if (request.getPaymentAmount() == null || request.getPaymentAmount().doubleValue() <= 0) {
             throw new IllegalArgumentException("支付金额必须大于0");
         }
 

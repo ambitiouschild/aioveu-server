@@ -4,9 +4,10 @@ import com.aioveu.common.annotation.Log;
 import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.result.Result;
 import com.aioveu.pay.aioveu00Payment.service.PaymentService;
-import com.aioveu.pay.aioveu01.model.vo.PaymentParamsVO;
-import com.aioveu.pay.aioveu01.model.vo.PaymentRequestDTO;
-import com.aioveu.pay.aioveu01.model.vo.PaymentStatusVO;
+import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestOmsToPayDTO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
+import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.alibaba.fastjson.JSON;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,17 +36,39 @@ public class PaymentController {
     @Autowired
     private PaymentService paymentService;  // 支付服务
 
+
+
     /**
-     * 创建支付订单
+     * 来自oms的订单支付请求
      */
-    @Operation(summary ="创建前端调用第三方支付所需的支付参数")
-    @PostMapping("/create")
+    @Operation(summary ="来自oms-pay的订单支付请求")
+    @PostMapping("/createPaymentOmsToPay")
 //    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrder:oms-order:query')")
-    @Log( value = "创建前端调用第三方支付所需的支付参数",module = LogModuleEnum.PAY)
-    public Result<PaymentParamsVO> createPayment(@RequestBody PaymentRequestDTO request) {
+    @Log( value = "来自oms的订单支付请求",module = LogModuleEnum.PAY)
+    public Result<PaymentParamsVO> createPaymentOmsToPay(@RequestBody PaymentRequestOmsToPayDTO paymentForm) {
+
+        log.info("【Pay微服务PaymentController】来自oms的订单支付请求: {}", JSON.toJSONString(paymentForm));
+
+        PaymentParamsVO PaymentParamsVO = paymentService.createPaymentOmsToPay(paymentForm);
+
+        return  Result.success(PaymentParamsVO);
+    }
+
+
+    /**
+     * 创建前端调用第三方支付所需的支付参数
+     */
+    @Operation(summary ="来自pay-wechat的订单支付请求,创建前端调用第三方支付所需的支付参数")
+    @PostMapping("/createPaymentPayToTPP")
+//    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrder:oms-order:query')")
+    @Log( value = "来自pay-wechat的订单支付请求,创建前端调用第三方支付所需的支付参数",module = LogModuleEnum.PAY)
+    public Result<PaymentParamsVO> createPayment(@RequestBody PaymentRequestPayToTPPDTO request) {
 
         log.info("【Pay微服务PaymentController】收到支付请求: {}", JSON.toJSONString(request));
-        return paymentService.unifiedPayment(request);
+
+        PaymentParamsVO PaymentParamsVO = paymentService.createPaymentPayToTPP(request);
+
+        return  Result.success(PaymentParamsVO);
     }
 
     /**

@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu01.model.vo;
+package com.aioveu.pay.model.aioveuPayment;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;

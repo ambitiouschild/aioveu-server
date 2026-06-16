@@ -1,6 +1,9 @@
 package com.aioveu.pay.aioveu01.service.WechatPay.service;
 
-import com.aioveu.pay.aioveu01.model.vo.*;
+import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
+import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
+import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 
 /**
  * @ClassName: PaymentService
@@ -16,23 +19,23 @@ public interface WeChatPayService {
     /**
      * JSAPI支付（小程序/公众号）
      */
-    PaymentParamsVO jsapiPay(PaymentRequestDTO request);
+    PaymentParamsVO jsapiPay(PaymentRequestPayToTPPDTO request);
 
 
-    /**
-     * Native支付（扫码支付）
-     */
-//    PaymentParamsVO nativePay(PaymentRequestDTO request);
+//    /**
+//     * Native支付（扫码支付）
+//     */
+//    PaymentParamsVO nativePay(PaymentRequestPayToTPPDTO request);
 
     /**
      * App支付
      */
-    PaymentParamsVO appPay(PaymentRequestDTO request);
+    PaymentParamsVO appPay(PaymentRequestPayToTPPDTO request);
 
     /**
      * H5支付
      */
-    PaymentParamsVO h5Pay(PaymentRequestDTO request);
+    PaymentParamsVO h5Pay(PaymentRequestPayToTPPDTO request);
 
     /**
      * 查询支付结果
@@ -47,5 +50,5 @@ public interface WeChatPayService {
     /**
      * 申请退款
      */
-    RefundResultVO refund(RefundRequestDTO request);
+    com.aioveu.pay.model.aioveuPayment.RefundResultVO refund(RefundRequestDTO request);
 }

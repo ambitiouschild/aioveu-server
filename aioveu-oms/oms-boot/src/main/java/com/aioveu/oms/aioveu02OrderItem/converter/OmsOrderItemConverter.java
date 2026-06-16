@@ -3,7 +3,7 @@ package com.aioveu.oms.aioveu02OrderItem.converter;
 
 import com.aioveu.oms.aioveu02OrderItem.model.entity.OmsOrderItem;
 import com.aioveu.order.model.aioveu02OrderItem.form.OmsOrderItemForm;
-import com.aioveu.oms.aioveu05OrderPay.model.form.OrderSubmitForm;
+import com.aioveu.order.model.aioveu05OrderPay.form.OrderSubmitForm;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;

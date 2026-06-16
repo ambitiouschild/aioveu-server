@@ -1,8 +1,8 @@
 package com.aioveu.pay.aioveu01.service.AliPay.utils;
 
 import cn.hutool.core.date.DateUtil;
-import com.aioveu.pay.aioveu01.model.vo.PaymentRequestDTO;
 import com.aioveu.pay.aioveu01.service.AliPay.config.AlipayConfig;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 import com.alibaba.fastjson.JSON;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
@@ -68,7 +68,7 @@ public class AlipayUtil {
     /**
      * 生成支付参数
      */
-    public String generatePayParams(PaymentRequestDTO request) throws AlipayApiException {
+    public String generatePayParams(PaymentRequestPayToTPPDTO request) throws AlipayApiException {
         Map<String, String> params = new HashMap<>();
 
         // 公共参数
@@ -83,7 +83,7 @@ public class AlipayUtil {
         // 业务参数
         Map<String, String> bizParams = new HashMap<>();
         bizParams.put("out_trade_no", request.getOrderNo());
-        bizParams.put("total_amount", request.getAmount().toString());
+        bizParams.put("total_amount", request.getPaymentAmount().toString());
         bizParams.put("subject", request.getSubject());
         bizParams.put("body", request.getBody());
         bizParams.put("timeout_express", request.getExpireMinutes() + "m");

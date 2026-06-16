@@ -2,7 +2,11 @@ package com.aioveu.pay.aioveu00Payment.service;
 
 import com.aioveu.common.result.Result;
 
-import com.aioveu.pay.aioveu01.model.vo.*;
+import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestOmsToPayDTO;
+import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
+import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 
 import java.util.Map;
 
@@ -45,13 +49,20 @@ import java.util.Map;
 
 public interface PaymentService {
 
+
+    /**
+     * 订单支付
+     */
+    PaymentParamsVO createPaymentOmsToPay(PaymentRequestOmsToPayDTO paymentForm);
+
+
     /**
      * 统一支付接口
      *
      * @return
      *
      */
-    Result<PaymentParamsVO> unifiedPayment(PaymentRequestDTO request);
+    PaymentParamsVO createPaymentPayToTPP(PaymentRequestPayToTPPDTO request);
 
     /**
      * 前端调用：查询支付状态

@@ -10,9 +10,9 @@ import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu01PayOrder.model.query.PayOrderQuery;
 import com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
-import com.aioveu.pay.aioveu01.model.vo.PaymentCallbackDTO;
+import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
 import com.aioveu.pay.aioveu01PayOrder.utils.PayOrderNoGenerator;
-import com.aioveu.pay.aioveu01.enums.PaymentCallbackStatusEnum;
+import com.aioveu.common.enums.pay.PaymentCallbackStatusEnum;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderForm;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderCreateForm;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -316,7 +316,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public PayOrderVO getByOrderNo(String orderNo) {
+    public PayOrderVO getPayOrderByOrderNo(String orderNo) {
 
         if (StrUtil.isBlank(orderNo)) {
             return null;

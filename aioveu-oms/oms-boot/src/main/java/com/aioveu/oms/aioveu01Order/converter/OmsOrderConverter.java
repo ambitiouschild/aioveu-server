@@ -5,7 +5,7 @@ import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderBO;
-import com.aioveu.oms.aioveu05OrderPay.model.form.OrderSubmitForm;
+import com.aioveu.order.model.aioveu05OrderPay.form.OrderSubmitForm;
 import com.aioveu.oms.aioveu01Order.model.vo.OmsOrderPageVO;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderPageVO;
 import org.mapstruct.*;

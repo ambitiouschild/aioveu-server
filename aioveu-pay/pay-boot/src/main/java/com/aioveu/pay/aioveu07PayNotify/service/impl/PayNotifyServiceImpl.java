@@ -12,7 +12,7 @@ import com.aioveu.pay.aioveu07PayNotify.model.query.PayNotifyQuery;
 import com.aioveu.pay.aioveu07PayNotify.model.vo.PayNotifyDTO;
 import com.aioveu.pay.aioveu07PayNotify.model.vo.PayNotifyVO;
 import com.aioveu.pay.aioveu07PayNotify.service.PayNotifyService;
-import com.aioveu.pay.aioveu01.model.vo.PaymentCallbackDTO;
+import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;

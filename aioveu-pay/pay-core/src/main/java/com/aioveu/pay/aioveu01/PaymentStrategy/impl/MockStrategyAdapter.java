@@ -1,8 +1,13 @@
 package com.aioveu.pay.aioveu01.PaymentStrategy.impl;
 
+import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategy;
-import com.aioveu.pay.aioveu01.model.vo.*;
 import com.aioveu.pay.aioveu01.service.MockPay.service.MockPayService;
+import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
+import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
+import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
+import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -57,33 +62,33 @@ public class MockStrategyAdapter implements PaymentStrategy {
      * @return 支付参数
      */
     @Override
-    public PaymentParamsVO appPay(String paymentNo, PaymentRequestDTO request) {
+    public PaymentParamsVO appPay(String paymentNo, PaymentRequestPayToTPPDTO request) {
         try {
             //如果现有的 WechatPayService已经支持多种支付方式（JSAPI、APP、Native、H5），可以这样增强
             // 根据请求类型调用不同的支付方法
-            String payType = request.getPayType();
+            PaymentMethodEnum paymentMethod = request.getPaymentMethod();
             // 根据支付类型调用不同的支付方法
-            switch (payType) {
-                case "JSAPI":
+            switch (paymentMethod) {
+                case JSAPI:
                     log.info("【Mock】调用JSAPI支付（小程序/公众号）");
                     log.info("【Mock】请求OpenId：{}",request.getOpenId());
                     return mockPayService.jsapiPay(request);
-                case "APP":
+                case APP:
                     log.info("【Mock】调用App支付");
                     return mockPayService.appPay(request);
-                case "NATIVE":
+                case NATIVE:
                     log.info("【Mock】调用Native支付（扫码支付）");
 //                return weChatPayService.nativePay(request);
-                case "H5":
+                case H5:
                     log.info("【Mock】调用H5支付");
                     return mockPayService.h5Pay(request);
                 default:
-                    throw new IllegalArgumentException("不支持的Mock支付类型: " + payType);
+                    throw new IllegalArgumentException("不支持的Mock支付类型: " + paymentMethod);
             }
 
         } catch (Exception e) {
-            log.error("【Mock】Mock策略支付失败, 订单号: {}, 支付类型: {}",
-                    paymentNo, request.getPayType(), e);
+            log.error("【Mock】Mock策略支付失败, 订单号: {}, 支付方式: {}",
+                    paymentNo, request.getPaymentMethod(), e);
             throw new RuntimeException("【Mock】Mock支付失败: " + e.getMessage(), e);
         }
     }
@@ -93,7 +98,7 @@ public class MockStrategyAdapter implements PaymentStrategy {
     /**
      * 自动检测支付类型
      */
-    private String autoDetectPayType(PaymentRequestDTO request) {
+    private String autoDetectPayType(PaymentRequestPayToTPPDTO request) {
         // 这里可以根据设备类型、用户代理等自动判断
         String userAgent = request.getUserAgent();
 
@@ -196,7 +201,7 @@ public class MockStrategyAdapter implements PaymentStrategy {
      * @return 退款结果
      */
     @Override
-    public RefundResultVO refund(String refundNo, RefundRequestDTO request) {
+    public com.aioveu.pay.model.aioveuPayment.RefundResultVO refund(String refundNo, RefundRequestDTO request) {
         try {
             log.info("【Mock】Mock退款, 退款单号: {}, Mock订单号: {}, 退款金额: {}",
                     refundNo, request.getPaymentNo(), request.getRefundAmount());
@@ -232,7 +237,7 @@ public class MockStrategyAdapter implements PaymentStrategy {
      *
      * @param request 支付请求
      */
-    public void validatePaymentRequest(PaymentRequestDTO request) {
+    public void validatePaymentRequest(PaymentRequestPayToTPPDTO request) {
         if (request == null) {
             throw new IllegalArgumentException("【Mock】支付请求不能为空");
         }
@@ -241,7 +246,7 @@ public class MockStrategyAdapter implements PaymentStrategy {
             throw new IllegalArgumentException("【Mock】订单号不能为空");
         }
 
-        if (request.getAmount() == null || request.getAmount().doubleValue() <= 0) {
+        if (request.getPaymentAmount() == null || request.getPaymentAmount().doubleValue() <= 0) {
             throw new IllegalArgumentException("【Mock】支付金额必须大于0");
         }
 

@@ -1,12 +1,15 @@
 package com.aioveu.pay.aioveu01.service.MockPay.service.impl;
 
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
-import com.aioveu.pay.aioveu01.enums.RefundStatusEnum;
-import com.aioveu.pay.aioveu01.model.vo.*;
+import com.aioveu.common.enums.pay.RefundStatusEnum;
 import com.aioveu.pay.aioveu01.service.MockPay.MockRequestFactory.MockRequestFactory;
 import com.aioveu.pay.aioveu01.service.MockPay.config.MockPayConfig;
 import com.aioveu.pay.aioveu01.service.MockPay.service.MockPayService;
 import com.aioveu.pay.aioveu01.service.WechatPay.utils.weChatPay.aioveuWeChatPayGeneratePayParamsUtil;
+import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
+import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
+import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 import com.alipay.api.request.AlipayTradeCloseRequest;
 import com.alipay.api.request.AlipayTradeQueryRequest;
 import com.alipay.api.request.AlipayTradeRefundRequest;
@@ -57,7 +60,7 @@ public class MockPayServiceImpl implements MockPayService {
     }
 
     @Override
-    public PaymentParamsVO jsapiPay(PaymentRequestDTO request) {
+    public PaymentParamsVO jsapiPay(PaymentRequestPayToTPPDTO request) {
 
         try {
                 if (!mockPayConfig.getEnabled()) {
@@ -66,7 +69,7 @@ public class MockPayServiceImpl implements MockPayService {
 
 
                 String orderNo = request.getOrderNo();
-                BigDecimal amount = request.getAmount();
+                BigDecimal amount = request.getPaymentAmount();
                 String openId = request.getOpenId();
 
                 // 记录请求
@@ -89,7 +92,7 @@ public class MockPayServiceImpl implements MockPayService {
                 return PaymentParamsVO.builder()
                         .paymentNo(request.getOrderNo())
                         .orderNo(request.getOrderNo())
-                        .amount(request.getAmount())
+                        .amount(request.getPaymentAmount())
                         .subject(request.getSubject())
                         .body(request.getBody())
                         .payType("JSAPI")
@@ -110,7 +113,7 @@ public class MockPayServiceImpl implements MockPayService {
 
 
     @Override
-    public PaymentParamsVO appPay(PaymentRequestDTO request) {
+    public PaymentParamsVO appPay(PaymentRequestPayToTPPDTO request) {
 
         try {
             if (!mockPayConfig.getEnabled()) {
@@ -119,7 +122,7 @@ public class MockPayServiceImpl implements MockPayService {
 
 
             String orderNo = request.getOrderNo();
-            BigDecimal amount = request.getAmount();
+            BigDecimal amount = request.getPaymentAmount();
             String openId = request.getOpenId();
 
             // 记录请求
@@ -142,7 +145,7 @@ public class MockPayServiceImpl implements MockPayService {
             return PaymentParamsVO.builder()
                     .paymentNo(request.getOrderNo())
                     .orderNo(request.getOrderNo())
-                    .amount(request.getAmount())
+                    .amount(request.getPaymentAmount())
                     .subject(request.getSubject())
                     .body(request.getBody())
                     .payType("JSAPI")
@@ -160,7 +163,7 @@ public class MockPayServiceImpl implements MockPayService {
     }
 
     @Override
-    public PaymentParamsVO h5Pay(PaymentRequestDTO request) {
+    public PaymentParamsVO h5Pay(PaymentRequestPayToTPPDTO request) {
 
         try {
             if (!mockPayConfig.getEnabled()) {
@@ -169,7 +172,7 @@ public class MockPayServiceImpl implements MockPayService {
 
 
             String orderNo = request.getOrderNo();
-            BigDecimal amount = request.getAmount();
+            BigDecimal amount = request.getPaymentAmount();
             String openId = request.getOpenId();
 
             // 记录请求
@@ -192,7 +195,7 @@ public class MockPayServiceImpl implements MockPayService {
             return PaymentParamsVO.builder()
                     .paymentNo(request.getOrderNo())
                     .orderNo(request.getOrderNo())
-                    .amount(request.getAmount())
+                    .amount(request.getPaymentAmount())
                     .subject(request.getSubject())
                     .body(request.getBody())
                     .payType("JSAPI")
@@ -260,7 +263,7 @@ public class MockPayServiceImpl implements MockPayService {
      * 退款
      */
     @Override
-    public RefundResultVO refund(RefundRequestDTO request)  {
+    public com.aioveu.pay.model.aioveuPayment.RefundResultVO refund(RefundRequestDTO request)  {
         try {
             log.info("支付宝退款, 退款单号: {}, 支付订单号: {}, 退款金额: {}",
                     request.getRefundNo(), request.getPaymentNo(), request.getRefundAmount());
@@ -283,7 +286,7 @@ public class MockPayServiceImpl implements MockPayService {
 
             AlipayTradeRefundResponse response = new AlipayTradeRefundResponse();
 
-            RefundResultVO result = convertToRefundResult(request, response);
+            com.aioveu.pay.model.aioveuPayment.RefundResultVO result = convertToRefundResult(request, response);
             log.info("支付宝退款成功, 退款单号: {}", request.getRefundNo());
 
             return result;
@@ -353,8 +356,8 @@ public class MockPayServiceImpl implements MockPayService {
     /**
      * 转换退款结果
      */
-    private RefundResultVO convertToRefundResult(RefundRequestDTO request,
-                                                 AlipayTradeRefundResponse response) {
+    private com.aioveu.pay.model.aioveuPayment.RefundResultVO convertToRefundResult(RefundRequestDTO request,
+                                                                                    AlipayTradeRefundResponse response) {
 
         if (!true) {
             String errorMsg = String.format("退款失败: %s - %s",
@@ -362,7 +365,7 @@ public class MockPayServiceImpl implements MockPayService {
             throw new RuntimeException(errorMsg);
         }
 
-        return RefundResultVO.builder()
+        return com.aioveu.pay.model.aioveuPayment.RefundResultVO.builder()
                 .refundNo(request.getRefundNo())
                 .thirdRefundNo(response.getTradeNo())
                 .refundAmount(parseBigDecimal(response.getRefundFee()))

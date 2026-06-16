@@ -14,7 +14,7 @@ import com.aioveu.pay.aioveu06PayFlow.model.query.PayFlowQuery;
 import com.aioveu.pay.aioveu06PayFlow.model.vo.PayFlowVO;
 import com.aioveu.pay.aioveu06PayFlow.service.PayFlowService;
 import com.aioveu.pay.aioveu06PayFlow.utils.PayFlowNoGenerator;
-import com.aioveu.pay.aioveu01.model.vo.PaymentCallbackDTO;
+import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;

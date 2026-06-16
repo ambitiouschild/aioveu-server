@@ -1,6 +1,9 @@
 package com.aioveu.pay.aioveu01.service.AliPay.service.AlipayEasyService;
 
-import com.aioveu.pay.aioveu01.model.vo.*;
+import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
+import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
+import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 
 /**
  * @ClassName: AlipayEasyService
@@ -16,18 +19,18 @@ public interface AlipayEasyService {
     /**
      * APP支付
      */
-    PaymentParamsVO appPay(PaymentRequestDTO request);
+    PaymentParamsVO appPay(PaymentRequestPayToTPPDTO request);
 
 
     /**
      * 网页支付
      */
-    PaymentParamsVO pagePay(PaymentRequestDTO request);
+    PaymentParamsVO pagePay(PaymentRequestPayToTPPDTO request);
 
     /**
      * 手机网站支付
      */
-    PaymentParamsVO wapPay(PaymentRequestDTO request);
+    PaymentParamsVO wapPay(PaymentRequestPayToTPPDTO request);
 
     /**
      * 查询订单状态
@@ -37,7 +40,7 @@ public interface AlipayEasyService {
     /**
      * 退款
      */
-    RefundResultVO refund(RefundRequestDTO request);
+    com.aioveu.pay.model.aioveuPayment.RefundResultVO refund(RefundRequestDTO request);
 
     /**
      * 关闭订单

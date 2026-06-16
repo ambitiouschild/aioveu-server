@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu01.service.MockPay.MockRequestFactory;
 
-import com.aioveu.pay.aioveu01.model.vo.PaymentRequestDTO;
 import com.aioveu.pay.aioveu01.service.MockPay.config.MockPayConfig;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -163,9 +163,9 @@ public class MockRequestFactory {
      * @param mockPayConfig  支付宝配置
      * @return 请求参数
      */
-    public Map<String, String> createAppRequest(PaymentRequestDTO request, MockPayConfig mockPayConfig) {
+    public Map<String, String> createAppRequest(PaymentRequestPayToTPPDTO request, MockPayConfig mockPayConfig) {
         log.info("创建APP支付请求, 订单号: {}, 金额: {}",
-                request.getOrderNo(), request.getAmount());
+                request.getOrderNo(), request.getPaymentAmount());
 
         Map<String, String> params = new HashMap<>();
 
@@ -187,9 +187,9 @@ public class MockRequestFactory {
      * @param mockPayConfig  支付宝配置
      * @return 请求参数
      */
-    public Map<String, String> createPageRequest(PaymentRequestDTO request, MockPayConfig mockPayConfig) {
+    public Map<String, String> createPageRequest(PaymentRequestPayToTPPDTO request, MockPayConfig mockPayConfig) {
         log.info("创建网页支付请求, 订单号: {}, 金额: {}",
-                request.getOrderNo(), request.getAmount());
+                request.getOrderNo(), request.getPaymentAmount());
 
         Map<String, String> params = new HashMap<>();
 
@@ -212,9 +212,9 @@ public class MockRequestFactory {
      * @param mockPayConfig  支付宝配置
      * @return 请求参数
      */
-    public Map<String, String> createWapRequest(PaymentRequestDTO request, MockPayConfig mockPayConfig) {
+    public Map<String, String> createWapRequest(PaymentRequestPayToTPPDTO request, MockPayConfig mockPayConfig) {
         log.info("创建手机网站支付请求, 订单号: {}, 金额: {}",
-                request.getOrderNo(), request.getAmount());
+                request.getOrderNo(), request.getPaymentAmount());
 
         Map<String, String> params = new HashMap<>();
 
@@ -331,7 +331,7 @@ public class MockRequestFactory {
      * @param request 支付请求
      * @param mockPayConfig  模拟支付配置配置
      */
-    private void setCommonParams(Map<String, String> params, PaymentRequestDTO request,
+    private void setCommonParams(Map<String, String> params, PaymentRequestPayToTPPDTO request,
                                  MockPayConfig mockPayConfig) {
         // 系统参数
         params.put("app_id", mockPayConfig.getWechat().getAppId());
@@ -350,7 +350,7 @@ public class MockRequestFactory {
         if (request != null) {
             Map<String, Object> bizContent = new HashMap<>();
             bizContent.put(OUT_TRADE_NO_KEY, request.getOrderNo());
-            bizContent.put(TOTAL_AMOUNT_KEY, request.getAmount().toString());
+            bizContent.put(TOTAL_AMOUNT_KEY, request.getPaymentAmount().toString());
             bizContent.put(SUBJECT_KEY, request.getSubject());
 
             if (request.getBody() != null && !request.getBody().trim().isEmpty()) {
@@ -426,11 +426,11 @@ public class MockRequestFactory {
      * @param productCode 产品码
      * @return 订单模型JSON
      */
-    public String createEasyOrderModel(PaymentRequestDTO request, String productCode) {
+    public String createEasyOrderModel(PaymentRequestPayToTPPDTO request, String productCode) {
         Map<String, Object> order = new HashMap<>();
         order.put(SUBJECT_KEY, request.getSubject());
         order.put(OUT_TRADE_NO_KEY, request.getOrderNo());
-        order.put(TOTAL_AMOUNT_KEY, request.getAmount().toString());
+        order.put(TOTAL_AMOUNT_KEY, request.getPaymentAmount().toString());
         order.put("product_code", productCode);
 
         if (request.getBody() != null && !request.getBody().trim().isEmpty()) {
@@ -469,7 +469,7 @@ public class MockRequestFactory {
      *
      * @param request 支付请求
      */
-    public void validatePaymentRequest(PaymentRequestDTO request) {
+    public void validatePaymentRequest(PaymentRequestPayToTPPDTO request) {
         if (request == null) {
             throw new IllegalArgumentException("支付请求不能为空");
         }
@@ -478,7 +478,7 @@ public class MockRequestFactory {
             throw new IllegalArgumentException("订单号不能为空");
         }
 
-        if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+        if (request.getPaymentAmount() == null || request.getPaymentAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("支付金额必须大于0");
         }
 

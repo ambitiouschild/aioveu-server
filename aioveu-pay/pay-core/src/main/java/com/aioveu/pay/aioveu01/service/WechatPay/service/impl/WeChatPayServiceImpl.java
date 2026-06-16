@@ -2,11 +2,10 @@ package com.aioveu.pay.aioveu01.service.WechatPay.service.impl;
 
 import cn.hutool.core.date.DateUtil;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
-import com.aioveu.pay.aioveu01.model.vo.*;
 import com.aioveu.pay.aioveu01.service.WechatPay.config.WeChatPayConfig;
 import com.aioveu.pay.aioveu01.service.WechatPay.requestFactory.WeChatPayRequestFactory;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
-import com.aioveu.pay.aioveu01.enums.RefundStatusEnum;
+import com.aioveu.common.enums.pay.RefundStatusEnum;
 import com.aioveu.pay.aioveu01.service.WechatPay.utils.weChatPay.aioveuWeChatPayGeneratePayParamsUtil;
 
 //在同一个类中，当不同支付方式的实体类名相同但包路径不同时，确实会产生冲突。
@@ -16,6 +15,10 @@ import com.aioveu.pay.aioveu01.service.WechatPay.utils.weChatPay.aioveuWeChatPay
 //-------------------------------------------------------
 //如果您确实是普通商户（非服务商）
 import com.aioveu.pay.aioveu01.service.WechatPay.utils.weChatPay.aioveuWeChatPayGetServiceUtil;
+import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
+import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
+import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 import com.wechat.pay.java.service.payments.jsapi.JsapiService;  //- 普通商户支付
 import com.wechat.pay.java.service.payments.app.AppService;  // - 普通商户支付
 import com.wechat.pay.java.service.payments.h5.H5Service;   // - 普通商户支付
@@ -127,7 +130,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
      * JSAPI支付（小程序/公众号）
      */
     @Override
-    public PaymentParamsVO jsapiPay(PaymentRequestDTO request) {
+    public PaymentParamsVO jsapiPay(PaymentRequestPayToTPPDTO request) {
         try {
 
             // 参数校验
@@ -139,7 +142,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
             log.info("【微信支付-JSAPI支付（小程序/公众号）】创建JSAPI服务:{}",jsapiService);
 
             log.info("【微信支付-JSAPI】开始支付，订单号: {}, 金额: {}",
-                    request.getOrderNo(), request.getAmount());
+                    request.getOrderNo(), request.getPaymentAmount());
 
             // 使用工厂创建请求
             com.wechat.pay.java.service.payments.jsapi.model.PrepayRequest prepayRequest =
@@ -161,7 +164,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
             return PaymentParamsVO.builder()
                     .paymentNo(request.getOrderNo())
                     .orderNo(request.getOrderNo())
-                    .amount(request.getAmount())
+                    .amount(request.getPaymentAmount())
                     .subject(request.getSubject())
                     .body(request.getBody())
                     .payType("JSAPI")
@@ -181,7 +184,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
     /**
      * 验证JSAPI支付请求
      */
-    private void validateJsapiRequest(PaymentRequestDTO request) {
+    private void validateJsapiRequest(PaymentRequestPayToTPPDTO request) {
         if (request == null) {
             throw new IllegalArgumentException("支付请求不能为空");
         }
@@ -191,8 +194,8 @@ public class WeChatPayServiceImpl implements WeChatPayService {
         if (StringUtils.isBlank(request.getOpenId())) {
             throw new IllegalArgumentException("JSAPI支付必须提供openId");
         }
-        if (request.getAmount() == null ||
-                request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+        if (request.getPaymentAmount() == null ||
+                request.getPaymentAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("支付金额必须大于0");
         }
     }
@@ -230,7 +233,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
      * App支付
      */
     @Override
-    public PaymentParamsVO appPay(PaymentRequestDTO request) {
+    public PaymentParamsVO appPay(PaymentRequestPayToTPPDTO request) {
         try {
 
             // 参数校验
@@ -241,7 +244,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
 
             log.info("【微信支付-App支付）】创建App服务:{}",appService);
             log.info("【微信支付-APP】开始支付，订单号: {}, 金额: {}",
-                    request.getOrderNo(), request.getAmount());
+                    request.getOrderNo(), request.getPaymentAmount());
 
             // 使用工厂创建请求
             com.wechat.pay.java.service.payments.app.model.PrepayRequest prepayRequest =
@@ -261,7 +264,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
             return PaymentParamsVO.builder()
                     .paymentNo(request.getOrderNo())
                     .orderNo(request.getOrderNo())
-                    .amount(request.getAmount())
+                    .amount(request.getPaymentAmount())
                     .subject(request.getSubject())
                     .body(request.getBody())
                     .payType("APP")
@@ -278,7 +281,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
         }
     }
 
-    private void validateAppRequest(PaymentRequestDTO request) {
+    private void validateAppRequest(PaymentRequestPayToTPPDTO request) {
         if (request == null) {
             throw new IllegalArgumentException("支付请求不能为空");
         }
@@ -288,8 +291,8 @@ public class WeChatPayServiceImpl implements WeChatPayService {
         if (StringUtils.isBlank(request.getClientIp())) {
             throw new IllegalArgumentException("APP支付必须提供客户端IP");
         }
-        if (request.getAmount() == null ||
-                request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+        if (request.getPaymentAmount() == null ||
+                request.getPaymentAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("支付金额必须大于0");
         }
     }
@@ -298,7 +301,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
      * H5支付
      */
     @Override
-    public PaymentParamsVO h5Pay(PaymentRequestDTO request) {
+    public PaymentParamsVO h5Pay(PaymentRequestPayToTPPDTO request) {
         try {
 
             // 参数校验
@@ -309,7 +312,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
 
             log.info("【微信支付-H5支付）】创建H5服务:{}",h5Service);
             log.info("【微信支付-H5】开始支付，订单号: {}, 金额: {}",
-                    request.getOrderNo(), request.getAmount());
+                    request.getOrderNo(), request.getPaymentAmount());
 
             // 使用工厂创建请求
             com.wechat.pay.java.service.payments.h5.model.PrepayRequest prepayRequest =
@@ -327,7 +330,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
 
             return PaymentParamsVO.builder()
                     .orderNo(request.getOrderNo())
-                    .amount(request.getAmount())
+                    .amount(request.getPaymentAmount())
                     .subject(request.getSubject())
                     .body(request.getBody())
                     .payType("JSAPI")
@@ -345,7 +348,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
         }
     }
 
-    private void validateH5Request(PaymentRequestDTO request) {
+    private void validateH5Request(PaymentRequestPayToTPPDTO request) {
         if (request == null) {
             throw new IllegalArgumentException("支付请求不能为空");
         }
@@ -355,8 +358,8 @@ public class WeChatPayServiceImpl implements WeChatPayService {
         if (StringUtils.isBlank(request.getClientIp())) {
             throw new IllegalArgumentException("H5支付必须提供客户端IP");
         }
-        if (request.getAmount() == null ||
-                request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+        if (request.getPaymentAmount() == null ||
+                request.getPaymentAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("支付金额必须大于0");
         }
     }
@@ -431,7 +434,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
      * 申请退款
      */
     @Override
-    public RefundResultVO refund(RefundRequestDTO request) {
+    public com.aioveu.pay.model.aioveuPayment.RefundResultVO refund(RefundRequestDTO request) {
         try {
 
             // 参数校验
@@ -506,10 +509,10 @@ public class WeChatPayServiceImpl implements WeChatPayService {
     /**
      * 构建退款结果
      */
-    private RefundResultVO buildRefundResult(RefundRequestDTO request,
-                                             com.wechat.pay.java.service.refund.model.Refund response) {
+    private com.aioveu.pay.model.aioveuPayment.RefundResultVO buildRefundResult(RefundRequestDTO request,
+                                                                                com.wechat.pay.java.service.refund.model.Refund response) {
 
-        return RefundResultVO.builder()
+        return com.aioveu.pay.model.aioveuPayment.RefundResultVO.builder()
                 .refundNo(request.getRefundNo())
                 .thirdRefundNo(response.getRefundId())
                 .refundAmount(request.getRefundAmount())

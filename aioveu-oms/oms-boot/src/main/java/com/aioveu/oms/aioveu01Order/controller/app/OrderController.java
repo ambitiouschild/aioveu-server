@@ -4,15 +4,16 @@ import com.aioveu.common.annotation.Log;
 import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.ResultCode;
-import com.aioveu.common.tenant.ClientContextHolder;
 import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
+import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
 import com.aioveu.order.model.aioveu01Order.vo.OrderSubmitVO;
+import com.aioveu.pay.model.aioveuPayment.PaymentResultVO;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.Result;
-import com.aioveu.oms.aioveu05OrderPay.model.form.OrderPaymentForm;
-import com.aioveu.oms.aioveu05OrderPay.model.form.OrderSubmitForm;
+import com.aioveu.order.model.aioveu05OrderPay.form.OrderPaymentForm;
+import com.aioveu.order.model.aioveu05OrderPay.form.OrderSubmitForm;
 import com.aioveu.oms.aioveu01Order.model.query.OrderPageQuery;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderConfirmVO;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderPageVO;
@@ -25,8 +26,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
 
 import java.util.Map;
 
@@ -140,13 +139,28 @@ public class OrderController {
         }
     }
 
+
+
+    /**
+     * 根据orderSn获取到订单
+     */
+    @Operation(summary ="根据orderSn获取到订单")
+    @PostMapping("/{orderNo}")
+    public Result<OmsOrderForm>  getOmsOrderByOrderNo(@PathVariable String orderSn) {
+        OmsOrderForm omsOrderForm = orderService.getOmsOrderByOrderNo(orderSn);
+        return Result.success(omsOrderForm);
+    }
+
+
+
+
     @Operation(summary ="订单支付,只干一件事,获取支付参数（唤起微信 / 支付宝）")
     @PostMapping("/payment")
-    public Result payOrder(@Validated @RequestBody OrderPaymentForm paymentForm) {
+    public Result<PaymentResultVO> payOrder(@Validated @RequestBody OrderPaymentForm paymentForm) {
 
         try {
             // 调用支付服务
-            Object paymentResult = orderService.payOrder(paymentForm);
+            PaymentResultVO paymentResult = orderService.payOrder(paymentForm);
 
             return Result.success(paymentResult);
         } catch (RuntimeException e) {

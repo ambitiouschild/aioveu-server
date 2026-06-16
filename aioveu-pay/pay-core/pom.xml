@@ -15,10 +15,20 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <pay-api.version>1.0-SNAPSHOT</pay-api.version>
+
     </properties>
 
 
     <dependencies>
+
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>pay-api</artifactId>
+            <version>${pay-api.version}</version>  <!-- 添加这行 -->
+        </dependency>
 
         <!--         Spring Cloud & Alibaba-->
 <!--        该依赖在 Spring Cloud 2022.x (对应 Spring Boot 3.x) 及更高版本中已被移除。-->

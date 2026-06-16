@@ -1,5 +1,6 @@
 package com.aioveu.pay.aioveu01.PaymentStrategy.impl;
 
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -70,7 +71,7 @@ public class PaymentStrategyFactory {
     /**
      * 获取支付策略
      */
-    public PaymentStrategy getStrategy(com.aioveu.common.enums.pay.PaymentChannelEnum channel) {
+    public PaymentStrategy getStrategy(PaymentChannelEnum channel) {
         PaymentStrategy strategy = strategyMap.get(channel);
         if (strategy == null) {
             throw new IllegalArgumentException("不支持的支付渠道: " + channel);

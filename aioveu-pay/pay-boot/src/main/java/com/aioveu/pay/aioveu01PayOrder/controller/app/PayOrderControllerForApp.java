@@ -46,10 +46,10 @@ public class PayOrderControllerForApp {
     }
 
     @Operation(summary = "根据订单号查询支付订单")
-    @GetMapping("/getByOrderNo")
+    @GetMapping("/getPayOrderByOrderNo")
     @Log(value = "支付订单分页列表", module = LogModuleEnum.PAY)
-    public Result<PayOrderVO> getByOrderNo(@RequestBody @Valid String orderNo ) {
-        PayOrderVO result = payOrderService.getByOrderNo(orderNo);
+    public Result<PayOrderVO> getPayOrderByOrderNo(@RequestBody @Valid String orderNo ) {
+        PayOrderVO result = payOrderService.getPayOrderByOrderNo(orderNo);
 
 
         return Result.success(result);
