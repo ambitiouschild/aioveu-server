@@ -159,4 +159,11 @@ public interface PayOrderService extends IService<PayOrder> {
      */
     boolean updatePaymentStatus(String paymentNo, boolean success, Map<String, String> params);
 
+
+    /**
+     * 将支付单从 UNPAID 推进到 PAYING
+     * 仅在并发创建支付请求时调用
+     */
+    boolean updateStatusToPaying(String paymentNo);
+
 }

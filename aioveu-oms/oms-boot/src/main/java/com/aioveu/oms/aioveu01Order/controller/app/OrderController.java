@@ -9,6 +9,7 @@ import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
 import com.aioveu.order.model.aioveu01Order.vo.OrderSubmitVO;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
 import com.aioveu.pay.model.aioveuPayment.PaymentResultVO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestFEToOmsDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestOmsToPayDTO;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -158,7 +159,7 @@ public class OrderController {
 
     @Operation(summary ="订单支付,只干一件事,获取支付参数（唤起微信 / 支付宝）")
     @PostMapping("/payment")
-    public Result<PaymentParamsVO> payOrder(@Validated @RequestBody PaymentRequestOmsToPayDTO paymentForm) {
+    public Result<PaymentParamsVO> payOrder(@Validated @RequestBody PaymentRequestFEToOmsDTO paymentForm) {
 
         try {
             // 调用支付服务

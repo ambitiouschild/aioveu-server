@@ -10,6 +10,7 @@ import com.aioveu.order.model.aioveu01Order.vo.OrderSubmitVO;
 import com.aioveu.order.model.aioveu05OrderPay.form.OrderPaymentForm;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
 import com.aioveu.pay.model.aioveuPayment.PaymentResultVO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestFEToOmsDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestOmsToPayDTO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -159,6 +160,6 @@ public interface OrderService extends IService<OmsOrder> {
     /*
     * 订单支付
     * */
-    PaymentParamsVO payOrder(PaymentRequestOmsToPayDTO form);
+    PaymentParamsVO payOrder(PaymentRequestFEToOmsDTO form);
 }
 

@@ -4,6 +4,7 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
+import com.aioveu.common.web.exception.BizException;
 import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
@@ -17,6 +18,7 @@ import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderForm;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderCreateForm;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -470,5 +472,36 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         return updatePaymentStatus(payOrder, success, params);
     }
 
+    /**
+     * 将支付单从 UNPAID 推进到 PAYING
+     * 仅在并发创建支付请求时调用
+     */
+    @Override
+    public boolean updateStatusToPaying(String paymentNo) {
+        if (StringUtils.isEmpty(paymentNo)) {
+            return false;
+        }
+
+        // 先查询订单
+        PayOrder payOrder = getByPaymentNo(paymentNo);
+        if (payOrder == null) {
+            log.error("更新支付状态失败：支付订单不存在: paymentNo={}", paymentNo);
+            return false;
+        }
+
+        LambdaUpdateWrapper<PayOrder> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper
+                .eq(PayOrder::getPaymentNo, paymentNo)
+                .eq(PayOrder::getPaymentStatus, PaymentStatusEnum.UNPAID)
+                .set(PayOrder::getPaymentStatus, PaymentStatusEnum.PAYING);
+
+        boolean updated = this.update(updateWrapper);
+
+        if (!updated) {
+            log.warn("支付单状态推进失败，可能已被处理，paymentNo={}", paymentNo);
+            throw new BizException("订单已在支付中或已完成");
+        }
+        return updated;
+    }
 
 }

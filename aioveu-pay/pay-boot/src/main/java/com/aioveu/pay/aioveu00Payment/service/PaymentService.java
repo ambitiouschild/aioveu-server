@@ -3,6 +3,7 @@ package com.aioveu.pay.aioveu00Payment.service;
 import com.aioveu.common.result.Result;
 
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestFEToOmsDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestOmsToPayDTO;
 import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
 import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
@@ -53,7 +54,7 @@ public interface PaymentService {
     /**
      * 订单支付
      */
-    PaymentParamsVO createPaymentOmsToPay(PaymentRequestOmsToPayDTO paymentForm);
+    PaymentParamsVO createPaymentOmsToPay(PaymentRequestFEToOmsDTO paymentForm);
 
 
     /**

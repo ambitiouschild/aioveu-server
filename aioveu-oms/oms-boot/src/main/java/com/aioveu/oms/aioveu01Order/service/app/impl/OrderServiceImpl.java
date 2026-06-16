@@ -27,6 +27,7 @@ import com.aioveu.pay.api.PayFeignClient;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderCreateForm;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
 import com.aioveu.pay.model.aioveuPayment.PaymentResultVO;
+import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestFEToOmsDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestOmsToPayDTO;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
@@ -1922,7 +1923,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
      * */
     @Override
     @GlobalTransactional
-    public PaymentParamsVO payOrder(PaymentRequestOmsToPayDTO form) {
+    public PaymentParamsVO payOrder(PaymentRequestFEToOmsDTO form) {
 
         // 1. 校验订单状态（OMS 职责）
         OmsOrderForm order = this.getOmsOrderByOrderNo(form.getOrderSn());
