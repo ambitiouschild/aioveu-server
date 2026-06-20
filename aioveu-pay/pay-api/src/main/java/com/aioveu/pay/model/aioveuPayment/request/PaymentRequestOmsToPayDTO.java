@@ -69,4 +69,6 @@ public class PaymentRequestOmsToPayDTO implements Serializable {
     @NotNull(message = "【PaymentRequestOmsToPayDTO】支付类型/方式不能为空")
     private PaymentMethodEnum paymentMethod;
 
+    private String openId;
+
 }

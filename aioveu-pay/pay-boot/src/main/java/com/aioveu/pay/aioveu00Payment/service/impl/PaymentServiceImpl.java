@@ -906,16 +906,9 @@ public class PaymentServiceImpl implements PaymentService {
         * Pay 只干一件事：
                 “我相信你 OMS 已经校验过了，我只负责收钱”
         * */
-//        OmsOrderForm omsOrder = orderFeignClient.getOmsOrderByOrderNo(orderSn);
-//        if (omsOrder == null) {
-//            throw new BizException("【createPaymentOmsToPay】订单不存在");
-//        }
 
-
-        BigDecimal reqAmountFen = paymentForm.getPaymentAmount();
-
-
-        //✅ 查支付订单（✅ 必须补）（✅ 金额唯一可信来源）  ✅ 方案二（兜底）：Pay 完全不查订单状态
+        //PayOrder 是“唯一可信资金来源”
+        //✅ 1.查支付订单（✅ 必须补）（✅ 金额唯一可信来源）  ✅ 方案二（兜底）：Pay 完全不查订单状态
         PayOrderVO payOrder = payOrderService.getPayOrderByOrderNo(orderSn);
         if (payOrder == null) {
             throw new BizException("【createPaymentOmsToPay】支付订单不存在");
@@ -926,38 +919,19 @@ public class PaymentServiceImpl implements PaymentService {
 
 
         // 只做：校验 + 创建支付单   锁只保护数据一致性
-        //  验证支付金额 ✅ 用 PayOrder 校验金额（✅ 关键）
+        //  2.验证支付金额 ✅ 用 PayOrder 校验金额（✅ 关键）  校验金额合法性（不是比较）
         Long payAmountFen = yuanToFen(payOrder.getPaymentAmount()); // ✅ 元转分   BigDecimal元 转 BIGINT 分
-
-
         if (payAmountFen == null || payAmountFen <= 0) {
             log.error("【createPaymentOmsToPay】支付金额异常: {}", payAmountFen);
             throw new BizException("【createPaymentOmsToPay】支付金额异常");
         }
-
-        // 3. 比较金额  你在验证金额时，应该用原始的分进行比较，而不是转换后的元：
-        //保持单位为分进行比较（推荐）
-        if (!payAmountFen.equals(reqAmountFen)) {
-
-            // ✅ 只用于展示：转为“元”
-            BigDecimal payYuan = fenToYuan(payAmountFen);
-            BigDecimal reqYuan = reqAmountFen;
-
-            // 显示用
-            log.error("【createPaymentOmsToPay】金额不匹配，支付订单金额: ¥{}，OMS金额: ¥{}",
-                    payYuan.toPlainString(), reqYuan.toPlainString());
-
-            throw new BizException(String.format("【createPaymentOmsToPay】支付金额不匹配，OMS金额: ¥%.2f",
-                    payYuan.toPlainString()));
-        }
-        log.info("【createPaymentOmsToPay】✅ PayOrder 金额校验通过（OMS 分 vs Pay 分）");
         //✅ 用 PayOrder 校验金额（✅ 关键）
         log.info("【createPaymentOmsToPay】✅ 用 PayOrder 校验金额（✅） 关键");
         log.info("【createPaymentOmsToPay】✅ 永远用 PayOrder 的金额做资金判断");
         log.info("【createPaymentOmsToPay】✅ PayOrder 金额校验通过");
 
         //-------------------------------------------------------
-        // 4. 查询业务订单（✅ 只校验状态，不碰金额）
+        // 3. 校验状态（✅ 只校验状态，不碰金额）
         log.info("【createPaymentOmsToPay】校验订单状态是否可支付");
         if (!OrderStatusEnum.UNPAID.getValue().equals(payOrder.getPaymentStatus())) {
             throw new BizException("【createPaymentOmsToPay】订单不可支付，请检查订单状态");
@@ -968,10 +942,10 @@ public class PaymentServiceImpl implements PaymentService {
             throw new BizException("【createPaymentOmsToPay】不支持的支付渠道: " + paymentChannel);
         }
 
-//        if (paymentForm.getPaymentMethod() == PaymentMethodEnum.JSAPI
-//                && !StringUtils.hasText(paymentForm.getOpenId())) {
-//            throw new BizException("JSAPI 支付必须提供 openId");
-//        }
+        if (paymentForm.getPaymentMethod() == PaymentMethodEnum.JSAPI
+                && !StringUtils.hasText(paymentForm.getOpenId())) {
+            throw new BizException("JSAPI 支付必须提供 openId");
+        }
 
         //-------------------------------------------------------
 
@@ -994,6 +968,12 @@ public class PaymentServiceImpl implements PaymentService {
                     复杂业务逻辑
                     金额比较（前面已经做完了）
                     ✅ 只保证：同一支付单，同一时刻，只会被处理一次
+                    *
+                    * // ✅ 锁内禁止：
+                    // 1. Feign 调用
+                    // 2. MQ 发送
+                    // 3. 第三方 HTTP 调用
+                    // 4. 非 PayOrder 表操作
             * */
 
             // 1️再次确认 PayOrder 状态（防止并发）
@@ -1069,16 +1049,10 @@ public class PaymentServiceImpl implements PaymentService {
 
 //            String appId=paymentForm.getAppId();
         String orderNo =   payOrder.getOrderNo();
-
         Long memberId = SecurityUtils.getMemberId();
-
-        // 7. 获取用户的微信OpenID
-        log.info("【createPaymentOmsToPay】获取用户OpenID，会员ID: {}", memberId);
-        Result<String> openIdResult = memberFeignClient.getOpenIdByMemberId(memberId);
-
-        String openId = openIdResult.getData();
+        //OpenID 理论上应该 OMS 传进来
+        String openId = paymentForm.getOpenId();
         log.info("【createPaymentOmsToPay】用户OpenID获取成功: {}", openId);
-
 
         // 1. 构建支付请求
         PaymentRequestPayToTPPDTO paymentRequest = buildPaymentRequest(payOrder, paymentChannel, paymentMethod, memberId, openId);

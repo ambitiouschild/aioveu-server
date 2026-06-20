@@ -1931,6 +1931,14 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             throw new BizException("订单不可支付");
         }
 
+        // 7. 获取用户的微信OpenID
+        Long memberId = SecurityUtils.getMemberId();
+        Result<String> openIdResult = memberFeignClient.getOpenIdByMemberId(memberId);
+        String openId = openIdResult.getData();
+        log.info("【payOrder】获取用户OpenID，会员ID: {},openId:{}", memberId,openId);
+
+        form.setOpenId(openId);
+
         // 2. 调用 Pay（只调一次）
         return payFeignClient.createPaymentOmsToPay(form);
 
