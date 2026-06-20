@@ -933,7 +933,7 @@ public class PaymentServiceImpl implements PaymentService {
         //-------------------------------------------------------
         // 3. 校验状态（✅ 只校验状态，不碰金额）
         log.info("【createPaymentOmsToPay】校验订单状态是否可支付");
-        if (!OrderStatusEnum.UNPAID.getValue().equals(payOrder.getPaymentStatus())) {
+        if (!PaymentStatusEnum.UNPAID.equals(payOrder.getPaymentStatus())) {
             throw new BizException("【createPaymentOmsToPay】订单不可支付，请检查订单状态");
         }
 
