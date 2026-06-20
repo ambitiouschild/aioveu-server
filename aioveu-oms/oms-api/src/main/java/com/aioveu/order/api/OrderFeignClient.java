@@ -41,7 +41,7 @@ public interface OrderFeignClient {
      * 根据orderSn获取到订单
      */
 
-    @PostMapping("/app-api/v1/orders/{orderNo}")
+    @PostMapping("/app-api/v1/orders/{orderSn}")
     OmsOrderForm getOmsOrderByOrderNo(@PathVariable String orderSn);
 
 }

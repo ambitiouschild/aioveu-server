@@ -148,7 +148,7 @@ public class OrderController {
      * 根据orderSn获取到订单
      */
     @Operation(summary ="根据orderSn获取到订单")
-    @PostMapping("/{orderNo}")
+    @PostMapping("/{orderSn}")
     public Result<OmsOrderForm>  getOmsOrderByOrderNo(@PathVariable String orderSn) {
         OmsOrderForm omsOrderForm = orderService.getOmsOrderByOrderNo(orderSn);
         return Result.success(omsOrderForm);
@@ -160,6 +160,8 @@ public class OrderController {
     @Operation(summary ="订单支付,只干一件事,获取支付参数（唤起微信 / 支付宝）")
     @PostMapping("/payment")
     public Result<PaymentParamsVO> payOrder(@Validated @RequestBody PaymentRequestFEToOmsDTO paymentForm) {
+
+        log.error("✅✅✅ 支付接口被命中 ✅✅✅ orderSn={}", paymentForm.getOrderSn());
 
         try {
             // 调用支付服务
