@@ -69,6 +69,7 @@ public class PaymentRequestOmsToPayDTO implements Serializable {
     @NotNull(message = "【PaymentRequestOmsToPayDTO】支付类型/方式不能为空")
     private PaymentMethodEnum paymentMethod;
 
+    @Schema(description = "微信 JSAPI 支付时的 openId")
     private String openId;
 
 }

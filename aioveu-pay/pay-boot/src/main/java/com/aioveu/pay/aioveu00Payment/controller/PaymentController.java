@@ -46,7 +46,7 @@ public class PaymentController {
     @PostMapping("/createPaymentOmsToPay")
 //    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrder:oms-order:query')")
     @Log( value = "来自oms的订单支付请求",module = LogModuleEnum.PAY)
-    public Result<PaymentParamsVO> createPaymentOmsToPay(@RequestBody PaymentRequestFEToOmsDTO paymentForm) {
+    public Result<PaymentParamsVO> createPaymentOmsToPay(@RequestBody PaymentRequestOmsToPayDTO paymentForm) {
 
         log.info("【Pay微服务PaymentController】来自oms的订单支付请求: {}", JSON.toJSONString(paymentForm));
 

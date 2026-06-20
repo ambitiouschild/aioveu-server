@@ -35,7 +35,7 @@ public interface PayFeignClient {
      */
     @Operation(summary ="来自oms-pay的订单支付请求")
     @PostMapping("/api/v1/pay-order/createPaymentOmsToPay")
-    PaymentParamsVO createPaymentOmsToPay(@RequestBody PaymentRequestFEToOmsDTO paymentForm);
+    PaymentParamsVO createPaymentOmsToPay(@RequestBody PaymentRequestOmsToPayDTO paymentForm);
 
 
     /**

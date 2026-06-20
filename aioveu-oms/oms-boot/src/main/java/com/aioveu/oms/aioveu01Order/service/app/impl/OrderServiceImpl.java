@@ -79,6 +79,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -1937,11 +1938,37 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         String openId = openIdResult.getData();
         log.info("【payOrder】获取用户OpenID，会员ID: {},openId:{}", memberId,openId);
 
-        form.setOpenId(openId);
+
+        BigDecimal  reqAmountYuan = form.getPaymentAmount();
+        Long payAmountFen = yuanToFen(reqAmountYuan); // ✅ 元转分   BigDecimal元 转 BIGINT 分
+
+
+        //构建PaymentRequestOmsToPayDTO
+        PaymentRequestOmsToPayDTO paymentRequestOmsToPayDTO = new PaymentRequestOmsToPayDTO();
+        paymentRequestOmsToPayDTO.setOrderSn(form.getOrderSn());
+        paymentRequestOmsToPayDTO.setBizType(PaymentBizTypeEnum.ORDER_PAY);
+        paymentRequestOmsToPayDTO.setUserId(memberId);
+        paymentRequestOmsToPayDTO.setPaymentAmount(payAmountFen);
+        paymentRequestOmsToPayDTO.setPaymentChannel(form.getPaymentChannel());
+        paymentRequestOmsToPayDTO.setPaymentMethod(form.getPaymentMethod());
+        paymentRequestOmsToPayDTO.setOpenId(openId);
+        log.info("【Oms-payOrder】构建paymentRequestOmsToPayDTO：{}",paymentRequestOmsToPayDTO);
+
 
         // 2. 调用 Pay（只调一次）
-        return payFeignClient.createPaymentOmsToPay(form);
+        return payFeignClient.createPaymentOmsToPay(paymentRequestOmsToPayDTO);
 
+    }
+
+
+    /**
+     * BigDecimal 元 → Long 分
+     */
+    private Long yuanToFen(BigDecimal amountYuan) {
+        return amountYuan
+                .setScale(2, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100))
+                .longValueExact();
     }
 
 

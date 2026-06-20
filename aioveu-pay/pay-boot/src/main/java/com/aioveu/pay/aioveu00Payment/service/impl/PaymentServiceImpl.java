@@ -891,7 +891,7 @@ public class PaymentServiceImpl implements PaymentService {
      * @return 支付结果（微信支付返回调起参数，余额支付返回布尔值）
      */
     @Override
-    public PaymentParamsVO createPaymentOmsToPay(PaymentRequestFEToOmsDTO paymentForm) {
+    public PaymentParamsVO createPaymentOmsToPay(PaymentRequestOmsToPayDTO paymentForm) {
 
         String orderSn = paymentForm.getOrderSn();
         PaymentChannelEnum paymentChannel  = paymentForm.getPaymentChannel();

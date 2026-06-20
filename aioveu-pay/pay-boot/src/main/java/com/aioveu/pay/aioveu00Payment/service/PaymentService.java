@@ -54,7 +54,7 @@ public interface PaymentService {
     /**
      * 订单支付
      */
-    PaymentParamsVO createPaymentOmsToPay(PaymentRequestFEToOmsDTO paymentForm);
+    PaymentParamsVO createPaymentOmsToPay(PaymentRequestOmsToPayDTO paymentForm);
 
 
     /**
