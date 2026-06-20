@@ -901,12 +901,21 @@ public class PaymentServiceImpl implements PaymentService {
                 orderSn, paymentChannel, paymentMethod, mockPayEnabled);
 
         //-------------------------------------------------------
-        //✅ 查订单（✅ 必须补）
-        OmsOrderForm omsOrder = orderFeignClient.getOmsOrderByOrderNo(orderSn);
-        if (omsOrder == null) {
-            throw new BizException("【createPaymentOmsToPay】订单不存在");
-        }
-        //✅ 查支付订单（✅ 必须补）（✅ 金额唯一可信来源）
+        //✅方案一（最优）：OMS 把“已校验过的数据”传给 Pay
+        /*
+        * Pay 只干一件事：
+                “我相信你 OMS 已经校验过了，我只负责收钱”
+        * */
+//        OmsOrderForm omsOrder = orderFeignClient.getOmsOrderByOrderNo(orderSn);
+//        if (omsOrder == null) {
+//            throw new BizException("【createPaymentOmsToPay】订单不存在");
+//        }
+
+
+        BigDecimal reqAmountFen = paymentForm.getPaymentAmount();
+
+
+        //✅ 查支付订单（✅ 必须补）（✅ 金额唯一可信来源）  ✅ 方案二（兜底）：Pay 完全不查订单状态
         PayOrderVO payOrder = payOrderService.getPayOrderByOrderNo(orderSn);
         if (payOrder == null) {
             throw new BizException("【createPaymentOmsToPay】支付订单不存在");
@@ -914,7 +923,7 @@ public class PaymentServiceImpl implements PaymentService {
         log.info("【createPaymentOmsToPay】查支付订单（✅ 必须补）,根据订单号查询支付订单PayOrder:{}",payOrder);
         //-------------------------------------------------------
 
-        Long reqAmountFen = omsOrder.getPaymentAmount();
+
 
         // 只做：校验 + 创建支付单   锁只保护数据一致性
         //  验证支付金额 ✅ 用 PayOrder 校验金额（✅ 关键）
@@ -932,7 +941,7 @@ public class PaymentServiceImpl implements PaymentService {
 
             // ✅ 只用于展示：转为“元”
             BigDecimal payYuan = fenToYuan(payAmountFen);
-            BigDecimal reqYuan = fenToYuan(reqAmountFen);
+            BigDecimal reqYuan = reqAmountFen;
 
             // 显示用
             log.error("【createPaymentOmsToPay】金额不匹配，支付订单金额: ¥{}，OMS金额: ¥{}",
@@ -950,7 +959,7 @@ public class PaymentServiceImpl implements PaymentService {
         //-------------------------------------------------------
         // 4. 查询业务订单（✅ 只校验状态，不碰金额）
         log.info("【createPaymentOmsToPay】校验订单状态是否可支付");
-        if (!OrderStatusEnum.UNPAID.getValue().equals(omsOrder.getStatus())) {
+        if (!OrderStatusEnum.UNPAID.getValue().equals(payOrder.getPaymentStatus())) {
             throw new BizException("【createPaymentOmsToPay】订单不可支付，请检查订单状态");
         }
 
@@ -1013,7 +1022,7 @@ public class PaymentServiceImpl implements PaymentService {
         // 继续支付流程...
 
         PaymentRequestOmsToPayDTO paymentRequestOmsToPayDTO = PaymentRequestOmsToPayDTO.builder()
-                .orderSn(omsOrder.getOrderSn())
+                .orderSn(paymentForm.getOrderSn())
                 .bizType(payOrder.getBizType()) // ✅ 后端指定
                 .userId(payOrder.getUserId())
                 .paymentAmount(yuanToFen(payOrder.getPaymentAmount())) // ✅ 用订单的
