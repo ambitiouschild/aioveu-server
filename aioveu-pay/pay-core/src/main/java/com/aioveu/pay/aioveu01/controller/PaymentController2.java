@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu01.controller;
 
 import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategy;
-import com.aioveu.pay.aioveu01.PaymentStrategy.impl.PaymentStrategyFactory;
+import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategyFactory;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
 import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;

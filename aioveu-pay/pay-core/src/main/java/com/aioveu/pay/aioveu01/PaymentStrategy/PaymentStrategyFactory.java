@@ -1,11 +1,13 @@
-package com.aioveu.pay.aioveu01.PaymentStrategy.impl;
+package com.aioveu.pay.aioveu01.PaymentStrategy;
 
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
-import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategy;
+import com.aioveu.pay.aioveu01.PaymentStrategy.impl.AlipayStrategyAdapter;
+import com.aioveu.pay.aioveu01.PaymentStrategy.impl.MockStrategyAdapter;
+import com.aioveu.pay.aioveu01.PaymentStrategy.impl.WeChatPayStrategyAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 /**
@@ -49,23 +51,35 @@ import java.util.Map;
 @Component
 public class PaymentStrategyFactory {
 
-    private final Map<String, PaymentStrategy> strategyMap;
+//    private final Map<String, PaymentStrategy> strategyMap;
+    private final Map<PaymentChannelEnum, PaymentStrategy> strategyMap;
 
     @Autowired
     public PaymentStrategyFactory(WeChatPayStrategyAdapter weChatPayStrategyAdapter,
                                   AlipayStrategyAdapter alipayStrategyAdapter,
                                   MockStrategyAdapter mockStrategyAdapter) {
-        this.strategyMap = new HashMap<>();
+//        this.strategyMap = new HashMap<>();
+
+        strategyMap = new EnumMap<>(PaymentChannelEnum.class);
 
         // 微信支付策略 - 所有微信支付方式都使用同一个适配器
-        strategyMap.put("WECHAT", weChatPayStrategyAdapter);
-
+//        strategyMap.put("WECHAT", alipayStrategyAdapter);
         // 支付宝策略
-        strategyMap.put("ALIPAY", alipayStrategyAdapter);
+//        strategyMap.put("ALIPAY", alipayStrategyAdapter);
         // 支付宝策略
-        strategyMap.put("BALANCE", alipayStrategyAdapter);
+//        strategyMap.put("BALANCE", alipayStrategyAdapter);
         // 模拟支付策略
-        strategyMap.put("MOCK", mockStrategyAdapter);
+//        strategyMap.put("MOCK", mockStrategyAdapter);
+
+        // 微信支付策略 - 所有微信支付方式都使用同一个适配器
+        strategyMap.put(PaymentChannelEnum.WECHAT, weChatPayStrategyAdapter);
+        // 支付宝策略
+        strategyMap.put(PaymentChannelEnum.ALIPAY, alipayStrategyAdapter);
+        // 支付宝策略
+        strategyMap.put(PaymentChannelEnum.BALANCE, alipayStrategyAdapter);
+        // 模拟支付策略
+        strategyMap.put(PaymentChannelEnum.MOCK, mockStrategyAdapter);
+
     }
 
     /**
@@ -74,7 +88,7 @@ public class PaymentStrategyFactory {
     public PaymentStrategy getStrategy(PaymentChannelEnum channel) {
         PaymentStrategy strategy = strategyMap.get(channel);
         if (strategy == null) {
-            throw new IllegalArgumentException("不支持的支付渠道: " + channel);
+            throw new IllegalArgumentException("【PaymentStrategyFactory】不支持的支付渠道channel: " + channel);
         }
         return strategy;
     }

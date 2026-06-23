@@ -1,6 +1,5 @@
 package com.aioveu.pay.aioveu00Payment.service.impl;
 
-import cn.hutool.core.lang.Assert;
 import cn.hutool.json.JSONUtil;
 import com.aioveu.common.constant.OrderConstants;
 import com.aioveu.common.enums.oms.OrderStatusEnum;
@@ -23,7 +22,7 @@ import com.aioveu.pay.aioveu06PayFlow.service.PayFlowService;
 import com.aioveu.pay.aioveu07PayNotify.service.PayNotifyService;
 import com.aioveu.pay.aioveu08PayAccount.service.PayAccountService;
 import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategy;
-import com.aioveu.pay.aioveu01.PaymentStrategy.impl.PaymentStrategyFactory;
+import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategyFactory;
 //import com.aioveu.pay.aioveuModule.channelRouter.ChannelRouter;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
@@ -34,7 +33,6 @@ import com.aioveu.common.enums.pay.PaymentCallbackStatusEnum;
 import com.aioveu.pay.aioveu13PayCallbackRecord.model.entity.PayCallbackRecord;
 import com.aioveu.pay.aioveu13PayCallbackRecord.service.PayCallbackRecordService;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
-import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestFEToOmsDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestOmsToPayDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 import com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO;
@@ -42,7 +40,6 @@ import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
 import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.aioveu.ums.api.MemberFeignClient;
 import com.alibaba.fastjson.JSON;
-import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
@@ -119,7 +116,7 @@ public class PaymentServiceImpl implements PaymentService {
             // 1. 参数校验
 //            validatePaymentRequest(request);
 
-            // 1. 查询支付单（不新建）
+            // 1. 查询支付单（不新建）createPaymentPayToTPP不再查库，直接用 paymentNo
             PayOrder payOrder = payOrderService.getByPaymentNo(request.getPayOrderNo());
             if (payOrder == null) {
                 throw new BusinessException("支付单不存在");
@@ -1095,6 +1092,7 @@ public class PaymentServiceImpl implements PaymentService {
         BigDecimal PaymentAmount = payOrder.getPaymentAmount();
 
         PaymentRequestPayToTPPDTO request = new PaymentRequestPayToTPPDTO();
+        request.setPayOrderNo(payOrder.getPaymentNo());
         request.setUserId(memberId);
         request.setBizType(PaymentBizTypeEnum.ORDER_PAY);
         request.setOrderSn(payOrder.getOrderNo());
@@ -1137,7 +1135,7 @@ public class PaymentServiceImpl implements PaymentService {
                 // 余额支付不走三方
                 break;
             default:
-                throw new BizException("不支持的支付渠道: " + paymentChannel);
+                throw new BizException("【buildPaymentRequest】不支持的支付方式paymentMethod: " + paymentMethod);
         }
 
         // 额外参数
