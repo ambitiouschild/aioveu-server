@@ -2,6 +2,7 @@ package com.aioveu.oms.aioveu02OrderItem.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.common.enums.oms.OrderSourceEnum;
 import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.aioveu.oms.aioveu01Order.mapper.OmsOrderMapper;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
@@ -340,10 +341,11 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
     }
 
 
-    private String getSourceText(Integer source) {
+    private String getSourceText(OrderSourceEnum source) {
         switch (source) {
-            case 0: return "PC订单";
-            case 1: return "app订单";
+            case WX: return "PC订单";
+            case APP: return "app订单";
+            case WEB: return "web订单";
             default: return "未知";
         }
     }

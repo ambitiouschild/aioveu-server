@@ -1,5 +1,6 @@
 package com.aioveu.order.model.aioveu01Order.form;
 
+import com.aioveu.common.enums.oms.OrderSourceEnum;
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.aioveu.common.enums.pay.PaymentMethodEnum;
@@ -46,7 +47,7 @@ public class OmsOrderForm implements Serializable {
     private Integer totalQuantity;
 
     @Schema(description = "订单来源(1:APP；2:网页)")
-    private Integer source;
+    private OrderSourceEnum source;
 
     @Schema(description = "订单状态：")
     @NotNull(message = "【OmsOrderForm】订单状态不能为空")

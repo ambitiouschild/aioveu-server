@@ -1,5 +1,6 @@
 package com.aioveu.common.enums.oms;
 
+import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.baomidou.mybatisplus.annotation.IEnum;
 import lombok.Getter;
 
@@ -26,6 +27,8 @@ public enum OrderSourceEnum {
     }
 
 
+    //100% 稳妥的「生产级最终版」（强烈推荐）
+    @EnumValue
     @Getter
     private Integer value;
 

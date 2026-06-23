@@ -1,6 +1,7 @@
 package com.aioveu.oms.aioveu01Order.model.entity;
 
 import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.common.enums.oms.OrderSourceEnum;
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.aioveu.common.enums.pay.PaymentMethodEnum;
@@ -59,7 +60,7 @@ public class OmsOrder extends BaseEntityWithTenantId {
 	/**
 	 * 订单来源(0-PC订单；1-app订单)
 	 */
-	private Integer source;
+	private OrderSourceEnum source;
 
 	/**
 	 * 订单状态(1-待付款;2-待发货;3-已发货;4-已完成;)

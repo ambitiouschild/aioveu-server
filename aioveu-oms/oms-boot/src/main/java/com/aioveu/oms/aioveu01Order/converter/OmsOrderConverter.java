@@ -33,7 +33,6 @@ public interface OmsOrderConverter {
                     expression = "java(orderSubmitForm.getOrderItems().stream().map(OrderSubmitForm.OrderItem::getQuantity).reduce(0, Integer::sum))"),
             @Mapping(target = "totalAmount",
                     expression = "java(orderSubmitForm.getOrderItems().stream().map(item -> item.getPrice() * item.getQuantity()).reduce(0L, Long::sum))"),
-            @Mapping(target = "source", expression = "java(orderSubmitForm.getOrderSource().getValue())"),
     })
     OmsOrder form2Entity(OrderSubmitForm orderSubmitForm);
 
