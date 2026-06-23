@@ -1005,6 +1005,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .orderSn(paymentForm.getOrderSn())
                 .bizType(payOrder.getBizType()) // ✅ 后端指定
                 .userId(payOrder.getUserId())
+                .openId(paymentForm.getOpenId())
                 .paymentAmount(yuanToFen(payOrder.getPaymentAmount())) // ✅ 用订单的
                 .paymentChannel(payOrder.getPaymentChannel())
                 .paymentMethod(payOrder.getPaymentMethod())
