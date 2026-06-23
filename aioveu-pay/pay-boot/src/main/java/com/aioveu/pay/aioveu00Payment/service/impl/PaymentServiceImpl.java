@@ -119,19 +119,28 @@ public class PaymentServiceImpl implements PaymentService {
             // 1. 参数校验
 //            validatePaymentRequest(request);
 
-//             2. 创建支付订单
-            PayOrder payOrder = payOrderConverter.toPayOrder(request);
-            payOrderService.save(payOrder);
+            // 1. 查询支付单（不新建）
+            PayOrder payOrder = payOrderService.getByPaymentNo(request.getPayOrderNo());
+            if (payOrder == null) {
+                throw new BusinessException("支付单不存在");
+            }
             String paymentNo = payOrder.getPaymentNo();
             log.info("【Pay】支付订单支付单号paymentNo：{}",paymentNo);
+
+            if (payOrder.getPaymentStatus() != PaymentStatusEnum.PAYING) {
+                throw new BusinessException("支付单状态异常");
+            }
 
             // 3. 根据支付渠道选择支付策略
             PaymentStrategy strategy = strategyFactory.getStrategy(request.getPaymentChannel());
             log.info("【Pay】获取支付策略：{}",strategy.getClass().getSimpleName());
 
-            // 4. 调用策略获取支付参数
+            // 4. 调用策略获取支付参数,调第三方
             PaymentParamsVO params = strategy.appPay(paymentNo, request);
             log.info("【Pay】调用策略支付后获取的请求参数：{}", params);
+
+            // 更新状态为 PAYING（可选） 在omsToPay已经改为支付中
+//            payOrderService.markPaying(paymentNo);
 
             // 5. 直接返回支付参数VO
             return params;
@@ -989,7 +998,7 @@ public class PaymentServiceImpl implements PaymentService {
                 throw new BizException("【createPaymentOmsToPay】订单已在支付中或已完成");
             }
 
-            // 3️（可选）标记支付中状态，防止重复进入 ✅ 数据库级状态推进
+            // 3️（可选）标记支付中状态，防止重复进入 ✅ 数据库级状态推进  //这里已经改为支付中
             payOrderService.updateStatusToPaying(current.getPaymentNo());
             log.info("【createPaymentOmsToPay】先锁 → 再改状态 → 再解锁 → 再调微信,将支付单从 UNPAID 推进到 PAYING");
 
