@@ -88,7 +88,7 @@
     <select id="getOrderStatusCounts" resultType="com.aioveu.oms.aioveu01Order.model.vo.OrderStatusCountDTO">
         SELECT
         status,
-        COUNT(*) as count
+        COUNT(*) as count,
         SUM(total_amount) as amount
         FROM oms_order
         <where>
