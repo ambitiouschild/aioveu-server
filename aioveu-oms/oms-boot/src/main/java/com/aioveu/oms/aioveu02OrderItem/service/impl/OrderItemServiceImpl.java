@@ -282,7 +282,7 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
             orderDetail.setCanReturn(true);  // 可以申请退货
         }
         // 已完成订单
-        else if (status == COMPLETE) {
+        else if (status == COMPLETED) {
             // 检查是否在售后期限内（比如7天内）
             boolean inAfterSalePeriod = checkAfterSalePeriod(order.getReceiveTime());
             orderDetail.setCanRefund(inAfterSalePeriod);
@@ -321,7 +321,7 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
             case UNPAID: return "待付款";
             case PAID: return "待发货";
             case SHIPPED: return "已发货";
-            case COMPLETE: return "已完成";
+            case COMPLETED: return "已完成";
             case CANCELED: return "已取消";
             case SERVICING: return "售后中";
             default: return "未知";
@@ -333,7 +333,7 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
             case UNPAID: return "等待买家付款";
             case PAID: return "等待卖家发货";
             case SHIPPED: return "商品已发出";
-            case COMPLETE: return "交易已完成";
+            case COMPLETED: return "交易已完成";
             case CANCELED: return "交易已取消";
             case SERVICING: return "售后处理中";
             default: return "";

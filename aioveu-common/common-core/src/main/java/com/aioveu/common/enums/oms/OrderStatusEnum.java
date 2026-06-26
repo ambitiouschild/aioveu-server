@@ -29,7 +29,7 @@ public enum OrderStatusEnum {
     /**
      * 已完成
      */
-    COMPLETE(3, "已完成"),
+    COMPLETED(3, "已完成"),
     /**
      * 已取消
      */
