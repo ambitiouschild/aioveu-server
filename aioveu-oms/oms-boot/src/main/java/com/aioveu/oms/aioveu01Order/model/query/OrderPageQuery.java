@@ -1,6 +1,7 @@
 package com.aioveu.oms.aioveu01Order.model.query;
 
 import com.aioveu.common.base.BasePageQuery;
+import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -51,7 +52,7 @@ public class OrderPageQuery extends BasePageQuery {
      * 订单状态
      */
     @Schema(description="订单状态：-1-全部，0-待支付，1-待发货，2-已发货，3-已完成，4-已取消")
-    private Integer status;
+    private OrderStatusEnum status;
 
 
     /*
