@@ -2,6 +2,7 @@ package com.aioveu.oms.aioveu01Order.mapper;
 
 import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
+import com.aioveu.oms.aioveu01Order.model.vo.OrderStatusCountDTO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -38,8 +39,8 @@ public interface OmsOrderMapper extends BaseMapper<OmsOrder> {
      * @param queryParams 查询条件
      * @return 统计结果
      */
-
-    Map<Integer, Integer> getOrderStatusCounts(@Param("queryParams") OrderPageQuery queryParams);
+    // noinspection MyBatisMapperMethodInspection
+    List<OrderStatusCountDTO> getOrderStatusCounts(@Param("queryParams") OrderPageQuery queryParams);
 
     /**
      * 根据查询条件统计订单数量

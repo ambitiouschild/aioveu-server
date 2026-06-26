@@ -84,10 +84,12 @@
     </select>
 
 
-    <select id="getOrderStatusCounts" resultType="java.util.Map">
+<!--    MyBatis 会自动映射 status / count-->
+    <select id="getOrderStatusCounts" resultType="com.aioveu.oms.aioveu01Order.model.vo.OrderStatusCountDTO">
         SELECT
         status,
         COUNT(*) as count
+        SUM(total_amount) as amount
         FROM oms_order
         <where>
             deleted = 0

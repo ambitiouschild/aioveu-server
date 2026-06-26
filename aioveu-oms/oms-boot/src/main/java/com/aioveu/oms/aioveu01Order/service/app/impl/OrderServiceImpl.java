@@ -1358,8 +1358,15 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         try {
             // 1. 查询各状态订单数量  状态统计（数据库是数字） // 1. 状态统计（@MapKey 返回）
+
+            List<OrderStatusCountDTO> dtoList = baseMapper.getOrderStatusCounts(queryParams);
+
             Map<Integer, Integer> statusCountsMap =
-                    this.baseMapper.getOrderStatusCounts(queryParams);
+                    dtoList.stream()
+                            .collect(Collectors.toMap(
+                                    OrderStatusCountDTO::getStatus,
+                                    OrderStatusCountDTO::getCount
+                            ));
 
             // 2. 初始化统计结果 转换成枚举名
             Map<String, Integer> statusCounts = new HashMap<>();
