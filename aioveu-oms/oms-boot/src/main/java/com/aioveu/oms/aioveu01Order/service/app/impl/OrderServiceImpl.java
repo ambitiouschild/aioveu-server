@@ -69,6 +69,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
@@ -1352,6 +1353,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
      * 获取订单统计信息
      */
     @Override
+    @Cacheable(value = "order:statistics", key = "#query.startDate + ':' + #query.endDate")
     public OrderStatisticsVO  getOrderStatistics(OrderPageQuery queryParams) {
 
         OrderStatisticsVO result = new OrderStatisticsVO();
