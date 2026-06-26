@@ -1420,8 +1420,10 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         // 设置今天的时间范围
         LocalDate today = LocalDate.now();
-        todayQuery.setStartTime(today.atStartOfDay()); // 今天 00:00:00
-        todayQuery.setEndTime(today.atTime(23, 59, 59));  // 今天 23:59:59
+//        todayQuery.setStartTime(today.atStartOfDay()); // 今天 00:00:00
+//        todayQuery.setEndTime(today.atTime(23, 59, 59));  // 今天 23:59:59
+        todayQuery.setStartDate(today); // 今天 00:00:00
+        todayQuery.setEndDate(today);  // 今天 23:59:59
 
         return this.baseMapper.selectCountByQuery(todayQuery);
     }
@@ -1452,10 +1454,12 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
                 BeanUtils.copyProperties(queryParams, todayQuery);
 
                 LocalDate today = LocalDate.now();
-                todayQuery.setStartTime(today.atStartOfDay()); // 今天 00:00:00
-                todayQuery.setEndTime(today.atTime(23, 59, 59));  // 今天 23:59:59
+//                todayQuery.setStartTime(today.atStartOfDay()); // 今天 00:00:00
+//                todayQuery.setEndTime(today.atTime(23, 59, 59));  // 今天 23:59:59
+                todayQuery.setStartDate(today); // 今天 00:00:00
+                todayQuery.setEndDate(today);  // 今天 23:59:59
 
-                log.info("查询今日收入，时间范围: {} - {}", todayQuery.getStartTime(), todayQuery.getEndTime());
+                log.info("查询今日收入，时间范围: {} - {}", todayQuery.getStartDate(), todayQuery.getEndDate());
 
                 // 调用 Mapper
                 Long todayIncome = this.baseMapper.selectTodayIncome(queryParams);

@@ -47,12 +47,13 @@
                 AND t1.status= #{queryParams.status}
             </if>
             <!-- 时间范围（前端传入的是 startTime 和 endTime） -->
-            <if test ='queryParams.startTime !=null ' >
-                AND t1.create_time &gt;= #{queryParams.startTime}
+            <!-- ✅ 时间：左闭右开（推荐） -->
+            <if test ='queryParams.startDate !=null ' >
+                AND t1.create_time &gt;= #{queryParams.startDate}
             </if>
 
-            <if test ='queryParams.endTime !=null' >
-                AND t1.create_time &lt;= #{queryParams.endTime}
+            <if test ='queryParams.endDate !=null' >
+                AND t1.create_time &lt; DATE_ADD(#{queryParams.endDate}, INTERVAL 1 DAY)
             </if>
 
             <!-- 支付方式 -->
@@ -79,12 +80,12 @@
             </if>
 
         </where>
---         ORDER BY
---             t1.create_time DESC
+        ORDER BY t1.create_time DESC
     </select>
 
 
 <!--    MyBatis 会自动映射 status / count-->
+<!--    订单状态统计（✅ 你现在最关键的那个）-->
     <select id="getOrderStatusCounts" resultType="com.aioveu.oms.aioveu01Order.model.vo.OrderStatusCountDTO">
         SELECT
         status,
@@ -98,11 +99,12 @@
             </if>
             <!-- 时间范围 -->
             <!-- 只检查 null，不检查空字符串 -->
-            <if test='queryParams.startTime != null'>
-                AND create_time >= #{queryParams.startTime}
+            <!-- ✅ 时间：左闭右开（必须） -->
+            <if test='queryParams.startDate != null'>
+                AND create_time >= #{queryParams.startDate}
             </if>
-            <if test='queryParams.endTime != null'>
-                AND create_time &lt;= #{queryParams.endTime}
+            <if test='queryParams.endDate != null'>
+                AND create_time &lt; DATE_ADD(#{queryParams.endDate}, INTERVAL 1 DAY)
             </if>
 
             <!-- 关键词搜索 -->
@@ -120,6 +122,7 @@
     </select>
 
     <!-- 根据查询条件统计订单数量 -->
+<!--    统计数量（通用）-->
     <select id="selectCountByQuery" resultType="java.lang.Integer">
         SELECT COUNT(*)
         FROM oms_order
@@ -132,11 +135,11 @@
             </if>
 
             <!-- 时间范围 -->
-            <if test='queryParams.startTime  != null'>
-                AND create_time >= #{queryParams.startTime }
+            <if test='queryParams.startDate  != null'>
+                AND create_time >= #{queryParams.startDate}
             </if>
-            <if test='queryParams.endTime  != null'>
-                AND create_time &lt;= #{queryParams.endTime }
+            <if test='queryParams.endDate  != null'>
+                AND create_time &lt; DATE_ADD(#{queryParams.endDate}, INTERVAL 1 DAY)
             </if>
 
             <!-- 关键词搜索 -->
@@ -166,11 +169,11 @@
             </if>
 
             <!-- 时间范围 -->
-            <if test='queryParams.startTime != null'>
-                AND create_time >= #{queryParams.startTime}
+            <if test='queryParams.startDate != null'>
+                AND create_time >= #{queryParams.startDate}
             </if>
-            <if test='queryParams.endTime  != null'>
-                AND create_time &lt;= #{queryParams.endTime}
+            <if test='queryParams.endDate  != null'>
+                AND create_time &lt; DATE_ADD(#{queryParams.endDate}, INTERVAL 1 DAY)
             </if>
 
             <!-- 关键词搜索 -->
@@ -192,18 +195,14 @@
             deleted = 0
             AND status IN (2, 3, 4)  <!-- 只统计已支付状态的订单 -->
 
-            <!-- 状态过滤 -->
-            <if test='queryParams.status != null'>
-                AND status = #{queryParams.status}
-            </if>
-
             <!-- 只检查 null，不检查空字符串 -->
             <!-- 时间范围 -->
-            <if test='queryParams.startTime != null'>
-                AND create_time >= #{queryParams.startTime}
+            <!-- ✅ 时间：左闭右开 -->
+            <if test='queryParams.startDate != null'>
+                AND create_time >= #{queryParams.startDate}
             </if>
-            <if test='queryParams.endTime != null'>
-                AND create_time &lt;= #{queryParams.endTime}
+            <if test='queryParams.endDate != null'>
+                AND create_time &lt; DATE_ADD(#{queryParams.endDate}, INTERVAL 1 DAY)
             </if>
 
             <!-- 关键词搜索 -->

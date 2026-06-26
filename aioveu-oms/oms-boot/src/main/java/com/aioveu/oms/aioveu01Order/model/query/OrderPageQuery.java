@@ -4,11 +4,13 @@ import com.aioveu.common.base.BasePageQuery;
 import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 
@@ -60,18 +62,24 @@ public class OrderPageQuery extends BasePageQuery {
     /**
      * 开始时间
      */
-    @Schema(description = "开始时间(yyyy-MM-dd)",example = "2023-10-01")
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")  // 修正pattern
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")  // 添加时区
-    private LocalDateTime startTime;
+//    @Schema(description = "开始时间(yyyy-MM-dd)",example = "2023-10-01")
+//    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")  // 修正pattern
+//    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")  // 添加时区
+//    private LocalDateTime startTime;
 
     /**
      * 截止时间
      */
-    @Schema(description = "截止时间(yyyy-MM-dd)",example = "2025-10-01")
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")  // 修正pattern
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")  // 添加时区
-    private LocalDateTime endTime;
+//    @Schema(description = "截止时间(yyyy-MM-dd)",example = "2025-10-01")
+//    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")  // 修正pattern
+//    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")  // 添加时区
+//    private LocalDateTime endTime;
+
+    @NotNull
+    private LocalDate startDate;
+
+    @NotNull
+    private LocalDate endDate;
 
     @Schema(description = "订单类型")
     private Integer orderType;
