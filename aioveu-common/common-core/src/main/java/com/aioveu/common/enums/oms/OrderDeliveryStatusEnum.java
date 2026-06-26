@@ -1,6 +1,7 @@
 package com.aioveu.common.enums.oms;
 
 import com.aioveu.common.base.IBaseEnum;
+import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.Getter;
 
 /**
@@ -37,7 +38,8 @@ public enum OrderDeliveryStatusEnum {
         this.label = label;
     }
 
-
+    //100% 稳妥的「生产级最终版」（强烈推荐）
+    @EnumValue
     @Getter
     private Integer value;
 
