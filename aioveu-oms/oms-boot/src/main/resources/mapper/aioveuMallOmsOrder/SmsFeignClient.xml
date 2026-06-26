@@ -94,7 +94,7 @@
         <where>
             deleted = 0
             <if test="queryParams.status != null">
-                AND status = #{queryParams.status.code}
+                AND status = #{queryParams.status.value}
             </if>
             <!-- 时间范围 -->
             <!-- 只检查 null，不检查空字符串 -->
