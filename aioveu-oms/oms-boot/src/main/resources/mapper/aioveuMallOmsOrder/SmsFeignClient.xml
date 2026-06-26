@@ -42,8 +42,8 @@
                 OR CAST(t1.id AS CHAR) LIKE CONCAT('%', #{queryParams.keyword}, '%')
                 )
             </if>
-            <!-- 状态过滤：-1表示查询所有状态，不添加status条件 -->
-            <if test ='queryParams.status !=null and queryParams.status != -1 ' >
+            <!-- 状态过滤：null表示查询所有状态，不添加status条件 -->
+            <if test ='queryParams.status !=null' >
                 AND t1.status= #{queryParams.status}
             </if>
             <!-- 时间范围（前端传入的是 startTime 和 endTime） -->
@@ -123,7 +123,7 @@
             deleted = 0
 
             <!-- 状态过滤 -->
-            <if test='queryParams.status != null and queryParams.status != -1'>
+            <if test='queryParams.status != null'>
                 AND status = #{queryParams.status}
             </if>
 
@@ -189,7 +189,7 @@
             AND status IN (2, 3, 4)  <!-- 只统计已支付状态的订单 -->
 
             <!-- 状态过滤 -->
-            <if test='queryParams.status != null and queryParams.status != -1'>
+            <if test='queryParams.status != null'>
                 AND status = #{queryParams.status}
             </if>
 
