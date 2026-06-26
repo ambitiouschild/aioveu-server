@@ -5,6 +5,7 @@ import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderPageWithStatsVO;
 import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
+import com.aioveu.oms.aioveu01Order.model.vo.OrderStatisticsVO;
 import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
 import com.aioveu.order.model.aioveu01Order.vo.OrderSubmitVO;
 import com.aioveu.order.model.aioveu05OrderPay.form.OrderPaymentForm;
@@ -84,7 +85,7 @@ public interface OrderService extends IService<OmsOrder> {
     /**
      * 获取订单统计信息
      */
-    Map<String, Object> getOrderStatistics(OrderPageQuery queryParams);
+    OrderStatisticsVO getOrderStatistics(OrderPageQuery queryParams);
 
 
 
@@ -95,6 +96,8 @@ public interface OrderService extends IService<OmsOrder> {
                  3.查询逻辑调整：
                      列表查询：从分页查询改为列表查询（可通过LIMIT控制首批数据量，后续由App端通过参数请求更多）。
                      统计查询：保持不变，因为它本就基于全部筛选条件进行计算。
+                一个接口干两件事，违反单一职责
+                 如果一定要“一个接口返回”，正确姿势是「组合 VO」
      *
      */
     OrderPageWithStatsVO getOrderPageWithStatistics(OrderPageQuery queryParams);

@@ -1352,44 +1352,44 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
      * 获取订单统计信息
      */
     @Override
-    public Map<String, Object>  getOrderStatistics(OrderPageQuery queryParams) {
-        Map<String, Object> result = new HashMap<>();
+    public OrderStatisticsVO  getOrderStatistics(OrderPageQuery queryParams) {
+
+        OrderStatisticsVO result = new OrderStatisticsVO();
 
         try {
-            // 1. 查询各状态订单数量
-            Map<Integer, Map<String, Object>> statusCountsMap =
+            // 1. 查询各状态订单数量  状态统计（数据库是数字） // 1. 状态统计（@MapKey 返回）
+            Map<Integer, Integer> statusCountsMap =
                     this.baseMapper.getOrderStatusCounts(queryParams);
 
-            // 2. 初始化统计结果
+            // 2. 初始化统计结果 转换成枚举名
             Map<String, Integer> statusCounts = new HashMap<>();
-            statusCounts.put("-1", 0);  // 全部
+            int total = 0;
+
 
             // 3. 转换结果格式
-            int total = 0;
-            for (Map.Entry<Integer, Map<String, Object>> entry : statusCountsMap.entrySet()) {
-                Integer status = entry.getKey();
-                Map<String, Object> countMap = entry.getValue();
-                Integer count = ((Number) countMap.get("count")).intValue();
-
-                // 状态值转换为字符串
-                statusCounts.put(status.toString(), count);
+            for (Map.Entry<Integer, Integer> entry : statusCountsMap.entrySet()) {
+                Integer statusCode = entry.getKey();
+                Integer count = entry.getValue();
+                OrderStatusEnum statusEnum = OrderStatusEnum.of(statusCode);
+                statusCounts.put(statusEnum.name(), count);
                 total += count;
             }
 
             // 4. 设置总数
-            statusCounts.put("-1", total);
+            result.setStatusCounts(statusCounts);
+            result.setTotal(total);
 
             // 5. 查询今日数据
             Integer todayOrderCount = getTodayOrderCount(queryParams);
             Integer pendingCount = getPendingOrderCount(queryParams);
             Long todayIncome = getTodayIncome(queryParams);
 
-            // 6. 返回结果
-            result.put("statusCounts", statusCounts);
-            result.put("todayOrderCount", todayOrderCount);
-            result.put("pendingCount",  pendingCount != null ? pendingCount : 0L);
-            result.put("todayIncome", todayIncome != null ? todayIncome : 0L);
-            result.put("total", total);
+            // 2. 今日订单数
+            result.setTodayOrderCount(todayOrderCount);
+            // 3. 待处理订单数
+            result.setPendingCount(pendingCount);
+            // 4. 今日收入
+            result.setTodayIncome(todayIncome);
 
             log.info("获取订单统计信息: {}", result);
 
@@ -1430,7 +1430,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         return this.baseMapper.selectCountByCondition(
                 pendingQuery,
-                Arrays.asList(0, 1)  // 待付款(0)和待发货(1)
+                Arrays.asList(OrderStatusEnum.UNPAID.getValue(), OrderStatusEnum.PAID.getValue())  // 待付款(0)和待发货(1)
         );
     }
 
@@ -1473,7 +1473,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     );
 
     /**
-     * 获取订单分页和统计信息（业务编排）
+     * 获取订单分页和统计信息（业务编排） 一个接口干两件事，违反单一职责
      */
     @Override
     public OrderPageWithStatsVO getOrderPageWithStatistics(OrderPageQuery queryParams) {
@@ -1492,7 +1492,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
                         return null;
                 });
 
-        CompletableFuture<Map<String, Object>> statsFuture =
+        CompletableFuture<OrderStatisticsVO> statsFuture =
                 CompletableFuture.supplyAsync(() ->
                         {
                             log.info("开始查询订单统计信息");
@@ -1500,7 +1500,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
                         }, queryExecutor)
                         .exceptionally(e -> {
                         log.error("查询订单统计信息失败", e);
-                        return new HashMap<>();
+                        return new OrderStatisticsVO();
                 });
 
         // 等待结果
@@ -1510,7 +1510,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         try {
             IPage<OrderPageVO> pageResult = pageFuture.get(5, TimeUnit.SECONDS);
-            Map<String, Object> statistics = statsFuture.get(5, TimeUnit.SECONDS);
+            OrderStatisticsVO statistics = statsFuture.get(5, TimeUnit.SECONDS);
 
             if (pageResult == null) {
                 log.error("订单分页查询结果为null");
@@ -1527,10 +1527,10 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
             // 设置统计信息
             if (statistics != null) {
-                result.setStatusCounts((Map<String, Integer>) statistics.get("statusCounts"));
-                result.setTodayOrderCount(((Number) statistics.getOrDefault("todayOrderCount", 0)).intValue());
-                result.setPendingCount(((Number) statistics.getOrDefault("pendingCount", 0)).intValue());
-                result.setTodayIncome(((Number) statistics.getOrDefault("todayIncome", 0L)).longValue());
+                result.setStatusCounts(statistics.getStatusCounts());
+                result.setTodayOrderCount(statistics.getTodayOrderCount());
+                result.setPendingCount(statistics.getPendingCount());
+                result.setTodayIncome(statistics.getTodayIncome());
             }
 
             log.info("订单分页和统计信息查询成功，共{}条记录", result.getTotal());

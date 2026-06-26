@@ -59,4 +59,13 @@ public enum OrderStatusEnum {
     @Getter
     private String label;
 
+    public static OrderStatusEnum of(int code) {
+        for (OrderStatusEnum e : values()) {
+            if (e.value == code) {
+                return e;
+            }
+        }
+        throw new IllegalArgumentException("非法订单状态：" + code);
+    }
+
 }

@@ -38,8 +38,8 @@ public interface OmsOrderMapper extends BaseMapper<OmsOrder> {
      * @param queryParams 查询条件
      * @return 统计结果
      */
-    @MapKey("status")
-    Map<Integer, Map<String, Object>> getOrderStatusCounts(@Param("queryParams") OrderPageQuery queryParams);
+
+    Map<Integer, Integer> getOrderStatusCounts(@Param("queryParams") OrderPageQuery queryParams);
 
     /**
      * 根据查询条件统计订单数量

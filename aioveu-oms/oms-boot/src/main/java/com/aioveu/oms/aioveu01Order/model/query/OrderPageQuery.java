@@ -43,15 +43,11 @@ public class OrderPageQuery extends BasePageQuery {
     @Schema(description = "商品名称/货号")
     private String productKeyword;
 
-
-
-
-
-
     /**
      * 订单状态
      */
     @Schema(description="订单状态：-1-全部，0-待支付，1-待发货，2-已发货，3-已完成，4-已取消")
+    /** null = 全部 */
     private OrderStatusEnum status;
 
 

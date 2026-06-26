@@ -91,7 +91,9 @@
         FROM oms_order
         <where>
             deleted = 0
-
+            <if test="queryParams.status != null">
+                AND status = #{queryParams.status.code}
+            </if>
             <!-- 时间范围 -->
             <!-- 只检查 null，不检查空字符串 -->
             <if test='queryParams.startTime != null'>

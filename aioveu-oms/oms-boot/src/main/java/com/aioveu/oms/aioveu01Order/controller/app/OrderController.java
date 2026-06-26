@@ -5,6 +5,7 @@ import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
+import com.aioveu.oms.aioveu01Order.model.vo.OrderStatisticsVO;
 import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
 import com.aioveu.order.model.aioveu01Order.vo.OrderSubmitVO;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
@@ -81,10 +82,10 @@ public class OrderController {
     @PostMapping("/statistics")
 //    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrder:oms-order:statistics')")
     @Log( value = "获取订单统计信息",module = LogModuleEnum.OMS)
-    public Result<Map<String, Object>> getOrderStatistics(@RequestBody OrderPageQuery  queryParams ) {
+    public Result<OrderStatisticsVO> getOrderStatistics(@RequestBody OrderPageQuery  queryParams ) {
 
         try {
-            Map<String, Object> statistics = orderService.getOrderStatistics(queryParams);
+            OrderStatisticsVO statistics = orderService.getOrderStatistics(queryParams);
             return Result.success(statistics);
         } catch (Exception e) {
             log.error("获取订单统计失败：", e);
