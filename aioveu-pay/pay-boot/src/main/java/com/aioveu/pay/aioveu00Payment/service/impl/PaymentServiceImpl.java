@@ -175,7 +175,7 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         // 2. 如果订单已支付，直接返回
-        if (orderForm.getStatus() == OrderStatusEnum.SHIPPED ||orderForm.getStatus() == OrderStatusEnum.COMPLETED ||orderForm.getStatus() == OrderStatusEnum.CANCELED) {
+        if (orderForm.getStatus() == OrderStatusEnum.SHIPPED ||orderForm.getStatus() == OrderStatusEnum.COMPLETED ||orderForm.getStatus() == OrderStatusEnum.CANCELLED) {
             paymentStatusVO.setPaymentNo(orderNo);
             paymentStatusVO.setPaymentStatus(PaymentStatusEnum.PAID);
             paymentStatusVO.setErrorMessage("订单已支付");

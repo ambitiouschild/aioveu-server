@@ -1206,7 +1206,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         return this.update(new LambdaUpdateWrapper<OmsOrder>()
                 .eq(OmsOrder::getOrderSn, orderSn)
                 .eq(OmsOrder::getStatus, OrderStatusEnum.UNPAID.getValue())
-                .set(OmsOrder::getStatus, OrderStatusEnum.CANCELED.getValue())   // 更新为已取消状态
+                .set(OmsOrder::getStatus, OrderStatusEnum.CANCELLED.getValue())   // 更新为已取消状态
         );
     }
 
@@ -1226,7 +1226,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         log.info(" 校验订单状态：只有已取消或待支付的订单可以删除");
         Assert.isTrue(
-                OrderStatusEnum.CANCELED.getValue().equals(order.getStatus())
+                OrderStatusEnum.CANCELLED.getValue().equals(order.getStatus())
                         || OrderStatusEnum.UNPAID.getValue().equals(order.getStatus())
                 ,
                 "当前状态订单不能删除"

@@ -33,7 +33,7 @@ public enum OrderStatusEnum {
     /**
      * 已取消
      */
-    CANCELED(4, "已取消"),
+    CANCELLED(4, "已取消"),
 
     /**
      * 已关闭

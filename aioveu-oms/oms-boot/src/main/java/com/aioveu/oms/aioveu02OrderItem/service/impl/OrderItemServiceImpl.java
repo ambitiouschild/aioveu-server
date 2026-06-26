@@ -295,7 +295,7 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
         }
 
         // 是否可以重新购买（除了已关闭/已取消的订单都可以重新购买，这里简化处理）
-        orderDetail.setCanRebuy(status != OrderStatusEnum.CLOSED && status != OrderStatusEnum.CANCELED);
+        orderDetail.setCanRebuy(status != OrderStatusEnum.CLOSED && status != OrderStatusEnum.CANCELLED);
 
         // 是否已评价（根据评价时间判断）
         orderDetail.setIsCommented(order.getCommentTime() != null);
@@ -322,7 +322,7 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
             case PAID: return "待发货";
             case SHIPPED: return "已发货";
             case COMPLETED: return "已完成";
-            case CANCELED: return "已取消";
+            case CANCELLED: return "已取消";
             case SERVICING: return "售后中";
             default: return "未知";
         }
@@ -334,7 +334,7 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
             case PAID: return "等待卖家发货";
             case SHIPPED: return "商品已发出";
             case COMPLETED: return "交易已完成";
-            case CANCELED: return "交易已取消";
+            case CANCELLED: return "交易已取消";
             case SERVICING: return "售后处理中";
             default: return "";
         }
