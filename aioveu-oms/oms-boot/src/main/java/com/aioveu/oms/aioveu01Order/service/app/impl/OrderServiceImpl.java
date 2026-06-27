@@ -1750,7 +1750,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         delivery.setDeliveryCompany(dto.getLogisticsCompany());
         delivery.setDeliverySn(dto.getTrackingNo());
         delivery.setRemark(dto.getRemark());
-        delivery.setDeliveryStatus(OrderDeliveryStatusEnum.SYNCED);        // 已同步
+        delivery.setDeliveryStatus(OrderDeliveryStatusEnum.PENDING);        // 未同步
         delivery.setDeliveryTime(new Date()); // 发货时间
         omsOrderDeliveryService.updateById(delivery);
 
