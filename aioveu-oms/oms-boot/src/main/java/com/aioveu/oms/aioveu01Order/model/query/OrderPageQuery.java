@@ -76,9 +76,11 @@ public class OrderPageQuery extends BasePageQuery {
 //    private LocalDateTime endTime;
 
     @NotNull
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate startDate;
 
     @NotNull
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
 
     @Schema(description = "订单类型")

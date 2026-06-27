@@ -1353,7 +1353,10 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
      * 获取订单统计信息
      */
     @Override
-    @Cacheable(value = "order:statistics", key = "#query.startDate + ':' + #query.endDate")
+    @Cacheable(
+            value = "order:statistics",
+            key = "T(java.util.Objects).toString(#query?.startDate,'') + '_' + T(java.util.Objects).toString(#query?.endDate,'')"
+    )
     public OrderStatisticsVO  getOrderStatistics(OrderPageQuery queryParams) {
 
         OrderStatisticsVO result = new OrderStatisticsVO();

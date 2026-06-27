@@ -60,7 +60,7 @@ public class OrderController {
             // 添加日志查看接收到的参数
             log.info("【订单分页】查询参数: {}", JSON.toJSONString(queryParams));
             log.info("【订单分页】startTime: {}, endTime: {}",
-                    queryParams.getStartTime(), queryParams.getEndTime());
+                    queryParams.getStartDate(), queryParams.getEndDate());
 
             IPage<OrderPageVO> page = orderService.getOrderPage(queryParams);
             return PageResult.success(page);
