@@ -48,12 +48,27 @@ public class PayOrderControllerForApp {
     @Operation(summary = "根据订单号查询支付订单")
     @GetMapping("/getPayOrderByOmsOrderNo")
     @Log(value = "支付订单分页列表", module = LogModuleEnum.PAY)
-    public Result<PayOrderVO> getPayOrderByOmsOrderNo(@RequestBody @Valid String orderNo ) {
+    public Result<PayOrderVO> getPayOrderByOmsOrderNo(@RequestParam("orderNo") String orderNo ) {
         PayOrderVO result = payOrderService.getPayOrderByOmsOrderNo(orderNo);
 
 
         return Result.success(result);
     }
+
+
+    /**
+     * 根据omsOrderNo查询ThirdTransactionNo
+     */
+    @Operation(summary = "根据omsOrderSn查询ThirdTransactionNo ")
+    @GetMapping("/getThirdTransactionNoByOmsOrderSn")
+    @Log(value = "根据omsOrderSn查询ThirdTransactionNo ", module = LogModuleEnum.PAY)
+    public Result<String> getThirdTransactionNoByOmsOrderSn(@RequestParam("omsOrderSn") String omsOrderSn ) {
+        String thirdTransactionNo = payOrderService.getThirdTransactionNoByOmsOrderSn(omsOrderSn);
+
+
+        return Result.success(thirdTransactionNo);
+    }
+
 
 
     @Operation(summary = "新增支付订单")

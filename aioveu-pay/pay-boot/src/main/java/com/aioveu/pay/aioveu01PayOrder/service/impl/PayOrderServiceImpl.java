@@ -343,6 +343,28 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
     }
 
 
+    /**
+     * 根据omsOrderSn查询ThirdTransactionNo
+     */
+    @Override
+    public String getThirdTransactionNoByOmsOrderSn(String omsOrderSn) {
+
+        if (StrUtil.isBlank(omsOrderSn)) {
+            return null;
+        }
+
+        //✅ 正确、健壮、可上线版本（推荐）
+        return this.baseMapper.selectObjs(
+                        new LambdaQueryWrapper<PayOrder>()
+                                .eq(PayOrder::getOrderNo, omsOrderSn)
+                                .select(PayOrder::getThirdTransactionNo)
+                ).stream()
+                .findFirst()
+                .map(Object::toString)
+                .orElse(null);
+    }
+
+
     @Override
     @Transactional(readOnly = true)
     public PayOrder getByPaymentNoWithLock(String paymentNo) {

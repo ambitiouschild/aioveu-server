@@ -13,10 +13,7 @@ import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @ClassName: PayFeignClient
@@ -81,6 +78,12 @@ public interface PayFeignClient {
      * 根据订单号查询支付订单 no = 我引用别人的
      */
     @GetMapping("/app-api/v1/pay-order/getPayOrderByOmsOrderNo")
-    PayOrderVO getPayOrderByOmsOrderNo(@RequestBody @Valid String orderNo);
+    PayOrderVO getPayOrderByOmsOrderNo(@RequestParam("orderNo") String orderNo);
+
+    /**
+     * 根据omsOutTradeNo查询ThirdTransactionNo
+     */
+    @GetMapping("/app-api/v1/pay-order/getThirdTransactionNoByOmsOrderSn")
+    String getThirdTransactionNoByOmsOrderSn(@RequestParam("omsOrderSn") String omsOrderSn);
 
 }

@@ -1874,7 +1874,10 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         // 2. 从支付服务获取微信支付单号
         PayOrderVO payOrderVO= payFeignClient.getPayOrderByOmsOrderNo(omsOrder.getOrderSn());
-        String transactionId = payOrderVO.getThirdTransactionNo();
+//        String transactionId = payOrderVO.getThirdTransactionNo();
+
+        String transactionId =
+                payFeignClient.getThirdTransactionNoByOmsOrderSn(omsOrder.getOutTradeNo());
         log.info("【微信发货】调用Pay获取transactionId, oms中的OrderSn={}, oms中的outTradeNo={}, Pay中的transactionId={}",
                 omsOrder.getOrderSn(),
                 omsOrder.getOutTradeNo(),
