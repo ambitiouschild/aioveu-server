@@ -277,10 +277,10 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
                 OrderBO.OrderDelivery delivery = deliveryByOrderId.get(order.getId());
                 if (delivery != null) {
                     order.setOrderDelivery(delivery);
-                    log.info("订单{}的物流信息: {}", order.getId(), delivery);
+                    log.info("订单{}的物流信息: {}", order.getOrderSn(), delivery);
                 } else {
                     // 如果没有物流信息，设置默认值或为空
-                    log.info("订单{}暂无物流信息", order.getId());
+                    log.info("订单{}暂无物流信息", order.getOrderSn());
                     order.setOrderDelivery(new OrderBO.OrderDelivery());
                 }
 
@@ -1584,7 +1584,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             int rows = this.baseMapper.updateById(order);
 
             if (rows <= 0) {
-                log.error("更新订单状态失败: orderId={}", order.getId());
+                log.error("更新订单状态失败: OrderSn={}", order.getOrderSn());
                 return false;
             }
 
@@ -1810,15 +1810,15 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     private JsonNode doUploadShipping(OmsOrder omsOrder, OmsOrderDelivery delivery){
 
 
-        log.info("【微信发货】开始处理订单发货同步，orderId={}, deliveryId={}",
-                omsOrder.getId(), delivery.getId());
+        log.info("【微信发货】开始处理订单发货同步，OrderSn={}, deliveryId={}",
+                omsOrder.getOrderSn(), delivery.getId());
 
         // ========================
         // Step 1: 查询订单商品信息
         // ========================
         List<OmsOrderItem> orderItems=  omsOrderItemService.listByOrderId(omsOrder.getId());
         if (CollUtil.isEmpty(orderItems)) {
-            log.error("【微信发货】订单商品为空，无法生成商品描述，orderId={}", omsOrder.getId());
+            log.error("【微信发货】订单商品为空，无法生成商品描述，OrderSn={}", omsOrder.getOrderSn());
             throw new RuntimeException("订单商品为空，无法同步微信发货");
         }
 //        String itemDesc = orderItems.stream()
@@ -1873,10 +1873,10 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         }
 
         // 2. 从支付服务获取微信支付单号
-        PayOrderVO payOrderVO= payFeignClient.getPayOrderByOmsOrderNo(omsOrder.getOutTradeNo());
+        PayOrderVO payOrderVO= payFeignClient.getPayOrderByOmsOrderNo(omsOrder.getOrderSn());
         String transactionId = payOrderVO.getThirdTransactionNo();
-        log.info("【微信发货】调用Pay获取transactionId, orderId={}, outTradeNo={}, transactionId={}",
-                omsOrder.getId(),
+        log.info("【微信发货】调用Pay获取transactionId, oms中的OrderSn={}, oms中的outTradeNo={}, Pay中的transactionId={}",
+                omsOrder.getOrderSn(),
                 omsOrder.getOutTradeNo(),
                 transactionId);
 
@@ -1892,7 +1892,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         // ========================
         // Step 4: 组装微信发货请求体
         // ========================
-        log.info("【微信发货】开始组装微信发货请求参数，orderId={}", omsOrder.getId());
+        log.info("【微信发货】开始组装微信发货请求参数，OrderSn={}", omsOrder.getOrderSn());
         ObjectNode body = weChatApiClient.createObjectNode();
 
 
@@ -1918,40 +1918,40 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         ObjectNode payer = body.putObject("payer");
         payer.put("openid", openId);
 
-        log.info("【微信发货】微信请求体组装完成，orderId={}, transactionId={}, trackingNo={}",
-                order.getId(),
-                order.getTransactionId(),
+        log.info("【微信发货】微信请求体组装完成，OrderSn={}, transactionId={}, trackingNo={}",
+                omsOrder.getOrderSn(),
+                transactionId,
                 delivery.getDeliverySn());
 
         // ========================
         // Step 5: 调用微信发货接口
         // ========================
-        log.info("【微信发货】开始调用微信发货接口，orderId={}", order.getId());
+        log.info("【微信发货】开始调用微信发货接口，orderSn={}", omsOrder.getOrderSn());
         JsonNode result = weChatApiClient.uploadShippingInfo(
-                order.getClientId(),
+                omsOrder.getClientId(),
                 body
         );
 
-        log.info("【微信发货】微信发货接口返回，orderId={}, result={}",
-                order.getId(), result);
+        log.info("【微信发货】微信发货接口返回，orderSn={}, result={}",
+                omsOrder.getOrderSn(), result);
 
         // ✅ 成功才标记
         if (result.has("errcode") && result.get("errcode").asInt() == 0) {
 
-            log.info("【微信发货】微信发货成功，开始更新本地发货状态，orderId={}", order.getId());
+            log.info("【微信发货】微信发货成功，开始更新本地发货状态，orderSn={}", omsOrder.getOrderSn());
 
             delivery.setDeliveryStatus(OrderDeliveryStatusEnum.SYNCED);
             delivery.setDeliveryTime(new Date());
             omsOrderDeliveryService.updateById(delivery);
 
-            log.info("【微信发货】本地发货状态更新成功，orderId={}, deliveryId={}",
-                    order.getId(), delivery.getId());
+            log.info("【微信发货】本地发货状态更新成功，orderSn={}, deliverySn={}",
+                    omsOrder.getOrderSn(), delivery.getDeliverySn());
         }else {
             int errCode = result.has("errcode") ? result.get("errcode").asInt() : -1;
             String errMsg = result.has("errmsg") ? result.get("errmsg").asText() : "unknown";
 
-            log.error("【微信发货】微信发货失败，orderId={}, errcode={}, errmsg={}",
-                    order.getId(), errCode, errMsg);
+            log.error("【微信发货】微信发货失败，orderSn={}, errcode={}, errmsg={}",
+                    omsOrder.getOrderSn(), errCode, errMsg);
 
             throw new RuntimeException(
                     "微信发货失败，errcode=" + errCode + ", errmsg=" + errMsg
