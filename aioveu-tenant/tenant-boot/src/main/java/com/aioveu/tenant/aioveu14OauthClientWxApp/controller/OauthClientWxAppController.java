@@ -95,17 +95,12 @@ public class OauthClientWxAppController {
     * 如果是查询：GET /api/v1/oauth-client-wx-app?clientId={id}
     * 参数扩展性：未来可能需要其他查询条件
     * */
-    @Operation(summary = "通过 clientId 获取租户和小程序信息")
+    @Operation(summary = "通过 clientId 获取租户和小程序信息，只认接口参数")
     @GetMapping("/getTenantWxAppInfoByClientId")  // ✅ 应该改为GET
     @Log(value = "通过 clientId 获取租户和小程序信息）", module = LogModuleEnum.TENANT)
     public Result<TenantWxAppInfo> getTenantWxAppInfoByClientId(
-            @Parameter(
-                    name = "X-Client-Id",
-                    description = "客户端ID",
-                    required = true,
-                    in = ParameterIn.HEADER   // ✅ 关键
-            )
-            @RequestHeader("X-Client-Id") String clientId) {
+            @Parameter(description = "客户端ID", required = true)
+            @RequestParam("clientId") String clientId) {
 
         log.info("【Tenant】收到 clientId = {}", clientId);
         TenantWxAppInfo tenantWxAppInfo  = oauthClientWxAppService.getTenantWxAppInfoByClientId(clientId);

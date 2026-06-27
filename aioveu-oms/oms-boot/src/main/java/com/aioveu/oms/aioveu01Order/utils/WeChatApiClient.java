@@ -82,6 +82,8 @@ public class WeChatApiClient {
 
         if (Boolean.TRUE.equals(locked)) {
             try {
+
+                //真正获取微信配置的地方
                 token = doFetchAccessToken(clientId);
                 redisTemplate.opsForValue()
                         .set(redisKey, token, TOKEN_EXPIRE_SECONDS, TimeUnit.SECONDS);
@@ -107,21 +109,21 @@ public class WeChatApiClient {
     private String doFetchAccessToken(String clientId) {
 
 
-        log.info("【Tenant】开始查询clientId: {}", clientId);
+        log.info("【微信发货】开始查询clientId: {}", clientId);
         // 这里需要你实现数据库查询
         TenantWxAppInfo tenantWxAppInfo =
                 tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
 
-        log.info("【Tenant】查询到的tenantWxAppInfo: {}", tenantWxAppInfo);
+        log.info("【微信发货】查询到的tenantWxAppInfo: {}", tenantWxAppInfo);
 
         if (tenantWxAppInfo == null || tenantWxAppInfo.getWxAppid() == null) {
-            throw new RuntimeException("租户微信配置不存在，clientId=" + clientId);
+            throw new RuntimeException("【微信发货】租户微信配置不存在，clientId=" + clientId);
         }
 
         String wxAppid = tenantWxAppInfo.getWxAppid();
         Long tenantId = tenantWxAppInfo.getTenantId();
         String appSecret = tenantWxAppInfo.getAppSecret();
-        log.info("【Tenant】查询到租户信息 - wxAppid: {}, tenantId: {}, appSecret: {}", wxAppid, tenantId, appSecret);
+        log.info("【微信发货】查询到租户信息 - wxAppid: {}, tenantId: {}, appSecret: {}", wxAppid, tenantId, appSecret);
 
         String url = String.format(
                 TOKEN_URL,
@@ -134,11 +136,11 @@ public class WeChatApiClient {
         try {
             JsonNode node = objectMapper.readTree(response);
             if (node.has("errcode") && node.get("errcode").asInt() != 0) {
-                throw new RuntimeException("微信获取token失败：" + response);
+                throw new RuntimeException("【微信发货】微信获取token失败：" + response);
             }
             return node.get("access_token").asText();
         } catch (Exception e) {
-            throw new RuntimeException("解析微信token失败：" + response, e);
+            throw new RuntimeException("【微信发货】解析微信token失败：" + response, e);
         }
     }
 

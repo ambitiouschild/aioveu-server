@@ -77,6 +77,7 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
         GatewayFilterChain finalChain = chain;
 
         // 1. 解析 clientId (返回 Mono<String>)
+        // 统一解析 clientId（不再区分敏感 / 公共）
         return resolveClientId(exchange)
                 // 2. 如果解析失败或为空，给一个默认值
 //                .defaultIfEmpty("system_default")
@@ -86,13 +87,15 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
                     // ✅✅✅ 检测就放在这里 ✅✅✅
                     if (!clientWhitelistWithRedisService.isValid(clientId)) {
+                        log.error("【ClientIdGatewayFilter】非法 clientId: {}", clientId);
                         exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
                         return exchange.getResponse().setComplete();
                     }
 
 
-                    log.debug("Gateway 注入 X-Client-Id = {}", clientId);
+                    log.debug("【ClientIdGatewayFilter】注入 X-Client-Id = {}", clientId);
 
+                    //然后你直接塞进请求 Header
                     ServerHttpRequest newRequest = exchange.getRequest()
                             .mutate()
                             .header(HEADER_CLIENT_ID, clientId)
@@ -142,8 +145,15 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
         log.info("【ClientIdGatewayFilter】前端带了就用（小程序 / H5） 公共接口：信任前端 Header:{}", clientIdFromHeader);
 
         if (StringUtils.isNotBlank(clientIdFromHeader)) {
-            log.debug("【ClientIdGatewayFilter】公共接口，Gateway 透传 clientId = {}", clientIdFromHeader);
-            return Mono.just(clientIdFromHeader);
+
+            // ✅ 最小修改点：只取第一个 clientId，防拼接
+            String cleanClientId = clientIdFromHeader.split(",")[0];
+
+
+            log.debug("【ClientIdGatewayFilter】公共接口，清洗 clientId = {} -> {}",
+                    clientIdFromHeader, cleanClientId);
+
+            return Mono.just(cleanClientId);
         }
 
         // ✅ 3. 兜底（域名 / 默认）根据域名 / 路径判断（SaaS 常用）
