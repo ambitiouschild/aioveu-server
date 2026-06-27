@@ -4,6 +4,7 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
+import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
@@ -331,6 +332,11 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         );
         // 转换并保存
         PayOrderVO payOrderVO = payOrderConverter.toVO(payOrder);
+
+        // 1. 校验 outTradeNo
+        if (payOrderVO == null) {
+            throw new BusinessException("【PayOrder】payOrder不存在,orderNo:{}",orderNo);
+        }
 
         // ✅ 永远用 orderNo 查
         return  payOrderVO;
