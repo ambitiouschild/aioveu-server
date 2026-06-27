@@ -1,6 +1,7 @@
 package com.aioveu.oms.aioveu01Order.service.app.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
@@ -1793,14 +1794,32 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     }
 
 
-    /*
-    * 微信发货「真正干活的方法（核心）」
-    * */
+    /**
+     * 微信发货【真正执行微信侧发货同步的核心方法】
+     *
+     * 职责说明：
+     * 1. 组装微信发货所需的所有参数
+     * 2. 调用微信发货接口
+     * 3. 成功后更新本地发货状态
+     *
+     * ⚠️ 注意：
+     * - 此方法不应包含 Seata 全局事务
+     * - 失败直接抛异常，由外层决定是否回滚订单状态
+     */
     private JsonNode doUploadShipping(OmsOrder order, OmsOrderDelivery delivery){
 
-        // ====== 查订单商品  商品描述 ======
-        List<OmsOrderItem> orderItems=  omsOrderItemService.listByOrderId(order.getId());
 
+        log.info("【微信发货】开始处理订单发货同步，orderId={}, deliveryId={}",
+                order.getId(), delivery.getId());
+
+        // ========================
+        // Step 1: 查询订单商品信息
+        // ========================
+        List<OmsOrderItem> orderItems=  omsOrderItemService.listByOrderId(order.getId());
+        if (CollUtil.isEmpty(orderItems)) {
+            log.error("【微信发货】订单商品为空，无法生成商品描述，orderId={}", order.getId());
+            throw new RuntimeException("订单商品为空，无法同步微信发货");
+        }
 //        String itemDesc = orderItems.stream()
 //                .map(i -> i.getSpuName()
 //                        + (org.apache.commons.lang3.StringUtils.isNotBlank(i.getSkuName())
@@ -1809,6 +1828,10 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 //                        + " x" + i.getQuantity())
 //                .collect(Collectors.joining("；"));
 
+        // ========================
+        // Step 2: 生成微信商品概述（item_desc）
+        // 示例：iPhone 15 Pro【黑色 256G】 x1；官方硅胶壳【午夜色】 x2
+        // ========================
         String itemDesc = orderItems.stream()
                 .map(i -> i.getSpuName()
                         + Optional.ofNullable(i.getSkuName())
@@ -1818,26 +1841,34 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
                 .collect(Collectors.joining("；"));
 
         //iPhone 15 Pro【黑色 256G】 x1；官方硅胶壳【午夜色】 x2
-        log.info("生成 item_desc（微信推荐格式）:{}",itemDesc);
+        log.info("【微信发货】生成 item_desc（微信推荐格式）:{}",itemDesc);
 
-        // ====== Step 4: 从订单中获取用户OpenID======
-        // 1. 从订单中获取会员ID
+        // ========================
+        // Step 3: 获取用户 OpenID
+        // ========================
         Long memberId = order.getMemberId();
         // 2. 根据 memberId 远程调用或查库获取用户信息,获取用户的微信OpenID
-        log.info("【会员微服务】获取用户OpenID，会员ID: {}", memberId);
+        log.info("【微信发货】开始获取用户OpenID，memberId={}", memberId);
         Result<String> openIdResult = memberFeignClient.getOpenIdByMemberId(memberId);
-
-        String openId = openIdResult.getData();
-        log.info("【会员微服务】用户OpenID获取成功: {}", openId);
-
-        if (StrUtil.isBlank(openId)) {
-            throw new RuntimeException(
-                    "用户openid不存在，memberId=" + order.getMemberId()
-            );
+        if (openIdResult == null || openIdResult.getData() == null) {
+            log.error("【微信发货】获取用户OpenID失败，memberId={}", memberId);
+            throw new RuntimeException("获取用户OpenID失败，memberId=" + memberId);
         }
 
 
-        // ====== Step 5: 组装微信需要的 Body ======
+        String openId = openIdResult.getData();
+        log.info("【微信发货】用户OpenID获取成功，openId={}", openId);
+
+        if (StrUtil.isBlank(openId)) {
+            log.error("【微信发货】用户OpenID为空，memberId={}", memberId);
+            throw new RuntimeException("用户openid不存在，memberId=" + memberId);
+        }
+
+
+        // ========================
+        // Step 4: 组装微信发货请求体
+        // ========================
+        log.info("【微信发货】开始组装微信发货请求参数，orderId={}", order.getId());
         ObjectNode body = weChatApiClient.createObjectNode();
 
         // order_key 订单标识（用微信支付单号）
@@ -1845,6 +1876,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         orderKey.put("order_number_type", 2); // 2: 微信支付单号
         orderKey.put("transaction_id", order.getTransactionId());
 
+        // 物流类型 & 发货模式
         body.put("logistics_type", 1); // 1: 实体物流
         body.put("delivery_mode", 1);  // 1: 统一发货
 
@@ -1860,18 +1892,44 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         ObjectNode payer = body.putObject("payer");
         payer.put("openid", openId);
 
+        log.info("【微信发货】微信请求体组装完成，orderId={}, transactionId={}, trackingNo={}",
+                order.getId(),
+                order.getTransactionId(),
+                delivery.getDeliverySn());
 
-        // 调用微信
+        // ========================
+        // Step 5: 调用微信发货接口
+        // ========================
+        log.info("【微信发货】开始调用微信发货接口，orderId={}", order.getId());
         JsonNode result = weChatApiClient.uploadShippingInfo(
                 order.getClientId(),
                 body
         );
 
+        log.info("【微信发货】微信发货接口返回，orderId={}, result={}",
+                order.getId(), result);
+
         // ✅ 成功才标记
         if (result.has("errcode") && result.get("errcode").asInt() == 0) {
+
+            log.info("【微信发货】微信发货成功，开始更新本地发货状态，orderId={}", order.getId());
+
             delivery.setDeliveryStatus(OrderDeliveryStatusEnum.SYNCED);
             delivery.setDeliveryTime(new Date());
             omsOrderDeliveryService.updateById(delivery);
+
+            log.info("【微信发货】本地发货状态更新成功，orderId={}, deliveryId={}",
+                    order.getId(), delivery.getId());
+        }else {
+            int errCode = result.has("errcode") ? result.get("errcode").asInt() : -1;
+            String errMsg = result.has("errmsg") ? result.get("errmsg").asText() : "unknown";
+
+            log.error("【微信发货】微信发货失败，orderId={}, errcode={}, errmsg={}",
+                    order.getId(), errCode, errMsg);
+
+            throw new RuntimeException(
+                    "微信发货失败，errcode=" + errCode + ", errmsg=" + errMsg
+            );
         }
 
         return result;

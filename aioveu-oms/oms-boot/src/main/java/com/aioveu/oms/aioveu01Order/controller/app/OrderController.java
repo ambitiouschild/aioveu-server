@@ -227,8 +227,8 @@ public class OrderController {
             return Result.success(result);
 
         } catch (Exception e) {
-            log.error("获取订单统计失败：", e);
-            return Result.failed("获取统计信息失败");
+            log.error("【发货】手动发货失败：", e);
+            return Result.failed("【发货】手动发货失败");
         }
     }
 
