@@ -318,7 +318,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public PayOrderVO getPayOrderByOrderNo(String orderNo) {
+    public PayOrderVO getPayOrderByOmsOrderNo(String orderNo) {
 
         if (StrUtil.isBlank(orderNo)) {
             return null;

@@ -78,9 +78,9 @@ public interface PayFeignClient {
 
 
     /**
-     * 根据订单号查询支付订单
+     * 根据订单号查询支付订单 no = 我引用别人的
      */
-    @GetMapping("/app-api/v1/pay-order/getPayOrderByOrderNo")
-    PayOrderVO getPayOrderByOrderNo(@RequestBody @Valid String orderNo);
+    @GetMapping("/app-api/v1/pay-order/getPayOrderByOmsOrderNo")
+    PayOrderVO getPayOrderByOmsOrderNo(@RequestBody @Valid String orderNo);
 
 }

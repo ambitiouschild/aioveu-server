@@ -432,6 +432,9 @@ public class PaymentServiceImpl implements PaymentService {
                 log.error("【微信回调】更新支付订单状态失败: paymentNo={}", paymentNo);
                 throw new BizException("更新支付单失败");
             }
+            payOrder.setThirdTransactionNo(transactionId); // ✅
+            payOrder.setPaymentTime(LocalDateTime.now());
+            payOrderService.updateById(payOrder);
 
             // 4. ✅ 幂等落库（必须在事务内）
             payCallbackRecordService.markConsumed(
@@ -915,7 +918,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         //PayOrder 是“唯一可信资金来源”
         //✅ 1.查支付订单（✅ 必须补）（✅ 金额唯一可信来源）  ✅ 方案二（兜底）：Pay 完全不查订单状态
-        PayOrderVO payOrder = payOrderService.getPayOrderByOrderNo(orderSn);
+        PayOrderVO payOrder = payOrderService.getPayOrderByOmsOrderNo(orderSn);
         if (payOrder == null) {
             throw new BizException("【createPaymentOmsToPay】支付订单不存在");
         }
@@ -984,7 +987,7 @@ public class PaymentServiceImpl implements PaymentService {
 
             // 1️再次确认 PayOrder 状态（防止并发）
             // 并发安全校验（幂等核心）
-            PayOrderVO current = payOrderService.getPayOrderByOrderNo(orderSn);
+            PayOrderVO current = payOrderService.getPayOrderByOmsOrderNo(orderSn);
             if (current == null) {
                 throw new BizException("【createPaymentOmsToPay】支付订单不存在");
             }

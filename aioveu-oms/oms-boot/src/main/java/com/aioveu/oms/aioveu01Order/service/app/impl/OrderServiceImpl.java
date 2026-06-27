@@ -26,6 +26,7 @@ import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
 import com.aioveu.order.model.aioveu01Order.vo.OrderSubmitVO;
 import com.aioveu.pay.api.PayFeignClient;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderCreateForm;
+import com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
 import com.aioveu.pay.model.aioveuPayment.PaymentResultVO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestFEToOmsDTO;
@@ -1806,18 +1807,18 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
      * - 此方法不应包含 Seata 全局事务
      * - 失败直接抛异常，由外层决定是否回滚订单状态
      */
-    private JsonNode doUploadShipping(OmsOrder order, OmsOrderDelivery delivery){
+    private JsonNode doUploadShipping(OmsOrder omsOrder, OmsOrderDelivery delivery){
 
 
         log.info("【微信发货】开始处理订单发货同步，orderId={}, deliveryId={}",
-                order.getId(), delivery.getId());
+                omsOrder.getId(), delivery.getId());
 
         // ========================
         // Step 1: 查询订单商品信息
         // ========================
-        List<OmsOrderItem> orderItems=  omsOrderItemService.listByOrderId(order.getId());
+        List<OmsOrderItem> orderItems=  omsOrderItemService.listByOrderId(omsOrder.getId());
         if (CollUtil.isEmpty(orderItems)) {
-            log.error("【微信发货】订单商品为空，无法生成商品描述，orderId={}", order.getId());
+            log.error("【微信发货】订单商品为空，无法生成商品描述，orderId={}", omsOrder.getId());
             throw new RuntimeException("订单商品为空，无法同步微信发货");
         }
 //        String itemDesc = orderItems.stream()
@@ -1846,7 +1847,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         // ========================
         // Step 3: 获取用户 OpenID
         // ========================
-        Long memberId = order.getMemberId();
+        Long memberId = omsOrder.getMemberId();
         // 2. 根据 memberId 远程调用或查库获取用户信息,获取用户的微信OpenID
         log.info("【微信发货】开始获取用户OpenID，memberId={}", memberId);
         Result<String> openIdResult = memberFeignClient.getOpenIdByMemberId(memberId);
@@ -1866,15 +1867,40 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
 
         // ========================
+        // 1. 校验 outTradeNo
+        if (StringUtils.isBlank(omsOrder.getOutTradeNo())) {
+            throw new BusinessException("【微信发货】omsOrder支付订单号不存在，无法发货");
+        }
+
+        // 2. 从支付服务获取微信支付单号
+        PayOrderVO payOrderVO= payFeignClient.getPayOrderByOmsOrderNo(omsOrder.getOutTradeNo());
+        String transactionId = payOrderVO.getThirdTransactionNo();
+        log.info("【微信发货】调用Pay获取transactionId, orderId={}, outTradeNo={}, transactionId={}",
+                omsOrder.getId(),
+                omsOrder.getOutTradeNo(),
+                transactionId);
+
+        // 3. 校验 transactionId
+        if (StringUtils.isBlank(transactionId)) {
+            throw new BusinessException("【微信发货】微信支付单号未回写，无法发货");
+        }
+        if (!transactionId.startsWith("420000")) {
+            throw new BusinessException("【微信发货】微信支付单号格式非法");
+        }
+
+
+        // ========================
         // Step 4: 组装微信发货请求体
         // ========================
-        log.info("【微信发货】开始组装微信发货请求参数，orderId={}", order.getId());
+        log.info("【微信发货】开始组装微信发货请求参数，orderId={}", omsOrder.getId());
         ObjectNode body = weChatApiClient.createObjectNode();
+
+
 
         // order_key 订单标识（用微信支付单号）
         ObjectNode orderKey = body.putObject("order_key");
         orderKey.put("order_number_type", 2); // 2: 微信支付单号
-        orderKey.put("transaction_id", order.getTransactionId());
+        orderKey.put("transaction_id", transactionId);
 
         // 物流类型 & 发货模式
         body.put("logistics_type", 1); // 1: 实体物流
