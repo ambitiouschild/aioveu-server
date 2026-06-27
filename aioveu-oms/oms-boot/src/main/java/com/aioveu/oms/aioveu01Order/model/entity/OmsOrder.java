@@ -131,6 +131,7 @@ public class OmsOrder extends BaseEntityWithTenantId {
 	private String outTradeNo;
 	/**
 	 * 微信支付订单号
+	 * 发货时：oms → 查 pay → 拿 transaction_id,transaction_id是“钱”的属性.弃用
 	 */
 	private String transactionId;
 	/**
