@@ -40,6 +40,8 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
+
+        //只要你带了 Authorization Header，它就一定查黑名单
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
 
@@ -72,4 +74,15 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+
+//    @Override
+//    protected boolean shouldNotFilter(HttpServletRequest request) {
+//        String uri = request.getRequestURI();
+//
+//        return uri.startsWith("/api/v1/oauth-client-wx-app/")
+//                || uri.startsWith("/public/")
+//                || uri.startsWith("/open/");
+//    }
+
+
 }
