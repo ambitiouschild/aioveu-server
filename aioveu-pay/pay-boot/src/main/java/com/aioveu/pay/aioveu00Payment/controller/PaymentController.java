@@ -31,7 +31,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/pay-order")
+@RequestMapping("/aioveu/api/v8/admin/pay/pay-order")
 public class PaymentController {
 
     @Autowired

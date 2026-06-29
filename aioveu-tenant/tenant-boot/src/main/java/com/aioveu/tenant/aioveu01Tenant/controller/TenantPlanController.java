@@ -30,7 +30,7 @@ import java.util.List;
 @Tag(name = "01.租户套餐接口")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/tenant-plans")
+@RequestMapping("/aioveu/api/v8/admin/tenant/tenant-plans")
 public class TenantPlanController {
 
     private final TenantPlanService tenantPlanService;

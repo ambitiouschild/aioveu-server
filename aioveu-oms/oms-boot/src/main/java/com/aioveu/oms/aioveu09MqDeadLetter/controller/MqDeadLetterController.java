@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
  **/
 @Tag(name = "MQ死信队列接口")
 @RestController
-@RequestMapping("/api/v1/mq-dead-letter")
+@RequestMapping("/aioveu/api/v8/admin/oms//mq-dead-letter")
 @RequiredArgsConstructor
 public class MqDeadLetterController {
 

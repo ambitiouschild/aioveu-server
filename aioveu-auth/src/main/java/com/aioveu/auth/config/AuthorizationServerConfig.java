@@ -79,6 +79,7 @@ import org.springframework.security.oauth2.server.authorization.web.authenticati
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import org.springframework.stereotype.Component;
 
@@ -216,6 +217,7 @@ public class AuthorizationServerConfig {
 
 
         // 应用OAuth2授权服务器的默认安全配置
+        //但被 Spring Authorization Server 的默认安全策略拦了
         log.info("应用OAuth2授权服务器的默认安全配置");
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
 
@@ -686,6 +688,28 @@ public class AuthorizationServerConfig {
                 .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
                 .build();
         registeredClientRepository.save(mallAppClient);
+    }
+
+
+    //用 AntPathRequestMatcher（最稳） 方案一（✅ 强烈推荐，最简单）
+    //把 defaultSecurityFilterChain里的 requestMatchers(...)全部换成 AntPathRequestMatcher.antMatcher(...)
+    // 比授权服务器链低
+    @Bean
+    @Order(2)
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/aioveu/api/v8/**")
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(
+                                AntPathRequestMatcher.antMatcher("/aioveu/api/v8/admin/auth/auth/captcha"),
+                                AntPathRequestMatcher.antMatcher("/aioveu/api/v8/admin/auth/auth/sms_code"),
+                                AntPathRequestMatcher.antMatcher("/aioveu/api/v8/admin/auth/auth/register")
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                )
+                .csrf(csrf -> csrf.disable());
+
+        return http.build();
     }
 
 }

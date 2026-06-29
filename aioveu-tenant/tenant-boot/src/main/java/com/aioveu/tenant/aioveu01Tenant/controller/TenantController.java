@@ -38,7 +38,7 @@ import java.util.List;
  **/
 @Tag(name = "01.租户管理接口")
 @RestController
-@RequestMapping("/api/v1/tenants")
+@RequestMapping("/aioveu/api/v8/admin/tenant/tenants")
 @RequiredArgsConstructor
 @Slf4j
 public class TenantController {

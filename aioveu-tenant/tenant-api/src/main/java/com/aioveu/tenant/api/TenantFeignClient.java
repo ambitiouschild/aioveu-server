@@ -45,7 +45,7 @@ public interface TenantFeignClient {
      * @return {@link UserAuthInfoWithTenantId}
      */
     @Operation(summary = "根据用户名和租户ID获取认证信息（用于多租户登录）", hidden = true)
-    @GetMapping("/api/v1/users/{username}/{tenantId}/authInfo")
+    @GetMapping("/aioveu/api/v8/admin/tenant/users/{username}/{tenantId}/authInfo")
     @Log(value = "根据用户名和租户ID获取认证信息（用于多租户登录）", module = LogModuleEnum.TENANT)
     UserAuthInfoWithTenantId getUserAuthInfoWithTenantId(@PathVariable String username,@PathVariable Long tenantId);
 
@@ -59,7 +59,7 @@ public interface TenantFeignClient {
      * @return 租户列表
      */
     @Operation(summary = "新增:根据用户名获取可登录的租户列表")
-    @GetMapping("/api/v1/users/tenants/{username}")
+    @GetMapping("/aioveu/api/v8/admin/tenant/users/tenants/{username}")
     @Log(value = "新增：根据用户名获取可登录的租户列表）", module = LogModuleEnum.TENANT)
     List<TenantVO> getAccessibleTenantsByUsername(@PathVariable String username);
 
@@ -73,7 +73,7 @@ public interface TenantFeignClient {
      * @return 切换结果
      */
     @Operation(summary = "切换租户")
-    @PostMapping("/api/v1/tenants/{tenantId}/switch")
+    @PostMapping("/aioveu/api/v8/admin/tenant/tenants/{tenantId}/switch")
     @Log(value = "新增：根据用户名获取可登录的租户列表）", module = LogModuleEnum.TENANT)
     Result<TenantVO> switchTenant(
             @Parameter(description = "租户ID") @PathVariable Long tenantId,
@@ -91,7 +91,7 @@ public interface TenantFeignClient {
      * @return true-可访问，false-不可访问
      */
     @Operation(summary = "检查用户是否可以访问指定租户")
-    @GetMapping("/api/v1/tenants/canAccessTenant")
+    @GetMapping("/aioveu/api/v8/admin/tenant/tenants/canAccessTenant")
     @Log(value = "检查用户是否可以访问指定租户）", module = LogModuleEnum.TENANT)
     boolean canAccessTenant(
             @Parameter(description = "用户ID") @RequestParam Long userId,
@@ -106,12 +106,12 @@ public interface TenantFeignClient {
      * @return true-可切换，false-不可切换
      */
     @Operation(summary = "检查是否具备租户切换权限")
-    @GetMapping("/api/v1/tenants/hasTenantSwitchPermission")
+    @GetMapping("/aioveu/api/v8/admin/tenant/tenants/hasTenantSwitchPermission")
     @Log(value = "检查是否具备租户切换权限）", module = LogModuleEnum.TENANT)
     Result<Boolean> hasTenantSwitchPermission();
 
     @Operation(summary = "通过 clientId 获取租户和小程序信息")
-    @GetMapping("/api/v1/oauth-client-wx-app/getTenantWxAppInfoByClientId") // ✅ 应该改为GET
+    @GetMapping("/aioveu/api/v8/admin/tenant/oauth-client-wx-app/getTenantWxAppInfoByClientId") // ✅ 应该改为GET
     @Log(value = "通过 clientId 获取租户和小程序信息）", module = LogModuleEnum.TENANT)
 //    TenantWxAppInfo getTenantWxAppInfoByClientId(
 //            @Parameter(description = "clientId") @RequestParam("clientId") String  clientId
@@ -123,7 +123,7 @@ public interface TenantFeignClient {
 
 
     @Operation(summary = "通过 tenantId 获取租户和小程序信息")
-    @GetMapping("/api/v1/oauth-client-wx-app/getTenantWxAppInfoByTenantId") // ✅ 应该改为GET
+    @GetMapping("/aioveu/api/v8/admin/tenant/oauth-client-wx-app/getTenantWxAppInfoByTenantId") // ✅ 应该改为GET
     @Log(value = "通过 tenantId 获取租户和小程序信息）", module = LogModuleEnum.TENANT)
     TenantWxAppInfo getTenantWxAppInfoByTenantId(
             @Parameter(description = "tenantId") @RequestParam("tenantId") Long  tenantId
@@ -135,7 +135,7 @@ public interface TenantFeignClient {
      */
 
     @Operation(summary = "获取用户的工作台菜单（包含分类和菜单项）")
-    @GetMapping("/app-api/v1/manager-menu-category/categories-with-items")
+    @GetMapping("/aioveu/api/v8/app/tenant/manager-menu-category/categories-with-items")
     List<ManagerMenuCategoryWithItemsVO> getWorkbenchCategoriesWithItems(
             @RequestHeader("X-Tenant-Id") Long tenantId
     );
@@ -143,14 +143,14 @@ public interface TenantFeignClient {
 
 
     @Operation(summary = "根据tenantId查询对应的管理端首页分类数据")
-    @GetMapping("/app-api/v1/manager-menu-home-category/page")
+    @GetMapping("/aioveu/api/v8/app/tenant/manager-menu-home-category/page")
     List<ManagerMenuHomeCategoryVo> getManagerMenuHomeCategoryList(
             @RequestHeader("X-Tenant-Id") Long tenantId
     );
 
 
     @Operation(summary = "根据tenantId查询对应的管理端首页banners数据")
-    @GetMapping("/app-api/v1/manager-menu-home-banner/page")
+    @GetMapping("/aioveu/api/v8/app/tenant/manager-menu-home-banner/page")
     List<ManagerMenuHomeBannerVo> getManagerMenuHomeBanners(
             @RequestHeader("X-Tenant-Id") Long tenantId
     );

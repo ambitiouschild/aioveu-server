@@ -43,7 +43,7 @@ import java.util.Map;
 
 @Tag(name  = "APP-订单接口")
 @RestController
-@RequestMapping("/app-api/v1/orders")
+@RequestMapping("/aioveu/api/v8/app/oms/orders")
 @RequiredArgsConstructor
 @Slf4j
 public class OrderController {

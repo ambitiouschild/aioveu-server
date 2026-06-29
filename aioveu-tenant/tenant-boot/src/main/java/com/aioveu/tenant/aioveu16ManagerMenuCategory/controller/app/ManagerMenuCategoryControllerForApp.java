@@ -27,7 +27,7 @@ import java.util.List;
 
 @Tag(name = "小程序管理端菜单分类（多租户）接口")
 @RestController
-@RequestMapping("/app-api/v1/manager-menu-category")
+@RequestMapping("/aioveu/api/v8/app/tenant/manager-menu-category")
 @RequiredArgsConstructor
 public class ManagerMenuCategoryControllerForApp {
 

@@ -32,7 +32,7 @@ public interface PmsFeignClientWithoutConfig {
                 •例如：/pages?pageNum=1&pageSize=10&categoryId=123
         * */
     @Operation(summary = "商品分页列表")
-    @GetMapping("/app-api/v1/spu/pages")  //确保 FeignClient 不返回 IPage
+    @GetMapping("/aioveu/api/v8/app/pms/spu/pages")  //确保 FeignClient 不返回 IPage
     PageResult<SpuPageVO> listPagedSpuForApp(
             @SpringQueryMap PmsSpuQuery queryParams,
             @RequestHeader("X-Tenant-Id") Long tenantId

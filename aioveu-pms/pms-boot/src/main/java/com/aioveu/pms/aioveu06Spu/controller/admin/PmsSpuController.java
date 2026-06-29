@@ -27,8 +27,8 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Admin-商品SPU接口")
 @RestController
-//@RequestMapping("/api/v1/spu")
-@RequestMapping("/api/v1/pms-spu")
+//@RequestMapping("/aioveu/api/v8/admin/pms/spu")
+@RequestMapping("/aioveu/api/v8/admin/pms/pms-spu")
 @AllArgsConstructor
 public class PmsSpuController {
 

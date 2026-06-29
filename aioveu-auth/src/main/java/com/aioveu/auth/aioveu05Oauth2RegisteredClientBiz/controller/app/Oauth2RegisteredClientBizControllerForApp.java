@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.*;
  **/
 @Tag(name = "OAuth2 客户端业务状态（auth 服务本地校验用）接口ForAPP")
 @RestController
-@RequestMapping("/app-api/v1/oauth2-registered-client-biz")
+@RequestMapping("/aioveu/api/v8/app/auth/oauth2-registered-client-biz")
 @RequiredArgsConstructor
 public class Oauth2RegisteredClientBizControllerForApp {
 

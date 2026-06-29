@@ -33,8 +33,8 @@ import java.util.List;
 
 @Tag(name = "Admin-商品品牌接口")
 @RestController
-//@RequestMapping("/api/v1/brands")
-@RequestMapping("/api/v1/pms-brand")
+//@RequestMapping("/aioveu/api/v8/admin/pms/brands")
+@RequestMapping("/aioveu/api/v8/admin/pms/pms-brand")
 @RequiredArgsConstructor
 public class PmsBrandController {
 

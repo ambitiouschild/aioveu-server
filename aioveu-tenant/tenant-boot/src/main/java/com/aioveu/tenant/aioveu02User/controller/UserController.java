@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
  **/
 @Tag(name = "02.用户接口")
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/aioveu/api/v8/admin/tenant/users")
 @RequiredArgsConstructor
 @Slf4j
 public class UserController {

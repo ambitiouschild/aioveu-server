@@ -28,7 +28,7 @@ public interface MemberFeignClient {
      * @param member
      * @return
      */
-    @PostMapping("/app-api/v1/members")
+    @PostMapping("/aioveu/api/v8/app/ums/members")
     @Operation(summary= "新增会员")
     Result<Long> registerMember(@RequestBody MemberRegisterDto member);
 
@@ -37,19 +37,19 @@ public interface MemberFeignClient {
      *
      * @return
      */
-    @GetMapping("/app-api/v1/members/{memberId}/openid")
+    @GetMapping("/aioveu/api/v8/app/ums/members/{memberId}/openid")
     Result<String> getOpenIdByMemberId(@PathVariable Long memberId);
 
     /**
      * 扣减会员余额
      */
-    @PutMapping("/app-api/v1/members/{memberId}/balances/_deduct")
+    @PutMapping("/aioveu/api/v8/app/ums/members/{memberId}/balances/_deduct")
     <T> Result<T> deductBalance(@PathVariable Long memberId, @RequestParam Long amount);
 
     /**
      * 添加浏览记录
      */
-    @PostMapping("/app-api/v1/members/view/history")
+    @PostMapping("/aioveu/api/v8/app/ums/members/view/history")
     <T> Result<T> addProductViewHistory(@RequestBody ProductHistoryVO product);
 
     /**
@@ -58,7 +58,7 @@ public interface MemberFeignClient {
      * @param openid
      * @return
      */
-    @GetMapping("/app-api/v1/members/openid/{openid}")
+    @GetMapping("/aioveu/api/v8/app/ums/members/openid/{openid}")
     Result<MemberAuthDTO> loadUserByOpenId(@PathVariable String openid);
 
     /**
@@ -68,7 +68,7 @@ public interface MemberFeignClient {
      * @param tenantId
      * @return
      */
-    @GetMapping("/app-api/v1/members/openidAndTenantId/{openid}")
+    @GetMapping("/aioveu/api/v8/app/ums/members/openidAndTenantId/{openid}")
     Result<MemberAuthDTO> loadUserByOpenIdAndTenantId(
             @PathVariable("openid") String openid,
             @RequestHeader("X-Tenant-Id") Long tenantId
@@ -80,7 +80,7 @@ public interface MemberFeignClient {
      * @param mobile 手机号
      * @return 会员认证信息
      */
-    @GetMapping("/app-api/v1/members/mobile/{mobile}")
+    @GetMapping("/aioveu/api/v8/app/ums/members/mobile/{mobile}")
     Result<MemberAuthDTO> loadUserByMobile(@PathVariable String mobile);
 
     /**
@@ -89,7 +89,7 @@ public interface MemberFeignClient {
      * @param memberId
      * @return
      */
-    @GetMapping("/app-api/v1/members/{memberId}/addresses")
+    @GetMapping("/aioveu/api/v8/app/ums/members/{memberId}/addresses")
     Result<List<MemberAddressDTO>> listMemberAddresses(@PathVariable Long memberId);
 
 }

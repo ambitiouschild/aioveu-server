@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Tag(name  = "App-商品接口")
 @RestController
-@RequestMapping("/app-api/v1/spu")
+@RequestMapping("/aioveu/api/v8/app/pms/spu")
 @RequiredArgsConstructor
 public class SpuController {
 

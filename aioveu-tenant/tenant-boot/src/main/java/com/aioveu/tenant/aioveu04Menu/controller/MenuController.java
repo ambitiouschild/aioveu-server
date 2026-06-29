@@ -30,7 +30,7 @@ import java.util.List;
  **/
 @Tag(name = "04.菜单接口")
 @RestController
-@RequestMapping("/api/v1/menus")
+@RequestMapping("/aioveu/api/v8/admin/tenant/menus")
 @RequiredArgsConstructor
 @Slf4j
 public class MenuController {

@@ -29,7 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 @Tag(name = "07.文件接口")
 @RestController
-@RequestMapping("/api/v1/files")
+@RequestMapping("/aioveu/api/v8/admin/tenant/files")
 @RequiredArgsConstructor
 public class FileController {
 

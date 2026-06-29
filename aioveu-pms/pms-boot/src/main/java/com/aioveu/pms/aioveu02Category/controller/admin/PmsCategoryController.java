@@ -33,8 +33,8 @@ import java.util.List;
 
 @Tag(name = "Admin-商品分类接口")
 @RestController
-//@RequestMapping("/api/v1/categories")
-@RequestMapping("/api/v1/pms-category")
+//@RequestMapping("/aioveu/api/v8/admin/pms/categories")
+@RequestMapping("/aioveu/api/v8/admin/pms/pms-category")
 @RequiredArgsConstructor
 public class PmsCategoryController {
 

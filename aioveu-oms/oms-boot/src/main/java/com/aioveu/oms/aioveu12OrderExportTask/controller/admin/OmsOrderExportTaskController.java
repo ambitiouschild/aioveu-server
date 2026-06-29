@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.*;
  **/
 @Tag(name = "订单导出任务接口")
 @RestController
-@RequestMapping("/api/v1/oms-order-export-task")
+@RequestMapping("/aioveu/api/v8/admin/oms//oms-order-export-task")
 @RequiredArgsConstructor
 public class OmsOrderExportTaskController {
 

@@ -24,8 +24,8 @@ import java.util.Arrays;
 
 @Tag(name = "Admin-营销广告")
 @RestController
-//@RequestMapping("/api/v1/adverts")
-@RequestMapping("/api/v1/sms-advert")
+//@RequestMapping("/aioveu/api/v8/admin/smsadverts")
+@RequestMapping("/aioveu/api/v8/admin/smssms-advert")
 @RequiredArgsConstructor
 public class SmsAdvertController {
 

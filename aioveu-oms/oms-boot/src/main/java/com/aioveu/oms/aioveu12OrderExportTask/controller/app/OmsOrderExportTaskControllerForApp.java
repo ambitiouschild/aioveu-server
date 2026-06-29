@@ -36,7 +36,7 @@ import java.io.IOException;
 @Slf4j
 @Tag(name = "订单导出任务接口")
 @RestController
-@RequestMapping("/app-api/v1/oms-order-export-task")
+@RequestMapping("/aioveu/api/v8/app/oms/oms-order-export-task")
 @RequiredArgsConstructor
 public class OmsOrderExportTaskControllerForApp {
 

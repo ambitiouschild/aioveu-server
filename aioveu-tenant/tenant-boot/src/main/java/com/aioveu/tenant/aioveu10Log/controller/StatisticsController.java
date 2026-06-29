@@ -25,7 +25,7 @@ import java.time.LocalDate;
  **/
 @Tag(name = "12.统计分析")
 @RestController
-@RequestMapping("/api/v1/statistics")
+@RequestMapping("/aioveu/api/v8/admin/tenant/statistics")
 @RequiredArgsConstructor
 public class StatisticsController {
 

@@ -30,7 +30,7 @@ public class SecurityProperties {
 
     /**
      * 安全白名单路径（完全绕过安全过滤器）
-     * <p>示例值：/api/v1/auth/login/**, /ws/**
+     * <p>示例值：/aioveu/api/v8/admin/auth/auth/login/**, /ws/**
      */
 //    @NotEmpty
     private String[] ignoreUrls;

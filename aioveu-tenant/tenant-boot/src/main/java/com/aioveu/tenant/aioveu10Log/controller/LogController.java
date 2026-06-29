@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
  **/
 @Tag(name = "09.日志接口")
 @RestController
-@RequestMapping("/api/v1/logs")
+@RequestMapping("/aioveu/api/v8/admin/tenant/logs")
 @RequiredArgsConstructor
 public class LogController {
 

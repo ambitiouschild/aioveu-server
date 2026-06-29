@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
  **/
 @Tag(name = "09.通知公告")
 @RestController
-@RequestMapping("/api/v1/notices")
+@RequestMapping("/aioveu/api/v8/admin/tenant/notices")
 @RequiredArgsConstructor
 public class NoticeController {
 

@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "支付订单接口")
 @RestController
-@RequestMapping("/app-api/v1/pay-order")
+@RequestMapping("/aioveu/api/v8/app/pay/pay-order")
 @RequiredArgsConstructor
 public class PayOrderControllerForApp {
 

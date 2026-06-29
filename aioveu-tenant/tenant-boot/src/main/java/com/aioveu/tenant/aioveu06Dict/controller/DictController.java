@@ -38,7 +38,7 @@ import java.util.List;
  **/
 @Tag(name = "06.字典接口")
 @RestController
-@RequestMapping("/api/v1/dicts")
+@RequestMapping("/aioveu/api/v8/admin/tenant/dicts")
 @RequiredArgsConstructor
 public class DictController {
 

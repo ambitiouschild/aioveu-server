@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
  **/
 @Tag(name = "MQ消息消费记录接口")
 @RestController
-@RequestMapping("/api/v1/mq-consume-record")
+@RequestMapping("/aioveu/api/v8/admin/oms//mq-consume-record")
 @RequiredArgsConstructor
 public class MqConsumeRecordController {
 

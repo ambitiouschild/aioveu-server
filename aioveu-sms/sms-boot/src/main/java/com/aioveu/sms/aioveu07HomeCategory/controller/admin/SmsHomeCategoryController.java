@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
  **/
 @Tag(name = "首页分类配置接口")
 @RestController
-@RequestMapping("/api/v1/sms-home-category")
+@RequestMapping("/aioveu/api/v8/admin/sms/sms-home-category")
 @RequiredArgsConstructor
 public class SmsHomeCategoryController {
 

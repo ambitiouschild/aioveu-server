@@ -25,8 +25,8 @@ import java.util.Arrays;
 
 @Tag(name = "Admin-会员管理")
 @RestController
-//@RequestMapping("/api/v1/members")
-@RequestMapping("/api/v1/ums-member")
+//@RequestMapping("/aioveu/api/v8/admin/ums/members")
+@RequestMapping("/aioveu/api/v8/admin/ums/ums-member")
 @RequiredArgsConstructor
 public class UmsMemberController {
 

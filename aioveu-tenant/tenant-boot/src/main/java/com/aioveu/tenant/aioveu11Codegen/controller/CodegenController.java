@@ -37,7 +37,7 @@ import java.util.List;
 
 @Tag(name = "11.代码生成")
 @RestController
-@RequestMapping("/api/v1/codegen")
+@RequestMapping("/aioveu/api/v8/admin/tenant/codegen")
 @RequiredArgsConstructor
 @Slf4j
 public class CodegenController {

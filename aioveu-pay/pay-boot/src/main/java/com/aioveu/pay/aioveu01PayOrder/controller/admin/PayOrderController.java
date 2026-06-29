@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "支付订单接口")
 @RestController
-@RequestMapping("/api/v1/pay-order")
+@RequestMapping("/aioveu/api/v8/admin/pay/pay-order")
 @RequiredArgsConstructor
 public class PayOrderController {
 

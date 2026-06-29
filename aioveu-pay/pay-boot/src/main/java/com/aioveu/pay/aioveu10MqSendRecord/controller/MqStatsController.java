@@ -25,7 +25,7 @@ import java.util.Map;
  **/
 @Slf4j
 @RestController
-@RequestMapping("/api/mq/stats")
+@RequestMapping("/aioveu/api/v8/admin/pay/api/mq/stats")
 @RequiredArgsConstructor
 public class MqStatsController {
 

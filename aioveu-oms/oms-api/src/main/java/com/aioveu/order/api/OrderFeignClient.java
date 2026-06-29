@@ -23,14 +23,14 @@ public interface OrderFeignClient {
     /**
      * 根据订单编号查询订单详情
      */
-    @GetMapping("/api/v1/oms-order/orderNo/{orderNo}")
+    @GetMapping("/aioveu/api/v8/admin/oms/oms-order/orderNo/{orderNo}")
     OmsOrderForm getOrderDetailByOrderNo(@Parameter(name ="订单编号") @PathVariable String orderNo);
 
     /**
      * 根据微信返回结果更新订单状态操作
      */
 
-    @PutMapping("/api/v1/oms-order/{orderNo}/{status}")
+    @PutMapping("/aioveu/api/v8/admin/oms/oms-order/{orderNo}/{status}")
     boolean updateOrderStatusByWechatPay(
             @Parameter(name ="订单编号") @PathVariable String orderNo,
             @Parameter(description = "微信返回结果") @PathVariable PaymentStatusEnum status
@@ -41,7 +41,7 @@ public interface OrderFeignClient {
      * 根据orderSn获取到订单
      */
 
-    @PostMapping("/app-api/v1/orders/{orderSn}")
+    @PostMapping("/aioveu/api/v8/app/oms/orders/{orderSn}")
     OmsOrderForm getOmsOrderByOrderNo(@PathVariable String orderSn);
 
 }

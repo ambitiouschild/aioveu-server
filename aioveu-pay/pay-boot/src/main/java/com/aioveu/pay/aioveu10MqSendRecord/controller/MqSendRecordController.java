@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
  **/
 @Tag(name = "MQ消息发送记录接口")
 @RestController
-@RequestMapping("/api/v1/mq-send-record")
+@RequestMapping("/aioveu/api/v8/admin/pay/mq-send-record")
 @RequiredArgsConstructor
 public class MqSendRecordController {
 

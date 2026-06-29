@@ -38,8 +38,8 @@ import java.util.Optional;
 @Slf4j
 @Tag(name  = "Admin-订单详情接口")
 @RestController
-//@RequestMapping("/api/v1/orders")
-@RequestMapping("/api/v1/oms-order")
+//@RequestMapping("/aioveu/api/v8/admin/oms//orders")
+@RequestMapping("/aioveu/api/v8/admin/oms//oms-order")
 @RequiredArgsConstructor
 public class OmsOrderController {
 

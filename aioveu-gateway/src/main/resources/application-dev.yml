@@ -1,5 +1,5 @@
 server:
-  port: 6699  # 网关端口，和你的配置一致  浏览器/微信小程序认为 6666 是"不安全端口"，阻止了请求。
+  port: 6699  # 网关端口，和你的配置一致
 
 spring:
   main:
@@ -7,10 +7,13 @@ spring:
   application:
     name: aioveu-tenant-gateway
 
-  #WebFlux 的自动配置只认 spring.config.import
-  # 关键：import 必须放在最前，且建议带上后缀
+  #  主配置源（Gateway routes 生效）
   config:
-    import: optional:nacos:aioveu-common.yaml?group=AIOVEU_GROUP&refreshEnabled=true
+    import:
+      # ✅ 公共配置（redis / 通用参数） 写死redis
+      - optional:nacos:aioveu-common.yaml?group=AIOVEU_GROUP&refreshEnabled=true
+      # ✅ Gateway 路由配置（必须在这里）
+      - optional:nacos:aioveu-tenant-gateway.yaml?group=AIOVEU_GROUP&refreshEnabled=true
 
   cloud:
     nacos:
@@ -25,11 +28,17 @@ spring:
         password: ${NACOS_PASSWORD:775825}   # 从环境变量读取
         #name: ${spring.application.name}  # 默认情况下，应用会使用spring.application.name作为数据ID的前缀，所以这里可以不用配置，但可以显式配置
         # ❌ 删掉 shared-configs，用 import 就够了
-        shared-configs:
-          - data-id: aioveu-common.yaml  # 公共共享配置
-            group: ${NACOS_GROUP:AIOVEU_GROUP} # 使用相同的分组
-            refresh: true  # 启用动态刷新
+        # ❌ shared-configs 彻底删除，不要留
+      #        shared-configs:
+      #          - data-id: aioveu-common.yaml  # 公共共享配置
+      #            group: ${NACOS_GROUP:AIOVEU_GROUP} # 使用相同的分组
+      #            refresh: true  # 启用动态刷新
 
+        # ✅ 关键：用 extension-configs，不用 import    ✅ 真正让 routes 生效的地方
+#        extension-configs:
+#          - data-id: aioveu-tenant-gateway.yaml
+#            group: AIOVEU_GROUP
+#            refresh: true
       # 注册中心 # 服务发现配置
 
       discovery:
@@ -48,10 +57,7 @@ spring:
 gateway:
   endpoint: http://localhost:6699
 
-  # ===== 触发 ReactiveJwtDecoder 不能“全局配置 jwt 路径 =====
-#  security:
-#    oauth2:
-#      resourceserver:
-#        jwt:
-#          jwk-set-uri: ${JWT_JWK_SET_URI}
-#          issuer-uri: ${JWT_ISSUER_URI}
+# 日志（方便你验证）
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG

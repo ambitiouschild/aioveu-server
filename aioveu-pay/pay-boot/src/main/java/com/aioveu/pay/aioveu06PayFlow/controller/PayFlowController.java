@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "支付流水接口")
 @RestController
-@RequestMapping("/api/v1/pay-flow")
+@RequestMapping("/aioveu/api/v8/admin/pay/pay-flow")
 @RequiredArgsConstructor
 public class PayFlowController {
 

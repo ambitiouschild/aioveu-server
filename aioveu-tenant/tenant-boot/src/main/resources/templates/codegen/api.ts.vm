@@ -1,7 +1,7 @@
 import request from "@/utils/request";
 import type { ${entityName}Form, ${entityName}PageQuery, ${entityName}PageVo } from "@/api/types";
 
-const ${entityUpperSnake}_BASE_URL = "/api/v1/${entityKebab}";
+const ${entityUpperSnake}_BASE_URL = "/aioveu/api/v8/admin/tenant/${entityKebab}";
 
 const ${entityName}API = {
     /** 获取${businessName}分页数据 */

@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "订单物流记录接口")
 @RestController
-@RequestMapping("/api/v1/oms-order-delivery")
+@RequestMapping("/aioveu/api/v8/admin/oms//oms-order-delivery")
 @RequiredArgsConstructor
 public class OmsOrderDeliveryController {
 

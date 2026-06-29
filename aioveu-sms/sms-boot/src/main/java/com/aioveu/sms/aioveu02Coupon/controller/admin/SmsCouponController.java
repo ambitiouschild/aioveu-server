@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Admin-优惠券管理")
 @RestController
-//@RequestMapping("/api/v1/coupons")
-@RequestMapping("/api/v1/sms-coupon")
+//@RequestMapping("/aioveu/api/v8/admin/sms/coupons")
+@RequestMapping("/aioveu/api/v8/admin/sms/sms-coupon")
 @RequiredArgsConstructor
 public class SmsCouponController {
 

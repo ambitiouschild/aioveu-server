@@ -19,10 +19,26 @@
 
     <dependencies>
         <!--Spring Cloud & Alibaba-->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-bootstrap</artifactId>
-        </dependency>
+<!--        这行依赖，强制 Gateway 走 bootstrap启动-->
+<!--        只要它在，你前面三天遇到的所有“Loaded Route 永远没有”就是必然结果-->
+<!--        这个依赖在 Spring Cloud 2022+ 的含义是-->
+<!--        “我还要用老启动模型”-->
+<!--        官方文档原话（我帮你翻译）：-->
+<!--        spring-cloud-starter-bootstrap-->
+<!--        仅在需要兼容旧系统时使用-->
+<!--        新项目不建议使用-->
+<!--        👉 一旦引入：-->
+<!--        ✅ bootstrap.yml重新生效-->
+<!--        ✅ BootstrapPropertySource重新接管-->
+<!--        ❌ spring.config.import被边缘化-->
+<!--        ❌ Gateway 不再从 import 构建 routes-->
+<!--        👉 你前面这句日志，就是它造成的直接后果：-->
+<!--        Located property source: [BootstrapPropertySource ...]-->
+<!--        删掉这个依赖（不要注释，删掉）-->
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.cloud</groupId>-->
+<!--            <artifactId>spring-cloud-starter-bootstrap</artifactId>-->
+<!--        </dependency>-->
 
         <!-- Spring Cloud Gateway -->
         <!-- 网关会自动包含 Netty，不包含 Tomcat -->

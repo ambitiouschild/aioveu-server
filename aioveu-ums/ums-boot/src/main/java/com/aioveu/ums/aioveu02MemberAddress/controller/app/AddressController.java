@@ -17,7 +17,7 @@ import java.util.List;
 
 @Tag(name = "App-会员地址")
 @RestController
-@RequestMapping("/app-api/v1/addresses")
+@RequestMapping("/aioveu/api/v8/app/ums/addresses")
 @RequiredArgsConstructor
 public class AddressController {
 

@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
  **/
 @Tag(name = "MQ补偿任务接口")
 @RestController
-@RequestMapping("/api/v1/mq-compensation-task")
+@RequestMapping("/aioveu/api/v8/admin/pay/mq-compensation-task")
 @RequiredArgsConstructor
 public class MqCompensationTaskController {
 

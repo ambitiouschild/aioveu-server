@@ -22,7 +22,7 @@ import java.util.Set;
 
 @Tag(name = "App-会员管理")
 @RestController
-@RequestMapping("/app-api/v1/members")
+@RequestMapping("/aioveu/api/v8/app/ums/members")
 @RequiredArgsConstructor
 public class MemberController {
     private final UmsMemberService memberService;

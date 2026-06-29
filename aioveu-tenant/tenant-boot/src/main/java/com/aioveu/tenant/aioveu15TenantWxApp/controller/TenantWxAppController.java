@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
  **/
 @Tag(name = "租户与微信小程序关联接口")
 @RestController
-@RequestMapping("/api/v1/tenant-wx-app")
+@RequestMapping("/aioveu/api/v8/admin/tenant/tenant-wx-app")
 @RequiredArgsConstructor
 public class TenantWxAppController {
 

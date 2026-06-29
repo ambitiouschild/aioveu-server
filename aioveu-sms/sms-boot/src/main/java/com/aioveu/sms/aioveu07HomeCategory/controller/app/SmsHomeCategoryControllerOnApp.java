@@ -29,7 +29,7 @@ import java.util.List;
  **/
 @Tag(name = "app首页分类配置接口")
 @RestController
-@RequestMapping("/app-api/v1/sms-home-category")
+@RequestMapping("/aioveu/api/v8/app/sms/sms-home-category")
 @RequiredArgsConstructor
 public class SmsHomeCategoryControllerOnApp {
 

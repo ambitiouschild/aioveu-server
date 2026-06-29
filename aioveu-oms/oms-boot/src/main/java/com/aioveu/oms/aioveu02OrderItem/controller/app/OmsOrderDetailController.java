@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @Tag(name = "获取订单详情",description = "根据订单编号获取订单详细信息")
 @RestController
-@RequestMapping("/app-api/v1/order")
+@RequestMapping("/aioveu/api/v8/app/oms/order")
 @RequiredArgsConstructor
 public class OmsOrderDetailController {
 

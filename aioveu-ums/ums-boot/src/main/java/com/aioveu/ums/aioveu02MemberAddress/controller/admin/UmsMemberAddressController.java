@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "会员收货地址接口")
 @RestController
-@RequestMapping("/api/v1/ums-member-address")
+@RequestMapping("/aioveu/api/v8/admin/ums/ums-member-address")
 @RequiredArgsConstructor
 public class UmsMemberAddressController {
 

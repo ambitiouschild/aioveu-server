@@ -27,8 +27,8 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Admin-商品SKU接口")
 @RestController
-//@RequestMapping("/api/v1/sku")
-@RequestMapping("/api/v1/pms-sku")
+//@RequestMapping("/aioveu/api/v8/admin/pms/sku")
+@RequestMapping("/aioveu/api/v8/admin/pms/pms-sku")
 @RequiredArgsConstructor
 public class PmsSkuController {
     private final PmsSkuService pmsSkuService;

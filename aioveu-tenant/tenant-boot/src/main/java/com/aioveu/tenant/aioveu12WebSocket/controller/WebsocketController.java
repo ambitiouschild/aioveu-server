@@ -23,7 +23,7 @@ import java.security.Principal;
  **/
 
 @RestController
-@RequestMapping("/api/v1/websocket")
+@RequestMapping("/aioveu/api/v8/admin/tenant/websocket")
 @RequiredArgsConstructor
 @Slf4j
 public class WebsocketController {

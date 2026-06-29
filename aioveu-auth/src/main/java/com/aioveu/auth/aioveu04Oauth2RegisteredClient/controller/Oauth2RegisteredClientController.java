@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @Tag(name = "OAuth2注册客户端，存储所有已注册的客户端应用信息接口", description = "OAuth2客户端注册和管理接口")
 @RestController
-@RequestMapping("/api/v1/oauth2-registered-client")
+@RequestMapping("/aioveu/api/v8/admin/auth/oauth2-registered-client")
 @RequiredArgsConstructor
 public class Oauth2RegisteredClientController {
 

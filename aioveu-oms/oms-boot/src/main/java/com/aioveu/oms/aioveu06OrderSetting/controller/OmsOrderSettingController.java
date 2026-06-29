@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "订单配置信息接口")
 @RestController
-@RequestMapping("/api/v1/oms-order-setting")
+@RequestMapping("/aioveu/api/v8/admin/oms//oms-order-setting")
 @RequiredArgsConstructor
 public class OmsOrderSettingController {
 

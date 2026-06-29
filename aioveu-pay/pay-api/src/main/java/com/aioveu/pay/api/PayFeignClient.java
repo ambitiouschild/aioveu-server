@@ -31,7 +31,7 @@ public interface PayFeignClient {
      * 来自oms的订单支付请求
      */
     @Operation(summary ="来自oms-pay的订单支付请求")
-    @PostMapping("/api/v1/pay-order/createPaymentOmsToPay")
+    @PostMapping("/aioveu/api/v8/admin/pay/pay-order/createPaymentOmsToPay")
     PaymentParamsVO createPaymentOmsToPay(@RequestBody PaymentRequestOmsToPayDTO paymentForm);
 
 
@@ -39,7 +39,7 @@ public interface PayFeignClient {
      * 来自pay-wechat的订单支付请求,创建前端调用第三方支付所需的支付参数
      */
     @Operation(summary ="来自pay-wechat的订单支付请求,创建前端调用第三方支付所需的支付参数")
-    @PostMapping("/api/v1/pay-order/createPaymentPayToTPP")
+    @PostMapping("/aioveu/api/v8/admin/pay/pay-order/createPaymentPayToTPP")
     PaymentParamsVO createPaymentPayToTPP(@RequestBody PaymentRequestPayToTPPDTO request);
 
     /**
@@ -70,20 +70,20 @@ public interface PayFeignClient {
     /*
      * 新增支付订单APP
      * */
-    @PostMapping("/app-api/v1/pay-order")
+    @PostMapping("/aioveu/api/v8/app/pay/pay-order")
     String createPayOrder(@RequestBody @Valid PayOrderCreateForm formData );
 
 
     /**
      * 根据订单号查询支付订单 no = 我引用别人的
      */
-    @GetMapping("/app-api/v1/pay-order/getPayOrderByOmsOrderNo")
+    @GetMapping("/aioveu/api/v8/app/pay/pay-order/getPayOrderByOmsOrderNo")
     PayOrderVO getPayOrderByOmsOrderNo(@RequestParam("orderNo") String orderNo);
 
     /**
      * 根据omsOutTradeNo查询ThirdTransactionNo
      */
-    @GetMapping("/app-api/v1/pay-order/getThirdTransactionNoByOmsOrderSn")
+    @GetMapping("/aioveu/api/v8/app/pay/pay-order/getThirdTransactionNoByOmsOrderSn")
     String getThirdTransactionNoByOmsOrderSn(@RequestParam("omsOrderSn") String omsOrderSn);
 
 }

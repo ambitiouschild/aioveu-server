@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
  **/
 @Tag(name = "支付回调记录接口")
 @RestController
-@RequestMapping("/api/v1/pay-callback-record")
+@RequestMapping("/aioveu/api/v8/admin/pay/pay-callback-record")
 @RequiredArgsConstructor
 public class PayCallbackRecordController {
 

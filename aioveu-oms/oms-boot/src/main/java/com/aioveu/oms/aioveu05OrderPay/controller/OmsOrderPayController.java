@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "支付信息接口")
 @RestController
-@RequestMapping("/api/v1/oms-order-pay")
+@RequestMapping("/aioveu/api/v8/admin/oms//oms-order-pay")
 @RequiredArgsConstructor
 public class OmsOrderPayController {
 

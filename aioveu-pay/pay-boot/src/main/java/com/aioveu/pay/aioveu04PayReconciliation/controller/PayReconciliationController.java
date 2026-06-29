@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "支付对账接口")
 @RestController
-@RequestMapping("/api/v1/pay-reconciliation")
+@RequestMapping("/aioveu/api/v8/admin/pay/pay-reconciliation")
 @RequiredArgsConstructor
 public class PayReconciliationController {
 

@@ -24,7 +24,7 @@ import java.util.List;
 
 @Tag(name  = "App-购物车接口")
 @RestController
-@RequestMapping("/app-api/v1/carts")
+@RequestMapping("/aioveu/api/v8/app/oms/carts")
 @RequiredArgsConstructor
 public class CartController {
 

@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
  **/
 @Tag(name = "管理系统工作台菜单项（多租户支持）接口")
 @RestController
-@RequestMapping("/api/v1/manager-menu-category-item")
+@RequestMapping("/aioveu/api/v8/admin/tenant/manager-menu-category-item")
 @RequiredArgsConstructor
 public class ManagerMenuCategoryItemController {
 

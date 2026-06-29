@@ -1,0 +1,63 @@
+server:
+  port: 6699  # 网关端口，和你的配置一致  浏览器/微信小程序认为 6666 是"不安全端口"，阻止了请求。
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: aioveu-tenant-gateway
+
+  #WebFlux 的自动配置只认 spring.config.import
+  # 关键：import 必须放在最前，且建议带上后缀
+#  主配置源（Gateway routes 生效）
+  config:
+    import:
+      # ✅ 公共配置（redis / 通用参数）
+      - optional:nacos:aioveu-common.yaml?group=AIOVEU_GROUP&refreshEnabled=true
+      # ✅ Gateway 路由配置（必须在这里）
+      - optional:nacos:aioveu-tenant-gateway.yaml?group=AIOVEU_GROUP&refreshEnabled=true
+
+  cloud:
+    nacos:
+      # 配置中心  # 配置中心配置  先获取配置，后执行服务发现”
+      config:
+        enabled: true
+        server-addr: ${NACOS_SERVER:http://localhost:8848} # 使用服务名而非localhost
+        file-extension: yaml
+        namespace: ${NACOS_NAMESPACE:a0e9ab31-f2c7-4c10-94a4-9f2f53e5a5ef} #aioveu-prod  # 生产环境命名空间
+        group: ${NACOS_GROUP:AIOVEU_GROUP}
+        username: ${NACOS_USER:aioveu}  # 从环境变量读取
+        password: ${NACOS_PASSWORD:775825}   # 从环境变量读取
+        #name: ${spring.application.name}  # 默认情况下，应用会使用spring.application.name作为数据ID的前缀，所以这里可以不用配置，但可以显式配置
+        # ❌ 删掉 shared-configs，用 import 就够了
+        # ❌ shared-configs 彻底删除，不要留
+#        shared-configs:
+#          - data-id: aioveu-common.yaml  # 公共共享配置
+#            group: ${NACOS_GROUP:AIOVEU_GROUP} # 使用相同的分组
+#            refresh: true  # 启用动态刷新
+
+      # 注册中心 # 服务发现配置
+
+      discovery:
+        enabled: true
+        server-addr: ${spring.cloud.nacos.config.server-addr}
+        namespace: ${spring.cloud.nacos.config.namespace}
+        group: ${spring.cloud.nacos.config.group}
+        username: ${spring.cloud.nacos.config.username}  # 复用config的认证
+        password: ${spring.cloud.nacos.config.password}
+        metadata:
+          version: 1.0
+          env: prod
+          zone: zone1
+
+# 网关地址
+gateway:
+  endpoint: http://localhost:6699
+
+  # ===== 触发 ReactiveJwtDecoder 不能“全局配置 jwt 路径 =====
+#  security:
+#    oauth2:
+#      resourceserver:
+#        jwt:
+#          jwk-set-uri: ${JWT_JWK_SET_URI}
+#          issuer-uri: ${JWT_ISSUER_URI}

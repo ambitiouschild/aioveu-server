@@ -31,10 +31,10 @@ import org.springframework.context.annotation.ComponentScan;
         TenantFeignClient.class})
 @SpringBootApplication
 @EnableDiscoveryClient
-@ComponentScan(basePackages = {
-        "com.aioveu.auth",           // 当前模块
-        "com.aioveu.common",          // 显式扫描 common 模块
-})
+//@ComponentScan(basePackages = {
+//        "com.aioveu.auth",           // 当前模块
+//        "com.aioveu.common",          // 显式扫描 common 模块
+//})  删掉 @ComponentScan，用默认扫描
 // 2. 在主应用类中启用配置属性
 public class aioveu_AuthApplication {
     public static void main(String[] args) {

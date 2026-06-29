@@ -22,7 +22,7 @@ import java.util.List;
 
 @Tag(name  = "App-商品库存接口")
 @RestController
-@RequestMapping("/app-api/v1/skus")
+@RequestMapping("/aioveu/api/v8/app/pms/skus")
 @RequiredArgsConstructor
 public class SkuController {
 

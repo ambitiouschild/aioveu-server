@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "商品分类与品牌关联表接口")
 @RestController
-@RequestMapping("/api/v1/pms-category-brand")
+@RequestMapping("/aioveu/api/v8/admin/pms/pms-category-brand")
 @RequiredArgsConstructor
 public class PmsCategoryBrandController {
 

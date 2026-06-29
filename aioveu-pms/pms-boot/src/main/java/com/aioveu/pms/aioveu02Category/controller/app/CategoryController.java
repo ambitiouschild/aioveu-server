@@ -23,7 +23,7 @@ import java.util.List;
 
 @Tag(name = "App-商品分类")
 @RestController("appCategoryController")
-@RequestMapping("/app-api/v1/categories")
+@RequestMapping("/aioveu/api/v8/app/pms/categories")
 @RequiredArgsConstructor
 public class CategoryController {
 

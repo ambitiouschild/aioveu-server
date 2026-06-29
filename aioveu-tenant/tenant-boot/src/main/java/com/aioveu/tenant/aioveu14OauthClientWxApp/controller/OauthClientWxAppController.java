@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @Tag(name = "OAuth2客户端与微信小程序映射接口")
 @RestController
-@RequestMapping("/api/v1/oauth-client-wx-app")
+@RequestMapping("/aioveu/api/v8/admin/tenant/oauth-client-wx-app")
 @RequiredArgsConstructor
 public class OauthClientWxAppController {
 
@@ -91,8 +91,8 @@ public class OauthClientWxAppController {
     * 建议：保持使用@RequestParam
     * 接口语义：getTenantWxAppInfoByClientId是一个查询操作，不是资源获取操作
     * RESTful设计：
-    * 如果是获取资源：GET /api/v1/oauth-client-wx-app/{id}
-    * 如果是查询：GET /api/v1/oauth-client-wx-app?clientId={id}
+    * 如果是获取资源：GET /aioveu/api/v8/admin/tenant/oauth-client-wx-app/{id}
+    * 如果是查询：GET /aioveu/api/v8/admin/tenant/oauth-client-wx-app?clientId={id}
     * 参数扩展性：未来可能需要其他查询条件
     * */
     @Operation(summary = "通过 clientId 获取租户和小程序信息，只认接口参数")

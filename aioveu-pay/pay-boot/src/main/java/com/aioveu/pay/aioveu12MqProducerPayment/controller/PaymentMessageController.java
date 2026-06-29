@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/mq-send-message")
+@RequestMapping("/aioveu/api/v8/admin/pay/mq-send-message")
 public class PaymentMessageController {
 
 

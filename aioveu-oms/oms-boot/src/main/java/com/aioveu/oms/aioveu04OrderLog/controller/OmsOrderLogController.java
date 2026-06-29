@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "订单操作历史记录接口")
 @RestController
-@RequestMapping("/api/v1/oms-order-log")
+@RequestMapping("/aioveu/api/v8/admin/oms//oms-order-log")
 @RequiredArgsConstructor
 public class OmsOrderLogController {
 

@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "优惠券领取/使用记录接口")
 @RestController
-@RequestMapping("/api/v1/sms-coupon-history")
+@RequestMapping("/aioveu/api/v8/admin/sms/sms-coupon-history")
 @RequiredArgsConstructor
 public class SmsCouponHistoryController {
 

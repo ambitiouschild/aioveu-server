@@ -31,7 +31,7 @@ import java.util.List;
 
 @Tag(name = "商品分类类型（规格，属性）接口")
 @RestController
-@RequestMapping("/api/v1/pms-category-attribute")
+@RequestMapping("/aioveu/api/v8/admin/pms/pms-category-attribute")
 @RequiredArgsConstructor
 public class PmsCategoryAttributeController {
 

@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "优惠券适用的具体商品接口")
 @RestController
-@RequestMapping("/api/v1/sms-coupon-spu")
+@RequestMapping("/aioveu/api/v8/admin/sms/sms-coupon-spu")
 @RequiredArgsConstructor
 public class SmsCouponSpuController {
 

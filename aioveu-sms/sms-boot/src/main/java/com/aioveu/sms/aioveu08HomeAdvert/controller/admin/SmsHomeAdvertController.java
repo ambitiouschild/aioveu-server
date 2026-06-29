@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
  **/
 @Tag(name = "首页广告配置（增加跳转路径）接口")
 @RestController
-@RequestMapping("/api/v1/sms-home-advert")
+@RequestMapping("/aioveu/api/v8/admin/sms/sms-home-advert")
 @RequiredArgsConstructor
 public class SmsHomeAdvertController {
 

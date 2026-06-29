@@ -29,7 +29,7 @@ import java.util.List;
  **/
 @Tag(name = "首页广告配置（增加跳转路径）接口")
 @RestController
-@RequestMapping("/app-api/v1/sms-home-advert")
+@RequestMapping("/aioveu/api/v8/app/sms/sms-home-advert")
 @RequiredArgsConstructor
 public class SmsHomeAdvertControllerOnApp {
 

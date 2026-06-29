@@ -72,20 +72,20 @@ public class JwtAuthFilter  extends AbstractGatewayFilterFactory<JwtAuthFilter.C
 
     private boolean isPublicPath(String path) {
         List<String> publicPaths = List.of(
-                "/api/v1/auth/login",
-                "/api/v1/auth/logout",
-                "/api/v1/auth/refresh",
-                "/api/v1/auth/captcha",
-                "/api/v1/auth/sms/",
-                "/api/v1/auth/wx/",
-                "/api/v1/auth/register",
-                "/api/v1/system/users/register",
-                "/api/v1/system/users/public/",
-                "/actuator/",
-                "/swagger-ui/",
-                "/v3/api-docs/",
-                "/webjars/",
-                "/gateway/test/"
+                "/aioveu/api/v8/admin/auth"
+//                "/aioveu/api/v8/admin/auth/auth/logout",
+//                "/aioveu/api/v8/admin/auth/auth/refresh",
+//                "/aioveu/api/v8/admin/auth/auth/captcha",
+//                "/aioveu/api/v8/admin/auth/auth/sms/",
+//                "/aioveu/api/v8/admin/auth/auth/wx/",
+//                "/aioveu/api/v8/admin/auth/auth/register",
+//                "/aioveu/api/v8/admin/auth/system/users/register",
+//                "/aioveu/api/v8/admin/auth/system/users/public/",
+//                "/actuator/",
+//                "/swagger-ui/",
+//                "/v3/api-docs/",
+//                "/webjars/",
+//                "/gateway/test/"
         );
 
         return publicPaths.stream().anyMatch(path::startsWith);

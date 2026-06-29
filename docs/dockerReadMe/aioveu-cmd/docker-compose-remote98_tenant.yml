@@ -369,7 +369,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
 #        condition: service_healthy
 ##
   gateway:
-    image: aioveu-tenant-gateway:v5.2.0
+    image: aioveu-tenant-gateway:v6.6.6
     container_name: aioveu-tenant-gateway
     #    build:
     #      context: .
@@ -399,7 +399,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - nacos
   ##
   auth:
-    image: aioveu-tenant-auth:v5.2.0
+    image: aioveu-tenant-auth:v6.6.6
     container_name: aioveu-tenant-auth
     #    build:
     #      context: .
@@ -425,7 +425,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
 #  #
 #
   tenant:
-    image: aioveu-tenant:v5.2.0
+    image: aioveu-tenant:v6.6.6
     container_name: aioveu-tenant
     #    build:
     #      context: .
@@ -451,7 +451,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - auth
 
 #  lss:
-#    image: aioveu-lss:v5.2.0
+#    image: aioveu-lss:v6.6.6
 #    container_name: aioveu-lss
 #    #    build:
 #    #      context: .
@@ -477,7 +477,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
 #      - auth
   #
   oms:
-    image: aioveu-tenant-oms:v5.2.0
+    image: aioveu-tenant-oms:v6.6.6
     container_name: aioveu-tenant-oms
     #    ports:
     #      - 8813:8803
@@ -500,7 +500,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - auth
 ##  #
   pms:
-    image: aioveu-tenant-pms:v5.2.0
+    image: aioveu-tenant-pms:v6.6.6
     container_name: aioveu-tenant-pms
     #    ports:
     #      - 8812:8802
@@ -523,7 +523,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - auth
 ##
   sms:
-    image: aioveu-tenant-sms:v5.2.0
+    image: aioveu-tenant-sms:v6.6.6
     container_name: aioveu-tenant-sms
     #    ports:
     #      - 8814:8804
@@ -546,7 +546,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - auth
 ##  #
   ums:
-    image: aioveu-tenant-ums:v5.2.0
+    image: aioveu-tenant-ums:v6.6.6
     container_name: aioveu-tenant-ums
     #    ports:
     #      - 8811:8801
@@ -569,7 +569,7 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - auth
 ##
   pay:
-    image: aioveu-tenant-pay:v5.2.0
+    image: aioveu-tenant-pay:v6.6.6
     container_name: aioveu-tenant-pay
     #    ports:
     #      - 8811:8801
@@ -591,48 +591,48 @@ services:   #/usr/sbin/mysqld: ready for connections. Version: '8.0.29'  socket:
       - gateway
       - auth
 ##
-  refund:
-    image: aioveu-tenant-refund:v5.2.0
-    container_name: aioveu-tenant-refund
-    #    ports:
-    #      - 8811:8801
-    deploy:
-      resources:
-        limits:
-          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
-          cpus: '1'
-        reservations:
-          memory: 1G  # ✅ 保证基本运行  # 容器软保证
-    environment:
-      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
-    networks:
-      - aioveu-tenant
-    depends_on:
-      - mysql
-      - redis
-      - nacos
-      - gateway
-      - auth
+#  refund:
+#    image: aioveu-tenant-refund:v6.6.6
+#    container_name: aioveu-tenant-refund
+#    #    ports:
+#    #      - 8811:8801
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
+#          cpus: '1'
+#        reservations:
+#          memory: 1G  # ✅ 保证基本运行  # 容器软保证
+#    environment:
+#      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
+#    networks:
+#      - aioveu-tenant
+#    depends_on:
+#      - mysql
+#      - redis
+#      - nacos
+#      - gateway
+#      - auth
 
-  registry:
-    image: aioveu-tenant-registry:v5.2.0
-    container_name: aioveu-tenant-registry
-    #    ports:
-    #      - 8811:8801
-    deploy:
-      resources:
-        limits:
-          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
-          cpus: '1'
-        reservations:
-          memory: 1G  # ✅ 保证基本运行  # 容器软保证
-    environment:
-      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
-    networks:
-      - aioveu-tenant
-    depends_on:
-      - mysql
-      - redis
-      - nacos
-      - gateway
-      - auth
+#  registry:
+#    image: aioveu-tenant-registry:v6.6.6
+#    container_name: aioveu-tenant-registry
+#    #    ports:
+#    #      - 8811:8801
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 2G    # ✅ 足够安全  # 硬上限2GB # 容器硬限制
+#          cpus: '1'
+#        reservations:
+#          memory: 1G  # ✅ 保证基本运行  # 容器软保证
+#    environment:
+#      - JAVA_OPTS=-Xms512m -Xmx1536m -XX:MaxMetaspaceSize=256m
+#    networks:
+#      - aioveu-tenant
+#    depends_on:
+#      - mysql
+#      - redis
+#      - nacos
+#      - gateway
+#      - auth

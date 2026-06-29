@@ -33,8 +33,8 @@ import java.util.List;
 
 @Tag(name = "Admin-商品类型（属性/规格）接口")
 @RestController
-//@RequestMapping("/api/v1/attributes")
-@RequestMapping("/api/v1/pms-spu-attribute")
+//@RequestMapping("/aioveu/api/v8/admin/pms/attributes")
+@RequestMapping("/aioveu/api/v8/admin/pms/pms-spu-attribute")
 @Slf4j
 @AllArgsConstructor
 public class PmsSpuAttributeController {

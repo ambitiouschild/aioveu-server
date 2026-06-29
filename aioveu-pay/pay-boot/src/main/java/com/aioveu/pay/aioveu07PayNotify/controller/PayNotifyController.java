@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "支付通知接口")
 @RestController
-@RequestMapping("/api/v1/pay-notify")
+@RequestMapping("/aioveu/api/v8/admin/pay/pay-notify")
 @RequiredArgsConstructor
 public class PayNotifyController {
 

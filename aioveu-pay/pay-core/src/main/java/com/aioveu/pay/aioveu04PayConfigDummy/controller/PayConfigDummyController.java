@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
  **/
 @Tag(name = "模拟支付配置接口")
 @RestController
-@RequestMapping("/api/v1/pay-config-dummy")
+@RequestMapping("/aioveu/api/v8/admin/pay/pay-config-dummy")
 @RequiredArgsConstructor
 public class PayConfigDummyController {
 

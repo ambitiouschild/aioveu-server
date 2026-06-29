@@ -24,20 +24,20 @@ import java.util.List;
 public interface PmsFeignClient {
 
     @Operation(summary = "获取秒杀商品列表")
-    @GetMapping("/app-api/v1/spu/seckilling")
+    @GetMapping("/aioveu/api/v8/app/pms/spu/seckilling")
     List<SeckillingSpuVO> listSeckillingSpu(
             @RequestHeader("X-Tenant-Id") Long tenantId
     );
 
     @Operation(summary = "分类列表")
-    @GetMapping("/app-api/v1/categories")
+    @GetMapping("/aioveu/api/v8/app/pms/categories")
     List<CategoryVO> list( // 添加 required=false
             @Parameter(name = "上级分类ID")  @RequestParam(value = "parentId", required = false) Long parentId,
             @RequestHeader("X-Tenant-Id") Long tenantId
     );
 
     @Operation(summary = "获取商品详情")
-    @GetMapping("/app-api/v1/spu/{spuId}")
+    @GetMapping("/aioveu/api/v8/app/pms/spu/{spuId}")
     SpuDetailVO getSpuDetail(
             @Parameter(name ="商品ID") @PathVariable Long spuId,
             @RequestHeader("X-Tenant-Id") Long tenantId

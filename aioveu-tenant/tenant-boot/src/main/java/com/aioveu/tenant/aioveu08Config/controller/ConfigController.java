@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "08.系统配置")
-@RequestMapping("/api/v1/configs")
+@RequestMapping("/aioveu/api/v8/admin/tenant/configs")
 public class ConfigController {
 
     private final ConfigService configService;

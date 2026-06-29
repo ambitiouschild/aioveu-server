@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
  **/
 @Slf4j
 @RestController
-@RequestMapping("/api/monitor/producer")
+@RequestMapping("/aioveu/api/v8/admin/pay/api/monitor/producer")
 @RequiredArgsConstructor
 public class ProducerMonitorController {
 

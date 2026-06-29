@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "退款记录接口")
 @RestController
-@RequestMapping("/api/v1/pay-refund-record")
+@RequestMapping("/aioveu/api/v8/admin/pay/pay-refund-record")
 @RequiredArgsConstructor
 public class PayRefundRecordController {
 

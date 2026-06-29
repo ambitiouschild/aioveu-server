@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "AT transaction mode undo table接口")
 @RestController
-@RequestMapping("/api/v1/undo-log")
+@RequestMapping("/aioveu/api/v8/admin/oms//undo-log")
 @RequiredArgsConstructor
 public class UndoLogController {
 

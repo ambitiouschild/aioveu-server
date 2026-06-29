@@ -39,20 +39,20 @@ public interface SmsFeignClient {
 
 
     @Operation(summary = "首页分类配置分页列表表")
-    @GetMapping("/app-api/v1/sms-home-category/page")
+    @GetMapping("/aioveu/api/v8/app/sms/sms-home-category/page")
     List<SmsHomeCategoryVO> getSmsHomeCategoryList(
             @RequestHeader("X-Tenant-Id") Long tenantId
     );
 
 
     @Operation(summary = "首页广告配置（增加跳转路径）分页列表")
-    @GetMapping("/app-api/v1/sms-home-advert/page")
+    @GetMapping("/aioveu/api/v8/app/sms/sms-home-advert/page")
     List<SmsHomeAdvertVO> getSmsHomeAdvertList(
             @RequestHeader("X-Tenant-Id") Long tenantId
     );
 
     @Operation(summary = "首页Banners")
-    @GetMapping("/app-api/v1/adverts/banners")
+    @GetMapping("/aioveu/api/v8/app/sms/adverts/banners")
     List<BannerVO> getSmsHomeBannersList(
             @RequestHeader("X-Tenant-Id") Long tenantId
     );

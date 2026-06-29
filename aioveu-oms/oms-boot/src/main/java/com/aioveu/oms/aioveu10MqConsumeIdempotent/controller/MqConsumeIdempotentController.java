@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
  **/
 @Tag(name = "MQ消费幂等性接口")
 @RestController
-@RequestMapping("/api/v1/mq-consume-idempotent")
+@RequestMapping("/aioveu/api/v8/admin/oms//mq-consume-idempotent")
 @RequiredArgsConstructor
 public class MqConsumeIdempotentController {
 

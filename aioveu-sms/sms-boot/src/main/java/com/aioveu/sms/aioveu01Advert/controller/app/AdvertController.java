@@ -15,7 +15,7 @@ import java.util.List;
 
 @Tag(name = "App-营销广告")
 @RestController
-@RequestMapping("/app-api/v1/adverts")
+@RequestMapping("/aioveu/api/v8/app/sms/adverts")
 @Slf4j
 @AllArgsConstructor
 public class AdvertController {

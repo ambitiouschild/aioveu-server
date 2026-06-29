@@ -31,7 +31,7 @@ import java.util.List;
  **/
 @Tag(name = "03.角色接口")
 @RestController
-@RequestMapping("/api/v1/roles")
+@RequestMapping("/aioveu/api/v8/admin/tenant/roles")
 @RequiredArgsConstructor
 public class RoleController {
 

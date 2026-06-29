@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
  **/
 @Tag(name = "OAuth2授权同意，记录用户对每个客户端的授权同意情况接口")
 @RestController
-@RequestMapping("/api/v1/oauth2-authorization-consent")
+@RequestMapping("/aioveu/api/v8/admin/auth/oauth2-authorization-consent")
 @RequiredArgsConstructor
 public class Oauth2AuthorizationConsentController {
 

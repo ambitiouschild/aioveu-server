@@ -22,7 +22,7 @@ import java.util.Map;
  **/
 @Slf4j
 @RestController
-@RequestMapping("/api/monitor/order-consumer")
+@RequestMapping("/aioveu/api/v8/admin/oms//api/monitor/order-consumer")
 @RequiredArgsConstructor
 public class OrderConsumerMonitorController {
 

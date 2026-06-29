@@ -565,7 +565,7 @@ public interface SystemFeignClient {
     /**
      * 移除了 serviceToken 参数，由拦截器自动添加
      */
-    @GetMapping("/api/v1/users/internal/auth-info")
+    @GetMapping("/aioveus/v8/aioveu-auth/users/internal/auth-info")
     UserAuthCredentials getAuthInfoInternal(@RequestParam String username);
     // 注意：移除了 @RequestHeader("X-Service-Token") String serviceToken 参数
 }

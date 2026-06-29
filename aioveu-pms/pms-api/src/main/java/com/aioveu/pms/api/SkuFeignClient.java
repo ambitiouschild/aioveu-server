@@ -18,7 +18,7 @@ public interface SkuFeignClient {
     /**
      * 获取商品库存信息
      */
-    @GetMapping("/app-api/v1/skus/{skuId}")
+    @GetMapping("/aioveu/api/v8/app/pms/skus/{skuId}")
     SkuInfoDTO getSkuInfo(@PathVariable Long skuId);
 
     /**
@@ -27,19 +27,19 @@ public interface SkuFeignClient {
      * @param skuIds SKU ID 列表
      * @return 商品库存信息列表
      */
-    @GetMapping("/app-api/v1/skus")
+    @GetMapping("/aioveu/api/v8/app/pms/skus")
     List<SkuInfoDTO> getSkuInfoList(@RequestParam List<Long> skuIds);
 
     /**
      * 锁定商品库存
      */
-    @PutMapping("/app-api/v1/skus/lock")
+    @PutMapping("/aioveu/api/v8/app/pms/skus/lock")
     boolean lockStock(@RequestParam String orderToken, @RequestBody List<LockSkuDTO> lockSkuList);
 
     /**
      * 解锁商品库存
      */
-    @PutMapping("/app-api/v1/skus/unlock")
+    @PutMapping("/aioveu/api/v8/app/pms/skus/unlock")
     boolean unlockStock(@RequestParam String orderSn);
 
     /**
@@ -50,10 +50,10 @@ public interface SkuFeignClient {
      * @param orderSn 订单编号
      * @return 扣减库存结果
      */
-    @PutMapping("/app-api/v1/skus/deduct")
+    @PutMapping("/aioveu/api/v8/app/pms/skus/deduct")
     boolean deductStock(@RequestParam String orderSn);
 
     @Operation(summary = "获取秒杀商品列表")
-    @GetMapping("/app-api/v1/spu/seckilling")
+    @GetMapping("/aioveu/api/v8/app/pms/spu/seckilling")
     Result<List<SeckillingSpuVO>> listSeckillingSpu();
 }
