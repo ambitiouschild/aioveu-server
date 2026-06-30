@@ -141,188 +141,20 @@ public class AuthForAppController {
         return Result.success();
     }
 
-    /**
-     * 获取Banners轮播图（公共接口）
-     * GET /api/public/banners?clientId=mall-app
-     */
-    @GetMapping("/banners")
-    public Result<List<BannerVO>> getHomeBanners(
-            @RequestHeader("X-Client-Id") String clientId,
-            @RequestParam Map<String,Object> params) {
-
-        log.info("【auth-app-banners】前端传递的客户端clientId:{}",clientId);
-
-        if (!clientWhitelistService.isValid(clientId)) {
-            throw new RuntimeException("非法 clientId");
-        }
-
-        // 1. 通过clientId获取tenantId
-        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
-
-        log.info("【auth-app-banners】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
-
-        Long tenantId = tenantWxAppInfo.getTenantId();
-
-        log.info("【auth-app-banners】通过clientId获取tenantId:{}",tenantId);
-
-        List<BannerVO> banners = smsFeignClient.getSmsHomeBannersList(tenantId);
-        log.info("【auth-app-banners】根据tenantI过滤对应的banners数据:{}",banners);
-        return Result.success(banners);
-    }
-
-    /**
-     * 获取首页分类（公共接口）
-     * GET /api/public/categories?clientId=mall-app
-     */
-    @GetMapping("/categories")
-    public Result<List<SmsHomeCategoryVO>> getHomeCategories(
-            @RequestHeader("X-Client-Id") String clientId,
-            @RequestParam Map<String,Object> params) {
-
-
-        log.info("【auth-app-categories】前端传递的客户端clientId:{}",clientId);
-
-        if (!clientWhitelistService.isValid(clientId)) {
-            throw new RuntimeException("非法 clientId");
-        }
-
-        // 1. 通过clientId获取tenantId
-        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
-
-        log.info("【auth-app-categories】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
-
-         Long tenantId = tenantWxAppInfo.getTenantId();
-
-        log.info("【auth-app-categories】通过clientId获取tenantId:{}",tenantId);
-
-        // 2. 根据tenantId查询对应的分类数据
-        List<SmsHomeCategoryVO>  categories = smsFeignClient.getSmsHomeCategoryList(tenantId);
-
-        log.info("【auth-app-categories】根据tenantI过滤对应的分类数据:{}",categories);
-
-        return Result.success(categories);
-    }
-
-    /**
-     * 获取广告轮播图（公共接口）
-     * GET /api/public/banners?clientId=mall-app
-     */
-    @GetMapping("/adverts")
-    public Result<List<SmsHomeAdvertVO>> getHomeAdverts(
-            @RequestHeader("X-Client-Id") String clientId,
-            @RequestParam Map<String,Object> params) {
-
-        log.info("【auth-app-adverts】前端传递的客户端clientId:{}",clientId);
-        if (!clientWhitelistService.isValid(clientId)) {
-            throw new RuntimeException("非法 clientId");
-        }
-
-
-        // 1. 通过clientId获取tenantId
-        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
-
-        log.info("【auth-app-adverts】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
-
-        Long tenantId = tenantWxAppInfo.getTenantId();
-
-        log.info("【auth-app-adverts】通过clientId获取tenantId:{}",tenantId);
-
-        List<SmsHomeAdvertVO> adverts = smsFeignClient.getSmsHomeAdvertList(tenantId);
-        log.info("【auth-app-adverts】根据tenantI过滤对应的广告数据:{}",adverts);
-        return Result.success(adverts);
-    }
-
-
-    /**
-     * 获取秒杀商品列表
-     * GET /api/public/banners?clientId=mall-app
-     */
-    @GetMapping("/seckilling")
-    public Result<List<SeckillingSpuVO>> getHomeSeckilling(
-            @RequestHeader("X-Client-Id") String clientId,
-            @RequestParam Map<String,Object> params) {
-
-        log.info("【auth-app-Seckilling】前端传递的客户端clientId:{}",clientId);
-
-        if (!clientWhitelistService.isValid(clientId)) {
-            throw new RuntimeException("非法 clientId");
-        }
-
-        // 1. 通过clientId获取tenantId
-        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
-
-        log.info("【auth-app-Seckilling】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
-
-        Long tenantId = tenantWxAppInfo.getTenantId();
-
-        log.info("【auth-app-Seckilling】通过clientId获取tenantId:{}",tenantId);
-
-        List<SeckillingSpuVO> seckillings = pmsFeignClient.listSeckillingSpu(tenantId);
-        log.info("【auth-app-Seckilling】根据tenantI过滤获取秒杀商品列表:{}",seckillings);
-        return Result.success(seckillings);
-    }
 
 
 
-    /**
-     * 获取商品列表
-     * GET /api/public/banners?clientId=mall-app
-     */
-    @GetMapping("/spuLists")
-    public PageResult<SpuPageVO> getSpuLists(
-            PmsSpuQuery queryParams,
-            @RequestHeader("X-Client-Id") String clientId,
-            @RequestParam Map<String,Object> params) {
 
-        log.info("【auth-app-spuLists】前端传递的客户端clientId:{}",clientId);
 
-        if (!clientWhitelistService.isValid(clientId)) {
-            throw new RuntimeException("非法 clientId");
-        }
 
-        // 1. 通过clientId获取tenantId
-        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
 
-        log.info("【auth-app-spuLists】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
 
-        Long tenantId = tenantWxAppInfo.getTenantId();
 
-        log.info("【auth-app-spuLists】通过clientId获取tenantId:{}",tenantId);
 
-        PageResult<SpuPageVO> spuLists = pmsFeignClientWithoutConfig.listPagedSpuForApp(queryParams, tenantId);
-        log.info("【auth-app-spuLists】根据tenantI过滤获取商品:{}",spuLists);
-        return spuLists;
-    }
 
-    /**
-     * 获取商品详情
-     * GET /api/public/banners?clientId=mall-app
-     */
-    @GetMapping("/spuDetail/{spuId}")
-    public Result<SpuDetailVO> getSpuDetail(
-            @Parameter(name ="spu ID") @PathVariable Long spuId,
-            @RequestHeader("X-Client-Id") String clientId,
-            @RequestParam Map<String,Object> params) {
 
-        log.info("【auth-app-spuDetail】前端传递的客户端clientId:{}",clientId);
 
-        if (!clientWhitelistService.isValid(clientId)) {
-            throw new RuntimeException("非法 clientId");
-        }
 
-        // 1. 通过clientId获取tenantId
-        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
-
-        log.info("【auth-app-spuDetail】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
-
-        Long tenantId = tenantWxAppInfo.getTenantId();
-
-        log.info("【auth-app-spuDetail】通过clientId获取tenantId:{}",tenantId);
-
-        SpuDetailVO spuDetail = pmsFeignClient.getSpuDetail(spuId, tenantId);
-        log.info("【auth-app-spuDetail】根据tenantI过滤获取商品详情:{}",spuDetail);
-        return Result.success(spuDetail);
-    }
 
 
     /**
@@ -396,39 +228,7 @@ public class AuthForAppController {
     }
 
 
-    /**
-     * 获取管理端首页滚播栏
-     * GET /api/public/categories?clientId=mall-app
-     */
-    @GetMapping("/manager-home-banner")
-    public Result<List<ManagerMenuHomeBannerVo>> getManagerMenuHomeBanners(
-            @RequestHeader("X-Client-Id") String clientId,
-            @RequestParam Map<String,Object> params) {
 
-
-        log.info("【auth-manager-app-home-banner】前端传递的客户端clientId:{}",clientId);
-
-
-        if (!clientWhitelistService.isValid(clientId)) {
-            throw new RuntimeException("非法 clientId");
-        }
-
-        // 1. 通过clientId获取tenantId
-        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
-
-        log.info("【auth-manager-app-home-banner】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
-
-        Long tenantId = tenantWxAppInfo.getTenantId();
-
-        log.info("【auth-manager-app-home-banner】通过clientId获取tenantId:{}",tenantId);
-
-        // 2. 根据tenantId查询对应的分类数据
-        List<ManagerMenuHomeBannerVo>  banners = tenantFeignClient.getManagerMenuHomeBanners(tenantId);
-
-        log.info("【auth-manager-app-home-banner】根据tenantI过滤对应的banners数据:{}",banners);
-
-        return Result.success(banners);
-    }
 
 
 }

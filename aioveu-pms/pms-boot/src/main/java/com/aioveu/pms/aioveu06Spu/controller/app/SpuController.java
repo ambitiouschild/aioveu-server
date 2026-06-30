@@ -21,6 +21,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -36,6 +37,8 @@ public class SpuController {
 
     private final PmsSkuService pmsSkuService;
 
+
+
     @Operation(summary = "商品分页列表")
     @GetMapping("/pages")
     public PageResult<SpuPageVO> listPagedSpuForApp(PmsSpuQuery queryParams) {
@@ -46,13 +49,14 @@ public class SpuController {
     }
 
     @Operation(summary = "获取商品详情")
-    @GetMapping("/{spuId}")
+    @GetMapping("/spuDetail/{spuId}")
     public Result<SpuDetailVO> getSpuDetail(
             @Parameter(name ="商品ID") @PathVariable Long spuId
     ) {
         SpuDetailVO spuDetailVO = pmsSpuService.getSpuDetailForApp(spuId);
         return Result.success(spuDetailVO);
     }
+
 
     @Operation(summary = "获取秒杀商品列表")
     @GetMapping("/seckilling")
@@ -175,5 +179,8 @@ public class SpuController {
         boolean result = pmsSpuService.deletePmsSpus(ids);
         return Result.judge(result);
     }
+
+
+
 
 }

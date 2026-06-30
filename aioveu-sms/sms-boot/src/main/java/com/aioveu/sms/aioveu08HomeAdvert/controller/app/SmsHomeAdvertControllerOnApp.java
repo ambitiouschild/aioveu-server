@@ -18,6 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: SmsHomeAdvertController
@@ -41,6 +42,7 @@ public class SmsHomeAdvertControllerOnApp {
         List<SmsHomeAdvertVO> result = smsHomeAdvertService.getSmsHomeAdvertList();
         return Result.success(result);
     }
+
 
     @Operation(summary = "新增首页广告配置（增加跳转路径）")
     @PostMapping

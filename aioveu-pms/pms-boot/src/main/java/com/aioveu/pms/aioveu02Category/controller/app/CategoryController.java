@@ -31,7 +31,7 @@ public class CategoryController {
     private final PmsCategoryService pmsCategoryService;
 
     @Operation(summary = "分类列表")
-    @GetMapping
+    @GetMapping("/goodsCategories")
     public Result list(@Parameter(name = "上级分类ID") Long parentId) {
 
         List<CategoryVO> list = pmsCategoryService.getCategoryListForApp(parentId);

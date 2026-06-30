@@ -7,11 +7,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "App-营销广告")
 @RestController
@@ -21,10 +20,13 @@ import java.util.List;
 public class AdvertController {
 
     private SmsAdvertService smsAdvertService;
-    @Operation(summary= "APP首页广告横幅列表")
+    @Operation(summary= "获取Banners轮播图（公共接口）")
     @GetMapping("/banners")
-    public Result<List<BannerVO>> getBannerList() {
+    public Result<List<BannerVO>> getSmsHomeBannersList() {
         List<BannerVO> list = smsAdvertService.getBannerList();
         return Result.success(list);
     }
+
+
+
 }

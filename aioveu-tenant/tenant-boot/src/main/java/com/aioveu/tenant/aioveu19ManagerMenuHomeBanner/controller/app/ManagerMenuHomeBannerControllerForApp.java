@@ -17,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ManagerMenuHomeBannerController
@@ -36,10 +37,11 @@ public class ManagerMenuHomeBannerControllerForApp {
 
     @Operation(summary = "管理端app首页滚播栏分页列表")
     @GetMapping("/page")
-    public Result<List<ManagerMenuHomeBannerVo>> getManagerMenuHomeBannerPage() {
+    public Result<List<ManagerMenuHomeBannerVo>> getManagerMenuHomeBanners() {
         List<ManagerMenuHomeBannerVo> result = managerMenuHomeBannerService.getManagerMenuHomeBannerForApp();
         return Result.success(result);
     }
+
 
     @Operation(summary = "新增管理端app首页滚播栏")
     @PostMapping

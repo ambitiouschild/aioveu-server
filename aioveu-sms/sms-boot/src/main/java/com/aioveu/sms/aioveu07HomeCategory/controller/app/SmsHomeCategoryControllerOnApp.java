@@ -18,6 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: SmsHomeCategoryController
@@ -35,7 +36,7 @@ public class SmsHomeCategoryControllerOnApp {
 
     private final SmsHomeCategoryService smsHomeCategoryService;
 
-    @Operation(summary = "首页分类配置分页列表")
+    @Operation(summary = "首页分类配置分页列表（公共接口）")
     @GetMapping("/page")
     //在控制器上自动添加了安全注解导致的
     //即使你在 HttpSecurity中配置了白名单，控制器方法上的注解仍然会拦截
