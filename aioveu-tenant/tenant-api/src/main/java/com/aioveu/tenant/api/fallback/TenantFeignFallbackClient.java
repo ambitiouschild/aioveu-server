@@ -7,7 +7,6 @@ import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
@@ -49,8 +48,7 @@ public class TenantFeignFallbackClient implements TenantFeignClient {
      */
     @Override
     public Result<TenantVO> switchTenant(
-            @Parameter(description = "租户ID") @PathVariable Long tenantId,
-            HttpServletRequest request
+            @Parameter(description = "租户ID") @PathVariable Long tenantId
     ) {
         log.error("切换租户失败");
         return null;

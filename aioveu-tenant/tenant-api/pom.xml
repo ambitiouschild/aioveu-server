@@ -24,10 +24,11 @@
             <artifactId>common-core</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.aioveu</groupId>
-            <artifactId>common-web</artifactId>
-        </dependency>
+<!--        common-web里一定直接或间接带了spring-boot-starter-web-->
+<!--        <dependency>-->
+<!--            <groupId>com.aioveu</groupId>-->
+<!--            <artifactId>common-web</artifactId>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>com.baomidou</groupId>

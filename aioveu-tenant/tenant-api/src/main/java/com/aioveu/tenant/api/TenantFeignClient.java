@@ -8,7 +8,6 @@ import com.aioveu.tenant.api.fallback.TenantFeignFallbackClient;
 import com.aioveu.tenant.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -77,7 +76,6 @@ public interface TenantFeignClient {
     @Log(value = "新增：根据用户名获取可登录的租户列表）", module = LogModuleEnum.TENANT)
     Result<TenantVO> switchTenant(
             @Parameter(description = "租户ID") @PathVariable Long tenantId,
-            HttpServletRequest request
     );
 
     /**
