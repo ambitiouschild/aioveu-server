@@ -90,7 +90,7 @@ public class TenantQueryServiceImpl implements TenantQueryService {
         // 1. 先查本地缓存
         Long cached = tenantIdCache.getIfPresent(clientId);
         if (cached != null) {
-            log.debug("【TenantQuery】命中本地缓存, clientId={}, tenantId={}", clientId, cached);
+            log.info("【TenantQuery】命中本地缓存, clientId={}, tenantId={}", clientId, cached);
             return Mono.just(cached);
         }
 
