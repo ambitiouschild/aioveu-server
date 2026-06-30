@@ -2,10 +2,12 @@ package com.aioveu.auth.service.impl;
 
 import com.aioveu.auth.service.AuthService;
 import com.aioveu.auth.service.WxConfigService;
+import com.aioveu.common.result.Result;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -33,14 +35,15 @@ public class WxConfigServiceImpl implements WxConfigService {
         log.info("【WxConfigService】开始查询clientId: {}", clientId);
 
         // 这里需要你实现数据库查询
-        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
+        Result<TenantWxAppInfo> result = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
 
-        log.info("【WxConfigService】查询到的tenantWxAppInfo: {}", tenantWxAppInfo);
+        log.info("【WxConfigService】查询到的result: {}", result);
 
-        if (tenantWxAppInfo == null) {
-//            throw new OAuth2AuthenticationException("无效的客户端ID");
-            log.info("【WxConfigService】无效的客户端ID: {}", clientId);
+        if (result == null || result.getData() == null) {
+            throw new OAuth2AuthenticationException("无效的客户端ID");
         }
+
+        TenantWxAppInfo tenantWxAppInfo = result.getData();
 
         String wxAppid = tenantWxAppInfo.getWxAppid();
         Long tenantId = tenantWxAppInfo.getTenantId();
@@ -59,14 +62,15 @@ public class WxConfigServiceImpl implements WxConfigService {
         log.info("开始查询clientId: {}", tenantId);
 
         // 这里需要你实现数据库查询
-        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByTenantId(tenantId);
+        Result<TenantWxAppInfo> result = tenantFeignClient.getTenantWxAppInfoByTenantId(tenantId);
 
-        log.info("查询到的tenantWxAppInfo: {}", tenantWxAppInfo);
+        log.info("【WxConfigService】查询到的result: {}", result);
 
-        if (tenantWxAppInfo == null) {
-//            throw new OAuth2AuthenticationException("无效的客户端ID");
-            log.info("无效的租户ID: {}", tenantId);
+        if (result == null || result.getData() == null) {
+            throw new OAuth2AuthenticationException("无效的客户端ID");
         }
+
+        TenantWxAppInfo tenantWxAppInfo = result.getData();
 
         String wxAppid = tenantWxAppInfo.getWxAppid();
         String appSecret = tenantWxAppInfo.getAppSecret();

@@ -35,38 +35,38 @@ public class TenantFeignFallbackClient implements FallbackFactory<TenantFeignCli
         return new TenantFeignClient() {
 
             @Override
-            public TenantWxAppInfo getTenantWxAppInfoByClientId(String clientId) {
+            public Result<TenantWxAppInfo> getTenantWxAppInfoByClientId(String clientId) {
                 log.error("Feign fallback: getTenantWxAppInfoByClientId, clientId={}", clientId, cause);
                 log.error("通过 clientId 获取租户和小程序信息失败");
-                return new TenantWxAppInfo(); // ✅ 绝不能 return null
+                return Result.failed("通过 clientId 获取租户和小程序信息失败"); // ✅ 绝不能 return null
             }
 
             @Override
-            public TenantWxAppInfo getTenantWxAppInfoByTenantId(Long tenantId) {
+            public Result<TenantWxAppInfo> getTenantWxAppInfoByTenantId(Long tenantId) {
                 log.error("Feign fallback: getTenantWxAppInfoByTenantId, tenantId={}", tenantId, cause);
                 log.error("通过 clientId 获取租户和小程序信息失败");
-                return new TenantWxAppInfo();
+                return Result.failed("通过 clientId 获取租户和小程序信息失败");
             }
 
             @Override
-            public Long getTenantIdByClientId(String clientId) {
+            public Result<Long> getTenantIdByClientId(String clientId) {
                 log.error("Feign fallback: getTenantIdByClientId, tenantId={}", clientId, cause);
                 log.error("通过 clientId 获取tenantId失败");
                 return null;
             }
 
             @Override
-            public UserAuthInfoWithTenantId getUserAuthInfoWithTenantId(String username, Long tenantId) {
+            public Result<UserAuthInfoWithTenantId> getUserAuthInfoWithTenantId(String username, Long tenantId) {
                 log.error("Feign fallback: getUserAuthInfoWithTenantId", cause);
                 log.error("feign远程调用多租户服务异常后的降级方法");
-                return new UserAuthInfoWithTenantId();
+                return Result.failed("根据用户名和租户ID获取认证信息（用于多租户登录）失败");
             }
 
             @Override
-            public List<TenantVO> getAccessibleTenantsByUsername(String username) {
+            public Result<List<TenantVO>> getAccessibleTenantsByUsername(String username) {
                 log.error("Feign fallback: getAccessibleTenantsByUsername", cause);
                 log.error("根据用户名获取可登录的租户列表失败");
-                return Collections.emptyList();
+                return Result.failed("根据用户名获取可登录的租户列表失败");
             }
 
             @Override
@@ -77,10 +77,10 @@ public class TenantFeignFallbackClient implements FallbackFactory<TenantFeignCli
             }
 
             @Override
-            public boolean canAccessTenant(Long userId, Long tenantId) {
+            public Result<Boolean> canAccessTenant(Long userId, Long tenantId) {
                 log.error("Feign fallback: canAccessTenant", cause);
                 log.error("检查用户是否可以访问指定租户失败");
-                return false;
+                return Result.failed("检查用户是否可以访问指定租户失败");
             }
 
             @Override
@@ -91,24 +91,24 @@ public class TenantFeignFallbackClient implements FallbackFactory<TenantFeignCli
             }
 
             @Override
-            public List<ManagerMenuCategoryWithItemsVO> getWorkbenchCategoriesWithItems(Long tenantId) {
+            public Result<List<ManagerMenuCategoryWithItemsVO>> getWorkbenchCategoriesWithItems(Long tenantId) {
                 log.error("Feign fallback: getWorkbenchCategoriesWithItems", cause);
                 log.error("获取用户的工作台菜单（包含分类和菜单项）失败");
-                return Collections.emptyList();
+                return Result.failed("获取用户的工作台菜单（包含分类和菜单项）失败");
             }
 
             @Override
-            public List<ManagerMenuHomeCategoryVo> getManagerMenuHomeCategoryList(Long tenantId) {
+            public Result<List<ManagerMenuHomeCategoryVo>> getManagerMenuHomeCategoryList(Long tenantId) {
                 log.error("Feign fallback: getManagerMenuHomeCategoryList", cause);
                 log.error("根据tenantId查询对应的管理端首页分类数据,失败");
-                return Collections.emptyList();
+                return Result.failed("根据tenantId查询对应的管理端首页分类数据,失败");
             }
 
             @Override
-            public List<ManagerMenuHomeBannerVo> getManagerMenuHomeBanners(Long tenantId) {
+            public Result<List<ManagerMenuHomeBannerVo>> getManagerMenuHomeBanners(Long tenantId) {
                 log.error("Feign fallback: getManagerMenuHomeBanners", cause);
                 log.error("根据tenantId查询对应的管理端首页banners数据,失败");
-                return Collections.emptyList();
+                return Result.failed("根据tenantId查询对应的管理端首页banners数据,失败");
             }
         };
     }

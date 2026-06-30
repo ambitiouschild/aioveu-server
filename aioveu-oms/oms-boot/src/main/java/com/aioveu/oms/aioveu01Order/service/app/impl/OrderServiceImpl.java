@@ -465,13 +465,13 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         log.info("【Oms-submitOrder】开始查询clientId: {}", clientId);
         // 这里需要你实现数据库查询
-        TenantWxAppInfo tenantWxAppInfo =
-                tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
+        Result<Long> result =
+                tenantFeignClient.getTenantIdByClientId(clientId);
+        Long tenantId = result.getData();
+        log.info("【Oms-submitOrder】查询到的tenantId: {}", tenantId);
 
-        log.info("【Oms-submitOrder】查询到的tenantWxAppInfo: {}", tenantWxAppInfo);
-
-        if (tenantWxAppInfo == null || tenantWxAppInfo.getWxAppid() == null) {
-            throw new RuntimeException("【Oms-submitOrder】租户微信配置不存在，clientId=" + clientId);
+        if (tenantId == null) {
+            throw new RuntimeException("【Oms-submitOrder】租户不存在，clientId=" + clientId);
         }
 
 

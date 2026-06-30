@@ -221,14 +221,18 @@ public class AuthServiceImpl implements AuthService {
             }
 
             // 2. 校验用户是否能访问该租户
-            boolean canAccess = tenantFeignClient.canAccessTenant(details.getUserId(), tenantId);
+            Result<Boolean> resultCanAccess = tenantFeignClient.canAccessTenant(details.getUserId(), tenantId);
+            boolean canAccess = resultCanAccess.getData();
+
             if (!canAccess) {
                 return Result.failed("无权限访问该租户");
             }
 
             // 获取用户在新租户下的权限信息（可选，如果需要更新权限） 创建包含新租户ID的用户详情
-            UserAuthInfoWithTenantId userAuthInfoWithTenantId = tenantFeignClient.getUserAuthInfoWithTenantId
+            Result<UserAuthInfoWithTenantId> result= tenantFeignClient.getUserAuthInfoWithTenantId
                     (details.getUsername(), tenantId);
+
+            UserAuthInfoWithTenantId userAuthInfoWithTenantId = result.getData();
 
             SysUserDetails newDetails = new SysUserDetails(userAuthInfoWithTenantId);
             newDetails.setUserId(details.getUserId());
@@ -290,9 +294,9 @@ public class AuthServiceImpl implements AuthService {
             log.info("【Auth】获取当前认证信息:{}",token);
             log.info("【Auth】获取当前用户ID:{}",userId);
 
-
             // 2. 校验用户是否能访问该租户
-            boolean canAccess = tenantFeignClient.canAccessTenant(userId, tenantId);
+            Result<Boolean> resultCanAccess = tenantFeignClient.canAccessTenant(userId, tenantId);
+            boolean canAccess = resultCanAccess.getData();
 
             log.info("【Auth】校验用户是否能访问该租户:{}",canAccess);
             log.info("【Auth】获取当前用户名:{}",userId);
@@ -304,9 +308,9 @@ public class AuthServiceImpl implements AuthService {
             log.info("【Auth】校验用户是否能访问该租户");
 
             // 获取用户在新租户下的权限信息（可选，如果需要更新权限） 创建包含新租户ID的用户详情
-            UserAuthInfoWithTenantId userAuthInfoWithTenantId = tenantFeignClient.getUserAuthInfoWithTenantId
+            Result<UserAuthInfoWithTenantId> result = tenantFeignClient.getUserAuthInfoWithTenantId
                     (SecurityUtils.getUsername(), tenantId);
-
+            UserAuthInfoWithTenantId userAuthInfoWithTenantId = result.getData();
 
             // 6. 模拟登录请求
             HttpServletRequest request = buildLoginRequest(details);

@@ -137,8 +137,9 @@ public class MemberDetailsService {
         log.info("【Auth MemberDetailsService】开始查询clientId: {}", clientId);
 
         // 这里需要你实现数据库查询
-        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
+        Result<TenantWxAppInfo> result = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
 
+        TenantWxAppInfo tenantWxAppInfo = result.getData();
         log.info("【Auth MemberDetailsService】查询到的tenantWxAppInfo: {}", tenantWxAppInfo);
 
         if (tenantWxAppInfo == null) {

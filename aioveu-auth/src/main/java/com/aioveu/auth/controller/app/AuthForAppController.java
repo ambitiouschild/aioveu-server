@@ -131,7 +131,6 @@ public class AuthForAppController {
         return authService.switchTenant(tenantId);
     }
 
-
     @Operation(summary = "退出登录")
     @DeleteMapping("/logout")
     @Log(value = "退出登录", module = LogModuleEnum.LOGIN)
@@ -140,95 +139,5 @@ public class AuthForAppController {
         log.info("【退出登录】退出登录成功");
         return Result.success();
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /**
-     * 获取用户的工作台菜单（包含分类和菜单项）
-     */
-    @Operation(summary = "获取用户的工作台菜单（包含分类和菜单项）")
-    @GetMapping("/manager-categories-with-items")
-    public Result<List<ManagerMenuCategoryWithItemsVO>> getWorkbenchCategoriesWithItems(
-            @RequestHeader("X-Client-Id") String clientId,
-            @RequestParam Map<String,Object> params
-    ) {
-
-
-        log.info("【auth-manager-app-categories】前端传递的客户端clientId:{}",clientId);
-
-        if (!clientWhitelistService.isValid(clientId)) {
-            throw new RuntimeException("非法 clientId");
-        }
-
-        // 1. 通过clientId获取tenantId
-        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
-
-        log.info("【auth-manager-app-categories】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
-
-        Long tenantId = tenantWxAppInfo.getTenantId();
-
-        log.info("【auth-manager-app-categories】通过clientId获取tenantId:{}",tenantId);
-
-        // 2. 根据tenantId查询对应的分类数据
-        List<ManagerMenuCategoryWithItemsVO>  categories = tenantFeignClient.getWorkbenchCategoriesWithItems(tenantId);
-
-        log.info("【auth-manager-app-categories】根据tenantI过滤对应的分类数据:{}",categories);
-
-        return Result.success(categories);
-
-    }
-
-
-    /**
-     * 获取管理端首页分类（公共接口）
-     * GET /api/public/categories?clientId=mall-app
-     */
-    @GetMapping("/manager-home-categories")
-    public Result<List<ManagerMenuHomeCategoryVo>> getManagerHomeCategories(
-            @RequestHeader("X-Client-Id") String clientId,
-            @RequestParam Map<String,Object> params) {
-
-
-        log.info("【auth-manager-app-home-categories】前端传递的客户端clientId:{}",clientId);
-
-        if (!clientWhitelistService.isValid(clientId)) {
-            throw new RuntimeException("非法 clientId");
-        }
-
-
-        // 1. 通过clientId获取tenantId
-        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
-
-        log.info("【auth-manager-app-home-categories】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
-
-        Long tenantId = tenantWxAppInfo.getTenantId();
-
-        log.info("【auth-manager-app-home-categories】通过clientId获取tenantId:{}",tenantId);
-
-        // 2. 根据tenantId查询对应的分类数据
-        List<ManagerMenuHomeCategoryVo>  categories = tenantFeignClient.getManagerMenuHomeCategoryList(tenantId);
-
-        log.info("【auth-manager-app-home-categories】根据tenantI过滤对应的分类数据:{}",categories);
-
-        return Result.success(categories);
-    }
-
-
-
-
 
 }

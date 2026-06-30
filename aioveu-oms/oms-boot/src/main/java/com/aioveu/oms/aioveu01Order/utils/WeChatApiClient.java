@@ -1,6 +1,7 @@
 package com.aioveu.oms.aioveu01Order.utils;
 
 
+import com.aioveu.common.result.Result;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -111,9 +112,9 @@ public class WeChatApiClient {
 
         log.info("【微信发货】开始查询clientId: {}", clientId);
         // 这里需要你实现数据库查询
-        TenantWxAppInfo tenantWxAppInfo =
+        Result<TenantWxAppInfo> result =
                 tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
-
+        TenantWxAppInfo tenantWxAppInfo = result.getData();
         log.info("【微信发货】查询到的tenantWxAppInfo: {}", tenantWxAppInfo);
 
         if (tenantWxAppInfo == null || tenantWxAppInfo.getWxAppid() == null) {

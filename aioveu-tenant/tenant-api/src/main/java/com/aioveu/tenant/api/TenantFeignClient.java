@@ -46,7 +46,7 @@ public interface TenantFeignClient {
     @Operation(summary = "根据用户名和租户ID获取认证信息（用于多租户登录）", hidden = true)
     @GetMapping("/aioveu/api/v8/admin/tenant/users/{username}/{tenantId}/authInfo")
     @Log(value = "根据用户名和租户ID获取认证信息（用于多租户登录）", module = LogModuleEnum.TENANT)
-    UserAuthInfoWithTenantId getUserAuthInfoWithTenantId(@PathVariable String username,@PathVariable Long tenantId);
+    Result<UserAuthInfoWithTenantId> getUserAuthInfoWithTenantId(@PathVariable String username,@PathVariable Long tenantId);
 
 
     /**
@@ -60,7 +60,7 @@ public interface TenantFeignClient {
     @Operation(summary = "新增:根据用户名获取可登录的租户列表")
     @GetMapping("/aioveu/api/v8/admin/tenant/users/tenants/{username}")
     @Log(value = "新增：根据用户名获取可登录的租户列表）", module = LogModuleEnum.TENANT)
-    List<TenantVO> getAccessibleTenantsByUsername(@PathVariable String username);
+    Result<List<TenantVO>> getAccessibleTenantsByUsername(@PathVariable String username);
 
     /**
      * 切换租户
@@ -91,7 +91,7 @@ public interface TenantFeignClient {
     @Operation(summary = "检查用户是否可以访问指定租户")
     @GetMapping("/aioveu/api/v8/admin/tenant/tenants/canAccessTenant")
     @Log(value = "检查用户是否可以访问指定租户）", module = LogModuleEnum.TENANT)
-    boolean canAccessTenant(
+    Result<Boolean> canAccessTenant(
             @Parameter(description = "用户ID") @RequestParam Long userId,
             @Parameter(description = "租户ID") @RequestParam Long tenantId
     );
@@ -111,14 +111,14 @@ public interface TenantFeignClient {
     @Operation(summary = "通过 clientId 获取租户和小程序信息")
     @GetMapping("/aioveu/api/v8/app/tenant/oauth-client-wx-app/getTenantWxAppInfoByClientId") // ✅ 应该改为GET
     @Log(value = "通过 clientId 获取租户和小程序信息）", module = LogModuleEnum.TENANT)
-    TenantWxAppInfo getTenantWxAppInfoByClientId(
+    Result<TenantWxAppInfo> getTenantWxAppInfoByClientId(
             @Parameter(description = "客户端ID", required = true) @RequestParam("clientId") String  clientId
     );
 
     @Operation(summary = "通过 clientId 获取tenantId")
     @GetMapping("/aioveu/api/v8/app/tenant/oauth-client-wx-app/getTenantIdByClientId") // ✅ 应该改为GET
     @Log(value = "通过 clientId 获取tenantId）", module = LogModuleEnum.TENANT)
-    Long getTenantIdByClientId(
+    Result<Long> getTenantIdByClientId(
             @Parameter(description = "客户端ID", required = true) @RequestParam("clientId") String  clientId
     );
 
@@ -126,9 +126,11 @@ public interface TenantFeignClient {
     @Operation(summary = "通过 tenantId 获取租户和小程序信息")
     @GetMapping("/aioveu/api/v8/admin/tenant/oauth-client-wx-app/getTenantWxAppInfoByTenantId") // ✅ 应该改为GET
     @Log(value = "通过 tenantId 获取租户和小程序信息）", module = LogModuleEnum.TENANT)
-    TenantWxAppInfo getTenantWxAppInfoByTenantId(
+    Result<TenantWxAppInfo> getTenantWxAppInfoByTenantId(
             @Parameter(description = "tenantId") @RequestParam("tenantId") Long  tenantId
     );
+
+    //调用方拿到的已经是“解构后的对象”
 
 
     /**
@@ -137,7 +139,7 @@ public interface TenantFeignClient {
 
     @Operation(summary = "获取用户的工作台菜单（包含分类和菜单项）")
     @GetMapping("/aioveu/api/v8/app/tenant/manager-menu-category/categories-with-items")
-    List<ManagerMenuCategoryWithItemsVO> getWorkbenchCategoriesWithItems(
+    Result<List<ManagerMenuCategoryWithItemsVO>> getWorkbenchCategoriesWithItems(
             @RequestHeader("X-Tenant-Id") Long tenantId
     );
 
@@ -145,14 +147,14 @@ public interface TenantFeignClient {
 
     @Operation(summary = "根据tenantId查询对应的管理端首页分类数据")
     @GetMapping("/aioveu/api/v8/app/tenant/manager-menu-home-category/page")
-    List<ManagerMenuHomeCategoryVo> getManagerMenuHomeCategoryList(
+    Result<List<ManagerMenuHomeCategoryVo>> getManagerMenuHomeCategoryList(
             @RequestHeader("X-Tenant-Id") Long tenantId
     );
 
 
     @Operation(summary = "根据tenantId查询对应的管理端首页banners数据")
     @GetMapping("/aioveu/api/v8/app/tenant/manager-menu-home-banner/page")
-    List<ManagerMenuHomeBannerVo> getManagerMenuHomeBanners(
+    Result<List<ManagerMenuHomeBannerVo>> getManagerMenuHomeBanners(
             @RequestHeader("X-Tenant-Id") Long tenantId
     );
 
