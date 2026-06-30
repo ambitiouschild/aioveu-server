@@ -2,8 +2,6 @@ package com.aioveu.common.enums;
 
 import com.aioveu.common.base.IBaseEnum;
 import com.baomidou.mybatisplus.annotation.EnumValue;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 /**
@@ -21,7 +19,6 @@ public enum StatusEnum {
 
 
     @EnumValue                      // 关键！
-    @JsonValue          // ✅ 序列化用
     @Getter
     private Integer value;
 
@@ -31,13 +28,5 @@ public enum StatusEnum {
     StatusEnum(Integer value, String label) {
         this.value = value;
         this.label = label;
-    }
-
-    @JsonCreator        // ✅ 反序列化用（关键！）
-    public static StatusEnum fromText(String text) {
-        if (text == null) {
-            return DISABLE;
-        }
-        return StatusEnum.valueOf(text.toUpperCase());
     }
 }
