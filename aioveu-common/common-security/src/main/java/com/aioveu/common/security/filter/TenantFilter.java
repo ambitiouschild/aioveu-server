@@ -49,11 +49,26 @@ public class TenantFilter extends OncePerRequestFilter {
             Long tenantId = SecurityUtils.getTenantId();
             log.info("【租户过滤器工作】SecurityUtils.getTenantId() 结果: " + tenantId);
 
+
+            // 2️兜底：Header（公共接口） 公共接口（Gateway 已算好）
+            if (tenantId == null) {
+                String tenantIdStr = request.getHeader("X-Tenant-Id");
+                if (tenantIdStr != null) {
+                    tenantId = Long.valueOf(tenantIdStr);
+                    log.debug("【租户过滤器】从 Header 获取 tenantId={}", tenantId);
+                    log.info("【租户过滤器工作】兜底：Header（公共接口)tenantIdStr:{} ", tenantIdStr);
+                }
+
+            }
+
+
             if (tenantId != null) {
                 // 设置到租户上下文
                 TenantContextHolder.setTenantId(tenantId);
-                log.info("【租户过滤器工作】过滤器✅ 从SecurityUtils设置租户ID: " + tenantId);
+                log.debug("【租户过滤器】设置 tenantId={}", tenantId);
+                log.info("【租户过滤器工作】设置租户ID到设置到租户上下文: " + tenantId);
             } else {
+                log.warn("【租户过滤器】未解析到 tenantId，uri={}", request.getRequestURI());
                 log.info("【租户过滤器工作】⚠️ 没有租户ID，跳过设置");
             }
 
@@ -86,7 +101,7 @@ public class TenantFilter extends OncePerRequestFilter {
             // ✅ 必须清
             TenantContextHolder.clear();
             // 清理租户上下文
-            log.info("【租户过滤器工作】⚠️ 过滤后不清理租户上下文");
+            log.info("【租户过滤器工作】⚠️ 过滤后清理租户上下文");
         }
     }
 
