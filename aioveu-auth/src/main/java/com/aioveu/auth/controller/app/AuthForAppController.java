@@ -132,27 +132,6 @@ public class AuthForAppController {
     }
 
 
-    /**
-     * 获取当前用户的租户列表
-     * <p>
-     * 根据当前登录用户查询其所属的所有租户
-     * </p>
-     *
-     * @return 租户列表
-     */
-    @Operation(summary = "新增:根据用户名获取可登录的租户列表")
-    @GetMapping("/tenants/{username}")
-    @Log(value = "新增：根据用户名获取可登录的租户列表）", module = LogModuleEnum.USER)
-    public Result<List<TenantVO>> getAccessibleTenantsByUsername(
-            @Parameter(description = "用户名") @PathVariable String username
-    ) {
-        log.info("调用tenantFeignClient微服务一次查询获取用户名在所有租户中的可访问租户");
-        List<TenantVO> tenantList= tenantFeignClient.getAccessibleTenantsByUsername(username);
-        log.info("一次查询获取用户名在所有租户中的可访问租户tenantList:{}",tenantList);
-        return Result.success(tenantList);
-    }
-
-
     @Operation(summary = "退出登录")
     @DeleteMapping("/logout")
     @Log(value = "退出登录", module = LogModuleEnum.LOGIN)
