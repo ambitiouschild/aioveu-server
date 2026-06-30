@@ -463,16 +463,16 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         }
         log.info("【Oms-submitOrder】订单提交，ClientId: {}", clientId);
 
-        log.info("【Oms-submitOrder】开始查询clientId: {}", clientId);
-        // 这里需要你实现数据库查询
-        Result<Long> result =
-                tenantFeignClient.getTenantIdByClientId(clientId);
-        Long tenantId = result.getData();
-        log.info("【Oms-submitOrder】查询到的tenantId: {}", tenantId);
-
-        if (tenantId == null) {
-            throw new RuntimeException("【Oms-submitOrder】租户不存在，clientId=" + clientId);
-        }
+//        log.info("【Oms-submitOrder】开始查询clientId: {}", clientId);
+//        // 这里需要你实现数据库查询
+//        Result<Long> result =
+//                tenantFeignClient.getTenantIdByClientId(clientId);
+//        log.info("【Oms-submitOrder】查询到的result: {}", result);
+//        Long tenantId = result.getData();
+//        log.info("【Oms-submitOrder】查询到的tenantId: {}", tenantId);
+//        if (tenantId == null) {
+//            throw new RuntimeException("【Oms-submitOrder】租户不存在，clientId=" + clientId);
+//        }
 
 
         // ✅ 固化 clientId 到订单（这一步是必须的）
