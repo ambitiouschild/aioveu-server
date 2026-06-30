@@ -690,6 +690,26 @@ public class AuthorizationServerConfig {
         registeredClientRepository.save(mallAppClient);
     }
 
+    @Bean
+    @Order(1) // 关键：比 default(2) 高，但低于授权服务器链
+    public SecurityFilterChain adminApiSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher(
+                        "/aioveu/api/v8/admin/auth/oauth2-authorization/**",
+                        "/aioveu/api/v8/admin/auth/oauth2-authorization-consent/**",
+                        "/aioveu/api/v8/admin/auth/oauth2-registered-client/**",
+                        "/aioveu/api/v8/admin/auth/oauth2-registered-client-biz/**"
+                )
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().authenticated()
+                )
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(Customizer.withDefaults())
+                )
+                .csrf(csrf -> csrf.disable());
+
+        return http.build();
+    }
 
     //用 AntPathRequestMatcher（最稳） 方案一（✅ 强烈推荐，最简单）
     //把 defaultSecurityFilterChain里的 requestMatchers(...)全部换成 AntPathRequestMatcher.antMatcher(...)
