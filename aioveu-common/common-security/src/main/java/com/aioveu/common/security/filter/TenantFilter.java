@@ -20,6 +20,8 @@ import java.io.IOException;
  * @ClassName: TenantFilter
  * @Description TODO  租户过滤器 - 用于从Token解析租户ID并设置到上下文
  *                      简化版本（如果SecurityUtils已实现）
+ *                      **TenantFilter 只做一件事：
+ *                      从 SecurityUtils 取 tenantId，设置到 TenantContextHolder**
  * @Author 可我不敌可爱
  * @Author 雒世松
  * @Date 2026/3/13 21:33
@@ -39,29 +41,13 @@ public class TenantFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        log.info("=== 【租户过滤器工作】 ===");
+        log.info("=== 【租户过滤器工作】TenantFilter里永远只认 SecurityUtils ===");
 
         try {
             // 直接从SecurityUtils获取当前用户的租户ID
             // 调试1：直接调用   // 1. 从JWT解析租户ID
             Long tenantId = SecurityUtils.getTenantId();
             log.info("【租户过滤器工作】SecurityUtils.getTenantId() 结果: " + tenantId);
-
-            // 调试2：查看Spring Security上下文
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            log.info("【租户过滤器工作】Spring Security认证: " + authentication);
-            if (authentication != null) {
-                log.info("【租户过滤器工作】Principal: " + authentication.getPrincipal());
-                log.info("【租户过滤器工作】是否认证: " + authentication.isAuthenticated());
-            }
-
-            // 调试3：查看请求Header
-            log.info("【租户过滤器工作】Authorization Header: " + request.getHeader("Authorization"));
-            log.info("【租户过滤器工作】租户过滤器执行，URI: " + request.getRequestURI());
-            log.info("【租户过滤器工作】请求Header: " + request.getHeaderNames());
-
-            // 尝试从多种来源获取租户ID
-            Long requestTenantId = getTenantIdFromRequest(request);
 
             if (tenantId != null) {
                 // 设置到租户上下文
@@ -71,16 +57,34 @@ public class TenantFilter extends OncePerRequestFilter {
                 log.info("【租户过滤器工作】⚠️ 没有租户ID，跳过设置");
             }
 
-            if (requestTenantId != null) {
-                // 设置到租户上下文
-                TenantContextHolder.setTenantId(requestTenantId);
-                log.info("【租户过滤器工作】过滤器✅ 从request请求Header设置租户ID: " + requestTenantId);
-            }
+
+//            // 调试2：查看Spring Security上下文
+//            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//            log.info("【租户过滤器工作】Spring Security认证: " + authentication);
+//            if (authentication != null) {
+//                log.info("【租户过滤器工作】Principal: " + authentication.getPrincipal());
+//                log.info("【租户过滤器工作】是否认证: " + authentication.isAuthenticated());
+//            }
+//
+//            // 调试3：查看请求Header
+//            log.info("【租户过滤器工作】Authorization Header: " + request.getHeader("Authorization"));
+//            log.info("【租户过滤器工作】租户过滤器执行，URI: " + request.getRequestURI());
+//            log.info("【租户过滤器工作】请求Header: " + request.getHeaderNames());
+//
+//            // 尝试从多种来源获取租户ID
+//            Long requestTenantId = getTenantIdFromRequest(request);
+
+//            if (requestTenantId != null) {
+//                // 设置到租户上下文
+//                TenantContextHolder.setTenantId(requestTenantId);
+//                log.info("【租户过滤器工作】过滤器✅ 从request请求Header设置租户ID: " + requestTenantId);
+//            }
 
             filterChain.doFilter(request, response);
         } finally {
             // 清理租户上下文
-//            TenantContextHolder.clear();
+            // ✅ 必须清
+            TenantContextHolder.clear();
             // 清理租户上下文
             log.info("【租户过滤器工作】⚠️ 过滤后不清理租户上下文");
         }
