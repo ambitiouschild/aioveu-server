@@ -32,7 +32,7 @@ public class JwtConfig {
     @Bean("gatewayJwtDecoder")
     public ReactiveJwtDecoder reactiveJwtDecoder() {
 
-        String jwksUri = gatewayProperties.getEndpoint() + "/aioveu-tenant-auth/oauth2/jwks";
+        String jwksUri = gatewayProperties.getEndpoint() + "/oauth2/jwks";
 
         NimbusReactiveJwtDecoder decoder =
                 NimbusReactiveJwtDecoder.withJwkSetUri(jwksUri).build();
