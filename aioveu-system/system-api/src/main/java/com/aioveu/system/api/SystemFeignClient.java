@@ -1,11 +1,9 @@
 package com.aioveu.system.api;
 
-import com.aioveu.common.result.Result;
-import com.aioveu.common.web.config.FeignDecoderConfig;
+import com.aioveu.feign.config.FeignDecoderConfig;
 import com.aioveu.system.api.fallback.SystemFeignFallbackClient;
 import com.aioveu.system.dto.UserAuthInfo;
 
-import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 

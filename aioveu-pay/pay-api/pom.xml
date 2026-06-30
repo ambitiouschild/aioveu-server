@@ -35,6 +35,12 @@
             <optional>true</optional>
         </dependency>
 
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-feign</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
 
         <!--
 

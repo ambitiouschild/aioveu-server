@@ -1,7 +1,7 @@
 package com.aioveu.pms.api;
 
 import com.aioveu.common.result.Result;
-import com.aioveu.common.web.config.FeignDecoderConfig;
+import com.aioveu.feign.config.FeignDecoderConfig;
 import com.aioveu.pms.model.dto.LockSkuDTO;
 import com.aioveu.pms.model.dto.SkuInfoDTO;
 import com.aioveu.pms.model.vo.SeckillingSpuVO;

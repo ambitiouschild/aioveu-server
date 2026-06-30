@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.aioveu</groupId>
-        <artifactId>aioveu-pms</artifactId>
+        <artifactId>aioveu-common</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>pms-api</artifactId>
+    <artifactId>common-feign</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -19,32 +19,22 @@
 
     <dependencies>
 
+        <!-- Feign -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+
+        <!-- 你的 core -->
         <dependency>
             <groupId>com.aioveu</groupId>
             <artifactId>common-core</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.aioveu</groupId>
-            <artifactId>common-web</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>com.aioveu</groupId>
-            <artifactId>common-feign</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
-            <optional>true</optional>
-        </dependency>
-
+        <!-- 可选：loadbalancer -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
         </dependency>
 
     </dependencies>

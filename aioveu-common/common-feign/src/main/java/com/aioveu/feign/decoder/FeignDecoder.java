@@ -1,4 +1,4 @@
-package com.aioveu.common.web.decoder;
+package com.aioveu.feign.decoder;
 
 import cn.hutool.http.HttpStatus;
 import com.aioveu.common.result.Result;

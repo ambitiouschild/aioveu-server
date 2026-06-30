@@ -1,7 +1,7 @@
 package com.aioveu.lss.api;
 
+import com.aioveu.feign.config.FeignDecoderConfig;
 import com.aioveu.lss.api.fallback.LssFeignFallbackClient;
-import com.aioveu.common.web.config.FeignDecoderConfig;
 import com.aioveu.lss.api.dto.UserAuthCredentials;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;

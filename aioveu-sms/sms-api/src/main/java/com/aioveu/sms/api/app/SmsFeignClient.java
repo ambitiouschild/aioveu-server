@@ -1,7 +1,7 @@
 package com.aioveu.sms.api.app;
 
 import com.aioveu.common.result.Result;
-import com.aioveu.common.web.config.FeignDecoderConfig;
+import com.aioveu.feign.config.FeignDecoderConfig;
 import com.aioveu.sms.dto.BannerVO;
 import com.aioveu.sms.dto.SmsHomeAdvertVO;
 import com.aioveu.sms.dto.SmsHomeCategoryVO;

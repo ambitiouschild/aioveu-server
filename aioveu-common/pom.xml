@@ -38,6 +38,7 @@
         <module>common-event</module>
         <module>common-database</module>
         <module>common-cache</module>
+        <module>common-feign</module>
     </modules>
 
     <properties>

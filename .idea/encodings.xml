@@ -7,6 +7,7 @@
     <file url="file://$PROJECT_DIR$/aioveu-common/common-core/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-common/common-database/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-common/common-event/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/aioveu-common/common-feign/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-common/common-kafka/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-common/common-mail/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-common/common-mybatis/src/main/java" charset="UTF-8" />

@@ -1,20 +1,12 @@
 package com.aioveu.pms.api;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
-import com.aioveu.common.web.config.FeignDecoderConfig;
-import com.aioveu.pms.model.dto.LockSkuDTO;
-import com.aioveu.pms.model.dto.SkuInfoDTO;
-import com.aioveu.pms.model.query.PmsSpuQuery;
+import com.aioveu.feign.config.FeignDecoderConfig;
 import com.aioveu.pms.model.vo.CategoryVO;
 import com.aioveu.pms.model.vo.SeckillingSpuVO;
 import com.aioveu.pms.model.vo.SpuDetailVO;
-import com.aioveu.pms.model.vo.SpuPageVO;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

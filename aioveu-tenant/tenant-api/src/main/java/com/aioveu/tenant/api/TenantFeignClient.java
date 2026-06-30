@@ -3,7 +3,7 @@ package com.aioveu.tenant.api;
 import com.aioveu.common.annotation.Log;
 import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.result.Result;
-import com.aioveu.common.web.config.FeignDecoderConfig;
+import com.aioveu.feign.config.FeignDecoderConfig;
 import com.aioveu.tenant.api.fallback.TenantFeignFallbackClient;
 import com.aioveu.tenant.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -75,7 +75,7 @@ public interface TenantFeignClient {
     @PostMapping("/aioveu/api/v8/admin/tenant/tenants/{tenantId}/switch")
     @Log(value = "新增：根据用户名获取可登录的租户列表）", module = LogModuleEnum.TENANT)
     Result<TenantVO> switchTenant(
-            @Parameter(description = "租户ID") @PathVariable Long tenantId,
+            @Parameter(description = "租户ID") @PathVariable Long tenantId
     );
 
     /**

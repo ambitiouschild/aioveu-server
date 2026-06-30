@@ -1,11 +1,10 @@
 package com.aioveu.pay.api;
 
 import com.aioveu.common.result.Result;
-import com.aioveu.common.web.config.FeignDecoderConfig;
+import com.aioveu.feign.config.FeignDecoderConfig;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderCreateForm;
 import com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
-import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestFEToOmsDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestOmsToPayDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
