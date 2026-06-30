@@ -1,12 +1,16 @@
 package com.aioveu.tenant.dto;
 
+import com.aioveu.common.enums.StatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @ClassName: TenantWxAppInfo
  * @Description TODO 客户端ID租户信息
+ *                          方案一（✅ 强烈推荐）：给 DTO 一个 public无参构造
  * @Author 可我不敌可爱
  * @Author 雒世松
  * @Date 2026/3/20 10:55
@@ -14,16 +18,20 @@ import lombok.Data;
  **/
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
+//之前反序列化失败，根因就是你说的这句话 “boot 包裹的 Result”
 public class TenantWxAppInfo {
 
     private String wxAppid;      // 微信小程序appid
+
     private Long tenantId;     // 租户ID
 
     private String appSecret;  // 微信小程序appSecret
 
     private String clientId;     // 客户端ID（查询条件）
-    private String tenantName;   // 租户名称（可选）
 
+    private String tenantName;   // 租户名称（可选）
 
     @Schema(description = "逻辑删除：0-未删除 1-已删除")
     private Integer isDeleted;
@@ -32,5 +40,5 @@ public class TenantWxAppInfo {
      * 是否被允许接入：0-禁用 1-启用
      */
     @Schema(description = "是否被允许接入：0-禁用 1-启用")
-    private Integer enabled;
+    private StatusEnum enabled;
 }

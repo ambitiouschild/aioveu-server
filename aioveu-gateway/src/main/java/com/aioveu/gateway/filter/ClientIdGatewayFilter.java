@@ -2,11 +2,8 @@ package com.aioveu.gateway.filter;
 
 
 import com.aioveu.gateway.service.ClientWhitelistWithRedisService;
-import com.aioveu.tenant.api.TenantFeignClient;
+import com.aioveu.gateway.service.TenantQueryService;
 import com.alibaba.nacos.common.utils.StringUtils;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -21,6 +18,8 @@ import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.Objects;
 
 /**
  * @ClassName: ClientIdGatewayFilter
@@ -41,18 +40,20 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
     private final ReactiveJwtDecoder jwtDecoder;
     private final ClientWhitelistWithRedisService clientWhitelistWithRedisService;
 
-    private final TenantFeignClient tenantFeignClient;
+    //是 Gateway Filter 在启动阶段依赖了 Feign，触发了 Spring 的循环依赖保护
+    @Lazy
+    private final TenantQueryService tenantQueryService;
 
 
     //构造函数注入
      // ✅ 关键：@Lazy 方案 A（强烈推荐）：把构造函数注入改成 @Lazy
     public ClientIdGatewayFilter(@Lazy @Qualifier("gatewayJwtDecoder") ReactiveJwtDecoder jwtDecoder,
                                  ClientWhitelistWithRedisService clientWhitelistWithRedisService,
-        TenantFeignClient tenantFeignClient   // ✅ 补上
+                                 TenantQueryService tenantQueryService   // ✅ 补上
     ) {
         this.jwtDecoder = jwtDecoder;
         this.clientWhitelistWithRedisService = clientWhitelistWithRedisService;
-        this.tenantFeignClient = tenantFeignClient;
+        this.tenantQueryService = tenantQueryService;
     }
 
 
@@ -77,6 +78,7 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange,
                              GatewayFilterChain chain) {
 
+        log.info("【ClientIdGatewayFilter】进入 filter, path={}", exchange.getRequest().getURI().getPath());
 
         // ✅ 关键：先保存引用
         GatewayFilterChain finalChain = chain;
@@ -115,16 +117,26 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
                     // ✅ 公共接口：直接查 tenantId
                     //方案一（✅ 强烈推荐）：用 Mono.fromCallable
                     //这是 WebFlux + Feign 在 Gateway 里的标准写法
-                    return Mono.fromCallable(() ->
-                                tenantFeignClient.getTenantWxAppInfoByClientId(clientId)
-                            ).flatMap(result -> {
+                    //把 Feign 扔到 独立线程池,不阻塞 WebFlux event loopmGateway 不再吞异常
 
-                                if (result == null) {
-                                    log.error("【ClientIdGatewayFilter】未查询到租户信息 clientId={}", clientId);
-                                    exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-                                    return exchange.getResponse().setComplete();
-                                }
-                                Long tenantId = result.getTenantId();
+                    /*
+                    *   ✅ 正确原则（你这个架构必须遵守）
+                        WebFlux Gateway 里：
+                        ✅ 只做 Header / 路由 / 校验
+                        ❌ 不直接在 Filter 里调 Feign
+                    * */
+                    return  tenantQueryService.getTenantIdByClientId(clientId)
+                            // 1. 调试用：看看 WebClient 到底返回了什么（如果有值的话）
+                            .doOnNext(tenantId -> log.info("【ClientIdGatewayFilter】WebClient 返回 tenantId={}", tenantId))
+                            // 2. 过滤掉 null 和 tenantId 为空的情况
+                            .filter(tenantId -> tenantId != null)
+                            .switchIfEmpty(Mono.defer(() -> {
+                                log.error("【ClientIdGatewayFilter】WebClient 返回 empty 或未匹配到租户, clientId={}", clientId);
+                                exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+                                return Mono.empty(); // ✅ 关键
+                            }))
+                            // 4. 处理有值的情况
+                            .flatMap(tenantId -> {
 
                                 log.info("【ClientIdGatewayFilter】通过 clientId={} 获取 tenantId={}",
                                         clientId, tenantId);

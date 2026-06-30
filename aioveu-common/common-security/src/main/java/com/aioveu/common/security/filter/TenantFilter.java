@@ -53,10 +53,10 @@ public class TenantFilter extends OncePerRequestFilter {
             // 2️兜底：Header（公共接口） 公共接口（Gateway 已算好）
             if (tenantId == null) {
                 String tenantIdStr = request.getHeader("X-Tenant-Id");
+                log.debug("【租户过滤器】从 Header 获取 tenantIdStr={}", tenantIdStr);
                 if (tenantIdStr != null) {
                     tenantId = Long.valueOf(tenantIdStr);
-                    log.debug("【租户过滤器】从 Header 获取 tenantId={}", tenantId);
-                    log.info("【租户过滤器工作】兜底：Header（公共接口)tenantIdStr:{} ", tenantIdStr);
+                    log.info("【租户过滤器工作】兜底：Header（公共接口)tenantId:{} ", tenantId);
                 }
 
             }

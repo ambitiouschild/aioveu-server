@@ -8,9 +8,12 @@ import com.aioveu.tenant.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.jdbc.Null;
+import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -23,121 +26,91 @@ import java.util.List;
  **/
 @Component
 @Slf4j
-public class TenantFeignFallbackClient implements TenantFeignClient {
+public class TenantFeignFallbackClient implements FallbackFactory<TenantFeignClient> {
+
 
     @Override
-    public UserAuthInfoWithTenantId getUserAuthInfoWithTenantId(String username,Long tenantId) {
-        log.error("feign远程调用多租户服务异常后的降级方法");
-        return new UserAuthInfoWithTenantId();
-    }
+    public TenantFeignClient create(Throwable cause) {
 
-    @Override
-    public List<TenantVO> getAccessibleTenantsByUsername(String username) {
-        log.error("根据用户名获取可登录的租户列表失败");
-        return null;
-    }
+        return new TenantFeignClient() {
 
-    /**
-     * 切换租户
-     * <p>
-     * 切换当前用户的租户上下文，需要验证用户是否有权限访问该租户
-     * </p>
-     *
-     * @param tenantId 目标租户ID
-     * @return 切换结果
-     */
-    @Override
-    public Result<TenantVO> switchTenant(
-            @Parameter(description = "租户ID") @PathVariable Long tenantId
-    ) {
-        log.error("切换租户失败");
-        return null;
-    }
+            @Override
+            public TenantWxAppInfo getTenantWxAppInfoByClientId(String clientId) {
+                log.error("Feign fallback: getTenantWxAppInfoByClientId, clientId={}", clientId, cause);
+                log.error("通过 clientId 获取租户和小程序信息失败");
+                return new TenantWxAppInfo(); // ✅ 绝不能 return null
+            }
 
-    /**
-     * 检查用户是否可以访问指定租户
-     * <p>
-     * 验证该用户名在目标租户下是否存在账户
-     * </p>
-     *
-     * @param userId   用户ID
-     * @param tenantId 租户ID
-     * @return true-可访问，false-不可访问
-     */
-    @Override
-    public boolean canAccessTenant(Long userId, Long tenantId){
-        log.error("检查用户是否可以访问指定租户失败");
-        return false;
-    }
+            @Override
+            public TenantWxAppInfo getTenantWxAppInfoByTenantId(Long tenantId) {
+                log.error("Feign fallback: getTenantWxAppInfoByTenantId, tenantId={}", tenantId, cause);
+                log.error("通过 clientId 获取租户和小程序信息失败");
+                return new TenantWxAppInfo();
+            }
 
-    /**
-     * 检查是否具备租户切换权限
-     * <p>
-     * 验证是否具备租户切换权限
-     * </p>
-     * @return true-可切换，false-不可切换
-     */
-    @Override
-    public Result<Boolean> hasTenantSwitchPermission(){
-        log.error("检查是否具备租户切换权限失败");
-        return Result.failed();
-    }
+            @Override
+            public Long getTenantIdByClientId(String clientId) {
+                log.error("Feign fallback: getTenantIdByClientId, tenantId={}", clientId, cause);
+                log.error("通过 clientId 获取tenantId失败");
+                return null;
+            }
 
-    /**
-     * 通过 clientId 获取租户和小程序信息
-     */
-    @Override
-    public TenantWxAppInfo getTenantWxAppInfoByClientId(String clientId){
-        log.error("通过 clientId 获取租户和小程序信息失败");
-        return null;
-    }
+            @Override
+            public UserAuthInfoWithTenantId getUserAuthInfoWithTenantId(String username, Long tenantId) {
+                log.error("Feign fallback: getUserAuthInfoWithTenantId", cause);
+                log.error("feign远程调用多租户服务异常后的降级方法");
+                return new UserAuthInfoWithTenantId();
+            }
 
-    /**
-     * 通过 clientId 获取租户和小程序信息
-     */
-    @Override
-    public TenantWxAppInfo getTenantWxAppInfoByTenantId(Long  tenantId){
-        log.error("通过 tenantId 获取租户和小程序信息失败");
-        return null;
-    }
+            @Override
+            public List<TenantVO> getAccessibleTenantsByUsername(String username) {
+                log.error("Feign fallback: getAccessibleTenantsByUsername", cause);
+                log.error("根据用户名获取可登录的租户列表失败");
+                return Collections.emptyList();
+            }
 
-    /**
-     * 获取用户的工作台菜单（包含分类和菜单项）
-     */
+            @Override
+            public Result<TenantVO> switchTenant(Long tenantId) {
+                log.error("Feign fallback: switchTenant", cause);
+                log.error("切换租户失败");
+                return Result.failed("租户切换失败");
+            }
 
-    @Override
-    public List<ManagerMenuCategoryWithItemsVO> getWorkbenchCategoriesWithItems(
-            @RequestHeader("X-Tenant-Id") Long tenantId
-    ) {
-        log.error("获取用户的工作台菜单（包含分类和菜单项）");
-        return null;
-    }
+            @Override
+            public boolean canAccessTenant(Long userId, Long tenantId) {
+                log.error("Feign fallback: canAccessTenant", cause);
+                log.error("检查用户是否可以访问指定租户失败");
+                return false;
+            }
 
-    /**
-     * 根据tenantId查询对应的管理端首页分类数据
-     */
+            @Override
+            public Result<Boolean> hasTenantSwitchPermission() {
+                log.error("Feign fallback: hasTenantSwitchPermission", cause);
+                log.error("检查是否具备租户切换权限失败");
+                return Result.failed("无租户切换权限");
+            }
 
-    @Override
-    public List<ManagerMenuHomeCategoryVo> getManagerMenuHomeCategoryList(
-            @RequestHeader("X-Tenant-Id") Long tenantId
-    ) {
-        log.error("根据tenantId查询对应的管理端首页分类数据,失败");
-        return null;
+            @Override
+            public List<ManagerMenuCategoryWithItemsVO> getWorkbenchCategoriesWithItems(Long tenantId) {
+                log.error("Feign fallback: getWorkbenchCategoriesWithItems", cause);
+                log.error("获取用户的工作台菜单（包含分类和菜单项）失败");
+                return Collections.emptyList();
+            }
 
-    }
+            @Override
+            public List<ManagerMenuHomeCategoryVo> getManagerMenuHomeCategoryList(Long tenantId) {
+                log.error("Feign fallback: getManagerMenuHomeCategoryList", cause);
+                log.error("根据tenantId查询对应的管理端首页分类数据,失败");
+                return Collections.emptyList();
+            }
 
-
-    /**
-     * 根据tenantId查询对应的管理端首页banners数据
-     */
-
-    @Override
-    public List<ManagerMenuHomeBannerVo> getManagerMenuHomeBanners(
-            @RequestHeader("X-Tenant-Id") Long tenantId
-    ) {
-        log.error("根据tenantId查询对应的管理端首页banners数据,失败");
-        return null;
-
+            @Override
+            public List<ManagerMenuHomeBannerVo> getManagerMenuHomeBanners(Long tenantId) {
+                log.error("Feign fallback: getManagerMenuHomeBanners", cause);
+                log.error("根据tenantId查询对应的管理端首页banners数据,失败");
+                return Collections.emptyList();
+            }
+        };
     }
 
 }

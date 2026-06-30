@@ -3,6 +3,7 @@ package com.aioveu;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
  *@ClassName: $ {NAME}
@@ -15,6 +16,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication
 @EnableDiscoveryClient
+//删掉所有 Feign 相关（重要）
 public class aioveu_GatewayApplication {
     public static void main(String[] args) {
 

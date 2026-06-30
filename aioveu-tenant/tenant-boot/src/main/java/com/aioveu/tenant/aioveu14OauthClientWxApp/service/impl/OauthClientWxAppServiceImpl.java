@@ -2,6 +2,7 @@ package com.aioveu.tenant.aioveu14OauthClientWxApp.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.common.enums.StatusEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.tenant.aioveu01Tenant.model.vo.TenantVO;
@@ -12,10 +13,10 @@ import com.aioveu.tenant.aioveu14OauthClientWxApp.model.entity.OauthClientWxApp;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.model.form.OauthClientWxAppForm;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.model.query.OauthClientWxAppQuery;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.model.vo.OauthClientWxAppVo;
-import com.aioveu.tenant.aioveu14OauthClientWxApp.model.vo.TenantWxAppInfo;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.service.OauthClientWxAppService;
 import com.aioveu.tenant.aioveu15TenantWxApp.model.vo.TenantWxAppVo;
 import com.aioveu.tenant.aioveu15TenantWxApp.service.TenantWxAppService;
+import com.aioveu.tenant.dto.TenantWxAppInfo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -82,6 +83,8 @@ public class OauthClientWxAppServiceImpl extends ServiceImpl<OauthClientWxAppMap
      */
     @Override
     public boolean saveOauthClientWxApp(OauthClientWxAppForm formData) {
+
+        formData.setEnabled(StatusEnum.ENABLE);
         OauthClientWxApp entity = oauthClientWxAppConverter.toEntity(formData);
         return this.save(entity);
     }
@@ -133,22 +136,26 @@ public class OauthClientWxAppServiceImpl extends ServiceImpl<OauthClientWxAppMap
                 .eq(OauthClientWxApp::getClientId, clientId)
                 .select(
                         OauthClientWxApp::getWxAppid,
-                        OauthClientWxApp::getWxAppname
+                        OauthClientWxApp::getWxAppname,
+                        OauthClientWxApp::getEnabled
                 ));
-//        Assert.isTrue(entity != null, "clientId不存在");
 
         if (entity == null) {
-            throw new BusinessException(ResultCode.OAUTH_CLIENT_WX_APP_NOT_FOUND, "客户端与小程序映射配置,不存在");
+            log.warn("【Tenant OauthClientWxApp】clientId 不存在: {}", clientId);
+            return null; // ✅ 关键
         }
 
         String wxAppid = entity.getWxAppid();
         String wxAppname = entity.getWxAppname();
-        log.info("【Tenant OauthClientWxApp】通过 clientId 获取小程序信息wxAppid:{},wxAppname:{}",wxAppid,wxAppname);
+        StatusEnum enabled = entity.getEnabled();
+        log.info("【Tenant OauthClientWxApp】通过 clientId 获取小程序信息wxAppid:{},wxAppname:{},enabled:{}",
+                wxAppid,wxAppname,enabled);
 
 
         TenantWxAppVo tenantWxAppVo = tenantWxAppService.getConfigByWxAppid(wxAppid);
         if (tenantWxAppVo == null) {
-            throw new BusinessException(ResultCode.WX_APP_TENANT_NOT_FOUND, "小程序与租户映射配置不存在");
+            log.warn("【Tenant OauthClientWxApp】小程序与租户映射不存在 wxAppid={}", wxAppid);
+            return null;
         }
 
         String appSecret = tenantWxAppVo.getAppSecret();
@@ -158,23 +165,53 @@ public class OauthClientWxAppServiceImpl extends ServiceImpl<OauthClientWxAppMap
         Long tenantId = tenantWxAppService.getTenantIdByWxAppid(wxAppid);
         TenantVO tenant = tenantService.getTenantById(tenantId);
         if (tenant == null) {
-            throw new BusinessException(ResultCode.TENANT_NOT_FOUND, "租户信息不存在");
+            log.warn("【Tenant OauthClientWxApp】租户不存在 tenantId={}", tenantId);
+            return null;
         }
-
         String tenantName = tenant.getName();
         log.info("【Tenant OauthClientWxApp】通过 wxAppid 获取租户信息tenantId:{},tenantName:{}",tenantId,tenantName);
 
-        TenantWxAppInfo tenantWxAppInfo =TenantWxAppInfo.builder()
-                .clientId(clientId)
-                .wxAppid(wxAppid)
-                .appSecret(appSecret)
-                .tenantId(tenantId)
-                .tenantName(tenantName)
-                .build();
+//        TenantWxAppInfo tenantWxAppInfo =TenantWxAppInfo.builder()
+//                .clientId(clientId)
+//                .wxAppid(wxAppid)
+//                .appSecret(appSecret)
+//                .tenantId(tenantId)
+//                .tenantName(tenantName)
+//                .enabled(enabled)
+//                .build();
 
+        TenantWxAppInfo tenantWxAppInfo = new TenantWxAppInfo();
+
+        tenantWxAppInfo.setClientId(clientId);
+        tenantWxAppInfo.setWxAppid(wxAppid);
+        tenantWxAppInfo.setAppSecret(tenantWxAppVo.getAppSecret());
+        tenantWxAppInfo.setTenantId(tenantId);
+        tenantWxAppInfo.setTenantName(tenant.getName());
+        tenantWxAppInfo.setEnabled(enabled);
+
+        //tenantWxAppInfo.toString();
         log.info("【Tenant OauthClientWxApp】构建租户信息:{}",tenantWxAppInfo);
 
 
         return  tenantWxAppInfo;
     }
+
+
+    @Override
+    public Long getTenantIdByClientId(String clientId){
+
+        OauthClientWxApp entity = this.getOne(
+                new LambdaQueryWrapper<OauthClientWxApp>()
+                        .eq(OauthClientWxApp::getClientId, clientId)
+                        .select(OauthClientWxApp::getWxAppid)
+        );
+
+        if (entity == null) {
+            return null;
+        }
+
+        return tenantWxAppService.getTenantIdByWxAppid(entity.getWxAppid());
+    }
+
+
 }

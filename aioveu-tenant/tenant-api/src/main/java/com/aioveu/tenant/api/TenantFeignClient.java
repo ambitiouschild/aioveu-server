@@ -109,13 +109,16 @@ public interface TenantFeignClient {
     Result<Boolean> hasTenantSwitchPermission();
 
     @Operation(summary = "通过 clientId 获取租户和小程序信息")
-    @GetMapping("/aioveu/api/v8/admin/tenant/oauth-client-wx-app/getTenantWxAppInfoByClientId") // ✅ 应该改为GET
+    @GetMapping("/aioveu/api/v8/app/tenant/oauth-client-wx-app/getTenantWxAppInfoByClientId") // ✅ 应该改为GET
     @Log(value = "通过 clientId 获取租户和小程序信息）", module = LogModuleEnum.TENANT)
-//    TenantWxAppInfo getTenantWxAppInfoByClientId(
-//            @Parameter(description = "clientId") @RequestParam("clientId") String  clientId
-//    );
-    //「Feign 调用透传 Header」
     TenantWxAppInfo getTenantWxAppInfoByClientId(
+            @Parameter(description = "客户端ID", required = true) @RequestParam("clientId") String  clientId
+    );
+
+    @Operation(summary = "通过 clientId 获取tenantId")
+    @GetMapping("/aioveu/api/v8/app/tenant/oauth-client-wx-app/getTenantIdByClientId") // ✅ 应该改为GET
+    @Log(value = "通过 clientId 获取tenantId）", module = LogModuleEnum.TENANT)
+    Long getTenantIdByClientId(
             @Parameter(description = "客户端ID", required = true) @RequestParam("clientId") String  clientId
     );
 

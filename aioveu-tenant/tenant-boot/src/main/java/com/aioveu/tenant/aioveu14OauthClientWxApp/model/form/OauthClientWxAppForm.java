@@ -1,5 +1,6 @@
 package com.aioveu.tenant.aioveu14OauthClientWxApp.model.form;
 
+import com.aioveu.common.enums.StatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -56,5 +57,5 @@ public class OauthClientWxAppForm implements Serializable {
      * 是否被允许接入：0-禁用 1-启用
      */
     @Schema(description = "是否被允许接入：0-禁用 1-启用")
-    private Integer enabled;
+    private StatusEnum enabled;
 }

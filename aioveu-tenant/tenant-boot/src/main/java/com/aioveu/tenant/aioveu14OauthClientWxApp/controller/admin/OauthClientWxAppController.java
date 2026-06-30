@@ -1,18 +1,14 @@
-package com.aioveu.tenant.aioveu14OauthClientWxApp.controller;
+package com.aioveu.tenant.aioveu14OauthClientWxApp.controller.admin;
 
-import com.aioveu.common.annotation.Log;
-import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.Result;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.model.form.OauthClientWxAppForm;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.model.query.OauthClientWxAppQuery;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.model.vo.OauthClientWxAppVo;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.service.OauthClientWxAppService;
-import com.aioveu.tenant.aioveu14OauthClientWxApp.model.vo.TenantWxAppInfo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -86,24 +82,4 @@ public class OauthClientWxAppController {
         return Result.judge(result);
     }
 
-
-    /*
-    * 建议：保持使用@RequestParam
-    * 接口语义：getTenantWxAppInfoByClientId是一个查询操作，不是资源获取操作
-    * RESTful设计：
-    * 如果是获取资源：GET /aioveu/api/v8/admin/tenant/oauth-client-wx-app/{id}
-    * 如果是查询：GET /aioveu/api/v8/admin/tenant/oauth-client-wx-app?clientId={id}
-    * 参数扩展性：未来可能需要其他查询条件
-    * */
-    @Operation(summary = "通过 clientId 获取租户和小程序信息，只认接口参数")
-    @GetMapping("/getTenantWxAppInfoByClientId")  // ✅ 应该改为GET
-    @Log(value = "通过 clientId 获取租户和小程序信息）", module = LogModuleEnum.TENANT)
-    public Result<TenantWxAppInfo> getTenantWxAppInfoByClientId(
-            @Parameter(description = "客户端ID", required = true)
-            @RequestParam("clientId") String clientId) {
-
-        log.info("【Tenant】收到 clientId = {}", clientId);
-        TenantWxAppInfo tenantWxAppInfo  = oauthClientWxAppService.getTenantWxAppInfoByClientId(clientId);
-        return Result.success(tenantWxAppInfo);
-    }
 }

@@ -1,6 +1,7 @@
 package com.aioveu.tenant.aioveu14OauthClientWxApp.model.entity;
 
 import com.aioveu.common.base.BaseEntity;
+import com.aioveu.common.enums.StatusEnum;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;
@@ -46,5 +47,5 @@ public class OauthClientWxApp extends BaseEntity {
     /**
      * 是否被允许接入：0-禁用 1-启用
      */
-    private Integer enabled;
+    private StatusEnum enabled;
 }

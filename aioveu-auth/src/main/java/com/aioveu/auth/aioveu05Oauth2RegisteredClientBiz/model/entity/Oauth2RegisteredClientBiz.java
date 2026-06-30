@@ -12,6 +12,8 @@ import lombok.Setter;
 /**
  * @ClassName: Oauth2RegisteredClientBiz
  * @Description TODO OAuth2 客户端业务状态（auth 服务本地校验用）实体对象
+ *                    **OAuth2RegisteredClientBiz 管“能不能授权”
+ *                      Tenant 管“是谁、在哪个租户、能干啥”**
  * @Author aioveu
  * @Author 雒世松
  * @Date 2026/6/11 17:30
