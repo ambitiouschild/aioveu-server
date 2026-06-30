@@ -2,9 +2,11 @@ package com.aioveu.gateway.filter;
 
 
 import com.aioveu.gateway.service.ClientWhitelistWithRedisService;
+import com.aioveu.tenant.api.TenantFeignClient;
 import com.alibaba.nacos.common.utils.StringUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -39,15 +41,18 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
     private final ReactiveJwtDecoder jwtDecoder;
     private final ClientWhitelistWithRedisService clientWhitelistWithRedisService;
 
-
+    private final TenantFeignClient tenantFeignClient;
 
 
     //构造函数注入
      // ✅ 关键：@Lazy 方案 A（强烈推荐）：把构造函数注入改成 @Lazy
     public ClientIdGatewayFilter(@Lazy @Qualifier("gatewayJwtDecoder") ReactiveJwtDecoder jwtDecoder,
-                                 ClientWhitelistWithRedisService clientWhitelistWithRedisService) {
+                                 ClientWhitelistWithRedisService clientWhitelistWithRedisService,
+        TenantFeignClient tenantFeignClient   // ✅ 补上
+    ) {
         this.jwtDecoder = jwtDecoder;
         this.clientWhitelistWithRedisService = clientWhitelistWithRedisService;
+        this.tenantFeignClient = tenantFeignClient;
     }
 
 
@@ -91,18 +96,46 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
                         exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
                         return exchange.getResponse().setComplete();
                     }
-
-
                     log.debug("【ClientIdGatewayFilter】注入 X-Client-Id = {}", clientId);
 
-                    //然后你直接塞进请求 Header
-                    ServerHttpRequest newRequest = exchange.getRequest()
-                            .mutate()
-                            .header(HEADER_CLIENT_ID, clientId)
-                            .build();
+                    // ✅ 是否是 JWT 接口
+                    boolean hasJwt = hasAuthorizationHeader(exchange);
 
-                    // 4. 放行请求
-                    return chain.filter(exchange.mutate().request(newRequest).build());
+
+                    if (hasJwt) {
+                        // JWT 接口：交给 JWT decoder，后面 TenantFilter 从 SecurityUtils 取
+                        return chain.filter(
+                                exchange.mutate()
+                                        .request(buildRequestWithClientId(exchange, clientId))
+                                        .build()
+                        );
+                    }
+
+
+                    // ✅ 公共接口：直接查 tenantId
+                    //方案一（✅ 强烈推荐）：用 Mono.fromCallable
+                    //这是 WebFlux + Feign 在 Gateway 里的标准写法
+                    return Mono.fromCallable(() ->
+                                tenantFeignClient.getTenantWxAppInfoByClientId(clientId)
+                            ).flatMap(result -> {
+
+                                if (result == null) {
+                                    log.error("【ClientIdGatewayFilter】未查询到租户信息 clientId={}", clientId);
+                                    exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+                                    return exchange.getResponse().setComplete();
+                                }
+                                Long tenantId = result.getTenantId();
+
+                                log.info("【ClientIdGatewayFilter】通过 clientId={} 获取 tenantId={}",
+                                        clientId, tenantId);
+
+                                return chain.filter(
+                                        exchange.mutate()
+                                                .request(buildRequestWithTenantId(exchange, clientId, tenantId))
+                                                .build()
+                                );
+                            });
+
                 }).switchIfEmpty(Mono.defer(() -> {
                     String path = exchange.getRequest().getURI().getPath();
                     if (isSensitivePath(path)) {
@@ -229,6 +262,36 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
 
     }
+
+
+    private boolean hasAuthorizationHeader(ServerWebExchange exchange) {
+        String auth = exchange.getRequest()
+                .getHeaders()
+                .getFirst(HttpHeaders.AUTHORIZATION);
+        return StringUtils.isNotBlank(auth) && auth.startsWith("Bearer ");
+    }
+
+    private ServerHttpRequest buildRequestWithTenantId(
+            ServerWebExchange exchange, String clientId, Long tenantId) {
+
+        return exchange.getRequest()
+                .mutate()
+                .header("X-Client-Id", clientId)
+                .header("X-Tenant-Id", String.valueOf(tenantId))
+                .build();
+    }
+
+
+    private ServerHttpRequest buildRequestWithClientId(
+            ServerWebExchange exchange, String clientId) {
+
+        return exchange.getRequest()
+                .mutate()
+                .header("X-Client-Id", clientId)
+                .build();
+    }
+
+
 
 }
 

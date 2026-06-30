@@ -262,34 +262,7 @@ public class AuthForAppController {
         return Result.success(seckillings);
     }
 
-    /**
-     * 获取商品分类
-     * GET /api/public/banners?clientId=mall-app
-     */
-    @GetMapping("/goodsCategories")
-    public Result<List<CategoryVO>> getGoods(
-            @RequestHeader("X-Client-Id") String clientId,
-            @RequestParam Map<String,Object> params) {
 
-        log.info("【auth-app-goodsCategories】前端传递的客户端clientId:{}",clientId);
-
-        if (!clientWhitelistService.isValid(clientId)) {
-            throw new RuntimeException("非法 clientId");
-        }
-
-        // 1. 通过clientId获取tenantId
-        TenantWxAppInfo tenantWxAppInfo = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
-
-        log.info("【auth-app-goodsCategories】通过clientId获取tenantWxAppInfo:{}",tenantWxAppInfo);
-
-        Long tenantId = tenantWxAppInfo.getTenantId();
-
-        log.info("【auth-app-goodsCategories】通过clientId获取tenantId:{}",tenantId);
-
-        List<CategoryVO> goodsCategories = pmsFeignClient.list(null, tenantId);
-        log.info("【auth-app-goodsCategories】根据tenantI过滤获取商品:{}",goodsCategories);
-        return Result.success(goodsCategories);
-    }
 
     /**
      * 获取商品列表
