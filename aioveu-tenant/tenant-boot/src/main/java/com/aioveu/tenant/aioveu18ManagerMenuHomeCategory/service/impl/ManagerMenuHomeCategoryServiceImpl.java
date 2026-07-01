@@ -3,6 +3,8 @@ package com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.service.impl;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.enums.StatusEnum;
+import com.aioveu.common.tenant.TenantContextHolder;
+import com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.model.entity.ManagerMenuCategoryItem;
 import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.converter.ManagerMenuHomeCategoryConverter;
 import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.mapper.ManagerMenuHomeCategoryMapper;
 import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.model.entity.ManagerMenuHomeCategory;
@@ -111,12 +113,45 @@ public class ManagerMenuHomeCategoryServiceImpl extends ServiceImpl<ManagerMenuH
     @Override
     public List<ManagerMenuHomeCategoryVo> getManagerMenuHomeCategoryForApp() {
 
-        List<ManagerMenuHomeCategory> entities = this.list(new LambdaQueryWrapper<ManagerMenuHomeCategory>().
-                eq(ManagerMenuHomeCategory::getStatus, StatusEnum.ENABLE.getValue())
+
+        /**
+         * 工作台菜单获取规则：
+         * 1. 优先使用当前租户配置（由 MP 自动注入 tenantId）
+         * 2. 若租户未配置，则使用平台默认（tenant_id = 0）
+         * 3. 分类与菜单项均遵循此规则
+         */
+
+        LambdaQueryWrapper<ManagerMenuHomeCategory> query = new LambdaQueryWrapper<ManagerMenuHomeCategory>();
+           query.eq(ManagerMenuHomeCategory::getStatus, StatusEnum.ENABLE.getValue())
                 .select(ManagerMenuHomeCategory::getHomeIcon,
                         ManagerMenuHomeCategory::getHomeName,
-                        ManagerMenuHomeCategory::getJumpPath)
-        );
+                        ManagerMenuHomeCategory::getJumpPath);
+
+        List<ManagerMenuHomeCategory> entities = this.list(query);
+
+        // 2. 租户没有，用平台默认
+        if (entities.isEmpty()) {
+
+            TenantContextHolder.setIgnoreTenant(true);
+            try {
+                entities = this.list(
+                        new LambdaQueryWrapper<ManagerMenuHomeCategory>()
+                                .eq(ManagerMenuHomeCategory::getTenantId, 0L)
+                                .eq(ManagerMenuHomeCategory::getStatus, StatusEnum.ENABLE.getValue())
+                                .select(ManagerMenuHomeCategory::getHomeIcon,
+                                        ManagerMenuHomeCategory::getHomeName,
+                                        ManagerMenuHomeCategory::getJumpPath)
+                );
+            } finally {
+                TenantContextHolder.clear();
+            }
+
+        }
+
+        if (entities.isEmpty()) {
+            return List.of();
+        }
+
         return managerMenuHomeCategoryConverter.entity2HomeCategoryVo(entities);
     }
 

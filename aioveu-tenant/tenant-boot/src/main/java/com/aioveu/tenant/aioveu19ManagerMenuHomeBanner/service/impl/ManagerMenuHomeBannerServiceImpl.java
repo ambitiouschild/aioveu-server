@@ -3,6 +3,8 @@ package com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.service.impl;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.enums.StatusEnum;
+import com.aioveu.common.tenant.TenantContextHolder;
+import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.model.entity.ManagerMenuHomeCategory;
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.converter.ManagerMenuHomeBannerConverter;
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.mapper.ManagerMenuHomeBannerMapper;
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.model.entity.ManagerMenuHomeBanner;
@@ -112,12 +114,44 @@ public class ManagerMenuHomeBannerServiceImpl extends ServiceImpl<ManagerMenuHom
     @Override
     public List<ManagerMenuHomeBannerVo> getManagerMenuHomeBannerForApp() {
 
-        List<ManagerMenuHomeBanner> entities = this.list(new LambdaQueryWrapper<ManagerMenuHomeBanner>().
-                eq(ManagerMenuHomeBanner::getStatus, StatusEnum.ENABLE.getValue())
+        /**
+         * 工作台菜单获取规则：
+         * 1. 优先使用当前租户配置（由 MP 自动注入 tenantId）
+         * 2. 若租户未配置，则使用平台默认（tenant_id = 0）
+         * 3. 分类与菜单项均遵循此规则
+         */
+
+        LambdaQueryWrapper<ManagerMenuHomeBanner> query = new LambdaQueryWrapper<ManagerMenuHomeBanner>();
+        query.eq(ManagerMenuHomeBanner::getStatus, StatusEnum.ENABLE.getValue())
                 .select(ManagerMenuHomeBanner::getTitle,
                         ManagerMenuHomeBanner::getImageUrl,
-                        ManagerMenuHomeBanner::getRedirectUrl)
-        );
+                        ManagerMenuHomeBanner::getRedirectUrl);
+
+        List<ManagerMenuHomeBanner> entities = this.list(query);
+
+        // 2. 租户没有，用平台默认
+        if (entities.isEmpty()) {
+
+            TenantContextHolder.setIgnoreTenant(true);
+            try {
+                entities = this.list(
+                        new LambdaQueryWrapper<ManagerMenuHomeBanner>()
+                                .eq(ManagerMenuHomeBanner::getTenantId, 0L)
+                                .eq(ManagerMenuHomeBanner::getStatus, StatusEnum.ENABLE.getValue())
+                                .select(ManagerMenuHomeBanner::getTitle,
+                                        ManagerMenuHomeBanner::getImageUrl,
+                                        ManagerMenuHomeBanner::getRedirectUrl)
+                );
+            } finally {
+                TenantContextHolder.clear();
+            }
+
+        }
+
+        if (entities.isEmpty()) {
+            return List.of();
+        }
+
         return managerMenuHomeBannerConverter.entity2BannerVo(entities);
     }
 

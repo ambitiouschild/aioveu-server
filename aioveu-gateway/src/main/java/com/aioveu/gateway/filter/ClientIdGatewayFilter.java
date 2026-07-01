@@ -107,7 +107,9 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
                     ServerHttpRequest newReq = exchange.getRequest()
                             .mutate()
+                            // ✅ 只传 tenantId
                             .header("X-Tenant-Id", String.valueOf(tenantId))
+                            // ❌ 不传 X-Client-Id
                             .build();
 
                     return chain.filter(exchange.mutate().request(newReq).build());

@@ -2,6 +2,7 @@ package com.aioveu.tenant.aioveu16ManagerMenuCategory.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.common.tenant.TenantContextHolder;
 import com.aioveu.tenant.aioveu16ManagerMenuCategory.converter.ManagerMenuCategoryConverter;
 import com.aioveu.tenant.aioveu16ManagerMenuCategory.mapper.ManagerMenuCategoryMapper;
 import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.entity.ManagerMenuCategory;
@@ -117,7 +118,19 @@ public class ManagerMenuCategoryServiceImpl extends ServiceImpl<ManagerMenuCateg
      */
     @Override
     public List<ManagerMenuCategoryWithItemsVO>  getManagerMenuCategoriesWithItems() {
-        // 1. 查询启用的分类
+
+        Long tenantId = TenantContextHolder.getTenantId();
+        Assert.notNull(tenantId, "租户ID不能为空");
+
+
+        /**
+         * 工作台菜单获取规则：
+         * 1. 优先使用当前租户配置（由 MP 自动注入 tenantId）
+         * 2. 若租户未配置，则使用平台默认（tenant_id = 0）
+         * 3. 分类与菜单项均遵循此规则
+         */
+
+        // 1. 查询启用的分类  // 1. 查询租户自己的分类
         LambdaQueryWrapper<ManagerMenuCategory> categoryQuery = new LambdaQueryWrapper<>();
         categoryQuery.eq(ManagerMenuCategory::getStatus, 1)
                 .eq(ManagerMenuCategory::getIsDeleted, 0)
@@ -125,11 +138,28 @@ public class ManagerMenuCategoryServiceImpl extends ServiceImpl<ManagerMenuCateg
 
         List<ManagerMenuCategory> categories = this.list(categoryQuery);
 
-        log.info("【ManagerMenuCategory】查询启用的分类：{}",categories);
+
+        // 2. 租户没有，用平台默认
+        if (categories.isEmpty()) {
+            TenantContextHolder.setIgnoreTenant(true);
+            try {
+                categories = this.list(
+                        new LambdaQueryWrapper<ManagerMenuCategory>()
+                                .eq(ManagerMenuCategory::getTenantId, 0L)
+                                .eq(ManagerMenuCategory::getStatus, 1)
+                                .eq(ManagerMenuCategory::getIsDeleted, 0)
+                );
+            } finally {
+                TenantContextHolder.clear();
+            }
+        }
 
         if (categories.isEmpty()) {
             return List.of();
         }
+
+        log.info("【ManagerMenuCategory】查询启用的分类：{}",categories);
+
 
         // 2. 获取分类ID列表
         List<Long> categoryIds = categories.stream()
@@ -138,12 +168,15 @@ public class ManagerMenuCategoryServiceImpl extends ServiceImpl<ManagerMenuCateg
 
         log.info("【ManagerMenuCategory】获取分类ID列表：{}",categoryIds);
 
-        List<ManagerMenuCategoryItem> managerMenuCategoryItems = managerMenuCategoryItemService.getManagerMenuCategoryItemsWithCategoryIds(categoryIds);
+
+        List<ManagerMenuCategoryItem> managerMenuCategoryItems =
+                managerMenuCategoryItemService.getManagerMenuCategoryItemsWithCategoryIds(categoryIds);
 
         // 4. 按分类ID分组菜单项
         Map<Long, List<ManagerMenuCategoryItem>> itemsByCategory = managerMenuCategoryItems.stream()
                 .collect(Collectors.groupingBy(ManagerMenuCategoryItem::getCategoryId));
 
+        // 3. 查询菜单项（租户优先 + 平台兜底）
         List<ManagerMenuCategoryWithItemsVO>  managerMenuCategoryWithItems=   categories.stream()
                 .map(category -> {
                     ManagerMenuCategoryWithItemsVO vo = new ManagerMenuCategoryWithItemsVO();

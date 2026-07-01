@@ -2,6 +2,8 @@ package com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.common.tenant.TenantContextHolder;
+import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.entity.ManagerMenuCategory;
 import com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.converter.ManagerMenuCategoryItemConverter;
 import com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.mapper.ManagerMenuCategoryItemMapper;
 import com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.model.entity.ManagerMenuCategoryItem;
@@ -111,7 +113,15 @@ public class ManagerMenuCategoryItemServiceImpl extends ServiceImpl<ManagerMenuC
     @Override
     public List<ManagerMenuCategoryItem>  getManagerMenuCategoryItemsWithCategoryIds(List<Long> categoryIds){
 
-        // 3. 查询这些分类下的菜单项
+
+        /**
+         * 工作台菜单获取规则：
+         * 1. 优先使用当前租户配置（由 MP 自动注入 tenantId）
+         * 2. 若租户未配置，则使用平台默认（tenant_id = 0）
+         * 3. 分类与菜单项均遵循此规则
+         */
+
+        // 1. 查询这些分类下的菜单项
         LambdaQueryWrapper<ManagerMenuCategoryItem> itemQuery = new LambdaQueryWrapper<>();
         itemQuery.in(ManagerMenuCategoryItem::getCategoryId, categoryIds)
                 .eq(ManagerMenuCategoryItem::getStatus, 1)
@@ -119,6 +129,31 @@ public class ManagerMenuCategoryItemServiceImpl extends ServiceImpl<ManagerMenuC
                 .orderByAsc(ManagerMenuCategoryItem::getSort);
 
         List<ManagerMenuCategoryItem> managerMenuCategoryItems = this.list(itemQuery);
+
+
+        // 2. 租户没有，用平台默认
+        if (managerMenuCategoryItems.isEmpty()) {
+
+            TenantContextHolder.setIgnoreTenant(true);
+            try {
+                managerMenuCategoryItems = this.list(
+                        new LambdaQueryWrapper<ManagerMenuCategoryItem>()
+                                .eq(ManagerMenuCategoryItem::getTenantId, 0L)
+                                .in(ManagerMenuCategoryItem::getCategoryId, categoryIds)
+                                .eq(ManagerMenuCategoryItem::getStatus, 1)
+                                .eq(ManagerMenuCategoryItem::getIsDeleted, 0)
+                                .orderByAsc(ManagerMenuCategoryItem::getSort)
+                );
+            } finally {
+                TenantContextHolder.clear();
+            }
+
+        }
+
+        if (managerMenuCategoryItems.isEmpty()) {
+            return List.of();
+        }
+
 
         log.info("【ManagerMenuCategoryItem】查询这些分类下的菜单项：{}",managerMenuCategoryItems);
         return managerMenuCategoryItems;
