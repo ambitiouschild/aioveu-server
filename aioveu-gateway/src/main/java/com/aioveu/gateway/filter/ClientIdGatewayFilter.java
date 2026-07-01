@@ -81,13 +81,66 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
         log.info("【ClientIdGatewayFilter】进入 filter, path={}", exchange.getRequest().getURI().getPath());
 
         // ✅ 关键：先保存引用
-        GatewayFilterChain finalChain = chain;
+//        GatewayFilterChain finalChain = chain;
+        String path = exchange.getRequest().getURI().getPath();
+        log.info("【ClientIdGatewayFilter】解析 clientId（优先级从高到低）path:{}", path);
+        // ✅ 1. 敏感接口：必须用 JWT
+
+        // ✅ JWT 接口：tenantId 来自 JWT，不再校验 clientId 白名单,✅ 只要带 Token，一律走 JWT
+        if (hasAuthorizationHeader(exchange)) {
+            return handleJwtRequest(exchange, chain);
+        }
+
+        // ✅ 2. 公共接口：clientId → tenantId ✅ 没 Token，才是公共接口
+        return handlePublicClient(exchange, chain);
+
+    }
+
+
+
+    private Mono<Void> handleJwtRequest(ServerWebExchange exchange, GatewayFilterChain chain) {
+
+        return resolveTenantIdFromJwt(exchange)
+                .flatMap(tenantId -> {
+                    // ✅ 有 tenantId，正常往下走
+                    log.info("【ClientIdGatewayFilter】JWT tenantId={}", tenantId);
+
+                    ServerHttpRequest newReq = exchange.getRequest()
+                            .mutate()
+                            .header("X-Tenant-Id", String.valueOf(tenantId))
+                            .build();
+
+                    return chain.filter(exchange.mutate().request(newReq).build());
+                })
+                .switchIfEmpty(Mono.defer(() -> {
+                    log.error("【ClientIdGatewayFilter】JWT 缺失 tenant_id");
+                    // ✅ 没有 tenantId，直接结束请求
+                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                    return exchange.getResponse().setComplete();
+                }));
+    }
+
+
+
+    /**
+     * 解析 clientId（优先级从高到低） （✅ 带校验）
+     *     * 解析 clientId（优先级从高到低）
+     *      * 返回 Mono<String> 以支持 WebFlux 非阻塞模型
+     */
+    private Mono<Void> handlePublicClient(ServerWebExchange exchange,GatewayFilterChain chain) {
+
+
+        // ✅ 防御：理论上不可能进来，但防止以后被人改 filter 顺序
+        if (hasAuthorizationHeader(exchange)) {
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            return exchange.getResponse().setComplete();
+        }
 
         // 1. 解析 clientId (返回 Mono<String>)
         // 统一解析 clientId（不再区分敏感 / 公共）
         return resolveClientId(exchange)
                 // 2. 如果解析失败或为空，给一个默认值
-//                .defaultIfEmpty("system_default")
+                // .defaultIfEmpty("system_default")
                 // 3. 使用 flatMap 确保非阻塞
                 .flatMap(clientId -> {
 
@@ -99,19 +152,6 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
                         return exchange.getResponse().setComplete();
                     }
                     log.debug("【ClientIdGatewayFilter】注入 X-Client-Id = {}", clientId);
-
-                    // ✅ 是否是 JWT 接口
-                    boolean hasJwt = hasAuthorizationHeader(exchange);
-
-
-                    if (hasJwt) {
-                        // JWT 接口：交给 JWT decoder，后面 TenantFilter 从 SecurityUtils 取
-                        return chain.filter(
-                                exchange.mutate()
-                                        .request(buildRequestWithClientId(exchange, clientId))
-                                        .build()
-                        );
-                    }
 
 
                     // ✅ 公共接口：直接查 tenantId
@@ -130,11 +170,6 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
                             .doOnNext(tenantId -> log.info("【ClientIdGatewayFilter】WebClient 返回 tenantId={}", tenantId))
                             // 2. 过滤掉 null 和 tenantId 为空的情况
                             .filter(tenantId -> tenantId != null)
-                            .switchIfEmpty(Mono.defer(() -> {
-                                log.error("【ClientIdGatewayFilter】WebClient 返回 empty 或未匹配到租户, clientId={}", clientId);
-                                exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-                                return Mono.empty(); // ✅ 关键
-                            }))
                             // 4. 处理有值的情况
                             .flatMap(tenantId -> {
 
@@ -148,21 +183,19 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
                                 );
                             });
 
-                }).switchIfEmpty(Mono.defer(() -> {
-                    String path = exchange.getRequest().getURI().getPath();
-                    if (isSensitivePath(path)) {
-                        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                        return exchange.getResponse().setComplete();
-                    }
-
+                })
+                .switchIfEmpty(Mono.defer(() -> {
+                    log.error("【ClientIdGatewayFilter】WebClient 返回 empty 或未匹配到租户");
                     ServerHttpRequest newReq = exchange.getRequest()
                             .mutate()
                             .header(HEADER_CLIENT_ID, "system_default")
                             .build();
-
-                    return finalChain.filter(exchange.mutate().request(newReq).build());
+                    return chain.filter(exchange.mutate().request(newReq).build());
                 }));
     }
+
+
+
 
     /**
      * 解析 clientId（优先级从高到低） （✅ 带校验）
@@ -171,16 +204,6 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
      */
     private Mono<String> resolveClientId(ServerWebExchange exchange) {
 
-
-        String path = exchange.getRequest().getURI().getPath();
-
-        log.info("【ClientIdGatewayFilter】解析 clientId（优先级从高到低）path:{}", path);
-
-
-        // ✅ 1. 敏感接口：必须用 JWT
-        if (isSensitivePath(path)) {
-            return resolveClientIdFromJwt(exchange);
-        }
 
         // 2前端带了就用（小程序 / H5） 公共接口：信任前端 Header
         String clientIdFromHeader = exchange.getRequest()
@@ -193,11 +216,8 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
             // ✅ 最小修改点：只取第一个 clientId，防拼接
             String cleanClientId = clientIdFromHeader.split(",")[0];
-
-
             log.debug("【ClientIdGatewayFilter】公共接口，清洗 clientId = {} -> {}",
                     clientIdFromHeader, cleanClientId);
-
             return Mono.just(cleanClientId);
         }
 
@@ -274,6 +294,36 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
 
     }
+
+    //1️JWT 接口：只认 JWT 里的 tenantId
+    private Mono<Long> resolveTenantIdFromJwt(ServerWebExchange exchange) {
+
+        String auth = exchange.getRequest()
+                .getHeaders()
+                .getFirst(HttpHeaders.AUTHORIZATION);
+
+        if (StringUtils.isBlank(auth) || !auth.startsWith("Bearer ")) {
+            return Mono.empty();
+        }
+
+        String token = auth.substring(7);
+
+        return jwtDecoder.decode(token)
+                .map(jwt -> {
+                    Object tenantObj = jwt.getClaim("tenant_id");
+                    if (tenantObj == null) {
+                        throw new RuntimeException("JWT 中缺失 tenant_id");
+                    }
+                    return Long.valueOf(tenantObj.toString());
+                })
+                .onErrorResume(e -> {
+                    log.warn("JWT 解析 tenant_id 失败", e);
+                    return Mono.empty();
+                });
+    }
+
+
+
 
 
     private boolean hasAuthorizationHeader(ServerWebExchange exchange) {

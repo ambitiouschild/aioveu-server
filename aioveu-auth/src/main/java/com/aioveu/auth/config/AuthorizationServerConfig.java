@@ -722,6 +722,7 @@ public class AuthorizationServerConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
                                 AntPathRequestMatcher.antMatcher("/aioveu/api/v8/admin/auth/auth/captcha"),
+                                AntPathRequestMatcher.antMatcher("/aioveu/api/v8/app/auth/auth/captcha"),
                                 AntPathRequestMatcher.antMatcher("/aioveu/api/v8/admin/auth/auth/sms_code"),
                                 AntPathRequestMatcher.antMatcher("/aioveu/api/v8/admin/auth/auth/register")
                         ).permitAll()
