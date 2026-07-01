@@ -35,7 +35,7 @@ public class ManagerMenuHomeBannerControllerForApp {
 
     private final ManagerMenuHomeBannerService managerMenuHomeBannerService;
 
-    @Operation(summary = "管理端app首页滚播栏分页列表")
+    @Operation(summary = "(平台兜底)管理端app首页滚播栏分页列表")
     @GetMapping("/page")
     public Result<List<ManagerMenuHomeBannerVo>> getManagerMenuHomeBanners() {
         List<ManagerMenuHomeBannerVo> result = managerMenuHomeBannerService.getManagerMenuHomeBannerForApp();

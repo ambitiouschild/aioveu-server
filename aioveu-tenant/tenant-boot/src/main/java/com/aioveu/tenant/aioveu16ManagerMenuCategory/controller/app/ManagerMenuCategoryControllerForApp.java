@@ -37,12 +37,18 @@ public class ManagerMenuCategoryControllerForApp {
      * 获取用户的工作台菜单（包含分类和菜单项）
      */
 
-    @Operation(summary = "获取用户的工作台菜单（包含分类和菜单项）")
+    @Operation(summary = "(平台兜底)获取用户的工作台菜单（包含分类和菜单项）")
     @GetMapping("/categories-with-items")
     public Result<List<ManagerMenuCategoryWithItemsVO>> getWorkbenchCategoriesWithItems() {
         List<ManagerMenuCategoryWithItemsVO> categories = managerMenuCategoryService.getManagerMenuCategoriesWithItems();
         return Result.success(categories);
     }
+
+
+
+
+
+
 
 
 }

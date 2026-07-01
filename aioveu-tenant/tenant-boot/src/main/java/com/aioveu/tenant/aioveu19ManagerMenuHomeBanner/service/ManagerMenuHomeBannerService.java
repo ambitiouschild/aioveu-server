@@ -1,5 +1,6 @@
 package com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.service;
 
+import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.model.entity.ManagerMenuHomeCategory;
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.model.entity.ManagerMenuHomeBanner;
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.model.form.ManagerMenuHomeBannerForm;
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.model.query.ManagerMenuHomeBannerQuery;
@@ -67,4 +68,10 @@ public interface ManagerMenuHomeBannerService extends IService<ManagerMenuHomeBa
      * @return {@link IPage<ManagerMenuHomeBannerVo>} 管理端app首页滚播栏分页列表
      */
     List<ManagerMenuHomeBannerVo> getManagerMenuHomeBannerForApp();
+
+
+    /**
+     * 获取平台的首页滚播栏
+     */
+    List<ManagerMenuHomeBanner> listPlatformHomeBanners();
 }

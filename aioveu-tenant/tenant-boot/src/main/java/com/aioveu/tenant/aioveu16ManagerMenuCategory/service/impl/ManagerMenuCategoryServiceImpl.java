@@ -202,4 +202,23 @@ public class ManagerMenuCategoryServiceImpl extends ServiceImpl<ManagerMenuCateg
         return managerMenuCategoryWithItems;
     }
 
+
+
+
+
+    @Override
+    public List<ManagerMenuCategory> listPlatformCategories() {
+        TenantContextHolder.setIgnoreTenant(true);
+        try {
+            return this.list(
+                    new LambdaQueryWrapper<ManagerMenuCategory>()
+                            .eq(ManagerMenuCategory::getTenantId, 0L)
+                            .eq(ManagerMenuCategory::getIsDeleted, 0)
+                            .orderByAsc(ManagerMenuCategory::getSort)
+            );
+        } finally {
+            TenantContextHolder.setIgnoreTenant(false);
+        }
+    }
+
 }

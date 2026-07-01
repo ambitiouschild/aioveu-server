@@ -156,5 +156,22 @@ public class ManagerMenuHomeBannerServiceImpl extends ServiceImpl<ManagerMenuHom
     }
 
 
+    /**
+     * 获取平台的首页滚播栏
+     */
+    @Override
+    public List<ManagerMenuHomeBanner> listPlatformHomeBanners() {
+        TenantContextHolder.setIgnoreTenant(true);
+        try {
+            return this.list(
+                    new LambdaQueryWrapper<ManagerMenuHomeBanner>()
+                            .eq(ManagerMenuHomeBanner::getTenantId, 0L)
+                            .eq(ManagerMenuHomeBanner::getDeleted, 0)
+            );
+        } finally {
+            TenantContextHolder.setIgnoreTenant(false);
+        }
+    }
+
 
 }

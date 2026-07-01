@@ -160,4 +160,21 @@ public class ManagerMenuCategoryItemServiceImpl extends ServiceImpl<ManagerMenuC
     }
 
 
+    /**
+     * 获取平台级别的对应分类下的菜单项
+     */
+    @Override
+    public List<ManagerMenuCategoryItem> listPlatformItems() {
+        TenantContextHolder.setIgnoreTenant(true);
+        try {
+            return this.list(
+                    new LambdaQueryWrapper<ManagerMenuCategoryItem>()
+                            .eq(ManagerMenuCategoryItem::getTenantId, 0L)
+                            .eq(ManagerMenuCategoryItem::getIsDeleted, 0)
+            );
+        } finally {
+            TenantContextHolder.setIgnoreTenant(false);
+        }
+    }
+
 }

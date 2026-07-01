@@ -66,4 +66,11 @@ public interface ManagerMenuCategoryService extends IService<ManagerMenuCategory
      * 获取用户的工作台菜单（包含分类和菜单项）
      */
     List<ManagerMenuCategoryWithItemsVO>  getManagerMenuCategoriesWithItems();
+
+
+    /**
+     * 获取平台的工作台分类
+     */
+    List<ManagerMenuCategory> listPlatformCategories();
+
 }

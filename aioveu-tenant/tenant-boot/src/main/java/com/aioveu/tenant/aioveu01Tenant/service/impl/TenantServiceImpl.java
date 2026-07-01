@@ -16,10 +16,7 @@ import com.aioveu.tenant.aioveu01Tenant.model.query.TenantQuery;
 import com.aioveu.tenant.aioveu01Tenant.model.vo.TenantCreateResultVO;
 import com.aioveu.tenant.aioveu01Tenant.model.vo.TenantPageVO;
 import com.aioveu.tenant.aioveu01Tenant.model.vo.TenantVO;
-import com.aioveu.tenant.aioveu01Tenant.service.TenantMenuService;
-import com.aioveu.tenant.aioveu01Tenant.service.TenantPlanMenuService;
-import com.aioveu.tenant.aioveu01Tenant.service.TenantPlanService;
-import com.aioveu.tenant.aioveu01Tenant.service.TenantService;
+import com.aioveu.tenant.aioveu01Tenant.service.*;
 import com.aioveu.tenant.aioveu02User.model.entity.User;
 import com.aioveu.tenant.aioveu02User.model.form.UserForm;
 import com.aioveu.tenant.aioveu02User.service.UserService;
@@ -28,6 +25,7 @@ import com.aioveu.tenant.aioveu03Role.model.form.RoleForm;
 import com.aioveu.tenant.aioveu03Role.service.RoleService;
 import com.aioveu.tenant.aioveu05Dept.model.form.DeptForm;
 import com.aioveu.tenant.aioveu05Dept.service.DeptService;
+import com.aioveu.tenant.aioveu16ManagerMenuCategory.service.ManagerMenuCategoryService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -70,6 +68,8 @@ public class TenantServiceImpl extends ServiceImpl<TenantMapper, Tenant> impleme
     private final TenantConverter tenantConverter;
 
     private final TenantMapper tenantMapper;
+
+    private final TenantManagerMenuInitService tenantManagerMenuInitService;
 
 
     /**
@@ -360,6 +360,12 @@ public class TenantServiceImpl extends ServiceImpl<TenantMapper, Tenant> impleme
             List<Long> menuIds = resolveNewTenantAdminMenuIds(planId);
             tenantMenuService.saveTenantMenus(newTenantId, menuIds);
             roleService.assignMenusToRole(role.getId(), menuIds);
+
+
+            // ✅ 4) 复制平台菜单分类 + 菜单项（新增）
+            tenantManagerMenuInitService.initTenantManagerMenu(newTenantId);
+
+
 
             TenantCreateResultVO resultVo = new TenantCreateResultVO();
             resultVo.setTenantId(newTenantId);

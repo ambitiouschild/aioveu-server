@@ -66,4 +66,11 @@ public interface ManagerMenuCategoryItemService extends IService<ManagerMenuCate
      * 获取对应分类下的菜单项
      */
     List<ManagerMenuCategoryItem>  getManagerMenuCategoryItemsWithCategoryIds(List<Long> categoryIds);
+
+
+    /**
+     * 获取平台级别的对应分类下的菜单项
+     */
+    List<ManagerMenuCategoryItem> listPlatformItems();
+
 }

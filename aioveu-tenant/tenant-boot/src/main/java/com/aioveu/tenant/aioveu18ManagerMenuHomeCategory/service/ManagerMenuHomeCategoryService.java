@@ -1,5 +1,6 @@
 package com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.service;
 
+import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.entity.ManagerMenuCategory;
 import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.model.entity.ManagerMenuHomeCategory;
 import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.model.form.ManagerMenuHomeCategoryForm;
 import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.model.query.ManagerMenuHomeCategoryQuery;
@@ -66,4 +67,9 @@ public interface ManagerMenuHomeCategoryService extends IService<ManagerMenuHome
     * */
     List<ManagerMenuHomeCategoryVo> getManagerMenuHomeCategoryForApp();
 
+
+    /**
+     * 获取平台的首页分类配置
+     */
+    List<ManagerMenuHomeCategory> listPlatformHomeCategories();
 }

@@ -155,4 +155,21 @@ public class ManagerMenuHomeCategoryServiceImpl extends ServiceImpl<ManagerMenuH
         return managerMenuHomeCategoryConverter.entity2HomeCategoryVo(entities);
     }
 
+    /**
+     * 获取平台级别的对应分类下的菜单项
+     */
+    @Override
+    public List<ManagerMenuHomeCategory> listPlatformHomeCategories() {
+        TenantContextHolder.setIgnoreTenant(true);
+        try {
+            return this.list(
+                    new LambdaQueryWrapper<ManagerMenuHomeCategory>()
+                            .eq(ManagerMenuHomeCategory::getTenantId, 0L)
+                            .eq(ManagerMenuHomeCategory::getDeleted, 0)
+            );
+        } finally {
+            TenantContextHolder.setIgnoreTenant(false);
+        }
+    }
+
 }

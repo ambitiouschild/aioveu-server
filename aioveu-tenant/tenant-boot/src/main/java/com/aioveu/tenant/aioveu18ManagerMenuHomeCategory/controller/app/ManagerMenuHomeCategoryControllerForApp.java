@@ -34,7 +34,7 @@ public class ManagerMenuHomeCategoryControllerForApp {
 
     private final ManagerMenuHomeCategoryService managerMenuHomeCategoryService;
 
-    @Operation(summary = "管理端app首页分类配置分页列表")
+    @Operation(summary = "(平台兜底)管理端app首页分类配置分页列表")
     @GetMapping("/page")
     public Result<List<ManagerMenuHomeCategoryVo>> getManagerMenuHomeCategoryPage() {
         List<ManagerMenuHomeCategoryVo> result = managerMenuHomeCategoryService.getManagerMenuHomeCategoryForApp();
