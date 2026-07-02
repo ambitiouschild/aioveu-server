@@ -5,11 +5,15 @@ import cn.binarywang.wx.miniapp.bean.WxMaJscode2SessionResult;
 import cn.hutool.core.lang.Assert;
 import com.aioveu.auth.config.WxMiniAppConfig;
 import com.aioveu.auth.model.MemberDetails;
+import com.aioveu.auth.model.SysUserDetails;
 import com.aioveu.auth.service.MemberDetailsService;
 import com.aioveu.auth.util.OAuth2AuthenticationProviderUtils;
+import com.aioveu.common.constant.JwtClaimConstants;
+import com.aioveu.common.constant.RedisConstants;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -80,9 +84,9 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
     private final MemberDetailsService memberDetailsService;  // 会员详情服务，用于加载用户信息
 
     private final WxMaService wxMaService;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    @Autowired
-    private WxMiniAppConfig wxMiniAppConfig;
+    private final WxMiniAppConfig wxMiniAppConfig; // ✅ 不再是 @Autowired
 
     // 微信小程序服务，用于调用微信API
 
@@ -101,7 +105,9 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
             OAuth2AuthorizationService authorizationService,
             OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator,
             MemberDetailsService memberDetailsService,
-            WxMaService wxMaService
+            WxMaService wxMaService,
+            RedisTemplate<String, Object> redisTemplate,
+            WxMiniAppConfig wxMiniAppConfig // ✅ 构造函数注入
 
     ) {
 
@@ -114,6 +120,8 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
         this.tokenGenerator = tokenGenerator;
         this.memberDetailsService = memberDetailsService;
         this.wxMaService = wxMaService;
+        this.redisTemplate = redisTemplate;
+        this.wxMiniAppConfig = wxMiniAppConfig;
     }
 
 
@@ -207,6 +215,30 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
         // 根据 openid 获取会员信息
         log.info("4. 根据openid加载用户信息:{}", userDetails.getUsername());
         log.info("4. 根据openid加载用户信息:{}", userDetails);
+
+
+
+        //----------------------------------------------------------
+        // ✅ ===== 写 token_version（唯一正确位置）=====
+        Long userId = userDetails.getId(); // 或 getUserId()，看你 MemberDetails 的字段名
+
+        if (userId != null) {
+            String versionKey = RedisConstants.Auth.USER_TOKEN_VERSION + userId;
+            Long tokenVersion = redisTemplate.opsForValue().increment(versionKey);
+            if (tokenVersion == null) {
+                tokenVersion = 1L;
+            }
+
+            // ✅ 放入 additionalParameters，供 JWT Customizer 使用
+            //但实际上 JWT Customizer 根本拿不到。**
+            additionalParameters.put(JwtClaimConstants.Token.VERSION, tokenVersion);
+
+            log.info("【Wechat TokenVersion】用户 {} 微信登录，token_version = {}", userId, tokenVersion);
+        }
+
+        //----------------------------------------------------------
+
+
 
 
 

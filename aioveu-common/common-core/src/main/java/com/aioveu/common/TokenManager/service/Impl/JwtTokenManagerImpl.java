@@ -7,6 +7,7 @@ import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTPayload;
 import cn.hutool.jwt.JWTUtil;
 import com.aioveu.common.TokenManager.service.TokenManagerService;
+import com.aioveu.common.constant.JwtClaimConstants;
 import com.aioveu.common.constant.RedisConstants;
 import com.aioveu.common.constant.SecurityConstants;
 import lombok.RequiredArgsConstructor;import lombok.extern.slf4j.Slf4j;
@@ -67,8 +68,13 @@ public class JwtTokenManagerImpl implements TokenManagerService {
             JSONObject payloads = jwt.getPayloads();
             String jti = payloads.getStr(JWTPayload.JWT_ID);
             Integer expirationAt = payloads.getInt(JWTPayload.EXPIRES_AT);
+            Long userId = payloads.getLong(JwtClaimConstants.User.ID); // ✅ 关键
 
-            revokeTokenByJti(jti, expirationAt);
+            if (userId == null) {
+                log.warn("【JWT Token管理器】Token 缺少 user_id，无法加入黑名单");
+                return;
+            }
+            revokeTokenByJti(jti, expirationAt, userId);
             log.info("【JWT Token管理器】将令牌加入黑名单, jti={}", jti);
         } catch (Exception e) {
             log.error("【JWT Token管理器】吊销令牌失败", e);
@@ -77,11 +83,21 @@ public class JwtTokenManagerImpl implements TokenManagerService {
 
     /*
     * // 2. 检查令牌是否吊销 ✅ / 你的 isTokenRevoked 是 private 方法，外部无法调用！
-    * // ✅ 需要改成 public
+    *   ✅ 黑名单检查 = 三件事
+            ✅ Token 是否能解析
+            ✅ Token 是否过期
+            ✅ JTI 是否在黑名单
+            *
+            * ✅ 最终校验顺序（你可以当规范）
+            1️Token 是否存在
+            2️Token 是否能解析
+            3️Token 是否过期
+            4️JTI 是否在黑名单
     * */
     @Override
     public  boolean isTokenRevoked(String token) {
         if (!StringUtils.hasText(token)) {
+            log.warn("Token 为空，视为吊销");
             return true;
         }
 
@@ -93,12 +109,29 @@ public class JwtTokenManagerImpl implements TokenManagerService {
         try {
             JWT jwt = JWTUtil.parseToken(token);
             JSONObject payloads = jwt.getPayloads();
-            String jti = payloads.getStr(JWTPayload.JWT_ID);
 
+            // 1️校验 exp（必须）
+            Integer expiresAt = payloads.getInt(JWTPayload.EXPIRES_AT);
+            long now = System.currentTimeMillis() / 1000;
+
+            if (expiresAt == null || expiresAt < now) {
+                log.warn("Token 已过期，视为吊销");
+                return true;
+            }
+
+            // 2️校验 jti
+            String jti = payloads.getStr(JWTPayload.JWT_ID);
+            if (!StringUtils.hasText(jti)) {
+                log.warn("Token 缺少 jti，视为吊销");
+                return true;
+            }
+
+            // 3️查黑名单（用 get 而不是 hasKey）
             return isTokenRevokedByJti(jti);
         } catch (Exception e) {
-            log.error("检查令牌吊销状态失败", e);
-            return true;  // 解析失败视为无效
+            log.error("检查令牌吊销状态失败，token解析异常", e);
+            // ✅ 解析失败 ≠ 一定是吊销
+            return true;
         }
 
     }
@@ -108,25 +141,50 @@ public class JwtTokenManagerImpl implements TokenManagerService {
      */
     public boolean isTokenRevokedByJti(String jti) {
         if (!StringUtils.hasText(jti)) {
-            log.warn("jti为空，令牌无效");
-            return false;  // 空jti视为未吊销（但实际应该无效）
+            log.warn("jti 为空，令牌无效");
+            return true;
         }
 
-        log.info("通过jti检查令牌是否被吊销");
-
         String revokedKey = StrUtil.format(RedisConstants.Auth.REVOKED_JTI, jti);
-        boolean isRevoked = Boolean.TRUE.equals(redisTemplate.hasKey(revokedKey));
-        log.debug("检查令牌吊销状态: jti={}, 是否吊销={}", jti, isRevoked);
 
-        return isRevoked;
+        // ✅ 用 get，避免 hasKey 的竞态问题
+//        Boolean revoked = (Boolean) redisTemplate.opsForValue().get(revokedKey);
+//        boolean isRevoked = Boolean.TRUE.equals(revoked);
+//        log.debug("检查令牌吊销状态: jti={}, 是否吊销={}", jti, isRevoked);
+//        return isRevoked;
+
+        Long userId = (Long) redisTemplate.opsForValue().get(revokedKey);
+
+        if (userId != null) {
+            log.debug("令牌已吊销: jti={}, userId={}", jti, userId);
+            return true;
+        }
+
+        return false;
+
+
+
+
     }
 
+    /**
+     * 强制下线指定用户（不依赖 JTI）
+     */
+    public void forceLogoutUser(Long userId) {
+        if (userId == null) {
+            return;
+        }
 
+        String versionKey = StrUtil.format(RedisConstants.Auth.USER_TOKEN_VERSION, userId);
+        Long newVersion = redisTemplate.opsForValue().increment(versionKey);
+
+        log.info("强制下线用户: userId={}, 新版本={}", userId, newVersion);
+    }
 
     /*
     * 将令牌加入黑名单 内部方法：通过jti吊销令牌（内部方法）
     * */
-    private void revokeTokenByJti(String jti, Integer expirationAt) {
+    private void revokeTokenByJti(String jti, Integer expirationAt, Long userId) {
         // ✅ 正确：检查是否没有内容
         if (!StringUtils.hasText(jti)) {
             log.warn("【JWT Token管理器】jti为空，无法加入黑名单");
@@ -141,10 +199,11 @@ public class JwtTokenManagerImpl implements TokenManagerService {
                 log.info("【JWT Token管理器】令牌已过期，无需加入黑名单: jti={}", jti);
                 return;  // 已过期，不需要加入黑名单
             }
-            int expirationIn = expirationAt - currentTimeSeconds;
-            redisTemplate.opsForValue().set(revokedJtiKey, Boolean.TRUE, expirationIn, TimeUnit.SECONDS);
+            int ttl = expirationAt - currentTimeSeconds;
+            // ✅ value = userId
+            redisTemplate.opsForValue().set(revokedJtiKey, userId, ttl, TimeUnit.SECONDS);
 
-            log.info("【JWT Token管理器】令牌加入黑名单，设置TTL: jti={}, TTL={}秒", jti, expirationIn);
+            log.info("【JWT Token管理器】令牌加入黑名单，设置TTL: jti={},userId={}, TTL={}秒", jti, userId, ttl);
 
         } else {
             redisTemplate.opsForValue().set(revokedJtiKey, Boolean.TRUE);

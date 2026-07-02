@@ -64,7 +64,11 @@ public interface TokenManagerService {
 
     /*
      * 检查令牌是否吊销 ✅
-     * ✅ 需要改成 public
+     * ✅ 最终校验顺序（你可以当规范）
+            1️Token 是否存在
+            2️Token 是否能解析
+            3️Token 是否过期
+            4️JTI 是否在黑名单
      * */
     boolean isTokenRevoked(String token);
 

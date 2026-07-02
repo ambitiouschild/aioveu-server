@@ -5,11 +5,14 @@ import cn.hutool.core.lang.Assert;
 import com.aioveu.auth.model.SysUserDetails;
 import com.aioveu.auth.service.SysUserDetailsService;
 import com.aioveu.auth.util.OAuth2AuthenticationProviderUtils;
+import com.aioveu.common.constant.JwtClaimConstants;
+import com.aioveu.common.constant.RedisConstants;
 import com.aioveu.common.tenant.TenantContextHolder;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -82,6 +85,7 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
     // 添加 UserDetailsService 依赖
     private final SysUserDetailsService sysUserDetailsService;
 
+    private final RedisTemplate<String, Object> redisTemplate;
 
     /**
      * Constructs an {@code OAuth2ResourceOwnerPasswordAuthenticationProviderNew} using the provided parameters.
@@ -94,7 +98,8 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
     public PasswordAuthenticationProvider(AuthenticationManager authenticationManager,
                                           OAuth2AuthorizationService authorizationService,
                                           OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator,
-                                          SysUserDetailsService sysUserDetailsService
+                                          SysUserDetailsService sysUserDetailsService,
+                                          RedisTemplate<String, Object> redisTemplate
     ) {
 
         // 参数非空校验，确保依赖组件正确注入
@@ -104,6 +109,8 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
         this.authorizationService = authorizationService;
         this.tokenGenerator = tokenGenerator;
         this.sysUserDetailsService = sysUserDetailsService;
+        this.redisTemplate = redisTemplate;
+
     }
 
 
@@ -201,6 +208,31 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
                 log.info("=====调用用户服务=====");
                 log.info("这里会委托给SysUserDetailsService.loadUserByUsername进行用户验证");
                 usernamePasswordAuthentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+
+
+                //----------------------------------------------------------
+                // ✅ ===== 写 token_version（唯一正确位置）=====
+                Long userId = null;
+                if (usernamePasswordAuthentication.getPrincipal() instanceof SysUserDetails sysUserDetails) {
+                    userId = sysUserDetails.getUserId();
+                }
+
+                if (userId != null) {
+                    String versionKey = RedisConstants.Auth.USER_TOKEN_VERSION + userId;
+                    Long tokenVersion = redisTemplate.opsForValue().increment(versionKey);
+                    if (tokenVersion == null) {
+                        tokenVersion = 1L;
+                    }
+
+                    // ✅ 放入 additionalParameters，供 JWT Customizer 使用
+                    //但实际上 JWT Customizer 根本拿不到。**
+                    additionalParameters.put(JwtClaimConstants.Token.VERSION, tokenVersion);
+
+                    log.info("【TokenVersion】用户 {} 登录，token_version = {}", userId, tokenVersion);
+                }
+
+                //----------------------------------------------------------
+
             } catch (Exception e) {
 
                 // 需要将其他类型的异常转换为 OAuth2AuthenticationException

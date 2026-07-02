@@ -3,10 +3,12 @@ package com.aioveu.auth.config;
 import com.aioveu.auth.model.MemberDetails;
 import com.aioveu.common.constant.JwtClaimConstants;
 import com.aioveu.auth.model.SysUserDetails;
+import com.aioveu.common.constant.RedisConstants;
 import com.alibaba.nacos.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -30,8 +32,10 @@ import java.util.stream.Collectors;
 @Configuration
 public class JwtTokenCustomizerConfig {
 
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    public JwtTokenCustomizerConfig() {
+    public JwtTokenCustomizerConfig(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
         log.info("=== 【JwtTokenCustomizer】JwtTokenCustomizerConfig 被创建 ===");
     }
 
@@ -86,26 +90,45 @@ public class JwtTokenCustomizerConfig {
                         log.info("建议使用第一个方案（简单直接的if判断），因为它最清晰易懂，也最容易调试。");
                         // 用户ID - 必须有值
                         if (userDetails.getUserId() != null) {
-                            claims.claim(JwtClaimConstants.USER_ID, userDetails.getUserId());
+                            claims.claim(JwtClaimConstants.User.ID, userDetails.getUserId());
+
+                            //JWT Customizer（只干一件事）
+                            //----------------------------------------------
+                            // token_version Key
+                            String versionKey = RedisConstants.Auth.USER_TOKEN_VERSION + userDetails.getUserId();
+
+                            // 获取当前版本号（不存在则初始化为 1）
+                            Long tokenVersion = (Long) redisTemplate.opsForValue().get(versionKey);
+                            if (tokenVersion == null) {
+                                tokenVersion = 1L;
+                            }
+
+                            if (tokenVersion != null) {
+                                claims.claim(JwtClaimConstants.Token.VERSION, tokenVersion);
+                                log.info("【JwtTokenCustomizer】✅ 添加 token_version = {}", tokenVersion);
+                            }
+
+                            //----------------------------------------------
+
                         } else {
                             log.info("用户ID为空，跳过添加到JWT");
                         }
 
                         // 用户名 - 必须有值
                         if (StringUtils.hasText(userDetails.getUsername())) {
-                            claims.claim(JwtClaimConstants.USERNAME, userDetails.getUsername());
+                            claims.claim(JwtClaimConstants.User.USERNAME, userDetails.getUsername());
                         } else {
                             log.info("用户名为空，跳过添加到JWT");
                         }
 
                         // 部门ID - 可以为空
                         if (userDetails.getDeptId() != null) {
-                            claims.claim(JwtClaimConstants.DEPT_ID, userDetails.getDeptId());
+                            claims.claim(JwtClaimConstants.User.DEPT_ID, userDetails.getDeptId());
                         }
 
                         // 数据权限 - 可以为空，但建议设置默认值
                         if (userDetails.getDataScope() != null) {
-                            claims.claim(JwtClaimConstants.DATA_SCOPE, userDetails.getDataScope());
+                            claims.claim(JwtClaimConstants.User.DATA_SCOPE, userDetails.getDataScope());
                         } else {
                             // 如果业务允许，可以设置默认值
 //                            claims.claim(JwtClaimConstants.DATA_SCOPE, 0);
@@ -114,7 +137,7 @@ public class JwtTokenCustomizerConfig {
 
                         // 数据权限列表 - 可以为空
                         if (userDetails.getDataScopes() != null && !userDetails.getDataScopes().isEmpty()) {
-                            claims.claim(JwtClaimConstants.DATA_SCOPES, userDetails.getDataScopes());
+                            claims.claim(JwtClaimConstants.User.DATA_SCOPES, userDetails.getDataScopes());
                         }else {
                             // 如果业务允许，可以设置默认值
 //                            claims.claim(JwtClaimConstants.DATA_SCOPE, 0);
@@ -124,7 +147,7 @@ public class JwtTokenCustomizerConfig {
 
                         // 租户ID - 必须要有值，但可以是默认值
                         if (userDetails.getTenantId() != null) {
-                            claims.claim(JwtClaimConstants.TENANT_ID, userDetails.getTenantId());
+                            claims.claim(JwtClaimConstants.Tenant.ID, userDetails.getTenantId());
                         } else {
                             // 设置默认租户ID
 //                            claims.claim(JwtClaimConstants.TENANT_ID, 0L);
@@ -133,7 +156,7 @@ public class JwtTokenCustomizerConfig {
 
                         // 是否可以切换租户 - 可以为空
                         if (userDetails.getCanSwitchTenant() != null) {
-                            claims.claim(JwtClaimConstants.CAN_SWITCH_TENANT, userDetails.getCanSwitchTenant());
+                            claims.claim(JwtClaimConstants.Tenant.CAN_SWITCH, userDetails.getCanSwitchTenant());
                         } else {
                             // 默认不能切换租户
 //                            claims.claim(JwtClaimConstants.CAN_SWITCH_TENANT, false);
@@ -145,7 +168,7 @@ public class JwtTokenCustomizerConfig {
                         var authorities = AuthorityUtils.authorityListToSet(context.getPrincipal().getAuthorities())
                                 .stream()
                                 .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
-                        claims.claim(JwtClaimConstants.AUTHORITIES, authorities);
+                        claims.claim(JwtClaimConstants.User.AUTHORITIES, authorities);
 
                         // ✅ 3️会员用户
                     } else if (principal instanceof MemberDetails userDetails) {
@@ -155,13 +178,13 @@ public class JwtTokenCustomizerConfig {
                         log.info("【JwtTokenCustomizer】 租户ID值: {}", tenantId);
 
                         if (tenantId != null) {
-                            claims.claim(JwtClaimConstants.TENANT_ID, String.valueOf(tenantId));
+                            claims.claim(JwtClaimConstants.Tenant.ID, String.valueOf(tenantId));
                             log.info("【JwtTokenCustomizer】✅ 已添加tenant_id到JWT Claims: {}", tenantId);
                         }
 
                         // 商城会员添加自定义字段
                         //但您的微信登录使用的是MemberDetails，应该走这个分支
-                        claims.claim(JwtClaimConstants.MEMBER_ID, String.valueOf(userDetails.getId()));
+                        claims.claim(JwtClaimConstants.Member.ID, String.valueOf(userDetails.getId()));
                     }
                 });
             }

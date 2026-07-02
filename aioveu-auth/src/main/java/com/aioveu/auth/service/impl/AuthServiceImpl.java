@@ -26,6 +26,7 @@ import jakarta.servlet.http.HttpServletRequestWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -73,7 +74,11 @@ public class AuthServiceImpl implements AuthService {
     private final SmsService smsService;
 
     // Redis模板，用于操作Redis数据库，存储验证码和短信验证码等临时数据
-    private final StringRedisTemplate redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
+
+    // ✅ token_version / 黑名单 / 用户会话
+    private final RedisTemplate<String, Object> redisTemplate;
+
 
     private final TenantFeignClient tenantFeignClient;
 
@@ -116,7 +121,7 @@ public class AuthServiceImpl implements AuthService {
         String redisKey = StrUtil.format(RedisConstants.Captcha.IMAGE_CODE, captchaId);
 
         // 将验证码文本存储到Redis，设置过期时间（防止验证码被长期滥用）
-        redisTemplate.opsForValue().set(
+        stringRedisTemplate.opsForValue().set(
 //                RedisConstants.CAPTCHA_CODE_PREFIX + captchaId,  // Redis键：captcha:code:{captchaId}
                 redisKey,  // 使用统一的Key格式
                 captcha.getCode(),   // 验证码实际文本（如"AB12"）
@@ -170,7 +175,7 @@ public class AuthServiceImpl implements AuthService {
         if (result) {
             // 将验证码存入redis，有效期5分钟
             // 将验证码存储到Redis，key格式：register:sms:code:{手机号}
-            redisTemplate.opsForValue().set(
+            stringRedisTemplate.opsForValue().set(
                     RedisConstants.REGISTER_SMS_CODE_PREFIX + mobile,  // Redis键前缀+手机号
                     code,   // 4位数字验证码
                     5,    // 有效期5分钟（防止验证码被长期使用）
@@ -331,7 +336,8 @@ public class AuthServiceImpl implements AuthService {
                     authenticationManager,
                     authorizationService,
                     tokenGenerator,
-                    sysUserDetailsService
+                    sysUserDetailsService,
+                    redisTemplate
             );
 
             // 8. 调用认证提供者（复用登录流程）

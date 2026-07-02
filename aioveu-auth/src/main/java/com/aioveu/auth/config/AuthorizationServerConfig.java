@@ -156,12 +156,16 @@ public class AuthorizationServerConfig {
     // JWT令牌定制器，用于在JWT令牌中添加自定义声明
     private final OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer;
 
+    // ✅ token_version / 黑名单 / 用户会话
+    private final RedisTemplate<String, Object> redisTemplate;
 
     // Redis模板，用于存储JWK密钥对等数据
-    private final StringRedisTemplate redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
 
     // 验证码生成器，用于图形验证码生成
     private final CodeGenerator codeGenerator;
+
+    private final WxMiniAppConfig wxMiniAppConfig; // ✅ 不再是 @Autowired
 
     boolean reuseRefreshTokens = false; // 设置为 false 表示每次刷新都生成新的 refresh_token
     // 不重用刷新令牌（每次刷新都生成新的）
@@ -173,8 +177,8 @@ public class AuthorizationServerConfig {
      */
     @Bean
     public CaptchaValidationFilter captchaValidationFilter() {
-        log.info("创建验证码过滤器Bean");
-        return new CaptchaValidationFilter(redisTemplate, codeGenerator);
+        log.info("创建验证码过滤器Bean,验证码过滤器用 stringRedisTemplate");
+        return new CaptchaValidationFilter(stringRedisTemplate, codeGenerator);
     }
 
 
@@ -259,15 +263,15 @@ public class AuthorizationServerConfig {
                                         authenticationProviders.addAll(
 
                                                 List.of(
-                                                        // 密码模式：使用用户名密码认证
-                                                        new PasswordAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator,sysUserDetailsService),
+                                                        // 密码模式：使用用户名密码认证 // ✅ 这里是 Object RedisTemplate
+                                                        new PasswordAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator,sysUserDetailsService,redisTemplate),
                                                         // 验证码模式：验证图形验证码+密码
-                                                        new CaptchaAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator, redisTemplate, codeGenerator),
+                                                        new CaptchaAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator, stringRedisTemplate, codeGenerator),
                                                         // 微信模式：使用微信code认证
                                                         // 微信认证提供者使用WxMaService进行微信登录验证
-                                                        new WechatAuthenticationProvider(authorizationService, tokenGenerator, memberDetailsService, wxMaService),
+                                                        new WechatAuthenticationProvider(authorizationService, tokenGenerator, memberDetailsService, wxMaService,redisTemplate,wxMiniAppConfig),
                                                         // 短信模式：使用手机号+短信验证码认证
-                                                        new SmsCodeAuthenticationProvider(authorizationService, tokenGenerator, memberDetailsService, redisTemplate),
+                                                        new SmsCodeAuthenticationProvider(authorizationService, tokenGenerator, memberDetailsService, stringRedisTemplate),
                                                         // 添加Spring Security自带的刷新令牌提供者
                                                         // new OAuth2RefreshTokenAuthenticationProvider(authorizationService, tokenGenerator)
 
@@ -349,7 +353,7 @@ public class AuthorizationServerConfig {
     public JWKSource<SecurityContext> jwkSource() {
 
         // 尝试从Redis中获取JWKSet(JWT密钥对，包含非对称加密的公钥和私钥)
-        String jwkSetStr = redisTemplate.opsForValue().get(RedisConstants.JWK_SET_KEY);
+        String jwkSetStr = stringRedisTemplate.opsForValue().get(RedisConstants.JWK_SET_KEY);
         if (StrUtil.isNotBlank(jwkSetStr)) {
             // 如果存在，解析JWKSet并返回
             // 如果Redis中存在JWKSet，直接解析并使用
@@ -378,7 +382,7 @@ public class AuthorizationServerConfig {
 
             // 将JWKSet存储在Redis中
             // 将JWKSet持久化到Redis，避免服务器重启后密钥丢失
-            redisTemplate.opsForValue().set(RedisConstants.JWK_SET_KEY, jwkSet.toString(Boolean.FALSE));
+            stringRedisTemplate.opsForValue().set(RedisConstants.JWK_SET_KEY, jwkSet.toString(Boolean.FALSE));
             return new ImmutableJWKSet<>(jwkSet);
         }
 

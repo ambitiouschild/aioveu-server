@@ -1,8 +1,10 @@
 package com.aioveu.gateway.filter;
 
 
+import com.aioveu.common.constant.JwtClaimConstants;
 import com.aioveu.gateway.service.ClientWhitelistWithRedisService;
 import com.aioveu.gateway.service.TenantQueryService;
+import com.aioveu.gateway.util.ClaimUtils;
 import com.alibaba.nacos.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -13,7 +15,10 @@ import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+// ✅ 正确：来自 oauth2-core
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimAccessor; // 这个接口才有 getClaimAsLong
+
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -255,7 +260,7 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
 
     /**
-     * 使用 ReactiveJwtDecoder 非阻塞解析 JWT
+     * 使用 ReactiveJwtDecoder 非阻塞解析 JWT中的 ClientId
      */
     private  Mono<String> resolveClientIdFromJwt(ServerWebExchange exchange) {
         String authHeader = exchange.getRequest()
@@ -267,11 +272,16 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
             return Mono.empty(); // ✅ 不是 null
         }
 
+
         String token = authHeader.substring(7);
 
         // 关键点：decode 返回 Mono<Jwt>，完全非阻塞
+        //client_id 永远是 String
         return jwtDecoder.decode(token)
-                .map(jwt -> jwt.getClaimAsString("client_id"))
+                .map(jwt ->
+                        jwt.getClaimAsString(JwtClaimConstants.Client.ID)
+
+                )
                 .onErrorResume(e -> {
                     log.warn("JWT 解析失败", e);
                     return Mono.empty(); // ✅ 不炸
@@ -297,6 +307,10 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
     }
 
+    /*
+    * 使用 ReactiveJwtDecoder 非阻塞解析 JWT中的 ClientId
+    *
+    * */
     //1️JWT 接口：只认 JWT 里的 tenantId
     private Mono<Long> resolveTenantIdFromJwt(ServerWebExchange exchange) {
 
@@ -311,13 +325,9 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
         String token = auth.substring(7);
 
         return jwtDecoder.decode(token)
-                .map(jwt -> {
-                    Object tenantObj = jwt.getClaim("tenant_id");
-                    if (tenantObj == null) {
-                        throw new RuntimeException("JWT 中缺失 tenant_id");
-                    }
-                    return Long.valueOf(tenantObj.toString());
-                })
+                .map(jwt ->
+                    ClaimUtils.getClaimAsLong(jwt, JwtClaimConstants.Tenant.ID)
+                )
                 .onErrorResume(e -> {
                     log.warn("JWT 解析 tenant_id 失败", e);
                     return Mono.empty();

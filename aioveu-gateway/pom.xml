@@ -68,11 +68,42 @@
         </dependency>
 
         <!-- JWT -->
+<!--        你引入了 io.jsonwebtoken:jjwt-api，导致 IDE 和编译器把 Jwt当成了 io.jsonwebtoken.Jwt，-->
+<!--        而不是 Spring Security 的 org.springframework.security.oauth2.jwt.Jwt。-->
+<!--        <dependency>-->
+<!--            <groupId>io.jsonwebtoken</groupId>-->
+<!--            <artifactId>jjwt-api</artifactId>-->
+<!--            <version>0.11.5</version>-->
+<!--        </dependency>-->
+
+
+<!--        必须保留 ✅-->
+<!--        Gateway 用的是 Spring Security OAuth2 Resource Server-->
+<!--        JWT 解析由 ReactiveJwtDecoder+ Nimbus 完成-->
+<!--        common 只提供 类型-->
+<!--        gateway 提供 实现-->
+
+
+        <!-- 1. 核心接口（包含 JwtClaimAccessor 和 getClaimAsLong） -->
         <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-api</artifactId>
-            <version>0.11.5</version>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-core</artifactId>
         </dependency>
+
+        <!-- 2. 解码器（包含 ReactiveJwtDecoder） -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-jose</artifactId>
+        </dependency>
+
+        <!-- 或者直接用 starter（推荐，更简单） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+
+
+
 
         <!-- Redis 限流 -->
         <dependency>

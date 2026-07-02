@@ -73,14 +73,21 @@
 
 
 <!--        Authentication 通常来自以下 Spring Security 依赖-->
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.security</groupId>-->
+<!--            <artifactId>spring-security-core</artifactId>-->
+<!--            <version>6.2.0</version> &lt;!&ndash; 版本号可能不同 &ndash;&gt;-->
+<!--        </dependency>-->
+<!--        改成 由 Spring Boot 统一管理-->
+
+        <!-- Spring Security（仅作为 API / 注解依赖，不引入具体实现） -->
         <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-core</artifactId>
-            <version>6.2.0</version> <!-- 版本号可能不同 -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+            <optional>true</optional>
         </dependency>
-
-
-
+        <!-- 如果你在 common 里只用到了 Authentication / SecurityContext -->
+        <!-- 这个就够了，不需要 oauth2 / web / config -->
 
     </dependencies>
 

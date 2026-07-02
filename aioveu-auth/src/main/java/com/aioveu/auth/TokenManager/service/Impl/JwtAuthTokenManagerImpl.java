@@ -18,6 +18,7 @@ import com.aioveu.auth.model.AuthenticationToken;
 import com.aioveu.tenant.dto.RoleDataScope;
 import lombok.RequiredArgsConstructor;import lombok.extern.slf4j.Slf4j;
 // ✅ 使用 Spring Framework 自带的
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -25,6 +26,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -60,8 +62,12 @@ public class JwtAuthTokenManagerImpl implements AuthTokenManagerService {
 
     private final SecurityProperties securityProperties;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final byte[] secretKey;
+    @Value("${security.jwt.secret}")
+    private String secret;
 
+    private byte[] getSecretKey() {
+        return secret.getBytes(StandardCharsets.UTF_8);
+    }
 
     /**
      * 生成令牌
@@ -109,10 +115,10 @@ public class JwtAuthTokenManagerImpl implements AuthTokenManagerService {
     private String generateToken(Authentication authentication, int ttl, boolean isRefreshToken) {
         SysUserDetails userDetails = (SysUserDetails) authentication.getPrincipal();
         Map<String, Object> payload = new HashMap<>();
-        payload.put(JwtClaimConstants.USER_ID, userDetails.getUserId()); // 用户ID
-        payload.put(JwtClaimConstants.DEPT_ID, userDetails.getDeptId()); // 部门ID
-        payload.put(JwtClaimConstants.TENANT_ID, userDetails.getTenantId()); // 租户ID
-        payload.put(JwtClaimConstants.CAN_SWITCH_TENANT, Boolean.TRUE.equals(userDetails.getCanSwitchTenant())); // 租户切换权限标记
+        payload.put(JwtClaimConstants.User.ID, userDetails.getUserId()); // 用户ID
+        payload.put(JwtClaimConstants.User.DEPT_ID, userDetails.getDeptId()); // 部门ID
+        payload.put(JwtClaimConstants.Tenant.ID, userDetails.getTenantId()); // 租户ID
+        payload.put(JwtClaimConstants.Tenant.CAN_SWITCH, Boolean.TRUE.equals(userDetails.getCanSwitchTenant())); // 租户切换权限标记
 
         // 存储数据权限列表
         List<RoleDataScope> dataScopes = userDetails.getDataScopes();
@@ -126,14 +132,14 @@ public class JwtAuthTokenManagerImpl implements AuthTokenManagerService {
                         return scopeMap;
                     })
                     .collect(Collectors.toList());
-            payload.put(JwtClaimConstants.DATA_SCOPES, scopesList);
+            payload.put(JwtClaimConstants.User.DATA_SCOPES, scopesList);
         }
 
         // claims 中添加角色信息
         Set<String> roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toSet());
-        payload.put(JwtClaimConstants.AUTHORITIES, roles);
+        payload.put(JwtClaimConstants.User.AUTHORITIES, roles);
 
         // 获取当前用户的 Token 版本号，用于会话失效控制
         Long userId = userDetails.getUserId();
@@ -143,13 +149,13 @@ public class JwtAuthTokenManagerImpl implements AuthTokenManagerService {
             Object versionObj = redisTemplate.opsForValue().get(versionKey);
             tokenVersion = versionObj != null ? Convert.toInt(versionObj) : 0;
         }
-        payload.put(JwtClaimConstants.TOKEN_VERSION, tokenVersion);
+        payload.put(JwtClaimConstants.Token.VERSION, tokenVersion);
 
         Date now = new Date();
         payload.put(JWTPayload.ISSUED_AT, now);
-        payload.put(JwtClaimConstants.TOKEN_TYPE, false);
+        payload.put(JwtClaimConstants.Token.TYPE, false);
         if (isRefreshToken) {
-            payload.put(JwtClaimConstants.TOKEN_TYPE, true);
+            payload.put(JwtClaimConstants.Token.TYPE, true);
         }
 
         // 设置过期时间 -1 表示永不过期
@@ -160,7 +166,7 @@ public class JwtAuthTokenManagerImpl implements AuthTokenManagerService {
         payload.put(JWTPayload.SUBJECT, authentication.getName());
         payload.put(JWTPayload.JWT_ID, IdUtil.simpleUUID());
 
-        return JWTUtil.createToken(payload, secretKey);
+        return JWTUtil.createToken(payload, getSecretKey());
     }
 
 
@@ -185,10 +191,18 @@ public class JwtAuthTokenManagerImpl implements AuthTokenManagerService {
         try {
             JWT jwt = JWTUtil.parseToken(token);
             JSONObject payloads = jwt.getPayloads();
+
+
             String jti = payloads.getStr(JWTPayload.JWT_ID);
             Integer expirationAt = payloads.getInt(JWTPayload.EXPIRES_AT);
+            Long userId = payloads.getLong(JwtClaimConstants.User.ID);
 
-            revokeTokenByJti(jti, expirationAt);
+            if (userId == null) {
+                log.warn("【JWT Token管理器】Token 缺少 userId，无法加入黑名单");
+                return;
+            }
+
+            revokeTokenByJti(jti, expirationAt, userId);
             log.info("【JWT Token管理器】将令牌加入黑名单, jti={}", jti);
         } catch (Exception e) {
             log.error("【JWT Token管理器】吊销令牌失败", e);
@@ -246,10 +260,10 @@ public class JwtAuthTokenManagerImpl implements AuthTokenManagerService {
     /*
     * 将令牌加入黑名单 内部方法：通过jti吊销令牌（内部方法）
     * */
-    private void revokeTokenByJti(String jti, Integer expirationAt) {
+    private void revokeTokenByJti(String jti, Integer expirationAt, Long userId) {
         // ✅ 正确：检查是否没有内容
-        if (!StringUtils.hasText(jti)) {
-            log.warn("【JWT Token管理器】jti为空，无法加入黑名单");
+        if (!StringUtils.hasText(jti) || userId == null) {
+            log.warn("【JWT Token管理器】jti 或 userId 为空，无法加入黑名单");
             return;
         }
 
@@ -261,15 +275,17 @@ public class JwtAuthTokenManagerImpl implements AuthTokenManagerService {
                 log.info("【JWT Token管理器】令牌已过期，无需加入黑名单: jti={}", jti);
                 return;  // 已过期，不需要加入黑名单
             }
-            int expirationIn = expirationAt - currentTimeSeconds;
-            redisTemplate.opsForValue().set(revokedJtiKey, Boolean.TRUE, expirationIn, TimeUnit.SECONDS);
+            int ttl = expirationAt - currentTimeSeconds;
+            redisTemplate.opsForValue().set(revokedJtiKey, userId, ttl, TimeUnit.SECONDS);
 
-            log.info("【JWT Token管理器】令牌加入黑名单，设置TTL: jti={}, TTL={}秒", jti, expirationIn);
+            log.info("【JWT Token管理器】令牌加入黑名单，jti={}, userId={}, TTL={}秒",
+                    jti, userId, ttl);
 
         } else {
-            redisTemplate.opsForValue().set(revokedJtiKey, Boolean.TRUE);
-
-            log.info("【JWT Token管理器】令牌加入黑名单，无TTL: jti={}", jti);
+            // 永不过期的 token，存 userId
+            redisTemplate.opsForValue().set(revokedJtiKey, userId);
+            log.info("【JWT Token管理器】令牌加入黑名单（无TTL）, jti={}, userId={}",
+                    jti, userId);
         }
     }
 

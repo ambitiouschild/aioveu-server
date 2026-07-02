@@ -31,6 +31,7 @@
     </modules>
 
     <parent>
+<!--        ✅ Spring Security 6.2.x-->
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.2.3</version>
