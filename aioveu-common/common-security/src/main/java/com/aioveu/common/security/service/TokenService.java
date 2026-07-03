@@ -103,13 +103,13 @@ public class TokenService {
         JWT jwt = JWTUtil.parseToken(token);
         JSONObject payloads = jwt.getPayloads();
         SysUserDetails userDetails = new SysUserDetails();
-        userDetails.setUserId(payloads.getLong(JwtClaimConstants.USER_ID)); // 用户ID
-        userDetails.setDeptId(payloads.getLong(JwtClaimConstants.DEPT_ID)); // 部门ID
-        userDetails.setDataScope(payloads.getInt(JwtClaimConstants.DATA_SCOPE)); // 数据权限范围
+        userDetails.setUserId(payloads.getLong(JwtClaimConstants.User.ID)); // 用户ID
+        userDetails.setDeptId(payloads.getLong(JwtClaimConstants.User.DEPT_ID)); // 部门ID
+        userDetails.setDataScope(payloads.getInt(JwtClaimConstants.User.DATA_SCOPE)); // 数据权限范围
 
         userDetails.setUsername(payloads.getStr(JWTPayload.SUBJECT)); // 用户名
         // 角色集合
-        Set<SimpleGrantedAuthority> authorities = payloads.getJSONArray(JwtClaimConstants.AUTHORITIES)
+        Set<SimpleGrantedAuthority> authorities = payloads.getJSONArray(JwtClaimConstants.User.AUTHORITIES)
                 .stream()
                 .map(authority -> new SimpleGrantedAuthority(Convert.toStr(authority)))
                 .collect(Collectors.toSet());
