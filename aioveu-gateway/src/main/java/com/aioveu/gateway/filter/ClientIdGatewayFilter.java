@@ -35,6 +35,13 @@ import java.util.Objects;
  * @Date 2026/6/4 23:09
  * @Version 1.0
  **/
+/*
+直接 @Component即可，不需要任何额外配置
+Spring Cloud Gateway 不是 Servlet
+没有 HttpSecurity
+没有 BearerTokenAuthenticationFilter
+👉 Gateway 只认 GlobalFilter/ GatewayFilter
+* */
 @Component
 @Slf4j
 public class ClientIdGatewayFilter implements GlobalFilter, Ordered {

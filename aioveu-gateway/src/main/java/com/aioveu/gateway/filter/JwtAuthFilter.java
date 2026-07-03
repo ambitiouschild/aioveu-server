@@ -27,6 +27,16 @@ import java.util.List;
  * @Version 1.0
  **/
 
+/*
+直接 @Component即可，不需要任何额外配置
+Spring Cloud Gateway 不是 Servlet
+没有 HttpSecurity
+没有 BearerTokenAuthenticationFilter
+👉 Gateway 只认 GlobalFilter/ GatewayFilter
+* */
+
+
+
 @Slf4j
 @Component
 public class JwtAuthFilter implements GlobalFilter, Ordered {

@@ -62,7 +62,7 @@ public class JwtAuthTokenManagerImpl implements AuthTokenManagerService {
 
     private final SecurityProperties securityProperties;
     private final RedisTemplate<String, Object> redisTemplate;
-    @Value("${security.jwt.secret}")
+    @Value("${security.session.jwt.secret-key}")
     private String secret;
 
     private byte[] getSecretKey() {

@@ -5,6 +5,7 @@ import cn.hutool.json.JSONUtil;
 import com.aioveu.common.constant.JwtClaimConstants;
 import com.aioveu.common.security.config.property.SecurityProperties;
 import com.aioveu.common.security.filter.JwtBlacklistFilter;
+import com.aioveu.common.security.filter.JwtVersionFilter;
 import com.aioveu.common.security.filter.TenantFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -120,6 +121,8 @@ public class ResourceServerConfig {
 
     private final TenantFilter tenantFilter;  // 注入你的租户过滤器
 
+    private final JwtVersionFilter jwtVersionFilter;
+
     private final SecurityProperties securityProperties;
 
 
@@ -168,8 +171,10 @@ public class ResourceServerConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 注册过滤器 - 注意顺序很重要！  //在Security配置类中直接注册（推荐）
                 //方案1：将租户过滤器移到认证之后（推荐）
-                .addFilterBefore(jwtBlacklistFilter, BearerTokenAuthenticationFilter.class)  // ✅ 使用注入的过滤器 // 然后是JWT黑名单
-                .addFilterAfter(tenantFilter, BearerTokenAuthenticationFilter.class) ; // 在认证过滤器之后 // 租户过滤器最先
+                .addFilterAfter(tenantFilter, BearerTokenAuthenticationFilter.class) // 在认证过滤器之后 // 租户过滤器最先
+                .addFilterBefore(jwtVersionFilter, BearerTokenAuthenticationFilter.class)
+                .addFilterBefore(jwtBlacklistFilter, BearerTokenAuthenticationFilter.class); // ✅ 使用注入的过滤器 // 然后是JWT黑名单
+
 
         /*
                     Todo   过滤器执行顺序（重要
@@ -289,7 +294,7 @@ public class ResourceServerConfig {
 
         // 设置JWT中存储权限信息的声明字段名（对应JwtTokenCustomizerConfig中设置的声明）
         log.info("设置JWT中存储权限信息的声明字段名（对应JwtTokenCustomizerConfig中设置的声明）");
-        jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName(JwtClaimConstants.AUTHORITIES);
+        jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName(JwtClaimConstants.User.AUTHORITIES);
 
         // 创建JWT认证转换器 - 主要的认证转换组件
         log.info("创建JWT认证转换器 - 主要的认证转换组件");
