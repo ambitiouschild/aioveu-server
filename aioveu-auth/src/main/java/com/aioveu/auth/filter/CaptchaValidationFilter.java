@@ -11,6 +11,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.Ordered;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpMethod;
@@ -49,7 +50,7 @@ import java.util.Set;
  **/
 
 @Slf4j
-public class CaptchaValidationFilter extends OncePerRequestFilter {
+public class CaptchaValidationFilter extends OncePerRequestFilter implements Ordered{
 
 
     /**
@@ -125,6 +126,19 @@ public class CaptchaValidationFilter extends OncePerRequestFilter {
         this.redisTemplate = redisTemplate;
         this.codeGenerator = codeGenerator;
     }
+
+    /**
+     * 指定过滤器顺序
+     * 必须在 OAuth2TokenEndpointFilter 之前执行
+     */
+    @Override
+    public int getOrder() {
+        // OAuth2TokenEndpointFilter 内部 order ≈ 100
+        // 我们插在它前面
+        return Ordered.HIGHEST_PRECEDENCE + 10;
+    }
+
+
 
 
     /**

@@ -34,7 +34,8 @@
 <!--        ✅ Spring Security 6.2.x-->
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.3</version>
+        <version>3.2.5</version>
+<!--        从3.2.3升级-->
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 

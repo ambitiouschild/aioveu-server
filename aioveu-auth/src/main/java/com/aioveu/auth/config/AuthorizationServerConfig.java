@@ -235,12 +235,17 @@ public class AuthorizationServerConfig {
                         "/oauth2/revoke",
                         "/.well-known/openid-configuration"
                 )
-                .addFilterBefore(
-                        captchaValidationFilter(),  //调用Bean方法获取过滤器
-                        OAuth2TokenEndpointFilter.class   // ✅ 这才是唯一正确位置
-                )
+//                .addFilterBefore(
+//                        captchaValidationFilter(),  //调用Bean方法获取过滤器
+//                        OAuth2TokenEndpointFilter.class   // ✅ 这才是唯一正确位置
+//                )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .csrf(csrf -> csrf.disable());
+
+/*        AuthenticationProvider 是正确位置‌：验证码属于‌凭证验证逻辑‌的一部分，应嵌入 AuthenticationProvider（
+        如自定义 DaoAuthenticationProvider 子类）。
+        在此处处理能确保验证码校验与密码校验在同一事务/安全上下文中执行，且符合“认证逻辑下沉”的安全最佳实践 。*/
+
 
 
         //TODO  认证服务（auth）中的登录入口
