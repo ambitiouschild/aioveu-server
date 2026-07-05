@@ -12,6 +12,9 @@ import com.aioveu.auth.aioveu04Oauth2RegisteredClient.service.Oauth2RegisteredCl
 import com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.enums.RegisteredClientBizStatusEnum;
 import com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.mapper.Oauth2RegisteredClientBizMapper;
 import com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.model.entity.Oauth2RegisteredClientBiz;
+import com.aioveu.auth.model.TenantClientInitDTO;
+import com.aioveu.auth.oauth2.extension.smscode.SmsCodeAuthenticationToken;
+import com.aioveu.auth.oauth2.extension.wechat.WechatAuthenticationToken;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.ResultCode;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -23,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
@@ -30,6 +34,7 @@ import org.springframework.security.oauth2.server.authorization.settings.TokenSe
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -153,7 +158,11 @@ public class Oauth2RegisteredClientServiceImpl extends ServiceImpl<Oauth2Registe
     /*
      * 构建客户端
      * */
-    private RegisteredClient buildRegisteredClient(Oauth2RegisteredClientForm formData, String encodedSecret, String id) {
+    private RegisteredClient buildRegisteredClient(
+            Oauth2RegisteredClientForm formData,
+            String encodedSecret,
+            String id
+    ) {
 
         log.info("生成的随机id: id={}", id);
 
@@ -415,5 +424,76 @@ public class Oauth2RegisteredClientServiceImpl extends ServiceImpl<Oauth2Registe
         // 实现细节根据业务需求决定
 
     }
+
+
+    /*
+     * 根据租户名初始化客户端
+     * */
+    @Override
+    public boolean initClientByTenant(@RequestBody TenantClientInitDTO dto) {
+
+        String clientSecret = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+
+        RegisteredClient client = buildRegisteredClientByTenant(dto, clientSecret);
+
+        // 幂等校验
+        RegisteredClient existing = registeredClientRepository.findByClientId(client.getClientId());
+        if (existing != null) {
+            log.info("租户客户端已存在，跳过初始化: {}", client.getClientId());
+            return true;
+        }
+
+        registeredClientRepository.save(client);
+
+        // 写业务状态表
+        Oauth2RegisteredClientBiz biz = new Oauth2RegisteredClientBiz();
+        biz.setClientUUId(client.getId());
+        biz.setClientId(client.getClientId());
+        biz.setEnabled(RegisteredClientBizStatusEnum.NORMAL);
+        oauth2RegisteredClientBizMapper.insert(biz);
+
+        log.info("租户客户端初始化成功: {}", client.getClientId());
+        return true;
+    }
+
+    /**
+     * 根据租户信息构建 RegisteredClient（内部使用）
+     */
+    private RegisteredClient buildRegisteredClientByTenant(
+            TenantClientInitDTO dto,
+            String clientSecret
+    ) {
+        String clientId = dto.getTenantCode() + "-app";
+        String clientName = dto.getTenantName() + " app端";
+        String encodedSecret = passwordEncoder.encode(clientSecret);
+
+        return RegisteredClient.withId(UUID.randomUUID().toString())
+                .clientId(clientId)
+                .clientSecret(encodedSecret)
+                .clientName(clientName)
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                .authorizationGrantType(AuthorizationGrantType.PASSWORD)
+                .authorizationGrantType(WechatAuthenticationToken.WECHAT_MINI_APP)  // 微信小程序模式（自定义授权类型）
+                .authorizationGrantType(SmsCodeAuthenticationToken.SMS_CODE) // 短信验证码模式（自定义授权类型）
+                .redirectUri("http://127.0.0.1:8080/authorized")
+                .postLogoutRedirectUri("http://127.0.0.1:8080/logged-out")
+                .scope(OidcScopes.OPENID)
+                .scope(OidcScopes.PROFILE)
+                .clientSettings(ClientSettings.builder()
+                        .requireAuthorizationConsent(true)
+                        .build())
+                .tokenSettings(TokenSettings.builder()
+                        .accessTokenTimeToLive(Duration.ofDays(1))
+                        .refreshTokenTimeToLive(Duration.ofDays(30))
+                        .reuseRefreshTokens(true)
+                        .build())
+                .build();
+    }
+
+
+
 
 }

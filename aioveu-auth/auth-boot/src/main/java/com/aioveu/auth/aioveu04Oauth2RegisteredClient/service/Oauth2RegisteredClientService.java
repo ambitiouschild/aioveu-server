@@ -4,8 +4,10 @@ import com.aioveu.auth.aioveu04Oauth2RegisteredClient.model.entity.Oauth2Registe
 import com.aioveu.auth.aioveu04Oauth2RegisteredClient.model.form.Oauth2RegisteredClientForm;
 import com.aioveu.auth.aioveu04Oauth2RegisteredClient.model.query.Oauth2RegisteredClientQuery;
 import com.aioveu.auth.aioveu04Oauth2RegisteredClient.model.vo.Oauth2RegisteredClientVo;
+import com.aioveu.auth.model.TenantClientInitDTO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.springframework.web.bind.annotation.RequestBody;
 
 /**
  * @ClassName: Oauth2RegisteredClientService
@@ -74,4 +76,10 @@ public interface Oauth2RegisteredClientService extends IService<Oauth2Registered
      * 修改客户端状态
      * */
     void toggleClientStatus(String clientId, boolean enabled);
+
+
+    /*
+     * 根据租户名初始化客户端
+     * */
+    boolean initClientByTenant(TenantClientInitDTO dto);
 }

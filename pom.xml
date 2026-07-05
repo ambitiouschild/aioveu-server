@@ -217,6 +217,12 @@
 
         <dependency>
             <groupId>com.aioveu</groupId>
+            <artifactId>common-feign</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
             <artifactId>common-security</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -276,6 +282,27 @@
         <dependency>
             <groupId>com.aioveu</groupId>
             <artifactId>sms-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- tenant Feign接口-->
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>tenant-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- lss Feign接口-->
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>lss-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- auth Feign接口-->
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>auth-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 

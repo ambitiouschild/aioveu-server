@@ -195,14 +195,6 @@ public class AuthorizationServerConfig {
         ✅ 适合“基础设施类”
      *
      * */
-    @Bean
-    public CaptchaValidator captchaValidator(
-            StringRedisTemplate stringRedisTemplate,
-            CodeGenerator codeGenerator
-    ) {
-        log.info("创建验证码过滤器Bean,验证码过滤器用 stringRedisTemplate");
-        return new CaptchaValidator(stringRedisTemplate, codeGenerator);
-    }
 
 
     /**
@@ -502,31 +494,31 @@ public class AuthorizationServerConfig {
      * 注册客户端仓库
      * 管理OAuth2客户端应用注册信息（基于数据库存储）
      */
-    @Bean
-    public RegisteredClientRepository registeredClientRepository(JdbcTemplate jdbcTemplate) {
-        // ① 注入JdbcTemplate
-
-        log.info("【RegisteredClientRepository】@Bean方法参数 JdbcTemplate jdbcTemplate注入了数据库连接");
-        // 创建基于JDBC的客户端仓库
-        JdbcRegisteredClientRepository registeredClientRepository =
-                new JdbcRegisteredClientRepository(jdbcTemplate);
-        // ② 使用JdbcTemplate创建客户端仓库
-        log.info("【RegisteredClientRepository】new JdbcRegisteredClientRepository(jdbcTemplate)创建了基于JDBC的客户端仓库");
-
-        // 初始化 OAuth2 客户端
-        // 初始化系统所需的客户端应用
-//        initMallAppClient(registeredClientRepository);   // 商城APP客户端
-//        initMallAdminClient(registeredClientRepository);  // 管理后台客户端
-
-        /*
-        * 所有这三个@Bean方法都通过JdbcTemplate参数注入了数据库连接，
-        * 然后使用它创建相应的Spring Security OAuth2服务。
-        * JdbcTemplate本身是由Spring Boot根据application.yml中的spring.datasource
-        * 配置自动创建和注入的。
-        * */
-
-        return registeredClientRepository;
-    }
+//    @Bean
+//    public RegisteredClientRepository registeredClientRepository(JdbcTemplate jdbcTemplate) {
+//        // ① 注入JdbcTemplate
+//
+//        log.info("【RegisteredClientRepository】@Bean方法参数 JdbcTemplate jdbcTemplate注入了数据库连接");
+//        // 创建基于JDBC的客户端仓库
+//        JdbcRegisteredClientRepository registeredClientRepository =
+//                new JdbcRegisteredClientRepository(jdbcTemplate);
+//        // ② 使用JdbcTemplate创建客户端仓库
+//        log.info("【RegisteredClientRepository】new JdbcRegisteredClientRepository(jdbcTemplate)创建了基于JDBC的客户端仓库");
+//
+//        // 初始化 OAuth2 客户端
+//        // 初始化系统所需的客户端应用
+////        initMallAppClient(registeredClientRepository);   // 商城APP客户端
+////        initMallAdminClient(registeredClientRepository);  // 管理后台客户端
+//
+//        /*
+//        * 所有这三个@Bean方法都通过JdbcTemplate参数注入了数据库连接，
+//        * 然后使用它创建相应的Spring Security OAuth2服务。
+//        * JdbcTemplate本身是由Spring Boot根据application.yml中的spring.datasource
+//        * 配置自动创建和注入的。
+//        * */
+//
+//        return registeredClientRepository;
+//    }
 
 
     /**
@@ -587,13 +579,6 @@ public class AuthorizationServerConfig {
 
         return service;
     }
-
-    // 3. 添加Redis黑名单（需要实现）
-    @Component
-    public class TokenBlacklistService {
-        // 管理令牌吊销
-    }
-
 
     /**
      * OAuth2授权同意服务

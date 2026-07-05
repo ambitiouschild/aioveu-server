@@ -3,6 +3,8 @@ package com.aioveu.tenant.aioveu01Tenant.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.auth.api.AuthFeignClient;
+import com.aioveu.auth.model.TenantClientInitDTO;
 import com.aioveu.common.constant.SystemConstants;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.security.util.SecurityUtils;
@@ -70,6 +72,8 @@ public class TenantServiceImpl extends ServiceImpl<TenantMapper, Tenant> impleme
     private final TenantMapper tenantMapper;
 
     private final TenantManagerMenuInitService tenantManagerMenuInitService;
+
+    private final AuthFeignClient authFeignClient;
 
 
     /**
@@ -365,7 +369,14 @@ public class TenantServiceImpl extends ServiceImpl<TenantMapper, Tenant> impleme
             // ✅ 4) 复制平台菜单分类 + 菜单项（新增）
             tenantManagerMenuInitService.initTenantManagerMenu(newTenantId);
 
+            //调用 Auth 初始化客户端
+            TenantClientInitDTO initDTO = new TenantClientInitDTO();
+            String clientTenantCode = StrUtil.toLowerCase(StrUtil.trimToEmpty(tenant.getCode()));
+            initDTO.setTenantId(tenant.getId());
+            initDTO.setTenantCode(clientTenantCode);
+            initDTO.setTenantName(tenant.getName());
 
+            authFeignClient.initClientByTenant(initDTO);
 
             TenantCreateResultVO resultVo = new TenantCreateResultVO();
             resultVo.setTenantId(newTenantId);

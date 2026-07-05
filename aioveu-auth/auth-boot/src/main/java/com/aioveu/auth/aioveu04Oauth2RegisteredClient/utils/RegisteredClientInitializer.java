@@ -21,7 +21,8 @@ import java.util.UUID;
 
 /**
  * @ClassName: RegisteredClientInitializer
- * @Description TODO 「客户端初始化器」（✅ 正确位置）
+ * @Description TODO 「客户端初始化器」（✅ 正确位置）  它和“租户创建时初始化 client”是互斥设计
+ *                      这 100% 是“手动初始化”，而且是硬编码的、一次性的、不感知租户的那种手动初始化。
  * @Author aioveu
  * @Author 雒世松
  * @Date 2026/7/5 13:45
@@ -53,7 +54,7 @@ public class RegisteredClientInitializer {
 
         // 如果使用明文，在客户端认证的时候会自动升级加密方式，直接使用 bcrypt 加密避免不必要的麻烦
         // 加密客户端密钥
-        String encodeSecret = passwordEncoder().encode(clientSecret);
+        String encodeSecret = passwordEncoder.encode(clientSecret);
 
         // 检查客户端是否已存在
         RegisteredClient registeredMallAppClient = registeredClientRepository.findByClientId(clientId);
@@ -103,7 +104,7 @@ public class RegisteredClientInitializer {
          */
 
         // 检查客户端是否已存在，避免重复创建
-        String encodeSecret = passwordEncoder().encode(clientSecret);
+        String encodeSecret = passwordEncoder.encode(clientSecret);
 
         RegisteredClient registeredMallAdminClient = registeredClientRepository.findByClientId(clientId);
         String id = registeredMallAdminClient != null ? registeredMallAdminClient.getId() : UUID.randomUUID().toString();
