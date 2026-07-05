@@ -8,7 +8,7 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTPayload;
 import cn.hutool.jwt.JWTUtil;
-import com.aioveu.auth.TokenManager.config.property.SecurityProperties;
+import com.aioveu.auth.config.property.AuthSecurityProperties;
 import com.aioveu.auth.TokenManager.service.AuthTokenManagerService;
 import com.aioveu.auth.model.SysUserDetails;
 import com.aioveu.common.constant.JwtClaimConstants;
@@ -60,7 +60,7 @@ import java.util.stream.Collectors;
 public class JwtAuthTokenManagerImpl implements AuthTokenManagerService {
 
 
-    private final SecurityProperties securityProperties;
+    private final AuthSecurityProperties authSecurityProperties;
     private final RedisTemplate<String, Object> redisTemplate;
     @Value("${security.session.jwt.secret-key}")
     private String secret;
@@ -79,8 +79,8 @@ public class JwtAuthTokenManagerImpl implements AuthTokenManagerService {
     public AuthenticationToken generateToken(Authentication authentication) {
 
 
-        int accessTokenTimeToLive = securityProperties.getSession().getAccessTokenTimeToLive();
-        int refreshTokenTimeToLive = securityProperties.getSession().getRefreshTokenTimeToLive();
+        int accessTokenTimeToLive = authSecurityProperties.getSession().getAccessTokenTimeToLive();
+        int refreshTokenTimeToLive = authSecurityProperties.getSession().getRefreshTokenTimeToLive();
 
         String accessToken = generateToken(authentication, accessTokenTimeToLive);
         String refreshToken = generateToken(authentication, refreshTokenTimeToLive, true);

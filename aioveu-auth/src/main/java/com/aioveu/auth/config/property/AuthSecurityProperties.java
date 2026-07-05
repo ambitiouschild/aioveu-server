@@ -1,12 +1,14 @@
-package com.aioveu.auth.TokenManager.config.property;
+package com.aioveu.auth.config.property;
 
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @ClassName: SecurityProperties
@@ -21,7 +23,21 @@ import org.springframework.validation.annotation.Validated;
 @Component
 @Validated
 @ConfigurationProperties(prefix = "security")
-public class SecurityProperties {
+public class AuthSecurityProperties {
+
+
+    /**
+     * 白名单路径列表 - 从配置文件动态注入
+     * 配置示例：
+     * security:
+     *   whitelist-paths:
+     *     - "/api/v1/public/**"
+     *     - "/health"
+     *     - "/actuator/info"
+     */
+//    @Setter
+    private List<String> whitelistPaths = new ArrayList<>();
+
 
     /**
      * 会话管理配置

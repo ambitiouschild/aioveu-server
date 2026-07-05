@@ -13,9 +13,15 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 
 /**
@@ -34,7 +40,7 @@ import java.util.*;
 public class AuthController {
 
 
-
+    private final RedisTemplate<String, Object> redisTemplate;
 
     private final AuthTokenManagerService authTokenManagerService;// 令牌生成器
 
@@ -119,5 +125,29 @@ public class AuthController {
         log.info("【退出登录】退出登录成功");
         return Result.success();
     }
+
+
+    /*
+    * ✅ 不需要 /oauth2/logout
+        ✅ 不依赖 session
+        ✅ 不依赖 CSRF
+        ✅ 完美适配 Gateway + JWT
+    * */
+//    @PostMapping("/auth/logout")
+//    public Mono<Void> logout(@AuthenticationPrincipal Jwt jwt) {
+//
+//        String jti = jwt.getId();
+//        Long exp = jwt.getExpiresAt().toEpochSecond();
+//
+//        // 1. 加入黑名单
+//        redisTemplate.opsForValue()
+//                .set("token:blacklist:" + jti, "1", Duration.ofSeconds(exp - Instant.now().getEpochSecond()));
+//
+//        // 2. 踢 token_version
+//        Long userId = jwt.getClaim("user_id");
+//        redisTemplate.opsForValue().increment("user:token:version:" + userId);
+//
+//        return Mono.empty();
+//    }
 
 }

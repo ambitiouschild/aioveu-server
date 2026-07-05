@@ -4,6 +4,7 @@ package com.aioveu.auth.config;
 import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.hutool.captcha.generator.CodeGenerator;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.auth.config.property.AuthSecurityProperties;
 import com.aioveu.auth.filter.CaptchaValidationFilter;
 import com.aioveu.auth.oauth2.extension.customRefreshToken.CustomRefreshTokenAuthenticationConverter;
 import com.aioveu.auth.oauth2.extension.customRefreshToken.CustomRefreshTokenAuthenticationProvider;
@@ -81,6 +82,7 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 
 import java.security.KeyPair;
@@ -90,6 +92,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @Description: TODO 授权服务器配置
@@ -204,26 +207,40 @@ public class AuthorizationServerConfig {
 
 
         log.info("认证服务（auth）中的登录入口");
-
         log.info("配置授权服务器安全过滤器链");
+        // 应用OAuth2授权服务器的默认安全配置
+        //但被 Spring Authorization Server 的默认安全策略拦了
+        log.info("应用OAuth2授权服务器的默认安全配置");
+
+/*        这一行干了三件大事
+        做的事情                                        结果
+        注册 OAuth2 协议端点                          /oauth2/token
+        注册 OAuth2TokenEndpointFilter                登录入口
+        注册客户端认证过滤器                          BasicAuthenticationFilter*/
+
+        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+
 
         // 方案A：在令牌端点过滤器之前添加验证码过滤器
         // 这是最理想的位置，可以拦截所有令牌端点请求
         log.info("在应用默认安全配置前添加验证码过滤器");
-
         log.info("先添加过滤器，再应用默认配置");
         log.info("❌ 错误：OAuth2TokenEndpointFilter 还没有注册,添加到 BasicAuthenticationFilter 之前");
         log.info("这个过滤器是 Spring Security 内置的，在 OAuth2TokenEndpointFilter 之前执行");
-        http.addFilterBefore(
-                captchaValidationFilter(),  //调用Bean方法获取过滤器
-                BasicAuthenticationFilter.class   // 放在基本认证过滤器之前
-        );
-
-
-        // 应用OAuth2授权服务器的默认安全配置
-        //但被 Spring Authorization Server 的默认安全策略拦了
-        log.info("应用OAuth2授权服务器的默认安全配置");
-        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+        http
+                .securityMatcher(
+                        "/oauth2/token",
+                        "/oauth2/jwks",
+                        "/oauth2/authorize",
+                        "/oauth2/revoke",
+                        "/.well-known/openid-configuration"
+                )
+                .addFilterBefore(
+                        captchaValidationFilter(),  //调用Bean方法获取过滤器
+                        OAuth2TokenEndpointFilter.class   // ✅ 这才是唯一正确位置
+                )
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                .csrf(csrf -> csrf.disable());
 
 
         //TODO  认证服务（auth）中的登录入口
@@ -238,10 +255,6 @@ public class AuthorizationServerConfig {
                                 authenticationConverters -> // <1>
                                         // 自定义授权模式转换器(Converter)
                                         // 添加四种自定义认证模式的请求转换器
-
-
-
-
                                         authenticationConverters.addAll(
 
                                                 List.of(
@@ -694,43 +707,54 @@ public class AuthorizationServerConfig {
         registeredClientRepository.save(mallAppClient);
     }
 
-    @Bean
-    @Order(1) // 关键：比 default(2) 高，但低于授权服务器链
-    public SecurityFilterChain adminApiSecurityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .securityMatcher(
-                        "/aioveu/api/v8/admin/auth/oauth2-authorization/**",
-                        "/aioveu/api/v8/admin/auth/oauth2-authorization-consent/**",
-                        "/aioveu/api/v8/admin/auth/oauth2-registered-client/**",
-                        "/aioveu/api/v8/admin/auth/oauth2-registered-client-biz/**"
-                )
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().authenticated()
-                )
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(Customizer.withDefaults())
-                )
-                .csrf(csrf -> csrf.disable());
-
-        return http.build();
-    }
+//    @Bean
+//    @Order(1) // 关键：比 default(2) 高，但低于授权服务器链
+//    public SecurityFilterChain adminApiSecurityFilterChain(HttpSecurity http) throws Exception {
+//        http
+//                .securityMatcher(
+//                        "/aioveu/api/v8/admin/auth/oauth2-authorization/**",
+//                        "/aioveu/api/v8/admin/auth/oauth2-authorization-consent/**",
+//                        "/aioveu/api/v8/admin/auth/oauth2-registered-client/**",
+//                        "/aioveu/api/v8/admin/auth/oauth2-registered-client-biz/**"
+//                )
+//                .authorizeHttpRequests(auth -> auth
+//                        .anyRequest().authenticated()
+//                )
+//                .oauth2ResourceServer(oauth2 -> oauth2
+//                        .jwt(Customizer.withDefaults())
+//                )
+//                .csrf(csrf -> csrf.disable());
+//
+//        return http.build();
+//    }
 
     //用 AntPathRequestMatcher（最稳） 方案一（✅ 强烈推荐，最简单）
     //把 defaultSecurityFilterChain里的 requestMatchers(...)全部换成 AntPathRequestMatcher.antMatcher(...)
     // 比授权服务器链低
     @Bean
     @Order(2)
-    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain defaultSecurityFilterChain(
+            HttpSecurity http,
+            AuthSecurityProperties authSecurityProperties
+
+    ) throws Exception {
+
+
+        log.error("✅ ✅ ✅ 进入 defaultSecurityFilterChain ✅ ✅ ✅");
+
+
+        List<RequestMatcher> matchers = authSecurityProperties.getWhitelistPaths()
+                .stream()
+                .map(AntPathRequestMatcher::antMatcher)
+                .collect(Collectors.toList());
+
         http
                 .securityMatcher("/aioveu/api/v8/**")
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(
-                                AntPathRequestMatcher.antMatcher("/aioveu/api/v8/admin/auth/auth/captcha"),
-                                AntPathRequestMatcher.antMatcher("/aioveu/api/v8/app/auth/auth/captcha"),
-                                AntPathRequestMatcher.antMatcher("/aioveu/api/v8/admin/auth/auth/sms_code"),
-                                AntPathRequestMatcher.antMatcher("/aioveu/api/v8/admin/auth/auth/register")
-                        ).permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers(matchers.toArray(new RequestMatcher[0]))
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated()
                 )
                 .csrf(csrf -> csrf.disable());
 

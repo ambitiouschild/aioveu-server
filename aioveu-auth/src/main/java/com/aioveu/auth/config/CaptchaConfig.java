@@ -3,6 +3,7 @@ package com.aioveu.auth.config;
 import cn.hutool.captcha.generator.CodeGenerator;
 import cn.hutool.captcha.generator.MathGenerator;
 import cn.hutool.captcha.generator.RandomGenerator;
+import com.aioveu.auth.config.property.CaptchaProperties;
 import com.aioveu.auth.enums.CaptchaCodeTypeEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

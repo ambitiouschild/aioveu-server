@@ -140,6 +140,10 @@ public class JwtTokenCustomizerConfig {
 
                         // 数据权限 - 可以为空，但建议设置默认值
                         if (userDetails.getDataScope() != null) {
+
+                            log.error("【JWT-DEBUG】dataScope class = {}",
+                                    userDetails.getDataScope().getClass().getName());
+
                             claims.claim(
                                     JwtClaimConstants.User.DATA_SCOPE,
                                     userDetails.getDataScope().longValue()

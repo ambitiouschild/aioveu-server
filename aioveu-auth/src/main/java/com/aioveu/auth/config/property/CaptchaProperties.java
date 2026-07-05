@@ -1,4 +1,4 @@
-package com.aioveu.auth.config;
+package com.aioveu.auth.config.property;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

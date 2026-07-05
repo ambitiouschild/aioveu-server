@@ -17,6 +17,13 @@ public class ClaimUtils {
 
     public static Long getClaimAsLong(Jwt jwt, String claimName) {
         Object value = jwt.getClaim(claimName);
+
+        log.error("【ClaimUtils】claimName={}, value={}, class={}",
+                claimName,
+                value,
+                value == null ? "null" : value.getClass().getName());
+
+
         if (value instanceof Integer i) {
             return i.longValue();
         }

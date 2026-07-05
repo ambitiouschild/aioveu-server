@@ -114,6 +114,13 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
         return resolveTenantIdFromJwt(exchange)
                 .flatMap(tenantId -> {
+
+                    if (tenantId == null) {
+                        log.error("【ClientIdGatewayFilter】JWT tenant_id 为 null");
+                        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                        return exchange.getResponse().setComplete();
+                    }
+
                     // ✅ 有 tenantId，正常往下走
                     log.info("【ClientIdGatewayFilter】JWT tenantId={}", tenantId);
 
@@ -124,14 +131,28 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
                             // ❌ 不传 X-Client-Id
                             .build();
 
-                    return chain.filter(exchange.mutate().request(newReq).build());
+                    log.info("【ClientIdGatewayFilter】即将转发请求到 auth");
+
+                    // ⚠️ 这里如果返回 null，WebFlux 会直接结束，不报错
+                    return chain.filter(exchange.mutate().request(newReq).build())
+                            .doOnSubscribe(s -> log.info("【ClientIdGatewayFilter】✅ 已转发到 auth"))
+                            .doOnError(e -> {
+                                log.error("【ClientIdGatewayFilter】❌ 转发 auth 失败", e);
+                                exchange.getResponse().setStatusCode(HttpStatus.BAD_GATEWAY);
+                            });
+
                 })
-                .switchIfEmpty(Mono.defer(() -> {
-                    log.error("【ClientIdGatewayFilter】JWT 缺失 tenant_id");
-                    // ✅ 没有 tenantId，直接结束请求
+                .onErrorResume(e -> {
+                    log.error("【ClientIdGatewayFilter】JWT 处理失败", e);
                     exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                     return exchange.getResponse().setComplete();
-                }));
+                });
+//                .switchIfEmpty(Mono.defer(() -> {
+//                    log.error("【ClientIdGatewayFilter】JWT 缺失 tenant_id");
+//                    // ✅ 没有 tenantId，直接结束请求
+//                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+//                    return exchange.getResponse().setComplete();
+//                }));
     }
 
 
