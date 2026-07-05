@@ -2,6 +2,7 @@ package com.aioveu.common.security.filter;
 
 
 import com.aioveu.common.constant.JwtClaimConstants;
+import com.aioveu.common.security.config.property.SecurityProperties;
 import com.aioveu.common.security.util.ClaimUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,6 +18,7 @@ import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -35,6 +37,7 @@ import java.io.IOException;
 public class JwtVersionFilter extends OncePerRequestFilter {
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final SecurityProperties securityProperties;
 
     @Override
     protected void doFilterInternal(
@@ -72,6 +75,19 @@ public class JwtVersionFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+
+    /**
+     * ✅ 可选：放行公开接口（如果你不想在公共接口上查黑名单）
+     * 第一步：白名单接口 必须跳过你的三个 Filter
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        AntPathMatcher matcher = new AntPathMatcher();
+
+        return securityProperties.getWhitelistPaths().stream()
+                .anyMatch(path -> matcher.match(path, request.getRequestURI()));
     }
 
 }

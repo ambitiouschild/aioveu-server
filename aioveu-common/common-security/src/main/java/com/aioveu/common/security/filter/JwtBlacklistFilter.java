@@ -1,6 +1,7 @@
 package com.aioveu.common.security.filter;
 
 import com.aioveu.common.TokenManager.service.TokenManagerService;
+import com.aioveu.common.security.config.property.SecurityProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -15,6 +16,7 @@ import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -46,6 +48,8 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
     // ❌ 错误：如果没有 @Autowired 或构造函数注入，这个字段会是 null
     // ✅ 使用 final 字段 + @RequiredArgsConstructor
     private final TokenManagerService tokenManagerService;
+
+    private final SecurityProperties securityProperties;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -91,13 +95,14 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
 
     /**
      * ✅ 可选：放行公开接口（如果你不想在公共接口上查黑名单）
+     * 第一步：白名单接口 必须跳过你的三个 Filter
      */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String uri = request.getRequestURI();
-        return uri.startsWith("/public/")
-                || uri.startsWith("/open/")
-                || uri.startsWith("/actuator/");
+        AntPathMatcher matcher = new AntPathMatcher();
+
+        return securityProperties.getWhitelistPaths().stream()
+                .anyMatch(path -> matcher.match(path, request.getRequestURI()));
     }
 
 

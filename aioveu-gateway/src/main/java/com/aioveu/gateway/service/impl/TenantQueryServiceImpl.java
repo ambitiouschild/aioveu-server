@@ -94,6 +94,16 @@ public class TenantQueryServiceImpl implements TenantQueryService {
             return Mono.just(cached);
         }
 
+
+        /*
+        * Gateway 应用内线程
+             └─ WebClient
+                 └─ 直接通过 LoadBalancer
+                     └─ 请求 lb://aioveu-tenant
+                         └─ 租户服务
+          default-filters是 作用在 Gateway 应用级别的
+          WebClient 是在 同一个 Spring Context 里
+        * */
         // 2. 缓存未命中，调用 tenant-service
         return webClientBuilder.build()
                 .get()

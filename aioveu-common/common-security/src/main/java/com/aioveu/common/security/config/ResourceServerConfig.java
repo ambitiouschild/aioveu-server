@@ -158,8 +158,13 @@ public class ResourceServerConfig {
                             if (CollectionUtil.isNotEmpty(securityProperties.getWhitelistPaths())) {
                                 for (String whitelistPath : securityProperties.getWhitelistPaths()) {
 
-                                    // 使用MVC模式匹配器配置白名单路径为允许所有人访问
-                                    requests.requestMatchers(mvcMatcherBuilder.pattern(whitelistPath)).permitAll();
+//                                    // 使用MVC模式匹配器配置白名单路径为允许所有人访问
+//                                    requests.requestMatchers(mvcMatcherBuilder.pattern(whitelistPath)).permitAll();
+                                     //第二步（强烈建议）：白名单不要用 MvcRequestMatcher
+                                    //改成 AntPathMatcher（稳）
+                                    log.info("PermitAll path: {}", whitelistPath);
+                                    requests.requestMatchers(AntPathRequestMatcher.antMatcher(whitelistPath)).permitAll();
+
                                 }
                             }
                             // 除白名单外的所有其他请求都需要认证
@@ -171,7 +176,7 @@ public class ResourceServerConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 注册过滤器 - 注意顺序很重要！  //在Security配置类中直接注册（推荐）
                 //方案1：将租户过滤器移到认证之后（推荐）
-                .addFilterAfter(tenantFilter, BearerTokenAuthenticationFilter.class) // 在认证过滤器之后 // 租户过滤器最先
+                .addFilterBefore(tenantFilter, BearerTokenAuthenticationFilter.class) // 在认证过滤器之后 // 租户过滤器最先
                 .addFilterBefore(jwtVersionFilter, BearerTokenAuthenticationFilter.class)
                 .addFilterBefore(jwtBlacklistFilter, BearerTokenAuthenticationFilter.class); // ✅ 使用注入的过滤器 // 然后是JWT黑名单
 
