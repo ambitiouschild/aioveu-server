@@ -120,20 +120,20 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
                         // ✅ 有 tenantId，正常往下走
                         log.info("【ClientIdGatewayFilter】JWT tenantId={}", tenantId);
                         builder.header("X-Tenant-Id", String.valueOf(tenantId));
+                        return doFilter(exchange, chain, builder);
 
                     }else {
-                        log.info("【ClientIdGatewayFilter】JWT 无 tenant_id，放行（登录态）");
+                        log.info("【ClientIdGatewayFilter】✅ 2. JWT 无 tenant_id（登录态）→ 走公共接口逻辑");
+
+                        //------------------------------------------------------------------
+                        // ✅ 2. JWT 无 tenant_id → 走公共逻辑
+                        return resolveClientId(exchange)
+                                .flatMap(clientId ->
+                                        handleClientIdToTenant(exchange, chain, clientId, builder)
+                                );
+
+                        //------------------------------------------------------------------
                     }
-
-                    log.info("【ClientIdGatewayFilter】即将转发请求到 auth");
-                    // ⚠️ 这里如果返回 null，WebFlux 会直接结束，不报错
-                    return chain.filter(exchange.mutate().request(builder.build()).build())
-                            .doOnSubscribe(s -> log.info("【ClientIdGatewayFilter】✅ 已转发到 auth"))
-                            .doOnError(e -> {
-                                log.error("【ClientIdGatewayFilter】❌ 转发 auth 失败", e);
-                                exchange.getResponse().setStatusCode(HttpStatus.BAD_GATEWAY);
-                            });
-
 
                 })
                 .onErrorResume(e -> {
@@ -148,6 +148,28 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
     }
 
 
+    /**
+     * ✅ 统一出口：只在这里调 chain.filter
+     */
+    private Mono<Void> doFilter(
+            ServerWebExchange exchange,
+            GatewayFilterChain chain,
+            ServerHttpRequest.Builder builder) {
+
+        log.info("【ClientIdGatewayFilter】即将转发请求到 对应微服务");
+        // ⚠️ 这里如果返回 null，WebFlux 会直接结束，不报错
+        return chain.filter(exchange.mutate().request(builder.build()).build())
+                .doOnSubscribe(s ->
+                        log.info("【ClientIdGatewayFilter】✅ 已转发请求")
+                )
+                .doOnError(e -> {
+                    log.error("【ClientIdGatewayFilter】❌ 转发失败", e);
+                    exchange.getResponse().setStatusCode(HttpStatus.BAD_GATEWAY);
+                });
+    }
+
+
+
 
     /**
      * 解析 clientId（优先级从高到低） （✅ 带校验）
@@ -157,6 +179,7 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
     private Mono<Void> handlePublicClient(ServerWebExchange exchange,GatewayFilterChain chain) {
 
 
+        ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
         // ✅ 防御：理论上不可能进来，但防止以后被人改 filter 顺序
         if (hasAuthorizationHeader(exchange)) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -169,48 +192,12 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
                 // 2. 如果解析失败或为空，给一个默认值
                 // .defaultIfEmpty("system_default")
                 // 3. 使用 flatMap 确保非阻塞
-                .flatMap(clientId -> {
+                .flatMap(clientId ->
 
+                        //公共逻辑：clientId → tenantId → 转发
+                        handleClientIdToTenant(exchange, chain, clientId, builder)
 
-                    // ✅✅✅ 检测就放在这里 ✅✅✅
-                    if (!clientWhitelistWithRedisService.isValid(clientId)) {
-                        log.error("【ClientIdGatewayFilter】非法 clientId: {}", clientId);
-                        exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-                        return exchange.getResponse().setComplete();
-                    }
-                    log.debug("【ClientIdGatewayFilter】注入 X-Client-Id = {}", clientId);
-
-
-                    // ✅ 公共接口：直接查 tenantId
-                    //方案一（✅ 强烈推荐）：用 Mono.fromCallable
-                    //这是 WebFlux + Feign 在 Gateway 里的标准写法
-                    //把 Feign 扔到 独立线程池,不阻塞 WebFlux event loopmGateway 不再吞异常
-
-                    /*
-                    *   ✅ 正确原则（你这个架构必须遵守）
-                        WebFlux Gateway 里：
-                        ✅ 只做 Header / 路由 / 校验
-                        ❌ 不直接在 Filter 里调 Feign
-                    * */
-                    return  tenantQueryService.getTenantIdByClientId(clientId)
-                            // 1. 调试用：看看 WebClient 到底返回了什么（如果有值的话）
-                            .doOnNext(tenantId -> log.info("【ClientIdGatewayFilter】WebClient 返回 tenantId={}", tenantId))
-                            // 2. 过滤掉 null 和 tenantId 为空的情况
-                            .filter(tenantId -> tenantId != null)
-                            // 4. 处理有值的情况
-                            .flatMap(tenantId -> {
-
-                                log.info("【ClientIdGatewayFilter】通过 clientId={} 获取 tenantId={}",
-                                        clientId, tenantId);
-
-                                return chain.filter(
-                                        exchange.mutate()
-                                                .request(buildRequestWithTenantId(exchange, clientId, tenantId))
-                                                .build()
-                                );
-                            });
-
-                })
+                )
                 .switchIfEmpty(Mono.defer(() -> {
                     log.error("【ClientIdGatewayFilter】WebClient 返回 empty 或未匹配到租户");
                     ServerHttpRequest newReq = exchange.getRequest()
@@ -265,6 +252,67 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
         // 4. 最终兜底
         return Mono.just("system_default");
     }
+
+
+    /**
+     * ✅ 公共逻辑：clientId → tenantId → 转发
+     * 可用于：
+     *  - 公共接口
+     *  - JWT 登录态兜底
+     *  （只拼 Header，不调 chain）
+     */
+    private Mono<Void> handleClientIdToTenant(
+            ServerWebExchange exchange,
+            GatewayFilterChain chain,
+            String clientId,
+            ServerHttpRequest.Builder builder) {
+
+        // ✅✅✅ 检测就放在这里 ✅✅✅
+        if (!clientWhitelistWithRedisService.isValid(clientId)) {
+            log.error("【ClientIdGatewayFilter】非法 clientId: {}", clientId);
+            exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+            return exchange.getResponse().setComplete();
+        }
+        log.debug("【ClientIdGatewayFilter】注入 X-Client-Id = {}", clientId);
+
+
+        // ✅ 公共接口：直接查 tenantId
+        //方案一（✅ 强烈推荐）：用 Mono.fromCallable
+        //这是 WebFlux + Feign 在 Gateway 里的标准写法
+        //把 Feign 扔到 独立线程池,不阻塞 WebFlux event loopmGateway 不再吞异常
+
+                    /*
+                    *   ✅ 正确原则（你这个架构必须遵守）
+                        WebFlux Gateway 里：
+                        ✅ 只做 Header / 路由 / 校验
+                        ❌ 不直接在 Filter 里调 Feign
+                    * */
+        return  tenantQueryService.getTenantIdByClientId(clientId)
+                // 1. 调试用：看看 WebClient 到底返回了什么（如果有值的话）
+                .doOnNext(tenantId -> log.info("【ClientIdGatewayFilter】WebClient 返回 tenantId={}", tenantId))
+                // 2. 过滤掉 null 和 tenantId 为空的情况
+                .filter(tenantId -> tenantId != null)
+                // 4. 处理有值的情况
+                .flatMap(tenantId -> {
+
+                    log.info("【ClientIdGatewayFilter】通过 clientId={} 获取 tenantId={}",
+                            clientId, tenantId);
+                    builder.header("X-Client-Id", clientId)
+                            .header("X-Tenant-Id", String.valueOf(tenantId));
+                    return doFilter(exchange, chain, builder);
+
+//                    return chain.filter(
+//                            exchange.mutate()
+//                                    .request(buildRequestWithTenantId(exchange, clientId, tenantId))
+//                                    .build()
+//                    );
+                })
+                .switchIfEmpty(Mono.defer(() -> {
+                    log.warn("【ClientIdGatewayFilter】未查到租户，放行");
+                    return doFilter(exchange, chain, builder);
+                }));
+    }
+
 
     @Override
     public int getOrder() {
