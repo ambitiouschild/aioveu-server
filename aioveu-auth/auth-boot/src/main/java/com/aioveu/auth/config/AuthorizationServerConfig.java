@@ -625,6 +625,7 @@ public class AuthorizationServerConfig {
 //                        "/aioveu/api/v8/admin/auth/oauth2-registered-client/**",
 //                        "/aioveu/api/v8/admin/auth/oauth2-registered-client-biz/**"
 //                )
+//                //“所有请求，只要有 Token / 登录过，就放行”
 //                .authorizeHttpRequests(auth -> auth
 //                        .anyRequest().authenticated()
 //                )
@@ -658,14 +659,27 @@ public class AuthorizationServerConfig {
 
         //Spring 认为你没有“访问这个路径的权限”
         //“这个请求有没有权限访问 /aioveu/api/v8/admin/auth/auth/logout？”
+//        👉 白名单 ≠ 不验 Token
+//👉         白名单 = 不验“你能不能访问这个接口”
         http
-                .securityMatcher("/aioveu/api/v8/**")
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(matchers.toArray(new RequestMatcher[0]))
-                        .permitAll()
-                        .anyRequest()
-                        .authenticated()
+                .securityMatcher(
+                        AntPathRequestMatcher.antMatcher("/aioveu/api/v8/**")
                 )
+                .authorizeHttpRequests(authorize -> authorize
+                        // ✅ 1️公共 / 验证码（不需要 Token） ✅ 白名单
+                        .requestMatchers(matchers.toArray(new RequestMatcher[0]))
+                        .permitAll()    //“我根本不想管你有没有权限”
+                        // ✅ 2️登出（你自己定义的接口）  有 Token 就放行（logout / oauth2 管理）
+                        .requestMatchers(
+                                AntPathRequestMatcher.antMatcher("/aioveu/api/v8/**/auth/logout"),
+                                AntPathRequestMatcher.antMatcher("/aioveu/api/v8/admin/auth/**")
+                        ).authenticated()   // ✅ 有 Token 就放行   //“只要登录过，我就认为你有权限访问”
+                        // ✅ 4️兜底（防误伤）
+                        .anyRequest()
+                        .denyAll()
+
+                )
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .csrf(csrf -> csrf.disable());
 
         return http.build();
