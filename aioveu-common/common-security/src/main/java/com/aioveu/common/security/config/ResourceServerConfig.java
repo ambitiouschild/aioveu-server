@@ -163,7 +163,9 @@ public class ResourceServerConfig {
                                      //第二步（强烈建议）：白名单不要用 MvcRequestMatcher
                                     //改成 AntPathMatcher（稳）
                                     log.info("PermitAll path: {}", whitelistPath);
-                                    requests.requestMatchers(AntPathRequestMatcher.antMatcher(whitelistPath)).permitAll();
+                                    requests.requestMatchers(
+                                            AntPathRequestMatcher.antMatcher(whitelistPath))
+                                            .permitAll();  // 走过滤器，但不认证
 
                                 }
                             }
