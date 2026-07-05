@@ -9,6 +9,7 @@ import com.aioveu.ums.aioveu01Member.model.form.UmsMemberForm;
 import com.aioveu.ums.aioveu01Member.model.query.UmsMemberQuery;
 import com.aioveu.ums.aioveu02MemberAddress.converter.UmsMemberAddressConverter;
 import com.aioveu.ums.aioveu02MemberAddress.model.entity.UmsMemberAddress;
+import com.aioveu.ums.dto.*;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -17,9 +18,6 @@ import com.aioveu.common.constant.MemberConstants;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.pms.model.vo.ProductHistoryVO;
-import com.aioveu.ums.dto.MemberAddressDTO;
-import com.aioveu.ums.dto.MemberAuthDTO;
-import com.aioveu.ums.dto.MemberRegisterDto;
 import com.aioveu.ums.aioveu01Member.mapper.UmsMemberMapper;
 import com.aioveu.ums.aioveu01Member.model.entity.UmsMember;
 import com.aioveu.ums.aioveu01Member.model.vo.UmsMemberVO;
@@ -182,22 +180,24 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
     @Override
     public MemberAuthDTO getMemberByOpenidAndTenantId(String openid,Long tenantId) {
 
-        log.info("构建查询条件：按openid 和 tenantId精确匹配，只查询必要字段");
+        log.info("【Ums】构建查询条件：按openid 和 tenantId精确匹配，只查询必要字段");
         UmsMember entity = this.getOne(new LambdaQueryWrapper<UmsMember>()
                 .eq(UmsMember::getOpenid, openid)
                 .select(UmsMember::getId,     // 会员ID
+                        UmsMember::getNickName,  // 昵称
+                        UmsMember::getMobile,  // 手机号
                         UmsMember::getOpenid,  // 微信openid
                         UmsMember::getTenantId,  // tenantId
                         UmsMember::getStatus  // 会员状态
                 )
         );
 
-        log.info("会员不存在时返回null，由调用方处理");
+        log.info("【Ums】会员不存在时返回null，由调用方处理");
         if (entity == null) {
             return null;
         }
 
-        log.info("使用转换器将Entity转换为认证DTO");
+        log.info("【Ums】使用转换器将Entity转换为认证DTO");
         return umsMemberConverter.entity2OpenidAuthDTO(entity);
 
     }
@@ -231,15 +231,18 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
     /**
      *  TODO 新增会员（会员注册）
      *
-     * @param memberRegisterDTO 会员注册信息DTO
+     * @param memberRegisterForm 会员注册信息DTO
      * @return 新增会员的ID
      * @throws AssertionError 当保存失败时抛出断言异常
      */
     @Override
-    public Long addMember(MemberRegisterDto memberRegisterDTO) {
+    public MemberRegisterDTO registerMember(MemberRegisterForm memberRegisterForm) {
+
+        memberRegisterForm.setAvatarUrl("https://cdn.aioveu.com/aioveu/aioveu-server/avatar/avatar.png");
+        memberRegisterForm.setNickName("新注册微信用户");
 
         log.info("DTO转换为Entity");
-        UmsMember umsMember = umsMemberConverter.dto2Entity(memberRegisterDTO);
+        UmsMember umsMember = umsMemberConverter.dto2Entity(memberRegisterForm);
 
         log.info("保存到数据库");
         boolean result = this.save(umsMember);
@@ -248,7 +251,10 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
         Assert.isTrue(result, "新增会员失败");
 
         log.info("返回新会员的ID");
-        return umsMember.getId();
+
+        MemberRegisterDTO memberRegisterDTO = umsMemberConverter.entity2MemberInfoDTO(umsMember);
+
+        return memberRegisterDTO;
     }
 
     /**

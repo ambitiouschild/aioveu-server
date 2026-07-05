@@ -3,13 +3,11 @@ package com.aioveu.ums.aioveu01Member.service;
 
 import com.aioveu.ums.aioveu01Member.model.form.UmsMemberForm;
 import com.aioveu.ums.aioveu01Member.model.query.UmsMemberQuery;
+import com.aioveu.ums.dto.*;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.aioveu.pms.model.vo.ProductHistoryVO;
-import com.aioveu.ums.dto.MemberAddressDTO;
-import com.aioveu.ums.dto.MemberAuthDTO;
-import com.aioveu.ums.dto.MemberRegisterDto;
 import com.aioveu.ums.aioveu01Member.model.entity.UmsMember;
 import com.aioveu.ums.aioveu01Member.model.vo.UmsMemberVO;
 
@@ -62,10 +60,10 @@ public interface UmsMemberService extends IService<UmsMember> {
     /**
      * 新增会员
      *
-     * @param member
+     * @param memberRegisterForm
      * @return
      */
-    Long addMember(MemberRegisterDto member);
+    MemberRegisterDTO registerMember(MemberRegisterForm memberRegisterForm);
 
     /**
      * 获取登录会员信息

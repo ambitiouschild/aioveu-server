@@ -1,13 +1,14 @@
 package com.aioveu.ums.aioveu01Member.controller.app;
 
 import com.aioveu.common.security.util.SecurityUtils;
+import com.aioveu.ums.dto.MemberRegisterForm;
+import com.aioveu.ums.dto.MemberRegisterDTO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.aioveu.common.result.Result;
 import com.aioveu.pms.model.vo.ProductHistoryVO;
 import com.aioveu.ums.dto.MemberAddressDTO;
 import com.aioveu.ums.dto.MemberAuthDTO;
-import com.aioveu.ums.dto.MemberRegisterDto;
 import com.aioveu.ums.aioveu01Member.model.entity.UmsMember;
 import com.aioveu.ums.aioveu01Member.model.vo.UmsMemberVO;
 import com.aioveu.ums.aioveu01Member.service.UmsMemberService;
@@ -37,11 +38,11 @@ public class MemberController {
         return Result.success(openid);
     }
 
-    @Operation(summary= "新增会员")
-    @PostMapping
-    public Result<Long> addMember(@RequestBody MemberRegisterDto member) {
-        Long memberId = memberService.addMember(member);
-        return Result.success(memberId);
+    @Operation(summary= "注册会员")
+    @PostMapping("/register")
+    public Result<MemberRegisterDTO> registerMember(@RequestBody MemberRegisterForm memberRegisterForm) {
+        MemberRegisterDTO memberRegisterDTO = memberService.registerMember(memberRegisterForm);
+        return Result.success(memberRegisterDTO);
     }
 
     @Operation(summary= "获取登录会员信息")

@@ -30,9 +30,20 @@ public class MemberDetails implements UserDetails {
     private Long id;
 
     /**
-     * 会员用户名(openid/mobile)
+     * 用户名对应昵称
      */
-    private String username;
+    private String userName;
+
+    /**
+     * 手机号
+     */
+    private String mobile;
+
+
+    /**
+     * 微信OpenID
+     */
+    private String openid;
 
     /**
      * 租户ID  // 新增：租户ID
@@ -67,7 +78,9 @@ public class MemberDetails implements UserDetails {
      */
     public MemberDetails(MemberAuthDTO memAuthInfo) {
         this.setId(memAuthInfo.getId());
-        this.setUsername(memAuthInfo.getUsername());
+        this.setUserName(memAuthInfo.getNickName());
+        this.setMobile(memAuthInfo.getMobile());
+        this.setOpenid(memAuthInfo.getOpenid());
         this.setTenantId(memAuthInfo.getTenantId());
         this.setEnabled(GlobalConstants.STATUS_YES.equals(memAuthInfo.getStatus()));
     }
@@ -84,7 +97,7 @@ public class MemberDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return this.username;
+        return this.userName;
     }
 
     @Override

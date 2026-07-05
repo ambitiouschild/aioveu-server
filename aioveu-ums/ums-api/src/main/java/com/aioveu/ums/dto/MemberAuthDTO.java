@@ -23,9 +23,20 @@ public class MemberAuthDTO {
     private Long id;
 
     /**
-     * 会员名(openId、mobile)
+     * 昵称
      */
-    private String username;
+    private String nickName;
+
+    /**
+     * 手机号
+     */
+    private String mobile;
+
+
+    /**
+     * 微信OpenID
+     */
+    private String openid;
 
     /**
      * 租户ID

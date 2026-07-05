@@ -1,23 +1,20 @@
 package com.aioveu.auth.service;
 
-import cn.hutool.core.lang.Assert;
 import com.aioveu.auth.model.MemberDetails;
-import com.aioveu.common.enums.StatusEnum;
 import com.aioveu.common.result.Result;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
 import com.aioveu.ums.api.MemberFeignClient;
 import com.aioveu.ums.dto.MemberAuthDTO;
-import com.aioveu.ums.dto.MemberRegisterDto;
+import com.aioveu.ums.dto.MemberRegisterForm;
+import com.aioveu.ums.dto.MemberRegisterDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -72,45 +69,43 @@ public class MemberDetailsService {
         // 根据 openid 获取微信用户认证信息
         // 调用会员服务API，查询微信openid对应用户
         // 首先尝试获取用户
-        MemberAuthDTO memberAuthInfo = memberFeignClient.loadUserByOpenId(openid).getData();
-
+        Result<MemberAuthDTO>  memberAuthDTOResult = memberFeignClient.loadUserByOpenId(openid);
+        //   注册失败处理----------------------
+        if (!Result.isSuccess(memberAuthDTOResult)) {
+            throw new UsernameNotFoundException("会员信息查询失败: " + memberAuthDTOResult.getMsg());
+        }
+        MemberAuthDTO memberAuthDTO = memberAuthDTOResult.getData();
 
         // 会员不存在，注册成为新会员
-        if (memberAuthInfo==null) {
-
-            MemberRegisterDto memberRegisterInfo = new MemberRegisterDto();
-            memberRegisterInfo.setOpenid(openid);
-            memberRegisterInfo.setAvatarUrl("https://cdn.aioveu.com/aioveu/aioveu-server/avatar/avatar.png");
-            memberRegisterInfo.setNickName("新注册微信用户");
+        if (memberAuthDTO == null) {
+            MemberRegisterForm memberRegisterInfo = new MemberRegisterForm();
             // 注册会员
             //通过Feign客户端调用会员服务的注册接口，将注册信息发送到会员服务，并接收注册结果。
-            Result<Long> registerMemberResult = memberFeignClient.registerMember(memberRegisterInfo);
-
+            Result<MemberRegisterDTO> memberRegisterResult = memberFeignClient.registerMember(memberRegisterInfo);
 
             //   注册失败处理----------------------
-            if (!Result.isSuccess(registerMemberResult)) {
-                throw new UsernameNotFoundException("会员注册失败: " + registerMemberResult.getMsg());
+            if (!Result.isSuccess(memberRegisterResult)) {
+                throw new UsernameNotFoundException("会员注册失败: " + memberRegisterResult.getMsg());
             }
-
-
+            MemberRegisterDTO memberRegister = memberRegisterResult.getData();
             //注册成功后，不要立即使用openid去查询，而是使用注册接口返回的会员ID，再调用根据会员ID获取认证信息的接口。这样避免因为主从同步延迟等问题导致查不到用户。
             // 注册成功将会员信息赋值给会员认证信息
             //提供通过会员ID查询的接口（这样在注册后我们可以立即用注册返回的会员ID去查询，避免使用openid查询可能存在的延迟）
 
             //避免使用OpenID立即查询可能的数据延迟问题
             //通过会员ID查询是直接的主键查询，没有同步延迟问题
-            Long memberId;
-            if (Result.isSuccess(registerMemberResult) && (memberId = registerMemberResult.getData()) != null) {
-                memberAuthInfo = new MemberAuthDTO(memberId, openid,null, StatusEnum.ENABLE.getValue());
+            if (Result.isSuccess(memberRegisterResult) && memberRegister != null) {
+                memberAuthDTO.setId(memberRegister.getId());
+                memberAuthDTO.setNickName(memberRegister.getNickName());
+                memberAuthDTO.setMobile(memberRegister.getMobile());
+                memberAuthDTO.setOpenid(memberRegister.getOpenid());
+                memberAuthDTO.setTenantId(memberRegister.getTenantId());
+                memberAuthDTO.setStatus(memberRegister.getStatus());
+
             }
         }
 
-        // 用户不存在
-        if (memberAuthInfo == null) {
-            throw new UsernameNotFoundException(ResultCode.USER_NOT_EXIST.getMsg());
-        }
-
-        MemberDetails userDetails = new MemberDetails(memberAuthInfo);
+        MemberDetails userDetails = new MemberDetails(memberAuthDTO);
         if (!userDetails.isEnabled()) {
             throw new DisabledException("该账户已被禁用!");
         } else if (!userDetails.isAccountNonLocked()) {
@@ -130,20 +125,14 @@ public class MemberDetailsService {
      */
     public MemberDetails loadUserByOpenidAndClientId(String openid,String clientId) {
 
-        // 6. ★ 通过 clientId 查询 wxAppid 和 tenantId
-
-        log.info("=======【Auth MemberDetailsService】根据openId和clientId获取用户信息=======");
-
+        // 1. ★ 通过 clientId 查询 wxAppid 和 tenantId
+        log.info("=======【Auth MemberDetailsService】根据openId和clientId获取用户信息,Auth没有自资源服务器的TenantFilter=======");
         log.info("【Auth MemberDetailsService】开始查询clientId: {}", clientId);
-
         // 这里需要你实现数据库查询
         Result<TenantWxAppInfo> result = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
-
         TenantWxAppInfo tenantWxAppInfo = result.getData();
         log.info("【Auth MemberDetailsService】查询到的tenantWxAppInfo: {}", tenantWxAppInfo);
-
         if (tenantWxAppInfo == null) {
-//            throw new OAuth2AuthenticationException("无效的客户端ID");
             log.info("无效的客户端ID: {}", clientId);
         }
 
@@ -153,31 +142,36 @@ public class MemberDetailsService {
 
         //用户通用
 //        MemberAuthDTO memberAuthInfo = memberFeignClient.loadUserByOpenId(openid).getData();
-
         // 根据 openid 和 tenantId 获取微信用户认证信息
         // 调用会员服务API，查询微信openid对应用户
         // 首先尝试获取用户
-        MemberAuthDTO memberAuthInfo = memberFeignClient.loadUserByOpenIdAndTenantId(openid,tenantId).getData();
+        Result<MemberAuthDTO>  memberAuthDTOResult = memberFeignClient.loadUserByOpenIdAndTenantId(openid,tenantId);
+        //   注册失败处理----------------------
+        if (!Result.isSuccess(memberAuthDTOResult)) {
+            throw new UsernameNotFoundException("会员信息查询失败: " + memberAuthDTOResult.getMsg());
+        }
+        MemberAuthDTO memberAuthDTO = memberAuthDTOResult.getData();
+        log.info("【Auth MemberDetailsService】查询到用户信息 memberAuthInfo {}", memberAuthDTO);
 
-        log.info("【Auth MemberDetailsService】查询到用户信息 memberAuthInfo {}", memberAuthInfo);
+
         // 会员不存在，注册成为新会员
-        if (memberAuthInfo==null) {
+        if (memberAuthDTO==null) {
 
-            MemberRegisterDto memberRegisterInfo = new MemberRegisterDto();
+            MemberRegisterForm memberRegisterInfo = new MemberRegisterForm();
             memberRegisterInfo.setOpenid(openid);
             memberRegisterInfo.setAvatarUrl("https://cdn.aioveu.com/aioveu/aioveu-server/avatar/avatar.png");
             memberRegisterInfo.setNickName("新注册微信用户");
             memberRegisterInfo.setTenantId(tenantId);
             // 注册会员
             //通过Feign客户端调用会员服务的注册接口，将注册信息发送到会员服务，并接收注册结果。
-            Result<Long> registerMemberResult = memberFeignClient.registerMember(memberRegisterInfo);
+            Result<MemberRegisterDTO> registerMemberResult = memberFeignClient.registerMember(memberRegisterInfo);
 
 
             //   注册失败处理----------------------
             if (!Result.isSuccess(registerMemberResult)) {
                 throw new UsernameNotFoundException("【Auth MemberDetailsService】会员注册失败: " + registerMemberResult.getMsg());
             }
-
+            MemberRegisterDTO memberRegister = registerMemberResult.getData();
 
             //注册成功后，不要立即使用openid去查询，而是使用注册接口返回的会员ID，再调用根据会员ID获取认证信息的接口。这样避免因为主从同步延迟等问题导致查不到用户。
             // 注册成功将会员信息赋值给会员认证信息
@@ -185,26 +179,19 @@ public class MemberDetailsService {
 
             //避免使用OpenID立即查询可能的数据延迟问题
             //通过会员ID查询是直接的主键查询，没有同步延迟问题
-            Long memberId;
-            if (Result.isSuccess(registerMemberResult) && (memberId = registerMemberResult.getData()) != null) {
-                memberAuthInfo = new MemberAuthDTO(memberId, openid, tenantId,StatusEnum.ENABLE.getValue());
+            if (Result.isSuccess(registerMemberResult) && memberRegister != null) {
+                memberAuthDTO.setId(memberRegister.getId());
+                memberAuthDTO.setNickName(memberRegister.getNickName());
+                memberAuthDTO.setMobile(memberRegister.getMobile());
+                memberAuthDTO.setOpenid(memberRegister.getOpenid());
+                memberAuthDTO.setTenantId(memberRegister.getTenantId());
+                memberAuthDTO.setStatus(memberRegister.getStatus());
             }
 
-            log.info("【Auth MemberDetailsService】如果会员不存在，注册成为新会员：{}", memberAuthInfo);
+            log.info("【Auth MemberDetailsService】如果会员不存在，注册成为新会员：{}", memberAuthDTO);
         }
-
-        // 用户不存在
-        if (memberAuthInfo == null) {
-            log.info("【Auth MemberDetailsService】如果会员不存在，且注册成为新会员失败，则报错");
-            throw new UsernameNotFoundException(ResultCode.USER_NOT_EXIST.getMsg());
-        }
-
-
-
-        MemberDetails userDetails = new MemberDetails(memberAuthInfo);
+        MemberDetails userDetails = new MemberDetails(memberAuthDTO);
         log.info("【Auth MemberDetailsService】这里构造用户信息");
-
-
 
         if (!userDetails.isEnabled()) {
             throw new DisabledException("该账户已被禁用!");

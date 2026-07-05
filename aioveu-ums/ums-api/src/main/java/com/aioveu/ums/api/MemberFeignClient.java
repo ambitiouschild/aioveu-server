@@ -4,7 +4,8 @@ import com.aioveu.common.result.Result;
 import com.aioveu.pms.model.vo.ProductHistoryVO;
 import com.aioveu.ums.dto.MemberAddressDTO;
 import com.aioveu.ums.dto.MemberAuthDTO;
-import com.aioveu.ums.dto.MemberRegisterDto;
+import com.aioveu.ums.dto.MemberRegisterForm;
+import com.aioveu.ums.dto.MemberRegisterDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -28,9 +29,9 @@ public interface MemberFeignClient {
      * @param member
      * @return
      */
-    @PostMapping("/aioveu/api/v8/app/ums/members")
-    @Operation(summary= "新增会员")
-    Result<Long> registerMember(@RequestBody MemberRegisterDto member);
+    @PostMapping("/aioveu/api/v8/app/ums/members/register")
+    @Operation(summary= "注册会员")
+    Result<MemberRegisterDTO> registerMember(@RequestBody MemberRegisterForm member);
 
     /**
      * 获取会员的 openid

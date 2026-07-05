@@ -5,7 +5,6 @@ import com.aioveu.ums.aioveu01Member.model.query.UmsMemberQuery;
 import com.aioveu.ums.aioveu01Member.model.vo.UmsMemberVO;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.aioveu.common.constant.GlobalConstants;
 import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.Result;
