@@ -29,11 +29,6 @@ public class PasswordAuthenticationToken extends OAuth2AuthorizationGrantAuthent
      */
     private final Set<String> scopes;
 
-    /** ✅ 新增：验证码Key */
-    private final String captchaKey;
-
-    /** ✅ 新增：验证码 */
-    private final String captchaCode;
 
 /*    ✅ 验证码不需要进 Token
 
@@ -57,17 +52,6 @@ public class PasswordAuthenticationToken extends OAuth2AuthorizationGrantAuthent
     ) {
         super(PASSWORD, clientPrincipal, additionalParameters);
         this.scopes = Collections.unmodifiableSet(scopes != null ? new HashSet<>(scopes) : Collections.emptySet());
-        this.captchaKey = captchaKey;
-        this.captchaCode = captchaCode;
-    }
-
-
-    public String getCaptchaKey() {
-        return captchaKey;
-    }
-
-    public String getCaptchaCode() {
-        return captchaCode;
     }
 
     /**

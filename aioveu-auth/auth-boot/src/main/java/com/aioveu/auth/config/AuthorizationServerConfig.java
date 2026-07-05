@@ -175,9 +175,6 @@ public class AuthorizationServerConfig {
     // 不重用刷新令牌（每次刷新都生成新的）
     // 重用刷新令牌
 
-    /** ✅ 新增 */
-    private final CaptchaValidator captchaValidator;
-
 /*    *//**
      * 创建验证码过滤器Bean
      * 通过@Bean方式创建，Spring会自动管理
@@ -294,7 +291,7 @@ public class AuthorizationServerConfig {
 
                                                 List.of(
                                                         // 密码模式：使用用户名密码认证 // ✅ 这里是 Object RedisTemplate
-                                                        new PasswordAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator,sysUserDetailsService,redisTemplate,captchaValidator),
+                                                        new PasswordAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator,sysUserDetailsService,redisTemplate),
                                                         // 验证码模式：验证图形验证码+密码
                                                         new CaptchaAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator, stringRedisTemplate, codeGenerator),
                                                         // 微信模式：使用微信code认证

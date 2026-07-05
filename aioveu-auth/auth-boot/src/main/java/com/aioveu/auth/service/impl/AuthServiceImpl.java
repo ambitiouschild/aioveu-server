@@ -338,8 +338,7 @@ public class AuthServiceImpl implements AuthService {
                     authorizationService,
                     tokenGenerator,
                     sysUserDetailsService,
-                    redisTemplate,
-                    captchaValidator
+                    redisTemplate
             );
 
             // 8. 调用认证提供者（复用登录流程）

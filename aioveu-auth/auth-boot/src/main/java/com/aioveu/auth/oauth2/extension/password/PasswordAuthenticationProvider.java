@@ -89,7 +89,6 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
     private final SysUserDetailsService sysUserDetailsService;
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private final CaptchaValidator captchaValidator;
 //    /**
 //     * Constructs an {@code OAuth2ResourceOwnerPasswordAuthenticationProviderNew} using the provided parameters.
 //     * 构造函数：依赖注入所需的组件
@@ -138,13 +137,6 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
         log.info("将通用的Authentication对象转换为密码模式特定的令牌类型");
         PasswordAuthenticationToken passwordAuthenticationToken = (PasswordAuthenticationToken) authentication;
 
-
-
-        // ✅ 1. 校验图形验证码（重点）
-        captchaValidator.validate(
-                passwordAuthenticationToken.getCaptchaKey(),
-                passwordAuthenticationToken.getCaptchaCode()
-        );
 
         // 获取已认证的客户端主体，如果客户端未认证则抛出异常
         log.info("获取已认证的客户端主体，如果客户端未认证则抛出异常");
