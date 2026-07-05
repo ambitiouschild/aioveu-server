@@ -65,12 +65,19 @@ public interface UmsMemberService extends IService<UmsMember> {
      */
     MemberRegisterDTO registerMember(MemberRegisterForm memberRegisterForm);
 
+
+
+    /*
+    * 用 openid + tenant_id 查当前用户
+    * */
+    UmsMemberVO getCurrMemberInfoByOpenidAndTenantId();
+
     /**
      * 获取登录会员信息
      *
      * @return
      */
-    UmsMemberVO getCurrMemberInfo();
+    UmsMemberVO getCurrMemberInfoByMemberId();
 
     /**
      * 获取会员地址列表

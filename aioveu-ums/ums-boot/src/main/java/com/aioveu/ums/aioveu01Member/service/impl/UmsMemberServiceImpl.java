@@ -257,6 +257,35 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
         return memberRegisterDTO;
     }
 
+
+    /**
+     *   用 openid + tenant_id 查当前用户
+     * @return 会员信息VO对象，包含前端展示所需字段
+     */
+    @Override
+    public UmsMemberVO getCurrMemberInfoByOpenidAndTenantId() {
+
+
+        String openid = SecurityUtils.getOpenId();
+        Long tenantId = SecurityUtils.getTenantId();
+
+        log.info("【Ums】构建查询条件：按openid 和 tenantId精确匹配，只查询必要字段");
+        UmsMember umsMember = this.getOne(new LambdaQueryWrapper<UmsMember>()
+                .eq(UmsMember::getOpenid, openid)
+                .eq(UmsMember::getTenantId, tenantId)
+                .select(UmsMember::getId,    // 会员ID
+                        UmsMember::getNickName,  // 昵称
+                        UmsMember::getAvatarUrl,  // 头像
+                        UmsMember::getMobile,   // 手机号
+                        UmsMember::getBalance  // 账户余额
+                )
+        );
+        UmsMemberVO umsMemberVO = new UmsMemberVO();
+        BeanUtil.copyProperties(umsMember, umsMemberVO);
+        log.info("【Ums】创建VO对象并复制属性:{}", umsMemberVO);
+        return umsMemberVO;
+    }
+
     /**
      *     todo         获取当前登录会员的详细信息
      *              从安全上下文中获取当前会员ID，查询会员基本信息
@@ -264,10 +293,11 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
      * @return 会员信息VO对象，包含前端展示所需字段
      */
     @Override
-    public UmsMemberVO getCurrMemberInfo() {
+    public UmsMemberVO getCurrMemberInfoByMemberId() {
 
         log.info("从安全工具类获取当前登录会员ID");
         Long memberId = SecurityUtils.getMemberId();
+
 
         log.info("构建查询条件：按会员ID查询，只选择需要的字段");
         UmsMember umsMember = this.getOne(new LambdaQueryWrapper<UmsMember>()

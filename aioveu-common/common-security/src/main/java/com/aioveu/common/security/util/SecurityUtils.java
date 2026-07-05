@@ -3,6 +3,7 @@ package com.aioveu.common.security.util;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.common.constant.JwtClaimConstants;
 import com.aioveu.common.constant.SecurityConstants;
 import com.aioveu.common.constant.SystemConstants;
 import com.aioveu.common.security.model.RoleDataScope;
@@ -241,7 +242,7 @@ public class SecurityUtils {
 //                log.info("=== 详情结束 ===");
 
                 // 特别检查 can_switch_tenant
-                Object canSwitchTenant = tokenAttributes.get("can_switch_tenant");
+                Object canSwitchTenant = tokenAttributes.get(JwtClaimConstants.Tenant.CAN_SWITCH);
 //                log.info("特别检查 - can_switch_tenant: {} (存在: {})",
 //                        canSwitchTenant,
 //                        tokenAttributes.containsKey("can_switch_tenant"));
@@ -344,9 +345,9 @@ public class SecurityUtils {
         Map<String, Object> tokenAttributes = getTokenAttributes();
         if (tokenAttributes != null) {
 
-            Long deptId = (Long) tokenAttributes.get("deptId");
+            Long deptId = (Long) tokenAttributes.get(JwtClaimConstants.User.DEPT_ID);
             log.info("SecurityUtils获取当前用户所属的部门ID:{}", deptId);
-            return Convert.toLong(tokenAttributes.get("deptId"));
+            return deptId;
         }
         return null;
     }
@@ -360,9 +361,22 @@ public class SecurityUtils {
         log.info("SecurityUtils获取tokenAttributes:{}", tokenAttributes);
         if (tokenAttributes != null) {
 
-            Long tenantId = Convert.toLong(tokenAttributes.get("tenant_id"));
+            Long tenantId = Convert.toLong(tokenAttributes.get(JwtClaimConstants.Tenant.ID));
             log.info("SecurityUtils获取当前租户ID:{}", tenantId);
             return tenantId;
+        }
+        return null;
+    }
+
+    /*
+     * 获取openId
+     * */
+    public static String getOpenId() {
+        Map<String, Object> tokenAttributes = getTokenAttributes();
+        if (tokenAttributes != null) {
+            String openId = (String) tokenAttributes.get(JwtClaimConstants.Member.OPENID);
+            log.info("SecurityUtils获取当前openId:{}", openId);
+            return openId;
         }
         return null;
     }

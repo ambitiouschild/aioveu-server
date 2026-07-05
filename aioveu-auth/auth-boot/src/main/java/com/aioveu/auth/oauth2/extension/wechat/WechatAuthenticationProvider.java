@@ -229,11 +229,11 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
         //// 使用 UsernamePasswordAuthenticationToken 类型，而不是 Authentication
         //使用 UsernamePasswordAuthenticationToken具体实现类，而不是 Authentication接口
         UsernamePasswordAuthenticationToken usernamePasswordAuthentication = new UsernamePasswordAuthenticationToken(
-//                userDetails,     // ❌ 这里传入了完整的 MemberDetails 对象
+                userDetails,     // ❌ 这里传入了完整的 MemberDetails 对象  // ✅ MemberDetails 当 principal
 //                userDetails.getPassword());  // 密码用于认证验证
                 //如果只存用户名，令牌里的个人信息就没了
                 //你这里其实不需要密码，因为是微信登录
-                userDetails.getUsername(),  // 只存用户名
+//                userDetails.getUsername(),  // 只存用户名  // ❗只放了用户名
                 null,  // 密码不需要
                 userDetails.getAuthorities());  // 权限
 

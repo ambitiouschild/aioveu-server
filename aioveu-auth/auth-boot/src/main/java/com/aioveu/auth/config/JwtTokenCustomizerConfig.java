@@ -78,7 +78,7 @@ public class JwtTokenCustomizerConfig {
                     log.info("【JwtTokenCustomizer】✅ 添加 client_id = {}", clientId);
 
 
-                    // ✅ 2️系统用户
+                    // ✅ 2️ 用户名密码登陆 + 系统用户 ------------------------------------
                     if (context.getPrincipal() instanceof UsernamePasswordAuthenticationToken authToken &&
                             authToken.getPrincipal() instanceof SysUserDetails userDetails) {
                         // 系统用户添加自定义字段
@@ -201,11 +201,18 @@ public class JwtTokenCustomizerConfig {
                                 authorities
                         );
 
-                        // ✅ 3️会员用户
-                    } else if (principal instanceof MemberDetails userDetails) {
+
+                    }
+
+                    // ✅ 2 微信登录 会员用户 走进这个分支-----------------------------------------
+                    if (
+                            context.getPrincipal() instanceof UsernamePasswordAuthenticationToken authToken
+                            && principal instanceof MemberDetails memberDetails
+
+                    ) {
                         log.info("【JwtTokenCustomizer】✅ 会员用户MemberDetails添加自定义字段");
                         log.info("【JwtTokenCustomizer】✅ 找到MemberDetails，开始添加租户ID");
-                        Long tenantId = userDetails.getTenantId();
+                        Long tenantId = memberDetails.getTenantId();
                         log.info("【JwtTokenCustomizer】 租户ID值: {}", tenantId);
 
                         if (tenantId != null) {
@@ -220,9 +227,51 @@ public class JwtTokenCustomizerConfig {
                         //但您的微信登录使用的是MemberDetails，应该走这个分支
                         claims.claim(
                                 JwtClaimConstants.Member.ID,
-                                userDetails.getId()
+                                memberDetails.getId()
                         );
+
+                        claims.claim(
+                                JwtClaimConstants.Member.OPENID,
+                                memberDetails.getOpenId()
+                        );
+
+
                     }
+
+                    // 会员用户（兼容 String principal）
+//                    if (principal instanceof String openId) {
+//
+//
+//                        MemberDetails userDetails = memberDetailsService.loadUserByOpenId(openId);
+//
+//                        Long tenantId = userDetails.getTenantId();
+//                        log.info("【JwtTokenCustomizer】 租户ID值: {}", tenantId);
+//
+//                        if (tenantId != null) {
+//                            claims.claim(
+//                                    JwtClaimConstants.Tenant.ID,
+//                                    tenantId
+//                            );
+//                            log.info("【JwtTokenCustomizer】✅ 已添加tenant_id到JWT Claims: {}", tenantId);
+//                        }
+//
+//                        // 商城会员添加自定义字段
+//                        //但您的微信登录使用的是MemberDetails，应该走这个分支
+//                        claims.claim(
+//                                JwtClaimConstants.Member.ID,
+//                                userDetails.getId()
+//                        );
+//
+//                        claims.claim(
+//                                JwtClaimConstants.Member.OPENID,
+//                                userDetails.getOpenId()
+//                        );
+//                    }
+
+
+
+
+
                 });
             }
         };

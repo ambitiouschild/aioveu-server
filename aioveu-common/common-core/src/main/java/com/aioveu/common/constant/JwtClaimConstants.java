@@ -98,6 +98,7 @@ public interface JwtClaimConstants {
          * 会员ID
          */
         String ID = "memberId";
+        String OPENID = "openId";
     }
 
 }

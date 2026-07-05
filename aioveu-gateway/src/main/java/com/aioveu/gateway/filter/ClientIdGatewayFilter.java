@@ -94,7 +94,7 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
     /** 前端 / 内部约定的租户标识 Header */
     private static final String HEADER_CLIENT_ID = "X-Client-Id";
-
+    private static final Long NO_TENANT = -1L;
 
     private final ReactiveJwtDecoder jwtDecoder;
     private final ClientWhitelistWithRedisService clientWhitelistWithRedisService;
@@ -183,14 +183,17 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
                     ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
 
-                    if (tenantId != null) {
+                    // ✅ 1. 有 tenantId（业务态）
+                    if (!NO_TENANT.equals(tenantId)) {
                         // ✅ 有 tenantId，正常往下走
                         log.info("【ClientIdGatewayFilter】JWT tenantId={}", tenantId);
                         builder.header("X-Tenant-Id", String.valueOf(tenantId));
                         return doFilter(exchange, chain, builder);
 
-                    }else {
-                        log.info("【ClientIdGatewayFilter】✅ 2. JWT 无 tenant_id（登录态）→ 走公共接口逻辑");
+                    }
+
+
+                        log.info("【ClientIdGatewayFilter】JWT 无 tenant_id（登录态）→ 走公共接口逻辑");
 
                         //------------------------------------------------------------------
                         // ✅ 2. JWT 无 tenant_id（登录态）→ 走公共逻辑
@@ -200,17 +203,17 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
                                 );
 
                         //------------------------------------------------------------------
-                    }
+
 
                 })
                 .onErrorResume(e -> {
                     log.warn("【ClientIdGatewayFilter】JWT 解析失败，直接放行", e);
-                    return chain.filter(exchange);
+                    return doFilter(exchange, chain, exchange.getRequest().mutate());
                 })
                 .switchIfEmpty(Mono.defer(() -> {
-                    // ✅ 没解析出 tenantId（包括登录态），直接放行
+                    // ✅ 没 Token / 解析为空 → 走公共接口
                     log.info("【ClientIdGatewayFilter】JWT 无 tenant_id，直接放行");
-                    return chain.filter(exchange);
+                    return doFilter(exchange, chain, exchange.getRequest().mutate());
                 }));
     }
 
@@ -480,11 +483,14 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
     }
 
-    /*
-    * 使用 ReactiveJwtDecoder 非阻塞解析 JWT中的 tenantId
-    *
-    * */
-    //1️JWT 接口：只认 JWT 里的 tenantId
+    /**
+     * 解析 JWT 中的 tenant_id
+     *
+     * 返回值语义：
+     * - 有 tenant_id → 正常 Long
+     * - 无 tenant_id → NO_TENANT（标记值）
+     * - 无 Token / 解析失败 → Mono.empty()
+     */
     private Mono<Long> resolveTenantIdFromJwt(ServerWebExchange exchange) {
 
         String auth = exchange.getRequest()
@@ -497,28 +503,21 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
         String token = auth.substring(7);
 
+        //jwtDecoder.decode(token)  类型  Mono<Jwt>
+        //.map(jwt -> Long / NO_TENANT)  Mono<Long>
         return jwtDecoder.decode(token)
-                .map(jwt ->
-//                    ClaimUtils.getClaimAsLong(jwt, JwtClaimConstants.Tenant.ID)
-                {
+                .map(jwt -> {
                         // ✅ 不抛异常、不返回 null
                         Long tenantId = ClaimUtils.getClaimAsLong(jwt, JwtClaimConstants.Tenant.ID);
                         if (tenantId == null) {
-                            log.info("【ClientIdGatewayFilter】JWT 中无 tenant_id（登录态），直接放行");
-                            return null;
+                            log.info("【ClientIdGatewayFilter】JWT 中无 tenant_id（登录态）,NO_TENANT");
+                            return NO_TENANT;   // ✅ 关键
                         }
-
-                    try {
-                            return tenantId;
-                        } catch (Exception e) {
-                            log.warn("【ClientIdGatewayFilter】tenant_id 类型转换失败", e);
-                            return null;
-                        }
-
+                        return tenantId;
                 })
                 .onErrorResume(e -> {
                     log.warn("JWT 解析 tenant_id 失败", e);
-                    return Mono.empty();
+                    return Mono.<Long>empty();
                 });
     }
 

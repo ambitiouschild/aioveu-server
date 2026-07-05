@@ -48,7 +48,8 @@ public class MemberController {
     @Operation(summary= "获取登录会员信息")
     @GetMapping("/me")
     public Result<UmsMemberVO> getCurrMemberInfo() {
-        UmsMemberVO umsMemberVO = memberService.getCurrMemberInfo();
+//        UmsMemberVO umsMemberVO = memberService.getCurrMemberInfoByMemberId();
+        UmsMemberVO umsMemberVO = memberService.getCurrMemberInfoByOpenidAndTenantId();
         return Result.success(umsMemberVO);
     }
 

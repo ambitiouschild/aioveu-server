@@ -43,7 +43,7 @@ public class MemberDetails implements UserDetails {
     /**
      * 微信OpenID
      */
-    private String openid;
+    private String openId;
 
     /**
      * 租户ID  // 新增：租户ID
@@ -78,9 +78,9 @@ public class MemberDetails implements UserDetails {
      */
     public MemberDetails(MemberAuthDTO memAuthInfo) {
         this.setId(memAuthInfo.getId());
-        this.setUserName(memAuthInfo.getNickName());
+        this.setUserName(memAuthInfo.getOpenId());
         this.setMobile(memAuthInfo.getMobile());
-        this.setOpenid(memAuthInfo.getOpenid());
+        this.setOpenId(memAuthInfo.getOpenId());
         this.setTenantId(memAuthInfo.getTenantId());
         this.setEnabled(GlobalConstants.STATUS_YES.equals(memAuthInfo.getStatus()));
     }
