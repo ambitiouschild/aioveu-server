@@ -6,7 +6,6 @@ import cn.hutool.captcha.generator.CodeGenerator;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.auth.config.property.AuthSecurityProperties;
 import com.aioveu.auth.filter.CaptchaValidationFilter;
-import com.aioveu.auth.filter.CaptchaValidator;
 import com.aioveu.auth.oauth2.extension.customRefreshToken.CustomRefreshTokenAuthenticationConverter;
 import com.aioveu.auth.oauth2.extension.customRefreshToken.CustomRefreshTokenAuthenticationProvider;
 import com.aioveu.auth.service.SysUserDetailsService;
@@ -175,23 +174,7 @@ public class AuthorizationServerConfig {
     // 不重用刷新令牌（每次刷新都生成新的）
     // 重用刷新令牌
 
-/*    *//**
-     * 创建验证码过滤器Bean
-     * 通过@Bean方式创建，Spring会自动管理
-     *//*
-    @Bean
-    public CaptchaValidationFilter captchaValidationFilter() {
-        log.info("创建验证码过滤器Bean,验证码过滤器用 stringRedisTemplate");
-        return new CaptchaValidationFilter(stringRedisTemplate, codeGenerator);
-    }*/
 
-    /*     *
-     * 创建验证码过滤器Bean
-     * 通过@Bean方式创建，Spring会自动管理
-     * ✅ 明确 Bean 归属
-        ✅ 适合“基础设施类”
-     *
-     * */
 
 
     /**
@@ -210,7 +193,8 @@ public class AuthorizationServerConfig {
             AuthenticationManager authenticationManager,    // Spring Security认证管理器
             OAuth2AuthorizationService authorizationService,   // OAuth2授权服务
             OAuth2TokenGenerator<?> tokenGenerator,
-            SysUserDetailsService sysUserDetailsService// 令牌生成器
+            SysUserDetailsService sysUserDetailsService,// 令牌生成器
+            CaptchaValidationFilter captchaValidationFilter   // ✅ 直接注入
 
     ) throws Exception {
 
@@ -244,10 +228,11 @@ public class AuthorizationServerConfig {
                         "/oauth2/revoke",
                         "/.well-known/openid-configuration"
                 )
-//                .addFilterBefore(
-//                        captchaValidationFilter(),  //调用Bean方法获取过滤器
-//                        OAuth2TokenEndpointFilter.class   // ✅ 这才是唯一正确位置
-//                )
+                // ✅ 就这一行，别的你什么都别动
+                .addFilterBefore(
+                        captchaValidationFilter,
+                        BasicAuthenticationFilter.class
+                )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .csrf(csrf -> csrf.disable());
 
@@ -671,6 +656,8 @@ public class AuthorizationServerConfig {
                 .map(AntPathRequestMatcher::antMatcher)
                 .collect(Collectors.toList());
 
+        //Spring 认为你没有“访问这个路径的权限”
+        //“这个请求有没有权限访问 /aioveu/api/v8/admin/auth/auth/logout？”
         http
                 .securityMatcher("/aioveu/api/v8/**")
                 .authorizeHttpRequests(authorize -> authorize

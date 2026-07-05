@@ -1,8 +1,5 @@
 package com.aioveu.auth.oauth2.extension.password;
 
-
-import cn.hutool.core.lang.Assert;
-import com.aioveu.auth.filter.CaptchaValidator;
 import com.aioveu.auth.model.SysUserDetails;
 import com.aioveu.auth.service.SysUserDetailsService;
 import com.aioveu.auth.util.OAuth2AuthenticationProviderUtils;

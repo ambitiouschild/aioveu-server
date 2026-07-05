@@ -10,12 +10,14 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -50,6 +52,8 @@ import java.util.Set;
  **/
 
 @Slf4j
+@Component
+@RequiredArgsConstructor
 public class CaptchaValidationFilter extends OncePerRequestFilter implements Ordered{
 
 
@@ -122,10 +126,10 @@ public class CaptchaValidationFilter extends OncePerRequestFilter implements Ord
      *              2. 不可变对象，线程安全
      *              3. 易于单元测试
      */
-    public CaptchaValidationFilter(StringRedisTemplate redisTemplate, CodeGenerator codeGenerator) {
-        this.redisTemplate = redisTemplate;
-        this.codeGenerator = codeGenerator;
-    }
+//    public CaptchaValidationFilter(StringRedisTemplate redisTemplate, CodeGenerator codeGenerator) {
+//        this.redisTemplate = redisTemplate;
+//        this.codeGenerator = codeGenerator;
+//    }
 
     /**
      * 指定过滤器顺序
