@@ -29,8 +29,17 @@ public class PasswordAuthenticationToken extends OAuth2AuthorizationGrantAuthent
      */
     private final Set<String> scopes;
 
-    //方案2：修改PasswordAuthenticationToken包含租户ID
-//    private final Long tenantId;  // 新增字段
+    /** ✅ 新增：验证码Key */
+    private final String captchaKey;
+
+    /** ✅ 新增：验证码 */
+    private final String captchaCode;
+
+/*    ✅ 验证码不需要进 Token
+
+✅ 但必须进 PasswordAuthenticationToken
+
+✅ 只当“入参”，用完就丢*/
 
     /**
      * 密码模式身份验证令牌
@@ -42,11 +51,23 @@ public class PasswordAuthenticationToken extends OAuth2AuthorizationGrantAuthent
     public PasswordAuthenticationToken(
             Authentication clientPrincipal,
             Set<String> scopes,
+            String captchaKey,
+            String captchaCode,
             @Nullable Map<String, Object> additionalParameters
     ) {
         super(PASSWORD, clientPrincipal, additionalParameters);
         this.scopes = Collections.unmodifiableSet(scopes != null ? new HashSet<>(scopes) : Collections.emptySet());
+        this.captchaKey = captchaKey;
+        this.captchaCode = captchaCode;
+    }
 
+
+    public String getCaptchaKey() {
+        return captchaKey;
+    }
+
+    public String getCaptchaCode() {
+        return captchaCode;
     }
 
     /**

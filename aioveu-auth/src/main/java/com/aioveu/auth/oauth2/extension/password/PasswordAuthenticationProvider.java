@@ -2,6 +2,7 @@ package com.aioveu.auth.oauth2.extension.password;
 
 
 import cn.hutool.core.lang.Assert;
+import com.aioveu.auth.filter.CaptchaValidator;
 import com.aioveu.auth.model.SysUserDetails;
 import com.aioveu.auth.service.SysUserDetailsService;
 import com.aioveu.auth.util.OAuth2AuthenticationProviderUtils;
@@ -10,6 +11,7 @@ import com.aioveu.common.constant.RedisConstants;
 import com.aioveu.common.tenant.TenantContextHolder;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -61,6 +63,7 @@ import java.util.stream.Collectors;
  **/
 
 @Slf4j
+@RequiredArgsConstructor
 public class PasswordAuthenticationProvider implements AuthenticationProvider {
 
 
@@ -86,32 +89,32 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
     private final SysUserDetailsService sysUserDetailsService;
 
     private final RedisTemplate<String, Object> redisTemplate;
-
-    /**
-     * Constructs an {@code OAuth2ResourceOwnerPasswordAuthenticationProviderNew} using the provided parameters.
-     * 构造函数：依赖注入所需的组件
-     * @param authenticationManager the authentication manager  认证管理器，用于用户名密码验证
-     * @param authorizationService  the authorization service  授权服务，用于持久化授权记录
-     * @param tokenGenerator        the token generator   令牌生成器，用于生成各种OAuth2令牌
-     * @since 0.2.3
-     */
-    public PasswordAuthenticationProvider(AuthenticationManager authenticationManager,
-                                          OAuth2AuthorizationService authorizationService,
-                                          OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator,
-                                          SysUserDetailsService sysUserDetailsService,
-                                          RedisTemplate<String, Object> redisTemplate
-    ) {
-
-        // 参数非空校验，确保依赖组件正确注入
-        Assert.notNull(authorizationService, "authorizationService cannot be null");
-        Assert.notNull(tokenGenerator, "tokenGenerator cannot be null");
-        this.authenticationManager = authenticationManager;
-        this.authorizationService = authorizationService;
-        this.tokenGenerator = tokenGenerator;
-        this.sysUserDetailsService = sysUserDetailsService;
-        this.redisTemplate = redisTemplate;
-
-    }
+    private final CaptchaValidator captchaValidator;
+//    /**
+//     * Constructs an {@code OAuth2ResourceOwnerPasswordAuthenticationProviderNew} using the provided parameters.
+//     * 构造函数：依赖注入所需的组件
+//     * @param authenticationManager the authentication manager  认证管理器，用于用户名密码验证
+//     * @param authorizationService  the authorization service  授权服务，用于持久化授权记录
+//     * @param tokenGenerator        the token generator   令牌生成器，用于生成各种OAuth2令牌
+//     * @since 0.2.3
+//     */
+//    public PasswordAuthenticationProvider(AuthenticationManager authenticationManager,
+//                                          OAuth2AuthorizationService authorizationService,
+//                                          OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator,
+//                                          SysUserDetailsService sysUserDetailsService,
+//                                          RedisTemplate<String, Object> redisTemplate
+//    ) {
+//
+//        // 参数非空校验，确保依赖组件正确注入
+//        Assert.notNull(authorizationService, "authorizationService cannot be null");
+//        Assert.notNull(tokenGenerator, "tokenGenerator cannot be null");
+//        this.authenticationManager = authenticationManager;
+//        this.authorizationService = authorizationService;
+//        this.tokenGenerator = tokenGenerator;
+//        this.sysUserDetailsService = sysUserDetailsService;
+//        this.redisTemplate = redisTemplate;
+//
+//    }
 
 
     /**
@@ -134,6 +137,14 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
         log.info("步骤1: 类型转换和客户端认证验证");
         log.info("将通用的Authentication对象转换为密码模式特定的令牌类型");
         PasswordAuthenticationToken passwordAuthenticationToken = (PasswordAuthenticationToken) authentication;
+
+
+
+        // ✅ 1. 校验图形验证码（重点）
+        captchaValidator.validate(
+                passwordAuthenticationToken.getCaptchaKey(),
+                passwordAuthenticationToken.getCaptchaCode()
+        );
 
         // 获取已认证的客户端主体，如果客户端未认证则抛出异常
         log.info("获取已认证的客户端主体，如果客户端未认证则抛出异常");

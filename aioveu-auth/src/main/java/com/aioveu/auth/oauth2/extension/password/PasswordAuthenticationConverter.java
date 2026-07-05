@@ -135,6 +135,11 @@ public class PasswordAuthenticationConverter implements AuthenticationConverter 
             );
         }
 
+
+        //验证码这种“一次性垃圾数据”，不配进 OAuth2 协议参数
+        String captchaKey = request.getParameter("captchaKey");
+        String captchaCode = request.getParameter("captchaCode");
+
         // 附加参数(保存用户名/密码传递给 PasswordAuthenticationProvider 用于身份认证)
         // 步骤7: 提取附加参数（排除已处理的grant_type和scope）
         // 这些参数将传递给认证提供者进行进一步处理
@@ -179,6 +184,8 @@ public class PasswordAuthenticationConverter implements AuthenticationConverter 
         return new PasswordAuthenticationToken(
                 clientPrincipal,  // 客户端认证信息（已在前置过滤器验证）
                 requestedScopes,  // 请求的权限范围（可能为null）
+                captchaKey,
+                captchaCode,
                 additionalParameters  // 其他参数（包含username和password）
         );
     }

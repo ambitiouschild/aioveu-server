@@ -6,6 +6,7 @@ import cn.hutool.captcha.generator.CodeGenerator;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.auth.config.property.AuthSecurityProperties;
 import com.aioveu.auth.filter.CaptchaValidationFilter;
+import com.aioveu.auth.filter.CaptchaValidator;
 import com.aioveu.auth.oauth2.extension.customRefreshToken.CustomRefreshTokenAuthenticationConverter;
 import com.aioveu.auth.oauth2.extension.customRefreshToken.CustomRefreshTokenAuthenticationProvider;
 import com.aioveu.auth.service.SysUserDetailsService;
@@ -174,14 +175,33 @@ public class AuthorizationServerConfig {
     // 不重用刷新令牌（每次刷新都生成新的）
     // 重用刷新令牌
 
-    /**
+    /** ✅ 新增 */
+    private final CaptchaValidator captchaValidator;
+
+/*    *//**
      * 创建验证码过滤器Bean
      * 通过@Bean方式创建，Spring会自动管理
-     */
+     *//*
     @Bean
     public CaptchaValidationFilter captchaValidationFilter() {
         log.info("创建验证码过滤器Bean,验证码过滤器用 stringRedisTemplate");
         return new CaptchaValidationFilter(stringRedisTemplate, codeGenerator);
+    }*/
+
+    /*     *
+     * 创建验证码过滤器Bean
+     * 通过@Bean方式创建，Spring会自动管理
+     * ✅ 明确 Bean 归属
+        ✅ 适合“基础设施类”
+     *
+     * */
+    @Bean
+    public CaptchaValidator captchaValidator(
+            StringRedisTemplate stringRedisTemplate,
+            CodeGenerator codeGenerator
+    ) {
+        log.info("创建验证码过滤器Bean,验证码过滤器用 stringRedisTemplate");
+        return new CaptchaValidator(stringRedisTemplate, codeGenerator);
     }
 
 
@@ -282,7 +302,7 @@ public class AuthorizationServerConfig {
 
                                                 List.of(
                                                         // 密码模式：使用用户名密码认证 // ✅ 这里是 Object RedisTemplate
-                                                        new PasswordAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator,sysUserDetailsService,redisTemplate),
+                                                        new PasswordAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator,sysUserDetailsService,redisTemplate,captchaValidator),
                                                         // 验证码模式：验证图形验证码+密码
                                                         new CaptchaAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator, stringRedisTemplate, codeGenerator),
                                                         // 微信模式：使用微信code认证
@@ -495,8 +515,8 @@ public class AuthorizationServerConfig {
 
         // 初始化 OAuth2 客户端
         // 初始化系统所需的客户端应用
-        initMallAppClient(registeredClientRepository);   // 商城APP客户端
-        initMallAdminClient(registeredClientRepository);  // 管理后台客户端
+//        initMallAppClient(registeredClientRepository);   // 商城APP客户端
+//        initMallAdminClient(registeredClientRepository);  // 管理后台客户端
 
         /*
         * 所有这三个@Bean方法都通过JdbcTemplate参数注入了数据库连接，
@@ -624,93 +644,9 @@ public class AuthorizationServerConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    /**
-     * 初始化商城管理后台客户端
-     * 用于管理后台系统的OAuth2客户端注册
-     */
-    private void initMallAdminClient(JdbcRegisteredClientRepository registeredClientRepository) {
-
-        String clientId = "aioveu-admin";
-        String clientSecret = "123456";
-        String clientName = "aioveu管理前端";
-
-        /*
-          如果使用明文，客户端认证时会自动升级加密方式，换句话说直接修改客户端密码，所以直接使用 bcrypt 加密避免不必要的麻烦
-          官方ISSUE： https://github.com/spring-projects/spring-authorization-server/issues/1099
-         */
-        /*
-         * 密码加密说明：
-         * 如果使用明文，客户端认证时会自动升级加密方式，换句话说直接修改客户端密码
-         * 所以直接使用bcrypt加密避免不必要的麻烦
-         * 官方ISSUE：https://github.com/spring-projects/spring-authorization-server/issues/1099
-         */
-
-        // 检查客户端是否已存在，避免重复创建
-        String encodeSecret = passwordEncoder().encode(clientSecret);
-
-        RegisteredClient registeredMallAdminClient = registeredClientRepository.findByClientId(clientId);
-        String id = registeredMallAdminClient != null ? registeredMallAdminClient.getId() : UUID.randomUUID().toString();
 
 
-        // 构建客户端注册信息
-        RegisteredClient mallAppClient = RegisteredClient.withId(id)
-                .clientId(clientId)   // 客户端ID
-                .clientSecret(encodeSecret)   // 客户端密钥（已加密）
-                .clientName(clientName)    // 客户端名称
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)    // 客户端认证方式
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)  // 授权码模式
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)   // 刷新令牌模式
-                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)   // 客户端凭证模式
-                .authorizationGrantType(AuthorizationGrantType.PASSWORD) // 密码模式
-                .redirectUri("http://127.0.0.1:8080/authorized")   // 重定向URI
-                .postLogoutRedirectUri("http://127.0.0.1:8080/logged-out")   // 登出重定向URI
-                .scope(OidcScopes.OPENID)   // OpenID Connect范围
-                .scope(OidcScopes.PROFILE)   // 用户档案范围
-                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build()) // 令牌设置（1天有效期）
-                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())  // 客户端设置（需要授权同意）
-                .build();
-        registeredClientRepository.save(mallAppClient);
-    }
 
-    /**
-     * 初始化商城APP客户端
-     * 用于移动端APP的OAuth2客户端注册，支持微信小程序和短信登录
-     */
-    private void initMallAppClient(JdbcRegisteredClientRepository registeredClientRepository) {
-
-        String clientId = "mall-app";
-        String clientSecret = "123456";
-        String clientName = "商城APP客户端";
-
-        // 如果使用明文，在客户端认证的时候会自动升级加密方式，直接使用 bcrypt 加密避免不必要的麻烦
-        // 加密客户端密钥
-        String encodeSecret = passwordEncoder().encode(clientSecret);
-
-        // 检查客户端是否已存在
-        RegisteredClient registeredMallAppClient = registeredClientRepository.findByClientId(clientId);
-        String id = registeredMallAppClient != null ? registeredMallAppClient.getId() : UUID.randomUUID().toString();
-
-
-        // 构建APP客户端注册信息
-        RegisteredClient mallAppClient = RegisteredClient.withId(id)
-                .clientId(clientId)
-                .clientSecret(encodeSecret)
-                .clientName(clientName)
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                .authorizationGrantType(WechatAuthenticationToken.WECHAT_MINI_APP)  // 微信小程序模式（自定义授权类型）
-                .authorizationGrantType(SmsCodeAuthenticationToken.SMS_CODE) // 短信验证码模式（自定义授权类型）
-                .redirectUri("http://127.0.0.1:8080/authorized")
-                .postLogoutRedirectUri("http://127.0.0.1:8080/logged-out")
-                .scope(OidcScopes.OPENID)
-                .scope(OidcScopes.PROFILE)
-                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
-                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
-                .build();
-        registeredClientRepository.save(mallAppClient);
-    }
 
 //    @Bean
 //    @Order(1) // 关键：比 default(2) 高，但低于授权服务器链

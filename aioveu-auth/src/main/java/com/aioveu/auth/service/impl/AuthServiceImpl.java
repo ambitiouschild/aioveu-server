@@ -7,6 +7,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.aioveu.auth.TokenManager.service.AuthTokenManagerService;
 import com.aioveu.auth.config.property.CaptchaProperties;
+import com.aioveu.auth.filter.CaptchaValidator;
 import com.aioveu.auth.model.CaptchaResult;
 import com.aioveu.auth.model.SysUserDetails;
 import com.aioveu.auth.oauth2.extension.password.PasswordAuthenticationConverter;
@@ -95,6 +96,8 @@ public class AuthServiceImpl implements AuthService {
     private final OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator;
     // 添加 UserDetailsService 依赖
     private final SysUserDetailsService sysUserDetailsService;
+
+    private final CaptchaValidator captchaValidator;
 
     /**
      * 生成图形验证码并缓存到Redis
@@ -335,7 +338,8 @@ public class AuthServiceImpl implements AuthService {
                     authorizationService,
                     tokenGenerator,
                     sysUserDetailsService,
-                    redisTemplate
+                    redisTemplate,
+                    captchaValidator
             );
 
             // 8. 调用认证提供者（复用登录流程）
