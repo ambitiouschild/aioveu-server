@@ -115,44 +115,36 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
         return resolveTenantIdFromJwt(exchange)
                 .flatMap(tenantId -> {
 
-                    if (tenantId == null) {
-                        log.error("【ClientIdGatewayFilter】JWT tenant_id 为 null");
-                        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                        return exchange.getResponse().setComplete();
+                    ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
+                    if (tenantId != null) {
+                        // ✅ 有 tenantId，正常往下走
+                        log.info("【ClientIdGatewayFilter】JWT tenantId={}", tenantId);
+                        builder.header("X-Tenant-Id", String.valueOf(tenantId));
+
+                    }else {
+                        log.info("【ClientIdGatewayFilter】JWT 无 tenant_id，放行（登录态）");
                     }
 
-                    // ✅ 有 tenantId，正常往下走
-                    log.info("【ClientIdGatewayFilter】JWT tenantId={}", tenantId);
-
-                    ServerHttpRequest newReq = exchange.getRequest()
-                            .mutate()
-                            // ✅ 只传 tenantId
-                            .header("X-Tenant-Id", String.valueOf(tenantId))
-                            // ❌ 不传 X-Client-Id
-                            .build();
-
                     log.info("【ClientIdGatewayFilter】即将转发请求到 auth");
-
                     // ⚠️ 这里如果返回 null，WebFlux 会直接结束，不报错
-                    return chain.filter(exchange.mutate().request(newReq).build())
+                    return chain.filter(exchange.mutate().request(builder.build()).build())
                             .doOnSubscribe(s -> log.info("【ClientIdGatewayFilter】✅ 已转发到 auth"))
                             .doOnError(e -> {
                                 log.error("【ClientIdGatewayFilter】❌ 转发 auth 失败", e);
                                 exchange.getResponse().setStatusCode(HttpStatus.BAD_GATEWAY);
                             });
 
+
                 })
                 .onErrorResume(e -> {
-                    log.error("【ClientIdGatewayFilter】JWT 处理失败", e);
-                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                    return exchange.getResponse().setComplete();
-                });
-//                .switchIfEmpty(Mono.defer(() -> {
-//                    log.error("【ClientIdGatewayFilter】JWT 缺失 tenant_id");
-//                    // ✅ 没有 tenantId，直接结束请求
-//                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-//                    return exchange.getResponse().setComplete();
-//                }));
+                    log.warn("【ClientIdGatewayFilter】JWT 解析失败，直接放行", e);
+                    return chain.filter(exchange);
+                })
+                .switchIfEmpty(Mono.defer(() -> {
+                    // ✅ 没解析出 tenantId（包括登录态），直接放行
+                    log.info("【ClientIdGatewayFilter】JWT 无 tenant_id，直接放行");
+                    return chain.filter(exchange);
+                }));
     }
 
 
@@ -354,8 +346,23 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
         return jwtDecoder.decode(token)
                 .map(jwt ->
-                    ClaimUtils.getClaimAsLong(jwt, JwtClaimConstants.Tenant.ID)
-                )
+//                    ClaimUtils.getClaimAsLong(jwt, JwtClaimConstants.Tenant.ID)
+                {
+                        // ✅ 不抛异常、不返回 null
+                        Long tenantId = ClaimUtils.getClaimAsLong(jwt, JwtClaimConstants.Tenant.ID);
+                        if (tenantId == null) {
+                            log.info("【ClientIdGatewayFilter】JWT 中无 tenant_id（登录态），直接放行");
+                            return null;
+                        }
+
+                    try {
+                            return tenantId;
+                        } catch (Exception e) {
+                            log.warn("【ClientIdGatewayFilter】tenant_id 类型转换失败", e);
+                            return null;
+                        }
+
+                })
                 .onErrorResume(e -> {
                     log.warn("JWT 解析 tenant_id 失败", e);
                     return Mono.empty();
