@@ -226,7 +226,9 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
 
                     // ✅ 放入 additionalParameters，供 JWT Customizer 使用
                     //但实际上 JWT Customizer 根本拿不到。**
-                    additionalParameters.put(JwtClaimConstants.Token.VERSION, tokenVersion);
+                    // ❌ 这里是只读 Map
+                    //不要往 additionalParameters里塞东西
+//                    additionalParameters.put(JwtClaimConstants.Token.VERSION, tokenVersion);
 
                     log.info("【TokenVersion】用户 {} 登录，token_version = {}", userId, tokenVersion);
                 }
