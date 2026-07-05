@@ -42,10 +42,57 @@ Spring Cloud Gateway 不是 Servlet
 没有 BearerTokenAuthenticationFilter
 👉 Gateway 只认 GlobalFilter/ GatewayFilter
 * */
+
+/**
+ * ============================================================
+ *  ClientIdGatewayFilter（平台级 · 最终版）
+ * ============================================================
+ *
+ *  【职责定位】
+ *  ------------------------------------------------------------------
+ *  在 Gateway 层统一收敛：
+ *
+ *  ✅ X-Client-Id（租户身份）
+ *  ✅ X-Tenant-Id（租户隔离）
+ *
+ *  不做：
+ *  ❌ 业务权限校验
+ *  ❌ 用户角色校验
+ *
+ *  【架构原则】
+ *  ------------------------------------------------------------------
+ *  - WebFlux Gateway 只做 Header / 路由 / 校验
+ *  - 所有阻塞 IO（Feign / JDBC）必须放在独立线程池或由 WebClient 调用
+ *  - 所有 chain.filter 必须统一出口
+ *
+ *  【租户模型（SaaS 电商）】
+ *  ------------------------------------------------------------------
+ *  1. 每个租户 = 一个 client_id
+ *  2. 微信登录 = 只有 user_id，没有 tenant_id
+ *  3. 登录后业务请求 = 必须有 tenant_id
+ *
+ *  【请求类型判定】
+ *  ------------------------------------------------------------------
+ *  ┌──────────────┬──────────────────────────────┐
+ *  │ 是否有 Token │ 处理逻辑                    │
+ *  ├──────────────┼──────────────────────────────┤
+ *  │ 否           │ 公共接口：clientId → tenantId │
+ *  │ 是（JWT）    │ 优先 JWT tenantId            │
+ *  │              │ 无 tenantId → clientId 兜底  │
+ *  └──────────────┴──────────────────────────────┘
+ *
+ *  【核心出口】
+ *  ------------------------------------------------------------------
+ *  所有请求最终只通过 doFilter() 转发
+ *
+ *  @author aioveu
+ *  @since 2026-07
+ */
 @Component
 @Slf4j
 public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
+    /** 前端 / 内部约定的租户标识 Header */
     private static final String HEADER_CLIENT_ID = "X-Client-Id";
 
 
@@ -53,6 +100,7 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
     private final ClientWhitelistWithRedisService clientWhitelistWithRedisService;
 
     //是 Gateway Filter 在启动阶段依赖了 Feign，触发了 Spring 的循环依赖保护
+    /** 通过 WebClient 调用租户服务（非阻塞） */
     @Lazy
     private final TenantQueryService tenantQueryService;
 
@@ -68,13 +116,16 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
         this.tenantQueryService = tenantQueryService;
     }
 
+    @Override
+    public int getOrder() {
+        return -100; // 越早越好
+    }
+
 
     /*
       方案 ①（✅ 推荐）：真正用 JWT 校验
     * 方案 ②（✅ 网关常用）：不校验 JWT，只解析
     * */
-
-
     /*
     * ✅ WebFlux
         ✅ 非阻塞
@@ -86,6 +137,11 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
         * 这是“中台”和“普通微服务”的分水岭
     *
     * */
+    /**
+     * ============================================================
+     *  全局入口
+     *  ============================================================
+     */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange,
                              GatewayFilterChain chain) {
@@ -109,13 +165,24 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
     }
 
 
+    // ===============================
+    // JWT 接口处理
+    // ===============================
 
+    /**
+     * 处理携带 JWT 的请求
+     *
+     * 优先级：
+     * 1. JWT 中已有 tenant_id → 直接使用
+     * 2. JWT 无 tenant_id（登录态）→ 走 clientId 兜底逻辑
+     */
     private Mono<Void> handleJwtRequest(ServerWebExchange exchange, GatewayFilterChain chain) {
 
         return resolveTenantIdFromJwt(exchange)
                 .flatMap(tenantId -> {
 
                     ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
+
                     if (tenantId != null) {
                         // ✅ 有 tenantId，正常往下走
                         log.info("【ClientIdGatewayFilter】JWT tenantId={}", tenantId);
@@ -126,7 +193,7 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
                         log.info("【ClientIdGatewayFilter】✅ 2. JWT 无 tenant_id（登录态）→ 走公共接口逻辑");
 
                         //------------------------------------------------------------------
-                        // ✅ 2. JWT 无 tenant_id → 走公共逻辑
+                        // ✅ 2. JWT 无 tenant_id（登录态）→ 走公共逻辑
                         return resolveClientId(exchange)
                                 .flatMap(clientId ->
                                         handleClientIdToTenant(exchange, chain, clientId, builder)
@@ -148,25 +215,7 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
     }
 
 
-    /**
-     * ✅ 统一出口：只在这里调 chain.filter
-     */
-    private Mono<Void> doFilter(
-            ServerWebExchange exchange,
-            GatewayFilterChain chain,
-            ServerHttpRequest.Builder builder) {
 
-        log.info("【ClientIdGatewayFilter】即将转发请求到 对应微服务");
-        // ⚠️ 这里如果返回 null，WebFlux 会直接结束，不报错
-        return chain.filter(exchange.mutate().request(builder.build()).build())
-                .doOnSubscribe(s ->
-                        log.info("【ClientIdGatewayFilter】✅ 已转发请求")
-                )
-                .doOnError(e -> {
-                    log.error("【ClientIdGatewayFilter】❌ 转发失败", e);
-                    exchange.getResponse().setStatusCode(HttpStatus.BAD_GATEWAY);
-                });
-    }
 
 
 
@@ -175,6 +224,17 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
      * 解析 clientId（优先级从高到低） （✅ 带校验）
      *     * 解析 clientId（优先级从高到低）
      *      * 返回 Mono<String> 以支持 WebFlux 非阻塞模型
+     */
+    // ===============================
+    // 公共接口处理
+    // ===============================
+
+    /**
+     * 处理无 Token 的公共接口
+     *
+     * 规则：
+     * - clientId → 查 tenantId
+     * - 查不到 → 放行（由下游决定）
      */
     private Mono<Void> handlePublicClient(ServerWebExchange exchange,GatewayFilterChain chain) {
 
@@ -211,55 +271,26 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
 
 
-    /**
-     * 解析 clientId（优先级从高到低） （✅ 带校验）
-     *     * 解析 clientId（优先级从高到低）
-     *      * 返回 Mono<String> 以支持 WebFlux 非阻塞模型
-     */
-    private Mono<String> resolveClientId(ServerWebExchange exchange) {
 
 
-        // 2前端带了就用（小程序 / H5） 公共接口：信任前端 Header
-        String clientIdFromHeader = exchange.getRequest()
-                .getHeaders()
-                .getFirst(HEADER_CLIENT_ID);
 
-        log.info("【ClientIdGatewayFilter】前端带了就用（小程序 / H5） 公共接口：信任前端 Header:{}", clientIdFromHeader);
-
-        if (StringUtils.isNotBlank(clientIdFromHeader)) {
-
-            // ✅ 最小修改点：只取第一个 clientId，防拼接
-            String cleanClientId = clientIdFromHeader.split(",")[0];
-            log.debug("【ClientIdGatewayFilter】公共接口，清洗 clientId = {} -> {}",
-                    clientIdFromHeader, cleanClientId);
-            return Mono.just(cleanClientId);
-        }
-
-        // ✅ 3. 兜底（域名 / 默认）根据域名 / 路径判断（SaaS 常用）
-        String host = exchange.getRequest().getURI().getHost();
-        if (host != null) {
-            if (host.contains("miniapp")) {
-                log.debug("【ClientIdGatewayFilter】 miniapp兜底（域名 / 默认）根据域名 / 路径判断（SaaS 常用） clientIdFromHeader： {}", clientIdFromHeader);
-                return Mono.just("default_miniapp");
-
-            }
-            if (host.contains("h5")) {
-                log.debug("【ClientIdGatewayFilter】 h5兜底（域名 / 默认）根据域名 / 路径判断（SaaS 常用） clientIdFromHeader： {}", clientIdFromHeader);
-                return Mono.just("default_miniapp");
-            }
-        }
-
-        // 4. 最终兜底
-        return Mono.just("system_default");
-    }
-
+    // ===============================
+    // 公共逻辑：clientId → tenantId
+    // ===============================
 
     /**
      * ✅ 公共逻辑：clientId → tenantId → 转发
-     * 可用于：
-     *  - 公共接口
-     *  - JWT 登录态兜底
-     *  （只拼 Header，不调 chain）
+     *
+     * 使用场景：
+     * - 公共接口
+     * - JWT 登录态兜底
+     *
+     * 职责：
+     * - 校验 clientId 白名单
+     * - 调用租户服务
+     * - 拼 Header
+     *
+     * ❌ 不负责 chain.filter（统一出口）
      */
     private Mono<Void> handleClientIdToTenant(
             ServerWebExchange exchange,
@@ -313,11 +344,85 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
                 }));
     }
 
+    // ===============================
+    // 统一出口（非常重要）
+    // ===============================
 
-    @Override
-    public int getOrder() {
-        return -100; // 越早越好
+    /**
+     * ✅ 所有 chain.filter 的唯一出口
+     *
+     * 好处：
+     * - 不分散
+     * - 易监控
+     * - 易扩展（日志 / Trace / Metrics）
+     */
+    private Mono<Void> doFilter(
+            ServerWebExchange exchange,
+            GatewayFilterChain chain,
+            ServerHttpRequest.Builder builder) {
+
+        log.info("【ClientIdGatewayFilter】即将转发请求到 对应微服务");
+        // ⚠️ 这里如果返回 null，WebFlux 会直接结束，不报错
+        return chain.filter(exchange.mutate().request(builder.build()).build())
+                .doOnSubscribe(s ->
+                        log.info("【ClientIdGatewayFilter】✅ 已转发请求")
+                )
+                .doOnError(e -> {
+                    log.error("【ClientIdGatewayFilter】❌ 转发失败", e);
+                    exchange.getResponse().setStatusCode(HttpStatus.BAD_GATEWAY);
+                });
     }
+
+
+    // ===============================
+    // 工具 & 解析方法
+    // ===============================
+
+    /** 解析 clientId（Header / 域名 / 兜底） */
+    /**
+     * 解析 clientId（优先级从高到低） （✅ 带校验）
+     *     * 解析 clientId（优先级从高到低）
+     *      * 返回 Mono<String> 以支持 WebFlux 非阻塞模型
+     */
+    private Mono<String> resolveClientId(ServerWebExchange exchange) {
+
+
+        // 2前端带了就用（小程序 / H5） 公共接口：信任前端 Header
+        String clientIdFromHeader = exchange.getRequest()
+                .getHeaders()
+                .getFirst(HEADER_CLIENT_ID);
+
+        log.info("【ClientIdGatewayFilter】前端带了就用（小程序 / H5） 公共接口：信任前端 Header:{}", clientIdFromHeader);
+
+        if (StringUtils.isNotBlank(clientIdFromHeader)) {
+
+            // ✅ 最小修改点：只取第一个 clientId，防拼接
+            String cleanClientId = clientIdFromHeader.split(",")[0];
+            log.debug("【ClientIdGatewayFilter】公共接口，清洗 clientId = {} -> {}",
+                    clientIdFromHeader, cleanClientId);
+            return Mono.just(cleanClientId);
+        }
+
+        // ✅ 3. 兜底（域名 / 默认）根据域名 / 路径判断（SaaS 常用）
+        String host = exchange.getRequest().getURI().getHost();
+        if (host != null) {
+            if (host.contains("miniapp")) {
+                log.debug("【ClientIdGatewayFilter】 miniapp兜底（域名 / 默认）根据域名 / 路径判断（SaaS 常用） clientIdFromHeader： {}", clientIdFromHeader);
+                return Mono.just("default_miniapp");
+
+            }
+            if (host.contains("h5")) {
+                log.debug("【ClientIdGatewayFilter】 h5兜底（域名 / 默认）根据域名 / 路径判断（SaaS 常用） clientIdFromHeader： {}", clientIdFromHeader);
+                return Mono.just("default_miniapp");
+            }
+        }
+
+        // 4. 最终兜底
+        return Mono.just("system_default");
+    }
+
+
+
 
 
     private boolean isSensitivePath(String path) {
@@ -376,7 +481,7 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
     }
 
     /*
-    * 使用 ReactiveJwtDecoder 非阻塞解析 JWT中的 ClientId
+    * 使用 ReactiveJwtDecoder 非阻塞解析 JWT中的 tenantId
     *
     * */
     //1️JWT 接口：只认 JWT 里的 tenantId
