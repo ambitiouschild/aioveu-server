@@ -238,7 +238,11 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
                 // 需要将其他类型的异常转换为 OAuth2AuthenticationException
                 // 才能被自定义异常捕获处理，逻辑源码 OAuth2TokenEndpointFilter#doFilterInternal
                 // 这样可以被OAuth2TokenEndpointFilter统一处理并返回标准错误响应
-                throw new OAuth2AuthenticationException(e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
+                log.error("用户名密码认证失败", e);
+                throw new OAuth2AuthenticationException(
+                        new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT),
+                        e.getMessage()
+                );
             }
         }
 
@@ -441,7 +445,10 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
             UserDetails userDetails = sysUserDetailsService.loadUserByUsername(username);
 
             if (userDetails == null) {
-                throw new OAuth2AuthenticationException("用户不存在: " + username);
+                throw new OAuth2AuthenticationException(
+                        new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT),
+                        "用户不存在: " + username
+                );
             }
 
             // 2. 如果是 SysUserDetails，设置租户ID
@@ -471,7 +478,10 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
 
         } catch (Exception e) {
             log.error("租户切换认证失败", e);
-            throw new OAuth2AuthenticationException("租户切换失败: " + e.getMessage());
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST),
+                    "租户切换失败: " + e.getMessage()
+            );
         }
     }
 
