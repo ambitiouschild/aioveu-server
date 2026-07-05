@@ -219,6 +219,7 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
 
                 if (userId != null) {
                     String versionKey = RedisConstants.Auth.USER_TOKEN_VERSION + userId;
+                    //获取当前版本号
                     Long tokenVersion = redisTemplate.opsForValue().increment(versionKey);
                     if (tokenVersion == null) {
                         tokenVersion = 1L;
@@ -229,6 +230,14 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
                     // ❌ 这里是只读 Map
                     //不要往 additionalParameters里塞东西
 //                    additionalParameters.put(JwtClaimConstants.Token.VERSION, tokenVersion);
+
+
+                    // ✅ 放进 details（不是 additionalParameters）
+                    Map<String, Object> details = new HashMap<>();
+                    details.put(JwtClaimConstants.Token.VERSION, tokenVersion);
+
+                    ((UsernamePasswordAuthenticationToken) usernamePasswordAuthentication)
+                            .setDetails(details);
 
                     log.info("【TokenVersion】用户 {} 登录，token_version = {}", userId, tokenVersion);
                 }

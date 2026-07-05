@@ -222,6 +222,20 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
         log.info("4. 根据openid加载用户信息:{}", userDetails.getUsername());
         log.info("4. 根据openid加载用户信息:{}", userDetails);
 
+        //----------------------------------------------------------
+
+        //------------------------------------------------
+        log.info("5. 构建用户名密码认证令牌（用于后续的令牌生成）");
+        //// 使用 UsernamePasswordAuthenticationToken 类型，而不是 Authentication
+        //使用 UsernamePasswordAuthenticationToken具体实现类，而不是 Authentication接口
+        UsernamePasswordAuthenticationToken usernamePasswordAuthentication = new UsernamePasswordAuthenticationToken(
+//                userDetails,     // ❌ 这里传入了完整的 MemberDetails 对象
+//                userDetails.getPassword());  // 密码用于认证验证
+                //如果只存用户名，令牌里的个人信息就没了
+                //你这里其实不需要密码，因为是微信登录
+                userDetails.getUsername(),  // 只存用户名
+                null,  // 密码不需要
+                userDetails.getAuthorities());  // 权限
 
 
         //----------------------------------------------------------
@@ -235,34 +249,16 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
                 tokenVersion = 1L;
             }
 
-            // ✅ 放入 additionalParameters，供 JWT Customizer 使用
-            //但实际上 JWT Customizer 根本拿不到。**
-            //不要往 additionalParameters里塞东西
-//            additionalParameters.put(JwtClaimConstants.Token.VERSION, tokenVersion);
+            // ✅ 放进 Authentication.details
+            Map<String, Object> details = new HashMap<>();
+            details.put(JwtClaimConstants.Token.VERSION, tokenVersion);
+            usernamePasswordAuthentication.setDetails(details);
 
             log.info("【Wechat TokenVersion】用户 {} 微信登录，token_version = {}", userId, tokenVersion);
         }
 
-        //----------------------------------------------------------
 
 
-
-
-
-
-        //------------------------------------------------
-        log.info("5. 构建用户名密码认证令牌（用于后续的令牌生成）");
-        //// 使用 UsernamePasswordAuthenticationToken 类型，而不是 Authentication
-        //使用 UsernamePasswordAuthenticationToken具体实现类，而不是 Authentication接口
-        UsernamePasswordAuthenticationToken usernamePasswordAuthentication = new UsernamePasswordAuthenticationToken(
-//                userDetails,     // ❌ 这里传入了完整的 MemberDetails 对象
-//                userDetails.getPassword());  // 密码用于认证验证
-
-        //如果只存用户名，令牌里的个人信息就没了
-                //你这里其实不需要密码，因为是微信登录
-                userDetails.getUsername(),  // 只存用户名
-                null,  // 密码不需要
-                userDetails.getAuthorities());  // 权限
 
 //        log.info("userDetails租户ID: {}",userDetails.getTenantId());
 //        // 设置租户ID到details
@@ -321,7 +317,7 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
                 .principalName(userDetails.getUsername())  // 主体名称
                 .authorizationGrantType(WechatAuthenticationToken.WECHAT_MINI_APP)  // 授权类型
 //                .attribute(Principal.class.getName(), usernamePasswordAuthentication);  // 存储完整的 Authentication
-                .attribute(Principal.class.getName(), userDetails.getUsername());
+                .attribute(Principal.class.getName(), usernamePasswordAuthentication.getName());
 
         //然后这个认证信息被序列化到数据库。刷新令牌时，Spring Security 尝试反序列化，但 MemberDetails不在 Jackson 白名单中。
 

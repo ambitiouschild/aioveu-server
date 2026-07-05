@@ -17,6 +17,7 @@ import org.springframework.security.oauth2.server.authorization.token.JwtEncodin
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -78,7 +79,9 @@ public class JwtTokenCustomizerConfig {
 
 
                     // ✅ 2️系统用户
-                    if (principal instanceof SysUserDetails userDetails) { // 系统用户添加自定义字段
+                    if (context.getPrincipal() instanceof UsernamePasswordAuthenticationToken authToken &&
+                            authToken.getPrincipal() instanceof SysUserDetails userDetails) {
+                        // 系统用户添加自定义字段
                         log.info("【JwtTokenCustomizer】✅ 系统用户SysUserDetails添加自定义字段");
                         // 调试日志
                         log.info("【JwtTokenCustomizer】用户详情字段值: userId={}, username={}, deptId={}, dataScope={}, dataScopes={}, tenantId={}, canSwitchTenant={}",
@@ -98,23 +101,18 @@ public class JwtTokenCustomizerConfig {
                                     userDetails.getUserId()
                             );
 
-                            //JWT Customizer（只干一件事）
+                            //JWT Customizer（只干一件事） JwtCustomizer 里：只从 details 读
                             //----------------------------------------------
-                            // token_version Key
-                            String versionKey = RedisConstants.Auth.USER_TOKEN_VERSION + userDetails.getUserId();
-
-                            // 获取当前版本号（不存在则初始化为 1）
-                            Long tokenVersion = (Long) redisTemplate.opsForValue().get(versionKey);
-                            if (tokenVersion == null) {
-                                tokenVersion = 1L;
-                            }
-
-                            if (tokenVersion != null) {
-                                claims.claim(
-                                        JwtClaimConstants.Token.VERSION,
-                                        tokenVersion
-                                );
-                                log.info("【JwtTokenCustomizer】✅ 添加 token_version = {}", tokenVersion);
+                            Object details = context.getPrincipal().getDetails();
+                            if (details instanceof Map) {
+                                Object tokenVersion = ((Map<?, ?>) details).get(JwtClaimConstants.Token.VERSION);
+                                if (tokenVersion instanceof Number) {
+                                    claims.claim(
+                                            JwtClaimConstants.Token.VERSION,
+                                            ((Number) tokenVersion).longValue()
+                                    );
+                                    log.info("【JwtTokenCustomizer】✅ 添加 token_version = {}", tokenVersion);
+                                }
                             }
 
                             //----------------------------------------------
@@ -156,7 +154,7 @@ public class JwtTokenCustomizerConfig {
                         if (userDetails.getDataScopes() != null && !userDetails.getDataScopes().isEmpty()) {
                             claims.claim(
                                     JwtClaimConstants.User.DATA_SCOPES,
-                                    userDetails.getDataScope().longValue()
+                                    userDetails.getDataScopes()
                             );
                         }else {
                             // 如果业务允许，可以设置默认值
