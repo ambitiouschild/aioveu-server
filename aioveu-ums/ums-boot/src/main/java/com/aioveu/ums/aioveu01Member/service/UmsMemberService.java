@@ -31,12 +31,12 @@ public interface UmsMemberService extends IService<UmsMember> {
     Set<ProductHistoryVO> getProductViewHistory(Long userId);
 
     /**
-     * 根据 openid 获取会员认证信息
+     * 根据 openId 获取会员认证信息
      *
-     * @param openid
+     * @param openId
      * @return
      */
-    MemberAuthDTO getMemberByOpenid(String openid);
+    MemberAuthDTO getMemberByopenId(String openId);
 
 
     /**
@@ -46,7 +46,7 @@ public interface UmsMemberService extends IService<UmsMember> {
      * @param tenantId
      * @return
      */
-    MemberAuthDTO getMemberByOpenidAndTenantId(String openId,Long tenantId);
+    MemberAuthDTO getMemberByopenIdAndTenantId(String openId,Long tenantId);
 
 
     /**
@@ -68,9 +68,9 @@ public interface UmsMemberService extends IService<UmsMember> {
 
 
     /*
-    * 用 openid + tenant_id 查当前用户
+    * 用 openId + tenant_id 查当前用户
     * */
-    UmsMemberVO getCurrMemberInfoByOpenidAndTenantId();
+    UmsMemberVO getCurrMemberInfoByopenIdAndTenantId();
 
     /**
      * 获取登录会员信息

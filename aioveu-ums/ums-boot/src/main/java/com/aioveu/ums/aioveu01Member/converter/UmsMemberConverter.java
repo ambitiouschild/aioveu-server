@@ -18,7 +18,7 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface UmsMemberConverter {
 
-    MemberAuthDTO entity2OpenidAuthDTO(UmsMember entity);
+    MemberAuthDTO entity2openIdAuthDTO(UmsMember entity);
 
     MemberAuthDTO entity2MobileAuthDTO(UmsMember entity);
 

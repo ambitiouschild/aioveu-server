@@ -57,8 +57,8 @@ public class MemberRegisterForm {
     @Schema(description = "删除标志(0=未删除,1=已删除)")
     private Integer deleted;
 
-    @Schema(description = "微信OpenID")
-    @Size(max=28, message="微信OpenID长度不能超过28个字符")
+    @Schema(description = "微信OpenId")
+    @Size(max=28, message="微信OpenId长度不能超过28个字符")
     private String openId;
 
     @Schema(description = "微信会话密钥")

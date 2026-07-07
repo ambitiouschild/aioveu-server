@@ -60,9 +60,9 @@ public class UmsMember extends BaseEntityWithTenantId {
      */
     private Integer deleted;
     /**
-     * 微信OpenID
+     * 微信openId
      */
-    private String openid;
+    private String openId;
     /**
      * 微信会话密钥
      */

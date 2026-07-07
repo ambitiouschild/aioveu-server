@@ -31,8 +31,8 @@ public class UmsMemberQuery extends BasePageQuery {
     private List<String> birthday;
     @Schema(description = "状态(0=禁用,1=正常)")
     private Integer status;
-    @Schema(description = "微信OpenID")
-    private String openid;
+    @Schema(description = "微信openId")
+    private String openId;
     @Schema(description = "国家")
     private String country;
     @Schema(description = "省份")

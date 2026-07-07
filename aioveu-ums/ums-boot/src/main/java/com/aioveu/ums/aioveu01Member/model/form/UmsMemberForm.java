@@ -63,9 +63,9 @@ public class UmsMemberForm implements Serializable {
     @Schema(description = "删除标志(0=未删除,1=已删除)")
     private Integer deleted;
 
-    @Schema(description = "微信OpenID")
-    @Size(max=28, message="微信OpenID长度不能超过28个字符")
-    private String openid;
+    @Schema(description = "微信openId")
+    @Size(max=28, message="微信openId长度不能超过28个字符")
+    private String openId;
 
     @Schema(description = "微信会话密钥")
     @Size(max=32, message="微信会话密钥长度不能超过32个字符")

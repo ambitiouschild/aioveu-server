@@ -212,11 +212,11 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
 
 
         String openId = sessionInfo.getOpenid();
-        log.info("OpenID获取：从微信响应中提取用户唯一标识openId:{}",openId);
+        log.info("openId获取：从微信响应中提取用户唯一标识openId:{}",openId);
 
 //        UserDetails userDetails = memberDetailsService.loadUserByOpenid(openid);
 
-        MemberDetails userDetails = memberDetailsService.loadUserByOpenidAndClientId(openId,clientId);
+        MemberDetails userDetails = memberDetailsService.loadUserByOpenIdAndClientId(openId,clientId);
 
         // 根据 openid 获取会员信息
         log.info("4. 根据openId加载用户信息:{}", userDetails.getUsername());

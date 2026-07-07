@@ -43,8 +43,8 @@ public class UmsMemberVO implements Serializable {
     private Integer status;
     @Schema(description = "删除标志(0=未删除,1=已删除)")
     private Integer deleted;
-    @Schema(description = "微信OpenID")
-    private String openid;
+    @Schema(description = "微信openId")
+    private String openId;
     @Schema(description = "微信会话密钥")
     private String sessionKey;
     @Schema(description = "国家")

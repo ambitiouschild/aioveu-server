@@ -38,7 +38,7 @@ import java.util.Set;
  *                   1. 会员信息管理
  *                      分页查询：支持按昵称模糊查询会员列表
  *                      会员注册：将注册信息保存到数据库，返回会员ID
- *                      认证查询：通过openid或手机号获取会员认证信息
+ *                      认证查询：通过openId或手机号获取会员认证信息
  *                   2. 浏览历史功能
  *                      Redis存储：使用ZSet有序集合存储浏览记录
  *                      自动清理：只保留最近10条记录，避免数据过多
@@ -140,22 +140,22 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
     }
 
     /**
-     *        TODO           根据微信openid获取会员认证信息
+     *        TODO           根据微信openId获取会员认证信息
      *                  主要用于微信登录认证场景
      *
-     * @param openid 微信用户唯一标识
-     * @return 会员认证信息DTO，包含会员ID、openid、状态等关键信息
+     * @param openId 微信用户唯一标识
+     * @return 会员认证信息DTO，包含会员ID、openId、状态等关键信息
      *         如果会员不存在返回null
      */
     @Override
-    public MemberAuthDTO getMemberByOpenid(String openid) {
+    public MemberAuthDTO getMemberByopenId(String openId) {
 
 
-        log.info("构建查询条件：按openid精确匹配，只查询必要字段");
+        log.info("构建查询条件：按openId精确匹配，只查询必要字段");
         UmsMember entity = this.getOne(new LambdaQueryWrapper<UmsMember>()
-                .eq(UmsMember::getOpenid, openid)
+                .eq(UmsMember::getOpenId, openId)
                 .select(UmsMember::getId,     // 会员ID
-                        UmsMember::getOpenid,  // 微信openid
+                        UmsMember::getOpenId,  // 微信openId
                         UmsMember::getStatus  // 会员状态
                 )
         );
@@ -167,37 +167,37 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
         }
 
         log.info("使用转换器将Entity转换为认证DTO");
-        return umsMemberConverter.entity2OpenidAuthDTO(entity);
+        return umsMemberConverter.entity2openIdAuthDTO(entity);
     }
 
     /**
-     * 根据 openid 和 tenantId获取会员认证信息
+     * 根据 openId 和 tenantId获取会员认证信息
      *
      * @param openId
      * @param tenantId
      * @return
      */
     @Override
-    public MemberAuthDTO getMemberByOpenidAndTenantId(String openId,Long tenantId) {
+    public MemberAuthDTO getMemberByopenIdAndTenantId(String openId,Long tenantId) {
 
 
         UmsMember umsMember = this.getOne(new LambdaQueryWrapper<UmsMember>()
-                .eq(UmsMember::getOpenid, openId)
+                .eq(UmsMember::getOpenId, openId)
                 .select(UmsMember::getId,     // 会员ID
                         UmsMember::getNickName,  // 昵称
                         UmsMember::getMobile,  // 手机号
-                        UmsMember::getOpenid,  // 微信openid
+                        UmsMember::getOpenId,  // 微信openId
                         UmsMember::getTenantId,  // tenantId
                         UmsMember::getStatus  // 会员状态
                 )
         );
-        log.info("【Ums】构建查询条件：按openid 和 tenantId精确匹配，只查询必要字段,umsMember:{}",umsMember);
+        log.info("【Ums】构建查询条件：按openId 和 tenantId精确匹配，只查询必要字段,umsMember:{}",umsMember);
         if (umsMember == null) {
             log.info("【Ums】会员不存在时返回null，由调用方处理");
             return null;
         }
 
-        MemberAuthDTO memberAuthDTO =  umsMemberConverter.entity2OpenidAuthDTO(umsMember);
+        MemberAuthDTO memberAuthDTO =  umsMemberConverter.entity2openIdAuthDTO(umsMember);
         log.info("【Ums】使用转换器将Entity转换为认证memberAuthDTO:{}",memberAuthDTO);
 
         return memberAuthDTO;
@@ -261,19 +261,19 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
 
 
     /**
-     *   用 openid + tenant_id 查当前用户
+     *   用 openId + tenant_id 查当前用户
      * @return 会员信息VO对象，包含前端展示所需字段
      */
     @Override
-    public UmsMemberVO getCurrMemberInfoByOpenidAndTenantId() {
+    public UmsMemberVO getCurrMemberInfoByopenIdAndTenantId() {
 
 
-        String openid = SecurityUtils.getOpenId();
+        String openId = SecurityUtils.getOpenId();  //之前是这里的问题
         Long tenantId = SecurityUtils.getTenantId();
 
-        log.info("【Ums】构建查询条件：按openid 和 tenantId精确匹配，只查询必要字段");
+        log.info("【Ums】构建查询条件：按openId 和 tenantId精确匹配，只查询必要字段");
         UmsMember umsMember = this.getOne(new LambdaQueryWrapper<UmsMember>()
-                .eq(UmsMember::getOpenid, openid)
+                .eq(UmsMember::getOpenId, openId)
                 .eq(UmsMember::getTenantId, tenantId)
                 .select(UmsMember::getId,    // 会员ID
                         UmsMember::getNickName,  // 昵称

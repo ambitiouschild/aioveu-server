@@ -28,14 +28,14 @@ import java.util.Set;
 public class MemberController {
     private final UmsMemberService memberService;
 
-    @Operation(summary= "根据会员ID获取openid")
-    @GetMapping("/{memberId}/openid")
-    public Result<String> getOpenIdByMemberId(@Parameter(name = "会员ID") @PathVariable Long memberId) {
+    @Operation(summary= "根据会员ID获取openId")
+    @GetMapping("/{memberId}/openId")
+    public Result<String> getopenIdByMemberId(@Parameter(name = "会员ID") @PathVariable Long memberId) {
         UmsMember member = memberService.getOne(new LambdaQueryWrapper<UmsMember>()
                 .eq(UmsMember::getId, memberId)
-                .select(UmsMember::getOpenid));
-        String openid = member.getOpenid();
-        return Result.success(openid);
+                .select(UmsMember::getOpenId));
+        String openId = member.getOpenId();
+        return Result.success(openId);
     }
 
     @Operation(summary= "注册会员")
@@ -49,7 +49,7 @@ public class MemberController {
     @GetMapping("/me")
     public Result<UmsMemberVO> getCurrMemberInfo() {
 //        UmsMemberVO umsMemberVO = memberService.getCurrMemberInfoByMemberId();
-        UmsMemberVO umsMemberVO = memberService.getCurrMemberInfoByOpenidAndTenantId();
+        UmsMemberVO umsMemberVO = memberService.getCurrMemberInfoByopenIdAndTenantId();
         return Result.success(umsMemberVO);
     }
 
@@ -80,19 +80,19 @@ public class MemberController {
     }
 
     @Operation(summary= "根据 openId 获取会员认证信息")
-    @GetMapping("/openid/{openid}")
-    public Result<MemberAuthDTO> getMemberByOpenid(@Parameter(name = "微信唯一身份标识") @PathVariable String openid) {
-        MemberAuthDTO memberAuthInfo = memberService.getMemberByOpenid(openid);
+    @GetMapping("/openId/{openId}")
+    public Result<MemberAuthDTO> getMemberByopenId(@Parameter(name = "微信唯一身份标识") @PathVariable String openId) {
+        MemberAuthDTO memberAuthInfo = memberService.getMemberByopenId(openId);
         return Result.success(memberAuthInfo);
     }
 
-    @Operation(summary= "根据 openid 和 tenantId 获取会员认证信息")
-    @GetMapping("/openidAndTenantId/{openId}")
-    public Result<MemberAuthDTO> loadUserByOpenIdAndTenantId(
+    @Operation(summary= "根据 openId 和 tenantId 获取会员认证信息")
+    @GetMapping("/openIdAndTenantId/{openId}")
+    public Result<MemberAuthDTO> loadUserByopenIdAndTenantId(
             @PathVariable("openId") String openId,
             @RequestHeader("X-Tenant-Id") Long tenantId
     ){
-        MemberAuthDTO memberAuthInfo = memberService.getMemberByOpenidAndTenantId(openId,tenantId);
+        MemberAuthDTO memberAuthInfo = memberService.getMemberByopenIdAndTenantId(openId,tenantId);
         return Result.success(memberAuthInfo);
     }
 

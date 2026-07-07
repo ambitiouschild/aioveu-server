@@ -123,7 +123,7 @@ public class MemberDetailsService {
      * @param clientId  客户端绑定wxAppId,绑定Tenant
      * @return {@link MemberDetails}
      */
-    public MemberDetails loadUserByOpenidAndClientId(String openId,String clientId) {
+    public MemberDetails loadUserByOpenIdAndClientId(String openId,String clientId) {
 
         // 1. ★ 通过 clientId 查询 wxAppid 和 tenantId
         log.info("=======【Auth MemberDetailsService】根据openId和clientId获取用户信息,Auth没有自资源服务器的TenantFilter=======");
@@ -141,9 +141,9 @@ public class MemberDetailsService {
         log.info("【Auth MemberDetailsService】查询到租户信息 - wxAppid: {}, tenantId: {}", wxAppid, tenantId);
 
         //用户通用
-//        MemberAuthDTO memberAuthInfo = memberFeignClient.loadUserByOpenId(openid).getData();
-        // 根据 openid 和 tenantId 获取微信用户认证信息
-        // 调用会员服务API，查询微信openid对应用户
+//        MemberAuthDTO memberAuthInfo = memberFeignClient.loadUserByOpenId(openId).getData();
+        // 根据 openId 和 tenantId 获取微信用户认证信息
+        // 调用会员服务API，查询微信openId对应用户
         // 首先尝试获取用户
         Result<MemberAuthDTO>  memberAuthDTOResult = memberFeignClient.loadUserByOpenIdAndTenantId(openId,tenantId);
         //   注册失败处理----------------------
