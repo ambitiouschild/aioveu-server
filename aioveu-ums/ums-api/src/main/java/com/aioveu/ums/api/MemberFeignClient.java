@@ -34,11 +34,11 @@ public interface MemberFeignClient {
     Result<MemberRegisterDTO> registerMember(@RequestBody MemberRegisterForm member);
 
     /**
-     * 获取会员的 openid
+     * 获取会员的 openId
      *
      * @return
      */
-    @GetMapping("/aioveu/api/v8/app/ums/members/{memberId}/openid")
+    @GetMapping("/aioveu/api/v8/app/ums/members/{memberId}/openId")
     Result<String> getOpenIdByMemberId(@PathVariable Long memberId);
 
     /**
@@ -56,11 +56,11 @@ public interface MemberFeignClient {
     /**
      * 根据openId获取会员认证信息
      *
-     * @param openid
+     * @param openId
      * @return
      */
-    @GetMapping("/aioveu/api/v8/app/ums/members/openid/{openid}")
-    Result<MemberAuthDTO> loadUserByOpenId(@PathVariable String openid);
+    @GetMapping("/aioveu/api/v8/app/ums/members/openId/{openId}")
+    Result<MemberAuthDTO> loadMemberByOpenId(@PathVariable String openId);
 
     /**
      * openId 和 tenantId获取会员认证信息
@@ -69,8 +69,8 @@ public interface MemberFeignClient {
      * @param tenantId
      * @return
      */
-    @GetMapping("/aioveu/api/v8/app/ums/members/openidAndTenantId/{openId}")
-    Result<MemberAuthDTO> loadUserByOpenIdAndTenantId(
+    @GetMapping("/aioveu/api/v8/app/ums/members/openIdAndTenantId/{openId}")
+    Result<MemberAuthDTO> loadMemberByOpenIdAndTenantId(
             @PathVariable("openId") String openId,
             @RequestHeader("X-Tenant-Id") Long tenantId
     );
@@ -82,7 +82,7 @@ public interface MemberFeignClient {
      * @return 会员认证信息
      */
     @GetMapping("/aioveu/api/v8/app/ums/members/mobile/{mobile}")
-    Result<MemberAuthDTO> loadUserByMobile(@PathVariable String mobile);
+    Result<MemberAuthDTO> loadMemberByMobile(@PathVariable String mobile);
 
     /**
      * 获取会员地址列表

@@ -47,7 +47,7 @@ import java.util.Map;
  *                              标准兼容：严格遵循OAuth2.0和Spring Security规范
  *                          2. 微信集成流程
  *                              Code验证：通过微信code2Session接口验证临时登录凭证
- *                              OpenID获取：从微信响应中提取用户唯一标识openid
+ *                              OpenID获取：从微信响应中提取用户唯一标识openId
  *                              错误处理：捕获微信API异常并转换为认证异常
  *                          3. 令牌生成策略
  *                              访问令牌：Bearer类型的JWT令牌，包含用户身份和权限信息
@@ -128,8 +128,8 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
     /**
      *       TODO       执行微信小程序认证流程
      *              1. 验证客户端身份和授权类型
-     *              2. 通过微信code获取openid
-     *              3. 根据openid加载用户信息
+     *              2. 通过微信code获取openId
+     *              3. 根据openId加载用户信息
      *              4. 生成访问令牌和刷新令牌
      *              5. 保存授权信息并返回认证结果
      *
@@ -156,8 +156,8 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
             throw new OAuth2AuthenticationException(OAuth2ErrorCodes.UNAUTHORIZED_CLIENT);
         }
 
-        // 微信 code 获取 openid
-        log.info("前端请求中的微信小程序code验证和openid获取");
+        // 微信 code 获取 openId
+        log.info("前端请求中的微信小程序code验证和openId获取");
         Map<String, Object> additionalParameters = wechatAuthenticationToken.getAdditionalParameters();
 
         log.info("前端请求中的微信小程序code");
@@ -194,7 +194,7 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
         WxMaJscode2SessionResult sessionInfo;
         try {
 
-            log.info("调用微信API，通过code获取session信息（包含openid和session_key）");
+            log.info("调用微信API，通过code获取session信息（包含openId和session_key）");
             // 1. 根据客户端ID获取对应的wxMaService
             WxMaService wxMaService = wxMiniAppConfig.getWxMaServiceByClientId(clientId);
             sessionInfo = wxMaService.getUserService().getSessionInfo(code);
@@ -211,16 +211,16 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
         }
 
 
-        String openId = sessionInfo.getOpenid();
+        String openId = sessionInfo.getOpenid(); //微信接口字段：openid✅（全小写，不管它）**  ✅ 接收微信
         log.info("openId获取：从微信响应中提取用户唯一标识openId:{}",openId);
 
-//        UserDetails userDetails = memberDetailsService.loadUserByOpenid(openid);
+//        MemberDetails memberDetails = memberDetailsService.loadUserByOpenId(openId);
 
-        MemberDetails userDetails = memberDetailsService.loadUserByOpenIdAndClientId(openId,clientId);
+        MemberDetails memberDetails = memberDetailsService.loadUserByOpenIdAndClientId(openId,clientId);
 
-        // 根据 openid 获取会员信息
-        log.info("4. 根据openId加载用户信息:{}", userDetails.getUsername());
-        log.info("4. 根据openId加载用户信息:{}", userDetails);
+        // 根据 openId 获取会员信息
+        log.info("4. 根据openId加载用户信息:{}", memberDetails.getUsername());
+        log.info("4. 根据openId加载用户信息:{}", memberDetails);
 
         //----------------------------------------------------------
 
@@ -229,21 +229,21 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
         //// 使用 UsernamePasswordAuthenticationToken 类型，而不是 Authentication
         //使用 UsernamePasswordAuthenticationToken具体实现类，而不是 Authentication接口
         UsernamePasswordAuthenticationToken usernamePasswordAuthentication = new UsernamePasswordAuthenticationToken(
-                userDetails,     // ❌ 这里传入了完整的 MemberDetails 对象  // ✅ MemberDetails 当 principal
-//                userDetails.getPassword());  // 密码用于认证验证
+                memberDetails,     // ❌ 这里传入了完整的 MemberDetails 对象  // ✅ MemberDetails 当 principal
+//                memberDetails.getPassword());  // 密码用于认证验证
                 //如果只存用户名，令牌里的个人信息就没了
                 //你这里其实不需要密码，因为是微信登录
-//                userDetails.getUsername(),  // 只存用户名  // ❗只放了用户名
+//                memberDetails.getUsername(),  // 只存用户名  // ❗只放了用户名
                 null,  // 密码不需要
-                userDetails.getAuthorities());  // 权限
+                memberDetails.getAuthorities());  // 权限
 
 
         //----------------------------------------------------------
         // ✅ ===== 写 token_version（唯一正确位置）=====
-        Long userId = userDetails.getId(); // 或 getUserId()，看你 MemberDetails 的字段名
+        Long memberId = memberDetails.getId(); // 或 getUserId()，看你 MemberDetails 的字段名
 
-        if (userId != null) {
-            String versionKey = RedisConstants.Auth.USER_TOKEN_VERSION + userId;
+        if (memberId != null) {
+            String versionKey = RedisConstants.Auth.USER_TOKEN_VERSION + memberId;
             Long tokenVersion = redisTemplate.opsForValue().increment(versionKey);
             if (tokenVersion == null) {
                 tokenVersion = 1L;
@@ -254,7 +254,7 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
             details.put(JwtClaimConstants.Token.VERSION, tokenVersion);
             usernamePasswordAuthentication.setDetails(details);
 
-            log.info("【Wechat TokenVersion】用户 {} 微信登录，token_version = {}", userId, tokenVersion);
+            log.info("【Wechat TokenVersion】用户 {} 微信登录，memberId:{}, token_version:{}", memberId, tokenVersion);
         }
 
 
@@ -314,7 +314,7 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
 
 
         OAuth2Authorization.Builder authorizationBuilder = OAuth2Authorization.withRegisteredClient(registeredClient)
-                .principalName(userDetails.getUsername())  // 主体名称
+                .principalName(memberDetails.getUsername())  // 主体名称
                 .authorizationGrantType(WechatAuthenticationToken.WECHAT_MINI_APP)  // 授权类型
 //                .attribute(Principal.class.getName(), usernamePasswordAuthentication);  // 存储完整的 Authentication
                 .attribute(Principal.class.getName(), usernamePasswordAuthentication.getName());

@@ -30,9 +30,9 @@ public class MemberDetails implements UserDetails {
     private Long id;
 
     /**
-     * 用户名对应昵称
+     * 会员昵称
      */
-    private String userName;
+    private String memberName;
 
     /**
      * 手机号
@@ -78,7 +78,7 @@ public class MemberDetails implements UserDetails {
      */
     public MemberDetails(MemberAuthDTO memAuthInfo) {
         this.setId(memAuthInfo.getId());
-        this.setUserName(memAuthInfo.getOpenId());
+        this.setMemberName(memAuthInfo.getOpenId());
         this.setMobile(memAuthInfo.getMobile());
         this.setOpenId(memAuthInfo.getOpenId());
         this.setTenantId(memAuthInfo.getTenantId());
@@ -97,7 +97,7 @@ public class MemberDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return this.userName;
+        return this.memberName;
     }
 
     @Override

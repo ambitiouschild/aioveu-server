@@ -42,7 +42,7 @@ public class MemberDetailsService {
      * @return 用户信息
      */
     public MemberDetails loadUserByMobile(String mobile) {
-        Result<MemberAuthDTO> result = memberFeignClient.loadUserByMobile(mobile);
+        Result<MemberAuthDTO> result = memberFeignClient.loadMemberByMobile(mobile);
 
         MemberAuthDTO memberAuthInfo;
         if (!(Result.isSuccess(result) && (memberAuthInfo = result.getData()) != null)) {
@@ -62,14 +62,14 @@ public class MemberDetailsService {
     /**
      * 根据openId获取用户信息
      *
-     * @param openid  微信公众平台唯一身份标识
+     * @param openId  微信公众平台唯一身份标识
      * @return {@link MemberDetails}
      */
-    public MemberDetails loadUserByOpenid(String openid) {
-        // 根据 openid 获取微信用户认证信息
-        // 调用会员服务API，查询微信openid对应用户
+    public MemberDetails loadMemberByOpenId(String openId) {
+        // 根据 openId 获取微信用户认证信息
+        // 调用会员服务API，查询微信openId对应用户
         // 首先尝试获取用户
-        Result<MemberAuthDTO>  memberAuthDTOResult = memberFeignClient.loadUserByOpenId(openid);
+        Result<MemberAuthDTO>  memberAuthDTOResult = memberFeignClient.loadMemberByOpenId(openId);
         //   注册失败处理----------------------
         if (!Result.isSuccess(memberAuthDTOResult)) {
             throw new UsernameNotFoundException("会员信息查询失败: " + memberAuthDTOResult.getMsg());
@@ -88,11 +88,11 @@ public class MemberDetailsService {
                 throw new UsernameNotFoundException("会员注册失败: " + memberRegisterResult.getMsg());
             }
             MemberRegisterDTO memberRegister = memberRegisterResult.getData();
-            //注册成功后，不要立即使用openid去查询，而是使用注册接口返回的会员ID，再调用根据会员ID获取认证信息的接口。这样避免因为主从同步延迟等问题导致查不到用户。
+            //注册成功后，不要立即使用openId去查询，而是使用注册接口返回的会员ID，再调用根据会员ID获取认证信息的接口。这样避免因为主从同步延迟等问题导致查不到用户。
             // 注册成功将会员信息赋值给会员认证信息
-            //提供通过会员ID查询的接口（这样在注册后我们可以立即用注册返回的会员ID去查询，避免使用openid查询可能存在的延迟）
+            //提供通过会员ID查询的接口（这样在注册后我们可以立即用注册返回的会员ID去查询，避免使用openId查询可能存在的延迟）
 
-            //避免使用OpenID立即查询可能的数据延迟问题
+            //避免使用openId立即查询可能的数据延迟问题
             //通过会员ID查询是直接的主键查询，没有同步延迟问题
             if (Result.isSuccess(memberRegisterResult) && memberRegister != null) {
                 memberAuthDTO.setId(memberRegister.getId());
@@ -117,7 +117,7 @@ public class MemberDetailsService {
     }
 
     /**
-     * 根据openId和clientId获取用户信息  新增：通过 openid + tenantId 查询用户
+     * 根据openId和clientId获取用户信息  新增：通过 openId + tenantId 查询用户
      *
      * @param openId  微信公众平台唯一身份标识
      * @param clientId  客户端绑定wxAppId,绑定Tenant
@@ -145,7 +145,7 @@ public class MemberDetailsService {
         // 根据 openId 和 tenantId 获取微信用户认证信息
         // 调用会员服务API，查询微信openId对应用户
         // 首先尝试获取用户
-        Result<MemberAuthDTO>  memberAuthDTOResult = memberFeignClient.loadUserByOpenIdAndTenantId(openId,tenantId);
+        Result<MemberAuthDTO>  memberAuthDTOResult = memberFeignClient.loadMemberByOpenIdAndTenantId(openId,tenantId);
         //   注册失败处理----------------------
         if (!Result.isSuccess(memberAuthDTOResult)) {
             throw new UsernameNotFoundException("会员信息查询失败: " + memberAuthDTOResult.getMsg());
@@ -173,11 +173,11 @@ public class MemberDetailsService {
             }
             MemberRegisterDTO memberRegister = registerMemberResult.getData();
 
-            //注册成功后，不要立即使用openid去查询，而是使用注册接口返回的会员ID，再调用根据会员ID获取认证信息的接口。这样避免因为主从同步延迟等问题导致查不到用户。
+            //注册成功后，不要立即使用openId去查询，而是使用注册接口返回的会员ID，再调用根据会员ID获取认证信息的接口。这样避免因为主从同步延迟等问题导致查不到用户。
             // 注册成功将会员信息赋值给会员认证信息
-            //提供通过会员ID查询的接口（这样在注册后我们可以立即用注册返回的会员ID去查询，避免使用openid查询可能存在的延迟）
+            //提供通过会员ID查询的接口（这样在注册后我们可以立即用注册返回的会员ID去查询，避免使用openId查询可能存在的延迟）
 
-            //避免使用OpenID立即查询可能的数据延迟问题
+            //避免使用openId立即查询可能的数据延迟问题
             //通过会员ID查询是直接的主键查询，没有同步延迟问题
             if (Result.isSuccess(registerMemberResult) && memberRegister != null) {
                 memberAuthDTO.setId(memberRegister.getId());

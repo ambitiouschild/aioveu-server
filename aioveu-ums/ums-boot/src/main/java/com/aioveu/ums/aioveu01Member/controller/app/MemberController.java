@@ -30,7 +30,7 @@ public class MemberController {
 
     @Operation(summary= "根据会员ID获取openId")
     @GetMapping("/{memberId}/openId")
-    public Result<String> getopenIdByMemberId(@Parameter(name = "会员ID") @PathVariable Long memberId) {
+    public Result<String> getOpenIdByMemberId(@Parameter(name = "会员ID") @PathVariable Long memberId) {
         UmsMember member = memberService.getOne(new LambdaQueryWrapper<UmsMember>()
                 .eq(UmsMember::getId, memberId)
                 .select(UmsMember::getOpenId));
@@ -49,7 +49,7 @@ public class MemberController {
     @GetMapping("/me")
     public Result<UmsMemberVO> getCurrMemberInfo() {
 //        UmsMemberVO umsMemberVO = memberService.getCurrMemberInfoByMemberId();
-        UmsMemberVO umsMemberVO = memberService.getCurrMemberInfoByopenIdAndTenantId();
+        UmsMemberVO umsMemberVO = memberService.getCurrMemberInfoByOpenIdAndTenantId();
         return Result.success(umsMemberVO);
     }
 
@@ -81,18 +81,18 @@ public class MemberController {
 
     @Operation(summary= "根据 openId 获取会员认证信息")
     @GetMapping("/openId/{openId}")
-    public Result<MemberAuthDTO> getMemberByopenId(@Parameter(name = "微信唯一身份标识") @PathVariable String openId) {
-        MemberAuthDTO memberAuthInfo = memberService.getMemberByopenId(openId);
+    public Result<MemberAuthDTO> getMemberByOpenId(@Parameter(name = "微信唯一身份标识") @PathVariable String openId) {
+        MemberAuthDTO memberAuthInfo = memberService.getMemberByOpenId(openId);
         return Result.success(memberAuthInfo);
     }
 
     @Operation(summary= "根据 openId 和 tenantId 获取会员认证信息")
     @GetMapping("/openIdAndTenantId/{openId}")
-    public Result<MemberAuthDTO> loadUserByopenIdAndTenantId(
+    public Result<MemberAuthDTO> loadMemberByOpenIdAndTenantId(
             @PathVariable("openId") String openId,
             @RequestHeader("X-Tenant-Id") Long tenantId
     ){
-        MemberAuthDTO memberAuthInfo = memberService.getMemberByopenIdAndTenantId(openId,tenantId);
+        MemberAuthDTO memberAuthInfo = memberService.loadMemberByOpenIdAndTenantId(openId,tenantId);
         return Result.success(memberAuthInfo);
     }
 

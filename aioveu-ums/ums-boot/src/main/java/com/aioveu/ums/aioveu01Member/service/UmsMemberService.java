@@ -36,7 +36,7 @@ public interface UmsMemberService extends IService<UmsMember> {
      * @param openId
      * @return
      */
-    MemberAuthDTO getMemberByopenId(String openId);
+    MemberAuthDTO getMemberByOpenId(String openId);
 
 
     /**
@@ -46,7 +46,7 @@ public interface UmsMemberService extends IService<UmsMember> {
      * @param tenantId
      * @return
      */
-    MemberAuthDTO getMemberByopenIdAndTenantId(String openId,Long tenantId);
+    MemberAuthDTO loadMemberByOpenIdAndTenantId(String openId,Long tenantId);
 
 
     /**
@@ -70,7 +70,7 @@ public interface UmsMemberService extends IService<UmsMember> {
     /*
     * 用 openId + tenant_id 查当前用户
     * */
-    UmsMemberVO getCurrMemberInfoByopenIdAndTenantId();
+    UmsMemberVO getCurrMemberInfoByOpenIdAndTenantId();
 
     /**
      * 获取登录会员信息

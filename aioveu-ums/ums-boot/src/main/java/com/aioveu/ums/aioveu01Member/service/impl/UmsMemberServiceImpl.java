@@ -148,7 +148,7 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
      *         如果会员不存在返回null
      */
     @Override
-    public MemberAuthDTO getMemberByopenId(String openId) {
+    public MemberAuthDTO getMemberByOpenId(String openId) {
 
 
         log.info("构建查询条件：按openId精确匹配，只查询必要字段");
@@ -178,7 +178,7 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
      * @return
      */
     @Override
-    public MemberAuthDTO getMemberByopenIdAndTenantId(String openId,Long tenantId) {
+    public MemberAuthDTO loadMemberByOpenIdAndTenantId(String openId,Long tenantId) {
 
 
         UmsMember umsMember = this.getOne(new LambdaQueryWrapper<UmsMember>()
@@ -265,7 +265,7 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
      * @return 会员信息VO对象，包含前端展示所需字段
      */
     @Override
-    public UmsMemberVO getCurrMemberInfoByopenIdAndTenantId() {
+    public UmsMemberVO getCurrMemberInfoByOpenIdAndTenantId() {
 
 
         String openId = SecurityUtils.getOpenId();  //之前是这里的问题
