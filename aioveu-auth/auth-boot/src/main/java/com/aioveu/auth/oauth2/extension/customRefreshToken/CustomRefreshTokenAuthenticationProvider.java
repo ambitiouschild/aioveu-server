@@ -191,8 +191,8 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
         //✅ 方案 2：从 JWT 里拿（资源服务器用） claims.put("tenant_id", tenantId);
         //✅ 方案 3：从 clientId 再查一次（不推荐）
 
-        Long tenantId = authorization.getAttribute("tenant_id");
-        log.info("获取客户端ID: {}", clientId);
+        Long tenantId = authorization.getAttribute(JwtClaimConstants.Tenant.ID);
+        log.info("获取tenantId: {}", tenantId);
         // 7. 重新加载用户
         MemberDetails memberDetails =
                 memberDetailsService.loadMemberByOpenIdAndTenantId(openId,tenantId);
