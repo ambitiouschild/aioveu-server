@@ -209,7 +209,9 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
         Long memberId = memberDetails.getId();
         if (memberId != null) {
             String versionKey = RedisConstants.Auth.USER_TOKEN_VERSION + memberId;
-            Long tokenVersion = redisTemplate.opsForValue().increment(versionKey);
+
+            // ✅ 只读取，不 increment ✅ 这是唯一正确的刷新令牌校验方式
+            Long tokenVersion = (Long) redisTemplate.opsForValue().get(versionKey);
             if (tokenVersion == null) {
                 throw new OAuth2AuthenticationException(
                         new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT, "令牌已失效", ERROR_URI)
