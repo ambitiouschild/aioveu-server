@@ -40,13 +40,13 @@ public interface UmsMemberService extends IService<UmsMember> {
 
 
     /**
-     * 根据 openid 和 tenantId获取会员认证信息
+     * 根据 openId 和 tenantId获取会员认证信息
      *
-     * @param openid
+     * @param openId
      * @param tenantId
      * @return
      */
-    MemberAuthDTO getMemberByOpenidAndTenantId(String openid,Long tenantId);
+    MemberAuthDTO getMemberByOpenidAndTenantId(String openId,Long tenantId);
 
 
     /**

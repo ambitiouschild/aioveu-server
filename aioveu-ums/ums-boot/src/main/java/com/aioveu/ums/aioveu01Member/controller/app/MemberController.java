@@ -79,7 +79,7 @@ public class MemberController {
 
     }
 
-    @Operation(summary= "根据 openid 获取会员认证信息")
+    @Operation(summary= "根据 openId 获取会员认证信息")
     @GetMapping("/openid/{openid}")
     public Result<MemberAuthDTO> getMemberByOpenid(@Parameter(name = "微信唯一身份标识") @PathVariable String openid) {
         MemberAuthDTO memberAuthInfo = memberService.getMemberByOpenid(openid);
@@ -87,12 +87,12 @@ public class MemberController {
     }
 
     @Operation(summary= "根据 openid 和 tenantId 获取会员认证信息")
-    @GetMapping("/openidAndTenantId/{openid}")
+    @GetMapping("/openidAndTenantId/{openId}")
     public Result<MemberAuthDTO> loadUserByOpenIdAndTenantId(
-            @PathVariable("openid") String openid,
+            @PathVariable("openId") String openId,
             @RequestHeader("X-Tenant-Id") Long tenantId
     ){
-        MemberAuthDTO memberAuthInfo = memberService.getMemberByOpenidAndTenantId(openid,tenantId);
+        MemberAuthDTO memberAuthInfo = memberService.getMemberByOpenidAndTenantId(openId,tenantId);
         return Result.success(memberAuthInfo);
     }
 

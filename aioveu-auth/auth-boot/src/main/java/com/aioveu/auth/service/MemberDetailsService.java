@@ -98,7 +98,7 @@ public class MemberDetailsService {
                 memberAuthDTO.setId(memberRegister.getId());
                 memberAuthDTO.setNickName(memberRegister.getNickName());
                 memberAuthDTO.setMobile(memberRegister.getMobile());
-                memberAuthDTO.setOpenid(memberRegister.getOpenid());
+                memberAuthDTO.setOpenId(memberRegister.getOpenId());
                 memberAuthDTO.setTenantId(memberRegister.getTenantId());
                 memberAuthDTO.setStatus(memberRegister.getStatus());
 
@@ -119,11 +119,11 @@ public class MemberDetailsService {
     /**
      * 根据openId和clientId获取用户信息  新增：通过 openid + tenantId 查询用户
      *
-     * @param openid  微信公众平台唯一身份标识
+     * @param openId  微信公众平台唯一身份标识
      * @param clientId  客户端绑定wxAppId,绑定Tenant
      * @return {@link MemberDetails}
      */
-    public MemberDetails loadUserByOpenidAndClientId(String openid,String clientId) {
+    public MemberDetails loadUserByOpenidAndClientId(String openId,String clientId) {
 
         // 1. ★ 通过 clientId 查询 wxAppid 和 tenantId
         log.info("=======【Auth MemberDetailsService】根据openId和clientId获取用户信息,Auth没有自资源服务器的TenantFilter=======");
@@ -145,7 +145,7 @@ public class MemberDetailsService {
         // 根据 openid 和 tenantId 获取微信用户认证信息
         // 调用会员服务API，查询微信openid对应用户
         // 首先尝试获取用户
-        Result<MemberAuthDTO>  memberAuthDTOResult = memberFeignClient.loadUserByOpenIdAndTenantId(openid,tenantId);
+        Result<MemberAuthDTO>  memberAuthDTOResult = memberFeignClient.loadUserByOpenIdAndTenantId(openId,tenantId);
         //   注册失败处理----------------------
         if (!Result.isSuccess(memberAuthDTOResult)) {
             throw new UsernameNotFoundException("会员信息查询失败: " + memberAuthDTOResult.getMsg());
@@ -158,7 +158,7 @@ public class MemberDetailsService {
         if (memberAuthDTO==null) {
 
             MemberRegisterForm memberRegisterInfo = new MemberRegisterForm();
-            memberRegisterInfo.setOpenid(openid);
+            memberRegisterInfo.setOpenId(openId);
             memberRegisterInfo.setAvatarUrl("https://cdn.aioveu.com/aioveu/aioveu-server/avatar/avatar.png");
             memberRegisterInfo.setNickName("新注册微信用户");
             memberRegisterInfo.setTenantId(tenantId);
@@ -183,7 +183,7 @@ public class MemberDetailsService {
                 memberAuthDTO.setId(memberRegister.getId());
                 memberAuthDTO.setNickName(memberRegister.getNickName());
                 memberAuthDTO.setMobile(memberRegister.getMobile());
-                memberAuthDTO.setOpenid(memberRegister.getOpenid());
+                memberAuthDTO.setOpenId(memberRegister.getOpenId());
                 memberAuthDTO.setTenantId(memberRegister.getTenantId());
                 memberAuthDTO.setStatus(memberRegister.getStatus());
             }

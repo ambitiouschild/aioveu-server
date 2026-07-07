@@ -33,7 +33,7 @@ public class MemberRegisterDTO {
 
 
     @Schema(description = "微信OpenID")
-    private String openid;
+    private String openId;
 
     /**
      * 租户ID

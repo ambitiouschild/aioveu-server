@@ -59,7 +59,7 @@ public class MemberRegisterForm {
 
     @Schema(description = "微信OpenID")
     @Size(max=28, message="微信OpenID长度不能超过28个字符")
-    private String openid;
+    private String openId;
 
     @Schema(description = "微信会话密钥")
     @Size(max=32, message="微信会话密钥长度不能超过32个字符")

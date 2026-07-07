@@ -63,15 +63,15 @@ public interface MemberFeignClient {
     Result<MemberAuthDTO> loadUserByOpenId(@PathVariable String openid);
 
     /**
-     * 根据openId 和 tenantId获取会员认证信息
+     * openId 和 tenantId获取会员认证信息
      *
-     * @param openid
+     * @param openId
      * @param tenantId
      * @return
      */
-    @GetMapping("/aioveu/api/v8/app/ums/members/openidAndTenantId/{openid}")
+    @GetMapping("/aioveu/api/v8/app/ums/members/openidAndTenantId/{openId}")
     Result<MemberAuthDTO> loadUserByOpenIdAndTenantId(
-            @PathVariable("openid") String openid,
+            @PathVariable("openId") String openId,
             @RequestHeader("X-Tenant-Id") Long tenantId
     );
 
