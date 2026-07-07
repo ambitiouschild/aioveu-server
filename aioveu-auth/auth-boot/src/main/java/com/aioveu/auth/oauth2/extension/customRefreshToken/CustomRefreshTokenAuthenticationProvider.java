@@ -8,13 +8,19 @@ import com.aioveu.auth.model.MemberDetails;
 import com.aioveu.auth.oauth2.extension.wechat.WechatAuthenticationToken;
 import com.aioveu.auth.service.MemberDetailsService;
 import com.aioveu.auth.util.OAuth2AuthenticationProviderUtils;
+import com.aioveu.common.constant.JwtClaimConstants;
+import com.aioveu.common.constant.RedisConstants;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.*;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
@@ -29,6 +35,7 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Toke
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -49,8 +56,11 @@ import java.util.Map;
  * @param
  * @return:
  **/
-
+/**
+ * 自定义刷新令牌授权 Provider（无手写构造函数版）
+ */
 @Slf4j
+@RequiredArgsConstructor   // Lombok注解，自动注入final字段的依赖
 public class CustomRefreshTokenAuthenticationProvider implements AuthenticationProvider {
 
     /**
@@ -58,23 +68,22 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
      */
     private static final String ERROR_URI = "https://datatracker.ietf.org/doc/html/rfc6749#section-5.2";
 
-    // 依赖注入的组件
+    // ==================== 依赖注入 ====================
     private final OAuth2AuthorizationService authorizationService;   // OAuth2授权服务，用于保存授权信息
     private final OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator;  // OAuth2令牌生成器
+    private final MemberDetailsService memberDetailsService;  // 会员详情服务，用于加载用户信息
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    private final boolean reuseRefreshTokens; // 是否重用刷新令牌
+    /**
+     * 是否重用刷新令牌（配置驱动，默认 false）
+     * reuseRefreshTokens的正确使用位置只有一个：
+     * 👉 决定是否把「旧的 RefreshToken」保存到新的 OAuth2Authorization里
+     * ✅ false= 每次刷新都生成新 refresh_token（推荐，安全） false = 每次刷新都生成新的 refresh_token（✅ 推荐）
+     * ❌ true= 复用旧的 refresh_token（不安全，不推荐）
+     */
+    @Value("${custom.oauth2.reuse-refresh-tokens:false}")
+    private final boolean reuseRefreshTokens;
 
-
-//    @Autowired
-//    private WxMiniAppConfig wxMiniAppConfig;
-
-    // 微信小程序服务，用于调用微信API
-
-    public CustomRefreshTokenAuthenticationProvider(
-            OAuth2AuthorizationService authorizationService,
-            OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator) {
-        this(authorizationService, tokenGenerator, false);
-    }
 
     /**
      *  TODO 构造函数，依赖注入必要的服务组件
@@ -84,20 +93,20 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
      * @param authorizationService the authorization service  授权服务，不能为null
      * @param tokenGenerator       the token generator  令牌生成器，不能为null
      */
-    public CustomRefreshTokenAuthenticationProvider(
-            OAuth2AuthorizationService authorizationService,
-            OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator,
-            boolean reuseRefreshTokens
-
-    ) {
-
-        log.info("【CustomRefreshTokenAuthenticationProvider】使用断言验证参数非空，确保自定义刷新令牌授权认证 Provider正确初始化");
-        Assert.notNull(authorizationService, "authorizationService cannot be null");
-        Assert.notNull(tokenGenerator, "tokenGenerator cannot be null");
-        this.authorizationService = authorizationService;
-        this.tokenGenerator = tokenGenerator;
-        this.reuseRefreshTokens = reuseRefreshTokens;
-    }
+//    public CustomRefreshTokenAuthenticationProvider(
+//            OAuth2AuthorizationService authorizationService,
+//            OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator,
+//            boolean reuseRefreshTokens
+//
+//    ) {
+//
+//        log.info("【CustomRefreshTokenAuthenticationProvider】使用断言验证参数非空，确保自定义刷新令牌授权认证 Provider正确初始化");
+//        Assert.notNull(authorizationService, "authorizationService cannot be null");
+//        Assert.notNull(tokenGenerator, "tokenGenerator cannot be null");
+//        this.authorizationService = authorizationService;
+//        this.tokenGenerator = tokenGenerator;
+//        this.reuseRefreshTokens = reuseRefreshTokens;
+//    }
 
 
     /**
@@ -116,35 +125,35 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 
         log.info("=====【CustomRefreshTokenAuthenticationProvider】自定义刷新令牌认证=====");
-        log.info("1. 类型转换和客户端认证验证");
-        CustomRefreshTokenAuthenticationToken  refreshTokenAuthentication = (CustomRefreshTokenAuthenticationToken) authentication;
 
-        log.info("验证客户端身份，如果客户端未认证则抛出异常");
+        CustomRefreshTokenAuthenticationToken  refreshTokenAuthentication =
+                (CustomRefreshTokenAuthenticationToken) authentication;
+        log.info("1. 类型转换和客户端认证验证");
+
+
         OAuth2ClientAuthenticationToken clientPrincipal = OAuth2AuthenticationProviderUtils
                 .getAuthenticatedClientElseThrowInvalidClient(refreshTokenAuthentication);
         RegisteredClient registeredClient = clientPrincipal.getRegisteredClient();
+        log.info("验证客户端身份，如果客户端未认证则抛出异常");
 
+        if (!registeredClient.getAuthorizationGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN)) {
+            throw new OAuth2AuthenticationException(OAuth2ErrorCodes.UNAUTHORIZED_CLIENT);
+
+
+        }
         // 验证客户端是否支持授权类型(grant_type=wechat_mini_app)
         log.info("2. 验证客户端是否支持刷新令牌授权类型");
         log.info("客户端验证：确保只有注册的客户端可以使用刷新令牌认证流程");
-        if (!registeredClient.getAuthorizationGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN)) {
-            throw new OAuth2AuthenticationException(OAuth2ErrorCodes.UNAUTHORIZED_CLIENT);
-        }
 
 
-        log.info("前端请求中的附加参数获取");
         Map<String, Object> additionalParameters = refreshTokenAuthentication.getAdditionalParameters();
-
-        log.info("前端请求中的获取并验证刷新令牌");
-
         //如果 additionalParameters.get("code")返回的不是字符串，这个强制转换就会出问题。
         String refreshTokenValue  = (String) additionalParameters.get(OAuth2ParameterNames.REFRESH_TOKEN);
-
+        log.info("前端请求中的附加参数获取,前端请求中的获取并验证刷新令牌refreshTokenValue:{}",refreshTokenValue);
         //------------------------------------------------
         // 在获取 code 之后，获取 clientId
         // 5. ★ 关键修改：获取 clientId
         String clientId = registeredClient.getClientId();  // OAuth2 客户端ID
-
         log.info("处理刷新令牌请求, 客户端: {}, 刷新令牌: {}...",
                 clientId,
                 refreshTokenValue.substring(0, Math.min(10, refreshTokenValue.length())));
@@ -172,35 +181,69 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
         }
 
         // 6. 获取用户认证对象（Authentication），不是 Principal
-        Authentication userAuthentication = authorization.getAttribute(Principal.class.getName());
-        if (userAuthentication == null) {
-            log.info("授权信息中缺少用户主体");
-            throw new OAuth2AuthenticationException(OAuth2ErrorCodes.INVALID_GRANT);
+        //authorization.getAttribute()返回的是 String（principalName），不是 Authentication。
+//        Authentication userAuthentication = authorization.getAttribute(Principal.class.getName());
+        String openId = authorization.getPrincipalName();
+
+        //刷新令牌阶段，tenantId 怎么拿？✅（重点）
+
+        //✅ 方案 1（最推荐）：从 Authorization 里拿 .attribute("tenant_id", tenantId) // ✅
+        //✅ 方案 2：从 JWT 里拿（资源服务器用） claims.put("tenant_id", tenantId);
+        //✅ 方案 3：从 clientId 再查一次（不推荐）
+
+        Long tenantId = authorization.getAttribute("tenant_id");
+        log.info("获取客户端ID: {}", clientId);
+        // 7. 重新加载用户
+        MemberDetails memberDetails =
+                memberDetailsService.loadMemberByOpenIdAndTenantId(openId,tenantId);
+
+        // 8. 构建新的 Authentication
+        UsernamePasswordAuthenticationToken newAuthentication =
+                new UsernamePasswordAuthenticationToken(
+                        memberDetails,
+                        null,
+                        memberDetails.getAuthorities()
+                );
+
+        // ✅ token_version 校验（强烈推荐）
+        Long memberId = memberDetails.getId();
+        if (memberId != null) {
+            String versionKey = RedisConstants.Auth.USER_TOKEN_VERSION + memberId;
+            Long tokenVersion = redisTemplate.opsForValue().increment(versionKey);
+            if (tokenVersion == null) {
+                throw new OAuth2AuthenticationException(
+                        new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT, "令牌已失效", ERROR_URI)
+                );
+            }
+
+            Map<String, Object> details = new HashMap<>();
+            details.put(JwtClaimConstants.Token.VERSION, tokenVersion);
+            newAuthentication.setDetails(details);
         }
 
         // 7. 记录刷新令牌使用日志
-        log.info("刷新令牌验证通过, 用户: {}, 客户端: {}",
-                authorization.getPrincipalName(), registeredClient.getClientId());
+        log.info("刷新令牌验证通过, 用户openId: {}, 客户端clientId: {}",
+                openId, registeredClient.getClientId());
 
         // 访问令牌(Access Token) 构造器
         log.info("6. 构建令牌上下文，准备生成新的访问令牌");
         DefaultOAuth2TokenContext.Builder tokenContextBuilder = DefaultOAuth2TokenContext.builder()
                 .registeredClient(registeredClient)   // 注册的客户端信息
-                .principal(userAuthentication)  // 用户主体信息// ✅ 使用 Authentication 对象，不是 Principal
+                .principal(newAuthentication)  // 用户主体信息// ✅ 使用 Authentication 对象，newAuthentication不是 Principal
                 .authorizationServerContext(AuthorizationServerContextHolder.getContext())  // 授权服务器上下文
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)   // 授权类型：使用标准的刷新令牌授权类型
                 .authorizationGrant(refreshTokenAuthentication); // 授权请求信息
 
-        // 生成访问令牌(Access Token)
-        log.info("7. 生成访问令牌(Access Token)");
-        OAuth2TokenContext tokenContext = tokenContextBuilder.tokenType(OAuth2TokenType.ACCESS_TOKEN).build();
-        OAuth2Token generatedAccessToken = this.tokenGenerator.generate(tokenContext);
 
+        OAuth2TokenContext accessTokenContext = tokenContextBuilder.tokenType(OAuth2TokenType.ACCESS_TOKEN).build();
+        OAuth2Token generatedAccessToken = this.tokenGenerator.generate(accessTokenContext);
+        // 生成访问令牌(Access Token)
+        log.info("7. 生成访问令牌(Access Token)generatedAccessToken:{}",generatedAccessToken);
 
         if (generatedAccessToken == null) {
             log.info("令牌生成失败处理");
             OAuth2Error error = new OAuth2Error(OAuth2ErrorCodes.SERVER_ERROR,
-                    "The token generator failed to generate the access token.", ERROR_URI);
+                    "The token generator failed to generate the access token.生成Access Token失败", ERROR_URI);
             throw new OAuth2AuthenticationException(error);
         }
 
@@ -210,16 +253,16 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
                 generatedAccessToken.getTokenValue(),   // 令牌值
                 generatedAccessToken.getIssuedAt(),  // 颁发时间
                 generatedAccessToken.getExpiresAt(),   // 过期时间
-                tokenContext.getAuthorizedScopes());  // 授权范围
+                accessTokenContext.getAuthorizedScopes());  // 授权范围
 
         log.info("8. 构建新的标准的OAuth2访问令牌:{}, 过期时间: {}", newAccessToken , newAccessToken.getExpiresAt());
 
 
-
+        // 保存 Authorization 时也用新的 Authentication
         OAuth2Authorization.Builder authorizationBuilder = OAuth2Authorization.withRegisteredClient(registeredClient)
-                .principalName(authorization.getPrincipalName())  // ✅ 从原有授权信息中获取主体名称
+                .principalName(openId)  // ✅ 从原有授权信息中获取主体名称
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)  // 授权类型 ✅ 使用标准的刷新令牌授权类型
-                .attribute(Principal.class.getName(), userAuthentication);  // 主体属性
+                .attribute(Principal.class.getName(), openId);  // 主体属性 // ✅attribute 里只存 principalName（String）
 
         log.info("9. 更新授权信息:{}", authorizationBuilder);
 
@@ -232,47 +275,63 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
         }
 
 
+        // ✅ Refresh Token（reuseRefreshTokens 真正生效点）
         OAuth2RefreshToken newRefreshToken = null;
-        if (registeredClient.getAuthorizationGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN) &&
+        boolean supportRefreshToken =
+                registeredClient.getAuthorizationGrantTypes()
+                        .contains(AuthorizationGrantType.REFRESH_TOKEN)
+                        &&       !clientPrincipal.getClientAuthenticationMethod()
+                        .equals(ClientAuthenticationMethod.NONE);
                 // Do not issue refresh token to public client
                 // 不为公共客户端生成刷新令牌（公共客户端使用NONE认证方式）
-                !clientPrincipal.getClientAuthenticationMethod().equals(ClientAuthenticationMethod.NONE)) {
 
-            tokenContext = tokenContextBuilder.tokenType(OAuth2TokenType.REFRESH_TOKEN).build();
-            OAuth2Token generatedRefreshToken = this.tokenGenerator.generate(tokenContext);
+        if (supportRefreshToken) {
 
-            // 生成刷新令牌(Refresh token)
-            log.info("11. 生成新的刷新令牌（如果不重用）(Refresh Token) - 条件性生成");
+            if(!reuseRefreshTokens){
+                //✅ false= 每次刷新都生成新 refresh_token（推荐，安全） false = 每次刷新都生成新的 refresh_token（✅ 推荐）
+                OAuth2TokenContext refreshTokenContext =
+                        tokenContextBuilder.tokenType(OAuth2TokenType.REFRESH_TOKEN).build();
+                OAuth2Token generatedRefreshToken =
+                        this.tokenGenerator.generate(refreshTokenContext);
 
-            log.info("验证生成的刷新令牌类型");
-            if (!(generatedRefreshToken instanceof OAuth2RefreshToken)) {
-                OAuth2Error error = new OAuth2Error(OAuth2ErrorCodes.SERVER_ERROR,
-                        "The token generator failed to generate the refresh token.", ERROR_URI);
-                throw new OAuth2AuthenticationException(error);
+                // 生成刷新令牌(Refresh token)
+                log.info("11. 生成新的刷新令牌（如果不重用）(Refresh Token) - 条件性生成");
+
+
+                if (!(generatedRefreshToken instanceof OAuth2RefreshToken)) {
+                    OAuth2Error error = new OAuth2Error(OAuth2ErrorCodes.SERVER_ERROR,
+                            "The token generator failed to generate the refresh token.生成Refresh Token失败", ERROR_URI);
+                    throw new OAuth2AuthenticationException(error);
+                }
+                log.info("验证生成的刷新令牌类型");
+
+                newRefreshToken  = (OAuth2RefreshToken) generatedRefreshToken;
+                authorizationBuilder.refreshToken(newRefreshToken);
+                log.info("生成新的刷新令牌:{}",newRefreshToken);
+
+            }else{
+                //true= 复用旧的 refresh_token（不安全，不推荐）
+                newRefreshToken = refreshToken.getToken();
+                authorizationBuilder.refreshToken(newRefreshToken);
+                log.info("重用原有的刷新令牌");
             }
 
-            newRefreshToken  = (OAuth2RefreshToken) generatedRefreshToken;
-            authorizationBuilder.refreshToken(newRefreshToken);
-            log.info("生成新的刷新令牌");
-        }else {
-            log.info("重用原有的刷新令牌");
+
+
         }
 
 
         OAuth2Authorization updatedAuthorization = authorizationBuilder.build();
         this.authorizationService.save(updatedAuthorization);
         log.info("12. 保存授权信息到数据库:{}", updatedAuthorization);
-
-
         log.info("===== 自定义刷新令牌认证完成 =====");
-
 
         log.info("13. 返回最终的访问令牌认证结果");
         return new OAuth2AccessTokenAuthenticationToken(
                 registeredClient,   // 注册的客户端
                 clientPrincipal,   // 客户端认证信息
-                newAccessToken,   // 访问令牌
-                newRefreshToken,   // 刷新令牌（可能为null）
+                newAccessToken,   // 访问令牌  // ✅ 新的 Access Token（一定新）
+                newRefreshToken,   // 刷新令牌（可能为null）  // ⚠️ 可能是新、可能是旧、可能是 null
                 additionalParameters);  // 附加参数
     }
 

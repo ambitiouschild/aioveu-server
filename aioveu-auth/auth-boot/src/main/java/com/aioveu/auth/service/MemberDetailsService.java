@@ -32,7 +32,7 @@ public class MemberDetailsService {
 
     private final MemberFeignClient memberFeignClient;
 
-    private final TenantFeignClient tenantFeignClient;
+
 
 
     /**
@@ -116,32 +116,19 @@ public class MemberDetailsService {
         return userDetails;
     }
 
+
     /**
-     * 根据openId和clientId获取用户信息  新增：通过 openId + tenantId 查询用户
+     * 根据openId和tenantId获取用户信息  新增：通过 openId + tenantId查询用户
      *
      * @param openId  微信公众平台唯一身份标识
-     * @param clientId  客户端绑定wxAppId,绑定Tenant
+     * @param tenantId  租户id
      * @return {@link MemberDetails}
      */
-    public MemberDetails loadUserByOpenIdAndClientId(String openId,String clientId) {
+    public MemberDetails loadMemberByOpenIdAndTenantId(String openId,Long tenantId) {
 
         // 1. ★ 通过 clientId 查询 wxAppid 和 tenantId
-        log.info("=======【Auth MemberDetailsService】根据openId和clientId获取用户信息,Auth没有自资源服务器的TenantFilter=======");
-        log.info("【Auth MemberDetailsService】开始查询clientId: {}", clientId);
-        // 这里需要你实现数据库查询
-        Result<TenantWxAppInfo> result = tenantFeignClient.getTenantWxAppInfoByClientId(clientId);
-        TenantWxAppInfo tenantWxAppInfo = result.getData();
-        log.info("【Auth MemberDetailsService】查询到的tenantWxAppInfo: {}", tenantWxAppInfo);
-        if (tenantWxAppInfo == null) {
-            log.info("无效的客户端ID: {}", clientId);
-        }
-
-        String wxAppid = tenantWxAppInfo.getWxAppid();
-        Long tenantId = tenantWxAppInfo.getTenantId();
-        log.info("【Auth MemberDetailsService】查询到租户信息 - wxAppid: {}, tenantId: {}", wxAppid, tenantId);
-
-        //用户通用
-//        MemberAuthDTO memberAuthInfo = memberFeignClient.loadUserByOpenId(openId).getData();
+        log.info("=======【Auth MemberDetailsService】根据openId和tenantId获取用户信息,Auth没有走资源服务器的TenantFilter=======");
+        log.info("【Auth MemberDetailsService】根据openId和tenantId获取用户信息{}, tenantId: {}", openId, tenantId);
         // 根据 openId 和 tenantId 获取微信用户认证信息
         // 调用会员服务API，查询微信openId对应用户
         // 首先尝试获取用户
@@ -202,5 +189,6 @@ public class MemberDetailsService {
         }
         return userDetails;
     }
+
 
 }

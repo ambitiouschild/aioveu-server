@@ -9,6 +9,7 @@ import com.aioveu.auth.filter.CaptchaValidationFilter;
 import com.aioveu.auth.oauth2.extension.customRefreshToken.CustomRefreshTokenAuthenticationConverter;
 import com.aioveu.auth.oauth2.extension.customRefreshToken.CustomRefreshTokenAuthenticationProvider;
 import com.aioveu.auth.service.SysUserDetailsService;
+import com.aioveu.tenant.api.TenantFeignClient;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -38,6 +39,7 @@ import com.aioveu.common.constant.RedisConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -92,6 +94,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -169,8 +172,16 @@ public class AuthorizationServerConfig {
     private final CodeGenerator codeGenerator;
 
     private final WxMiniAppConfig wxMiniAppConfig; // ✅ 不再是 @Autowired
-
-    boolean reuseRefreshTokens = false; // 设置为 false 表示每次刷新都生成新的 refresh_token
+    private final TenantFeignClient tenantFeignClient;
+    /**
+     * 是否重用刷新令牌（配置驱动，默认 false）
+     * reuseRefreshTokens的正确使用位置只有一个：
+     * 👉 决定是否把「旧的 RefreshToken」保存到新的 OAuth2Authorization里
+     * ✅ false= 每次刷新都生成新 refresh_token（推荐，安全）
+     * ❌ true= 复用旧的 refresh_token（不安全，不推荐）
+     */
+    @Value("${custom.oauth2.reuse-refresh-tokens:false}")
+    private final boolean reuseRefreshTokens = false; // 设置为 false 表示每次刷新都生成新的 refresh_token
     // 不重用刷新令牌（每次刷新都生成新的）
     // 重用刷新令牌
 
@@ -281,13 +292,13 @@ public class AuthorizationServerConfig {
                                                         new CaptchaAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator, stringRedisTemplate, codeGenerator),
                                                         // 微信模式：使用微信code认证
                                                         // 微信认证提供者使用WxMaService进行微信登录验证
-                                                        new WechatAuthenticationProvider(authorizationService, tokenGenerator, memberDetailsService, wxMaService,redisTemplate,wxMiniAppConfig),
+                                                        new WechatAuthenticationProvider(authorizationService, tokenGenerator, memberDetailsService, wxMaService,redisTemplate,wxMiniAppConfig,tenantFeignClient),
                                                         // 短信模式：使用手机号+短信验证码认证
                                                         new SmsCodeAuthenticationProvider(authorizationService, tokenGenerator, memberDetailsService, stringRedisTemplate),
-                                                        // 添加Spring Security自带的刷新令牌提供者
+                                                        // 添加Spring Security自带的刷新令牌提供者 推荐：只用你自己的（因为你做了 token_version）
                                                         // new OAuth2RefreshTokenAuthenticationProvider(authorizationService, tokenGenerator)
 
-                                                        new CustomRefreshTokenAuthenticationProvider(authorizationService, tokenGenerator, reuseRefreshTokens)
+                                                        new CustomRefreshTokenAuthenticationProvider(authorizationService, tokenGenerator,memberDetailsService, redisTemplate, reuseRefreshTokens)
 
                                                 )
                                         )
@@ -364,8 +375,11 @@ public class AuthorizationServerConfig {
     @SneakyThrows   // Lombok注解，自动处理受检异常
     public JWKSource<SecurityContext> jwkSource() {
 
-        // 尝试从Redis中获取JWKSet(JWT密钥对，包含非对称加密的公钥和私钥)
-        String jwkSetStr = stringRedisTemplate.opsForValue().get(RedisConstants.JWK_SET_KEY);
+        // 尝试从Redis中获取JWKSet(JWT密钥对，包含非对称加密的公钥和私钥) JWK 存 Redis
+        // 1️先从 Redis 获取
+        String jwkSetStr = stringRedisTemplate.opsForValue()
+                .get(RedisConstants.JWK_SET_KEY);
+
         if (StrUtil.isNotBlank(jwkSetStr)) {
             // 如果存在，解析JWKSet并返回
             // 如果Redis中存在JWKSet，直接解析并使用
@@ -394,7 +408,19 @@ public class AuthorizationServerConfig {
 
             // 将JWKSet存储在Redis中
             // 将JWKSet持久化到Redis，避免服务器重启后密钥丢失
-            stringRedisTemplate.opsForValue().set(RedisConstants.JWK_SET_KEY, jwkSet.toString(Boolean.FALSE));
+            // 3️存入 Redis（带 TTL）
+            //使用 setIfAbsent（原子化）
+         /*   适合 多实例部署，防止：
+            实例 A 生成 key
+            实例 B 覆盖 key
+            JWT 签名不一致*/
+            stringRedisTemplate.opsForValue()
+                    .setIfAbsent(
+                            RedisConstants.JWK_SET_KEY,
+                            jwkSet.toString(false),
+                            365,
+                            TimeUnit.DAYS
+                    );
             return new ImmutableJWKSet<>(jwkSet);
         }
 
@@ -676,7 +702,9 @@ public class AuthorizationServerConfig {
                         ).authenticated()   // ✅ 有 Token 就放行   //“只要登录过，我就认为你有权限访问”
                         // ✅ 4️兜底（防误伤）
                         .anyRequest()
-                        .denyAll()
+                        .authenticated()
+                        // denyAll 只适合极端安全场景
+//                        .denyAll()
 
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))

@@ -10,6 +10,8 @@ import com.aioveu.auth.service.MemberDetailsService;
 import com.aioveu.auth.util.OAuth2AuthenticationProviderUtils;
 import com.aioveu.common.constant.JwtClaimConstants;
 import com.aioveu.common.constant.RedisConstants;
+import com.aioveu.tenant.api.TenantFeignClient;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +72,9 @@ import java.util.Map;
  **/
 
 @Slf4j
+@RequiredArgsConstructor   // Lombok注解，自动注入final字段的依赖
 public class WechatAuthenticationProvider implements AuthenticationProvider {
+
 
     /**
      * OAuth2错误文档URI（RFC 6749标准文档）
@@ -89,7 +93,7 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
     private final WxMiniAppConfig wxMiniAppConfig; // ✅ 不再是 @Autowired
 
     // 微信小程序服务，用于调用微信API
-
+    private final TenantFeignClient tenantFeignClient;
 
     /**
      *  TODO 构造函数，依赖注入必要的服务组件
@@ -101,28 +105,28 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
      * @param memberDetailsService 会员详情服务，不能为null
      * @param wxMaService 微信小程序服务，不能为null
      */
-    public WechatAuthenticationProvider(
-            OAuth2AuthorizationService authorizationService,
-            OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator,
-            MemberDetailsService memberDetailsService,
-            WxMaService wxMaService,
-            RedisTemplate<String, Object> redisTemplate,
-            WxMiniAppConfig wxMiniAppConfig // ✅ 构造函数注入
-
-    ) {
-
-        log.info("使用断言验证参数非空，确保组件正确初始化");
-        Assert.notNull(authorizationService, "authorizationService cannot be null");
-        Assert.notNull(tokenGenerator, "tokenGenerator cannot be null");
-        Assert.notNull(memberDetailsService, "userDetailsService cannot be null");
-        Assert.notNull(wxMaService, "wxMaService cannot be null");
-        this.authorizationService = authorizationService;
-        this.tokenGenerator = tokenGenerator;
-        this.memberDetailsService = memberDetailsService;
-        this.wxMaService = wxMaService;
-        this.redisTemplate = redisTemplate;
-        this.wxMiniAppConfig = wxMiniAppConfig;
-    }
+//    public WechatAuthenticationProvider(
+//            OAuth2AuthorizationService authorizationService,
+//            OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator,
+//            MemberDetailsService memberDetailsService,
+//            WxMaService wxMaService,
+//            RedisTemplate<String, Object> redisTemplate,
+//            WxMiniAppConfig wxMiniAppConfig // ✅ 构造函数注入
+//
+//    ) {
+//
+//        log.info("使用断言验证参数非空，确保组件正确初始化");
+//        Assert.notNull(authorizationService, "authorizationService cannot be null");
+//        Assert.notNull(tokenGenerator, "tokenGenerator cannot be null");
+//        Assert.notNull(memberDetailsService, "userDetailsService cannot be null");
+//        Assert.notNull(wxMaService, "wxMaService cannot be null");
+//        this.authorizationService = authorizationService;
+//        this.tokenGenerator = tokenGenerator;
+//        this.memberDetailsService = memberDetailsService;
+//        this.wxMaService = wxMaService;
+//        this.redisTemplate = redisTemplate;
+//        this.wxMiniAppConfig = wxMiniAppConfig;
+//    }
 
 
     /**
@@ -215,17 +219,17 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
         log.info("openId获取：从微信响应中提取用户唯一标识openId:{}",openId);
 
 //        MemberDetails memberDetails = memberDetailsService.loadUserByOpenId(openId);
-
-        MemberDetails memberDetails = memberDetailsService.loadUserByOpenIdAndClientId(openId,clientId);
-
-        // 根据 openId 获取会员信息
-        log.info("4. 根据openId加载用户信息:{}", memberDetails.getUsername());
+        Long tenantId = tenantFeignClient.getTenantIdByClientId(clientId).getData();
+        MemberDetails memberDetails = memberDetailsService.loadMemberByOpenIdAndTenantId(openId,tenantId);
+        // ✅ principalName = openId（与 JWT sub 保持一致）
+        String principalName = memberDetails.getOpenId();
+        log.info("4. 根据openId加载用户信息principalName:{}", principalName);
         log.info("4. 根据openId加载用户信息:{}", memberDetails);
 
         //----------------------------------------------------------
 
         //------------------------------------------------
-        log.info("5. 构建用户名密码认证令牌（用于后续的令牌生成）");
+
         //// 使用 UsernamePasswordAuthenticationToken 类型，而不是 Authentication
         //使用 UsernamePasswordAuthenticationToken具体实现类，而不是 Authentication接口
         UsernamePasswordAuthenticationToken usernamePasswordAuthentication = new UsernamePasswordAuthenticationToken(
@@ -236,8 +240,7 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
 //                memberDetails.getUsername(),  // 只存用户名  // ❗只放了用户名
                 null,  // 密码不需要
                 memberDetails.getAuthorities());  // 权限
-
-
+        log.info("5. 构建用户名密码认证令牌（用于后续的令牌生成）");
         //----------------------------------------------------------
         // ✅ ===== 写 token_version（唯一正确位置）=====
         Long memberId = memberDetails.getId(); // 或 getUserId()，看你 MemberDetails 的字段名
@@ -308,19 +311,20 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
                 generatedAccessToken.getIssuedAt(),  // 颁发时间
                 generatedAccessToken.getExpiresAt(),   // 过期时间
                 tokenContext.getAuthorizedScopes());  // 授权范围
-
         log.info("8. 构建标准的OAuth2访问令牌:{}", accessToken);
 
 
 
+        //方案 1（最推荐）：从 Authorization 里拿
         OAuth2Authorization.Builder authorizationBuilder = OAuth2Authorization.withRegisteredClient(registeredClient)
                 .principalName(memberDetails.getUsername())  // 主体名称
                 .authorizationGrantType(WechatAuthenticationToken.WECHAT_MINI_APP)  // 授权类型
+                //Spring 会尝试把这个对象序列化后存进数据库
 //                .attribute(Principal.class.getName(), usernamePasswordAuthentication);  // 存储完整的 Authentication
-                .attribute(Principal.class.getName(), usernamePasswordAuthentication.getName());
-
+//                .attribute(Principal.class.getName(), usernamePasswordAuthentication.getName());
+                // attribute 里只存 principalName（String）
+                .attribute(Principal.class.getName(), principalName);
         //然后这个认证信息被序列化到数据库。刷新令牌时，Spring Security 尝试反序列化，但 MemberDetails不在 Jackson 白名单中。
-
         log.info("9. 构建授权信息:{}", authorizationBuilder);
 
         log.info("10. 处理令牌声明（如果令牌支持声明）");
