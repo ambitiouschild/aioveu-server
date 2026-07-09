@@ -1,6 +1,7 @@
 package com.aioveu.gateway.service.impl;
 
 
+import com.aioveu.common.result.Result;
 import com.aioveu.gateway.service.TenantQueryService;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
@@ -8,6 +9,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -118,11 +120,13 @@ public class TenantQueryServiceImpl implements TenantQueryService {
                         status -> status.is4xxClientError() || status.is5xxServerError(),
                         resp -> Mono.error(new RuntimeException("租户服务调用失败"))
                 )
+//                .bodyToMono(new ParameterizedTypeReference<Result<Long>>() {})
+                // ✅ 关键：直接映射成 Long
                 .bodyToMono(Long.class)
-                .doOnNext(tenantId -> {
-                    log.info("【TenantQuery】缓存 tenantId, clientId={}, tenantId={}", clientId, tenantId);
-                    tenantIdCache.put(clientId, tenantId);
-                })
+                .doOnNext(tenantId ->
+                        tenantIdCache.put(clientId, tenantId)
+                )
+                .doOnNext(r -> log.info("租户服务返回原始结果: {}", r))
                 .doOnError(e -> log.error("获取租户信息异常, clientId={}", clientId, e))
                 .onErrorResume(e -> Mono.empty());
     }

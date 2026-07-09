@@ -93,7 +93,9 @@ Spring Cloud Gateway 不是 Servlet
 public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
     /** 前端 / 内部约定的租户标识 Header */
+
     private static final String HEADER_CLIENT_ID = "X-Client-Id";
+    private static final String HEADER_TENANT_ID = "X-Tenant-Id";
     private static final Long NO_TENANT = -1L;
 
     private final ReactiveJwtDecoder jwtDecoder;
@@ -208,13 +210,9 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
                 })
                 .onErrorResume(e -> {
                     log.warn("【ClientIdGatewayFilter】JWT 解析失败，直接放行", e);
-                    return doFilter(exchange, chain, exchange.getRequest().mutate());
+                    return unauthorized(exchange, "JWT 解析失败");
                 })
-                .switchIfEmpty(Mono.defer(() -> {
-                    // ✅ 没 Token / 解析为空 → 走公共接口
-                    log.info("【ClientIdGatewayFilter】JWT 无 tenant_id，直接放行");
-                    return doFilter(exchange, chain, exchange.getRequest().mutate());
-                }));
+                .switchIfEmpty(unauthorized(exchange, "JWT 无 tenantId"));
     }
 
 
@@ -245,8 +243,7 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
         ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
         // ✅ 防御：理论上不可能进来，但防止以后被人改 filter 顺序
         if (hasAuthorizationHeader(exchange)) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
+            return unauthorized(exchange, "公共接口不允许携带 Authorization");
         }
 
         // 1. 解析 clientId (返回 Mono<String>)
@@ -255,20 +252,12 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
                 // 2. 如果解析失败或为空，给一个默认值
                 // .defaultIfEmpty("system_default")
                 // 3. 使用 flatMap 确保非阻塞
-                .flatMap(clientId ->
-
-                        //公共逻辑：clientId → tenantId → 转发
-                        handleClientIdToTenant(exchange, chain, clientId, builder)
-
-                )
-                .switchIfEmpty(Mono.defer(() -> {
-                    log.error("【ClientIdGatewayFilter】WebClient 返回 empty 或未匹配到租户");
-                    ServerHttpRequest newReq = exchange.getRequest()
-                            .mutate()
-                            .header(HEADER_CLIENT_ID, "system_default")
-                            .build();
-                    return chain.filter(exchange.mutate().request(newReq).build());
-                }));
+                .flatMap(clientId -> {
+                    if ("system_default".equals(clientId)) {
+                        return unauthorized(exchange, "非法 clientId: system_default");
+                    }
+                    return handleClientIdToTenant(exchange, chain, clientId, exchange.getRequest().mutate());
+                });
     }
 
 
@@ -303,9 +292,7 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
         // ✅✅✅ 检测就放在这里 ✅✅✅
         if (!clientWhitelistWithRedisService.isValid(clientId)) {
-            log.error("【ClientIdGatewayFilter】非法 clientId: {}", clientId);
-            exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-            return exchange.getResponse().setComplete();
+            return forbidden(exchange, "非法 clientId: " + clientId);
         }
         log.debug("【ClientIdGatewayFilter】注入 X-Client-Id = {}", clientId);
 
@@ -322,17 +309,19 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
                         ❌ 不直接在 Filter 里调 Feign
                     * */
         return  tenantQueryService.getTenantIdByClientId(clientId)
+                .doOnSubscribe(s -> log.info("【ClientIdGatewayFilter】调用租户服务, clientId={}", clientId))
                 // 1. 调试用：看看 WebClient 到底返回了什么（如果有值的话）
-                .doOnNext(tenantId -> log.info("【ClientIdGatewayFilter】WebClient 返回 tenantId={}", tenantId))
+                .doOnNext(tenantId -> log.info("【ClientIdGatewayFilter】租户服务返回 tenantId={}", tenantId))
+
                 // 2. 过滤掉 null 和 tenantId 为空的情况
-                .filter(tenantId -> tenantId != null)
+                .filter(Objects::nonNull)
                 // 4. 处理有值的情况
                 .flatMap(tenantId -> {
 
-                    log.info("【ClientIdGatewayFilter】通过 clientId={} 获取 tenantId={}",
+                    log.info("【ClientIdGatewayFilter】通过 clientId:{} 获取 tenantId:{}",
                             clientId, tenantId);
-                    builder.header("X-Client-Id", clientId)
-                            .header("X-Tenant-Id", String.valueOf(tenantId));
+                    builder.header(HEADER_CLIENT_ID, clientId)
+                            .header(HEADER_TENANT_ID, String.valueOf(tenantId));
                     return doFilter(exchange, chain, builder);
 
 //                    return chain.filter(
@@ -341,10 +330,7 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 //                                    .build()
 //                    );
                 })
-                .switchIfEmpty(Mono.defer(() -> {
-                    log.warn("【ClientIdGatewayFilter】未查到租户，放行");
-                    return doFilter(exchange, chain, builder);
-                }));
+                .switchIfEmpty(unauthorized(exchange, "未查到租户, clientId=" + clientId));
     }
 
     // ===============================
@@ -367,15 +353,25 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
         log.info("【ClientIdGatewayFilter】即将转发请求到 对应微服务");
         // ⚠️ 这里如果返回 null，WebFlux 会直接结束，不报错
         return chain.filter(exchange.mutate().request(builder.build()).build())
-                .doOnSubscribe(s ->
-                        log.info("【ClientIdGatewayFilter】✅ 已转发请求")
-                )
-                .doOnError(e -> {
-                    log.error("【ClientIdGatewayFilter】❌ 转发失败", e);
-                    exchange.getResponse().setStatusCode(HttpStatus.BAD_GATEWAY);
-                });
+                .doOnSubscribe(s -> log.info("【ClientIdGatewayFilter】已转发请求"))
+                .doOnError(e -> log.error("【ClientIdGatewayFilter】转发失败", e));
     }
 
+
+    /* ===================== 终止请求工具方法 ===================== */
+
+    /** ✅ 终止请求，不再 chain.filter */
+    private Mono<Void> unauthorized(ServerWebExchange exchange, String msg) {
+        log.error("【ClientIdGatewayFilter】UNAUTHORIZED: {}", msg);
+        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+        return exchange.getResponse().setComplete();
+    }
+
+    private Mono<Void> forbidden(ServerWebExchange exchange, String msg) {
+        log.error("【ClientIdGatewayFilter】FORBIDDEN: {}", msg);
+        exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+        return exchange.getResponse().setComplete();
+    }
 
     // ===============================
     // 工具 & 解析方法
@@ -401,7 +397,7 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
             // ✅ 最小修改点：只取第一个 clientId，防拼接
             String cleanClientId = clientIdFromHeader.split(",")[0];
-            log.debug("【ClientIdGatewayFilter】公共接口，清洗 clientId = {} -> {}",
+            log.info("【ClientIdGatewayFilter】公共接口，清洗 clientId = {} -> {}",
                     clientIdFromHeader, cleanClientId);
             return Mono.just(cleanClientId);
         }

@@ -210,7 +210,12 @@ public class OauthClientWxAppServiceImpl extends ServiceImpl<OauthClientWxAppMap
             return null;
         }
 
-        return tenantWxAppService.getTenantIdByWxAppid(entity.getWxAppid());
+
+
+        Long tenantId =  tenantWxAppService.getTenantIdByWxAppid(entity.getWxAppid());
+
+        log.info("通过 clientId 获取tenantId:{}",tenantId);
+        return tenantId;
     }
 
 

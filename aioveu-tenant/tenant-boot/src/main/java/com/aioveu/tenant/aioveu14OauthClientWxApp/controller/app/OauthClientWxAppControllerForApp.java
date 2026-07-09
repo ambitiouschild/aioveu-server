@@ -58,12 +58,12 @@ public class OauthClientWxAppControllerForApp {
     @GetMapping("/getTenantIdByClientId")  // ✅ 应该改为GET
     @Log(value = "通过 clientId 获取 tenantId）", module = LogModuleEnum.TENANT)
     //凡是“只给 Gateway 用的接口”,❌ 不返回 Result,返回裸数据
-    public Result<Long> getTenantIdByClientId(
+    public Long getTenantIdByClientId(
             @Parameter(description = "客户端ID", required = true)
             @RequestParam("clientId") String clientId) {
 
         log.info("【Tenant】收到 clientId = {}", clientId);
         Long tenantId  = oauthClientWxAppService.getTenantIdByClientId(clientId);
-        return Result.success(tenantId);
+        return tenantId;
     }
 }
