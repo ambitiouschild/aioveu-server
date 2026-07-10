@@ -58,7 +58,7 @@ import java.io.IOException;
  * @since 2026-07-10
  */
 @Slf4j
-//@Component @Component会让它全局生效 和 Spring Security 打架
+@Component
 public class PublicTenantFilter extends OncePerRequestFilter {
 
 
@@ -101,12 +101,6 @@ public class PublicTenantFilter extends OncePerRequestFilter {
      * @param request 当前 HTTP 请求
      * @return true = 跳过过滤器；false = 执行过滤器
      */
-
-    /**
-     * 本过滤器仅对标注了 {@link PublicApi} 的方法生效。
-     * 不得用于需要登录的接口，不得与 Spring Security 认证机制混用。
-     * 若发现 @PublicApi 与认证注解共存，视为架构违规。
-     */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         HandlerMethod handlerMethod = getHandlerMethod(request);
@@ -118,6 +112,7 @@ public class PublicTenantFilter extends OncePerRequestFilter {
         // 仅对标注 @PublicApi 的方法生效
         return handlerMethod.getMethodAnnotation(PublicApi.class) == null;
     }
+
 
 
     /**

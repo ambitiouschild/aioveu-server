@@ -22,12 +22,18 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableFeignClients(basePackageClasses = {
-        MemberFeignClient.class,
-        SkuFeignClient.class,
-        PayFeignClient.class,
-        TenantFeignClient.class
+@EnableFeignClients(basePackages = {
+        "com.aioveu.ums.api",
+        "com.aioveu.pms.api",
+        "com.aioveu.pay.api",
+        "com.aioveu.tenant.api"
 })
+//@EnableFeignClients(basePackageClasses = {
+//        MemberFeignClient.class,
+//        SkuFeignClient.class,
+//        PayFeignClient.class,
+//        TenantFeignClient.class
+//})
 public class aioveu_OmsApplication {
     public static void main(String[] args) {
 

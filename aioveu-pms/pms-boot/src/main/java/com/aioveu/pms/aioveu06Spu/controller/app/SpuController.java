@@ -1,5 +1,6 @@
 package com.aioveu.pms.aioveu06Spu.controller.app;
 
+import com.aioveu.common.annotation.PublicApi;
 import com.aioveu.pms.aioveu05Sku.service.PmsSkuService;
 import com.aioveu.pms.aioveu06Spu.mapper.PmsSpuMapper;
 import com.aioveu.pms.aioveu06Spu.model.entity.PmsSpu;
@@ -38,7 +39,7 @@ public class SpuController {
     private final PmsSkuService pmsSkuService;
 
 
-
+    @PublicApi(description = "商品分页列表")
     @Operation(summary = "商品分页列表")
     @GetMapping("/pages")
     public PageResult<SpuPageVO> listPagedSpuForApp(PmsSpuQuery queryParams) {
@@ -48,6 +49,7 @@ public class SpuController {
         return PageResult.success(result);
     }
 
+    @PublicApi(description = "获取商品详情")
     @Operation(summary = "获取商品详情")
     @GetMapping("/spuDetail/{spuId}")
     public Result<SpuDetailVO> getSpuDetail(
@@ -57,7 +59,7 @@ public class SpuController {
         return Result.success(spuDetailVO);
     }
 
-
+    @PublicApi(description = "获取秒杀商品列表")
     @Operation(summary = "获取秒杀商品列表")
     @GetMapping("/seckilling")
     public Result<List<SeckillingSpuVO>> listSeckillingSpu() {

@@ -22,7 +22,7 @@ public class AdvertController {
 
     private SmsAdvertService smsAdvertService;
 
-    @PublicApi(description = "获取公共配置")
+    @PublicApi(description = "获取Banners轮播图（公共接口）")
     @Operation(summary= "获取Banners轮播图（公共接口）")
     @GetMapping("/banners")
     public Result<List<BannerVO>> getSmsHomeBannersList() {

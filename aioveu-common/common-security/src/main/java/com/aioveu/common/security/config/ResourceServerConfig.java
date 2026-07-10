@@ -17,6 +17,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -112,7 +113,7 @@ public class ResourceServerConfig {
     // 自定义认证入口点（401 Unauthorized情况）
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
-    private final PublicTenantResolver publicTenantResolver;
+    private final PublicTenantFilter publicTenantFilter;
 
     /**
      * 创建黑名单检查过滤器  集成到 Spring Security
@@ -136,27 +137,31 @@ public class ResourceServerConfig {
     * 公共接口的 Filter，不应该进 Security 链
     ✅ PublicTenantFilter用 FilterRegistrationBean是最佳选择
     * */
-    @Bean
-    public FilterRegistrationBean<PublicTenantFilter> publicTenantFilterRegistration() {
-
-        FilterRegistrationBean<PublicTenantFilter> registration =
-                new FilterRegistrationBean<>();
-
-        registration.setFilter(new PublicTenantFilter(publicTenantResolver));
-        registration.setName("publicTenantFilter");
-
-        // ✅ 只对公共接口生效
-        registration.addUrlPatterns("/public/*");
-
-        // ✅ 优先级高于 Spring Security
-        registration.setOrder(-101);
-
-        // ✅ 不依赖 Spring Security 初始化
-        registration.setAsyncSupported(true);
-
-        log.info("【PublicTenantFilter】注册成功，生效路径=/public/*");
-        return registration;
-    }
+//    @Bean
+//    public FilterRegistrationBean<PublicTenantFilter> publicTenantFilterRegistration() {
+//
+//        FilterRegistrationBean<PublicTenantFilter> registration =
+//                new FilterRegistrationBean<>();
+//
+//        registration.setFilter(new PublicTenantFilter(publicTenantResolver));
+//        registration.setName("publicTenantFilter");
+//
+//        // ✅ 只对公共接口生效 addUrlPatterns只能匹配“前缀”，不能匹配“后缀”
+////        registration.addUrlPatterns("/public/**");
+//        // ✅ 不限制路径，由 shouldNotFilter 控制
+//        registration.addUrlPatterns("/*");
+//
+//        // ✅ 优先级高于 Spring Security
+////        registration.setOrder(-101);
+//        // ✅ 早于 Spring Security
+//        registration.setOrder(Ordered.HIGHEST_PRECEDENCE + 10);
+//
+//        // ✅ 不依赖 Spring Security 初始化
+//        registration.setAsyncSupported(true);
+//
+//        log.info("【PublicTenantFilter】注册成功，由 shouldNotFilter 控制生效路径");
+//        return registration;
+//    }
 
 
 
@@ -216,6 +221,7 @@ public class ResourceServerConfig {
                 //方案1：将租户过滤器移到认证之后（推荐）
                 .addFilterBefore(tenantFilter, BearerTokenAuthenticationFilter.class) // 在认证过滤器之后 // 租户过滤器最先
                 .addFilterBefore(jwtVersionFilter, BearerTokenAuthenticationFilter.class)
+                .addFilterBefore(publicTenantFilter, BearerTokenAuthenticationFilter.class)
                 .addFilterBefore(jwtBlacklistFilter, BearerTokenAuthenticationFilter.class); // ✅ 使用注入的过滤器 // 然后是JWT黑名单
 
 

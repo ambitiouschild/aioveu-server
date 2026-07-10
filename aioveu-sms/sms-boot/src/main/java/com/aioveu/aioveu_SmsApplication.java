@@ -16,7 +16,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  **/
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableFeignClients
+@EnableFeignClients(basePackages = {
+        "com.aioveu.sms.api",
+        "com.aioveu.tenant.api"
+})
 @EnableScheduling
 public class aioveu_SmsApplication {
     public static void main(String[] args) {

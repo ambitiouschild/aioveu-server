@@ -17,7 +17,11 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableFeignClients(basePackageClasses = {MemberFeignClient.class})
+@EnableFeignClients(basePackages = {
+        "com.aioveu.ums.api",
+        "com.aioveu.pms.api",
+        "com.aioveu.tenant.api"
+})
 public class aioveu_PmsApplication {
     public static void main(String[] args) {
 

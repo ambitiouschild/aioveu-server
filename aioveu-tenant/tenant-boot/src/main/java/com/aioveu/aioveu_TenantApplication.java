@@ -13,7 +13,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableDiscoveryClient
 @EnableScheduling
 @EnableConfigurationProperties  // 启用配置属性扫描
-@EnableFeignClients(basePackages = "com.aioveu")
+@EnableFeignClients(basePackages = {
+        "com.aioveu.auth.api",
+        "com.aioveu.tenant.api"
+})
 // 确保扫描到正确的包
 @MapperScan("com.aioveu.tenant.**.mapper") // 2. 加上这行注解
 public class aioveu_TenantApplication {

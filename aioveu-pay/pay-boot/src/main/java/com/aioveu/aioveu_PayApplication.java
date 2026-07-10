@@ -23,10 +23,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableDiscoveryClient
 @ConfigurationPropertiesScan
-@EnableFeignClients(basePackageClasses = {
-        MemberFeignClient.class,
-        OrderFeignClient.class,
-        SkuFeignClient.class
+@EnableFeignClients(basePackages = {
+        "com.aioveu.ums.api",
+        "com.aioveu.order.api",
+        "com.aioveu.pms.api",
+        "com.aioveu.tenant.api"
 })
 // 在启动类添加 @EnableScheduling
 @EnableScheduling

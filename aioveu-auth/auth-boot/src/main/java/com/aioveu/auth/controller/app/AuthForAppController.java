@@ -5,6 +5,7 @@ import com.aioveu.auth.model.CaptchaResult;
 import com.aioveu.auth.service.AuthService;
 import com.aioveu.auth.service.ClientWhitelistService;
 import com.aioveu.common.annotation.Log;
+import com.aioveu.common.annotation.PublicApi;
 import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.result.PageResult;
 import com.aioveu.common.result.Result;
@@ -76,6 +77,7 @@ public class AuthForAppController {
      * 接口路径：GET /aioveu/api/v8/admin/auth/auth/captcha
      * 适用场景：用户登录前获取验证码图片
      */
+    @PublicApi(description = "获取验证码")
     @Operation(summary = "获取验证码")  // Swagger注解，在API文档中显示接口摘要描述
     @GetMapping("/captcha")  // 处理HTTP GET请求，完整路径为/aioveu/api/v8/admin/auth/auth/captcha
     @Log(value = "获取验证码", module = LogModuleEnum.AUTH)
@@ -107,6 +109,7 @@ public class AuthForAppController {
      *
      * 安全考虑：通常需要限制发送频率，防止短信轰炸攻击
      */
+    @PublicApi(description = "发送手机短信验证码")
     @Operation(summary = "发送手机短信验证码")  // Swagger注解，描述接口功能
     @PostMapping("/sms_code")   // 处理HTTP POST请求，完整路径为/aioveu/api/v8/admin/auth/auth/sms_code
     @Log(value = "发送手机短信验证码", module = LogModuleEnum.AUTH)
