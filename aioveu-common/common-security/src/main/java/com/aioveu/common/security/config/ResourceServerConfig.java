@@ -6,12 +6,15 @@ import com.aioveu.common.constant.JwtClaimConstants;
 import com.aioveu.common.security.config.property.SecurityProperties;
 import com.aioveu.common.security.filter.JwtBlacklistFilter;
 import com.aioveu.common.security.filter.JwtVersionFilter;
+import com.aioveu.common.security.filter.PublicTenantFilter;
 import com.aioveu.common.security.filter.TenantFilter;
+import com.aioveu.common.security.service.PublicTenantResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
@@ -109,6 +112,7 @@ public class ResourceServerConfig {
     // 自定义认证入口点（401 Unauthorized情况）
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
+    private final PublicTenantResolver publicTenantResolver;
 
     /**
      * 创建黑名单检查过滤器  集成到 Spring Security
@@ -124,6 +128,38 @@ public class ResourceServerConfig {
     private final JwtVersionFilter jwtVersionFilter;
 
     private final SecurityProperties securityProperties;
+
+
+    /*
+    Spring Security 管的是“认证 / 授权”
+      公共接口不属于 Spring Security
+    * 公共接口的 Filter，不应该进 Security 链
+    ✅ PublicTenantFilter用 FilterRegistrationBean是最佳选择
+    * */
+    @Bean
+    public FilterRegistrationBean<PublicTenantFilter> publicTenantFilterRegistration() {
+
+        FilterRegistrationBean<PublicTenantFilter> registration =
+                new FilterRegistrationBean<>();
+
+        registration.setFilter(new PublicTenantFilter(publicTenantResolver));
+        registration.setName("publicTenantFilter");
+
+        // ✅ 只对公共接口生效
+        registration.addUrlPatterns("/public/*");
+
+        // ✅ 优先级高于 Spring Security
+        registration.setOrder(-101);
+
+        // ✅ 不依赖 Spring Security 初始化
+        registration.setAsyncSupported(true);
+
+        log.info("【PublicTenantFilter】注册成功，生效路径=/public/*");
+        return registration;
+    }
+
+
+
 
 
     /**
