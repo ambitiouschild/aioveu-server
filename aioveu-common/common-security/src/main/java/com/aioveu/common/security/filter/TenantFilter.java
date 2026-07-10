@@ -5,6 +5,7 @@ import com.aioveu.common.tenant.TenantContextHolder;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,11 +23,24 @@ import java.io.IOException;
  *                      简化版本（如果SecurityUtils已实现）
  *                      **TenantFilter 只做一件事：
  *                      从 SecurityUtils 取 tenantId，设置到 TenantContextHolder**
+ *                      TenantFilter永远不认识 clientId
  * @Author 可我不敌可爱
  * @Author 雒世松
  * @Date 2026/3/13 21:33
  * @Version 1.0
  **/
+
+/**
+ * 租户过滤器（资源服务器专用）
+ *
+ * ✅ 职责单一：
+ * 1. 从 Spring Security Context 中获取 tenantId（来自 JWT）
+ * 2. 设置到 TenantContextHolder
+ * 3. 请求结束后清理
+ *
+ * ❌ 不兜底、不解析 Header、不解析参数
+ * ❌ 不信任前端直接传来的 tenantId
+ */
 @Slf4j
 @Component
 //因为 OncePerRequestFilter本身是一个抽象类，你需要用 extends而不是 implements。
@@ -37,9 +51,11 @@ public class TenantFilter extends OncePerRequestFilter {
     * 方案3：调试SecurityUtils.getTenantId()
     * */
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain
+    ) throws ServletException, IOException {
 
         log.info("=== 【租户过滤器工作】TenantFilter里永远只认 SecurityUtils ===");
 
@@ -50,61 +66,26 @@ public class TenantFilter extends OncePerRequestFilter {
             log.info("【租户过滤器工作】SecurityUtils.getTenantId() 结果: " + tenantId);
 
 
-            // 2️兜底：Header（公共接口） 公共接口（Gateway 已算好）
-            if (tenantId == null) {
-                String tenantIdStr = request.getHeader("X-Tenant-Id");
-                log.debug("【租户过滤器】从 Header 获取 tenantIdStr={}", tenantIdStr);
-                if (tenantIdStr != null) {
-                    tenantId = Long.valueOf(tenantIdStr);
-                    log.info("【租户过滤器工作】兜底：Header（公共接口)tenantId:{} ", tenantId);
-                }
-
-            }
-
-
             if (tenantId != null) {
                 // 设置到租户上下文
                 TenantContextHolder.setTenantId(tenantId);
-                log.debug("【租户过滤器】设置 tenantId={}", tenantId);
                 log.info("【租户过滤器工作】设置租户ID到设置到租户上下文: " + tenantId);
             } else {
-                log.warn("【租户过滤器】未解析到 tenantId，uri={}", request.getRequestURI());
+                // ✅ 没有 tenantId 是异常情况，但不是 Filter 的责任
                 log.info("【租户过滤器工作】⚠️ 没有租户ID，跳过设置");
             }
-
-
-//            // 调试2：查看Spring Security上下文
-//            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//            log.info("【租户过滤器工作】Spring Security认证: " + authentication);
-//            if (authentication != null) {
-//                log.info("【租户过滤器工作】Principal: " + authentication.getPrincipal());
-//                log.info("【租户过滤器工作】是否认证: " + authentication.isAuthenticated());
-//            }
-//
-//            // 调试3：查看请求Header
-//            log.info("【租户过滤器工作】Authorization Header: " + request.getHeader("Authorization"));
-//            log.info("【租户过滤器工作】租户过滤器执行，URI: " + request.getRequestURI());
-//            log.info("【租户过滤器工作】请求Header: " + request.getHeaderNames());
-//
-//            // 尝试从多种来源获取租户ID
-//            Long requestTenantId = getTenantIdFromRequest(request);
-
-//            if (requestTenantId != null) {
-//                // 设置到租户上下文
-//                TenantContextHolder.setTenantId(requestTenantId);
-//                log.info("【租户过滤器工作】过滤器✅ 从request请求Header设置租户ID: " + requestTenantId);
-//            }
-
             filterChain.doFilter(request, response);
         } finally {
             // 清理租户上下文
-            // ✅ 必须清
             TenantContextHolder.clear();
-            // 清理租户上下文
             log.info("【租户过滤器工作】⚠️ 过滤后清理租户上下文");
         }
     }
 
+    /*
+    * 原因 1：安全红线
+        资源服务器永远不应该相信前端传来的 tenantId
+    * */
     private Long getTenantIdFromRequest(HttpServletRequest request) {
         // 1. 从Header获取
         String tenantIdHeader = request.getHeader("X-Tenant-Id");
@@ -126,6 +107,14 @@ public class TenantFilter extends OncePerRequestFilter {
         }
 
         return null;
+    }
+
+    /**
+     * ✅ 只对 HTTP 请求生效
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return false;
     }
 
 }
