@@ -3,8 +3,6 @@ package com.aioveu.gateway.filter;
 
 import com.aioveu.common.constant.JwtClaimConstants;
 import com.aioveu.gateway.service.ClientWhitelistWithRedisService;
-import com.aioveu.gateway.service.TenantQueryService;
-import com.aioveu.gateway.util.ClaimUtils;
 import com.alibaba.nacos.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -12,19 +10,18 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-// ✅ 正确：来自 oauth2-core
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtClaimAccessor; // 这个接口才有 getClaimAsLong
+
 
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.Objects;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @ClassName: ClientIdGatewayFilter
@@ -55,6 +52,7 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
     private static final String HEADER_CLIENT_ID = "X-Client-Id";
     private static final String HEADER_TEENANT_ID = "X-Tenant-Id";
+    private static final String HEADER_CLIENT_VERIFIED = "X-Client-Verified";
 
     private final ReactiveJwtDecoder jwtDecoder;
     private final ClientWhitelistWithRedisService clientWhitelistWithRedisService;
@@ -132,16 +130,21 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
                         return unauthorized(exchange, "非法 clientId: " + clientId);
                     }
 
-                    log.debug("【ClientIdGatewayFilter】匿名请求，clientId 校验通过: {}", clientId);
+                    log.info("【ClientIdGatewayFilter】匿名请求，clientId 校验通过: {}", clientId);
 
-//                    return chain.filter(
-//                            exchange.mutate()
-//                                    .request(mutateClientHeader(exchange, clientId))
-//                                    .build()
-//                    );
 
-                    // ✅ 前端已带 X-Client-Id，直接放行，不修改 request
-                    return chain.filter(exchange);
+                    ServerHttpRequest finalRequest = exchange.getRequest().mutate()
+                            .header(HEADER_CLIENT_ID, clientId)
+                            .header(HEADER_CLIENT_VERIFIED, "true")
+                            .build();
+
+                    log.error("【ClientIdGatewayFilter】FINAL HEADERS: {}", finalRequest.getHeaders());
+
+                    return chain.filter(
+                            exchange.mutate()
+                                    .request(mutateClientVerifiedHeader(exchange, clientId))
+                                    .build()
+                    );
 
                 })
                 .switchIfEmpty(unauthorized(exchange, "缺失 X-Client-Id"));
@@ -180,21 +183,47 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
         /*
     Header 注入（只注入，不覆盖）
     * */
-    private ServerHttpRequest mutateClientHeader(ServerWebExchange exchange, String clientId) {
+    private ServerHttpRequest mutateClientVerifiedHeader(ServerWebExchange exchange, String clientId) {
         return exchange.getRequest().mutate()
                 .header(HEADER_CLIENT_ID, clientId)
+                .header(HEADER_CLIENT_VERIFIED, "true")
                 .build();
     }
 
     /**
      * ✅ 统一返回 401（WebFlux 写法）
+     *    因为前端要的不是“401 状态码”，而是“一段能解析的 JSON”
+     *    ❌ setComplete()= “我结束了，啥也不发”
+     */
+//    private Mono<Void> unauthorized(ServerWebExchange exchange, String msg) {
+//        log.error("【ClientIdGatewayFilter】UNAUTHORIZED: {}", msg);
+//        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+//        return exchange.getResponse().setComplete();
+//    }
+
+    /**
+     * ✅ 统一返回 401（WebFlux 写法）
+     *  writeWith(JSON)= “我结束了，但我把话说明白了”
      */
     private Mono<Void> unauthorized(ServerWebExchange exchange, String msg) {
         log.error("【ClientIdGatewayFilter】UNAUTHORIZED: {}", msg);
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-        return exchange.getResponse().setComplete();
-    }
+        exchange.getResponse().getHeaders().add(HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8");
 
+        String body = """
+            {
+              "code": 401,
+              "msg": "%s",
+              "data": null
+            }
+            """.formatted(msg);
+
+        DataBuffer buffer = exchange.getResponse()
+                .bufferFactory()
+                .wrap(body.getBytes(StandardCharsets.UTF_8));
+
+        return exchange.getResponse().writeWith(Mono.just(buffer));
+    }
 }
 
 

@@ -1,6 +1,7 @@
 package com.aioveu.tenant.aioveu14OauthClientWxApp.controller.app;
 
 import com.aioveu.common.annotation.Log;
+import com.aioveu.common.annotation.PublicApi;
 import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.result.Result;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.service.OauthClientWxAppService;
@@ -53,7 +54,7 @@ public class OauthClientWxAppControllerForApp {
         return Result.success(tenantWxAppInfo);
     }
 
-
+    @PublicApi(description = "通过 clientId 获取tenantId")
     @Operation(summary = "通过 clientId 获取tenantId")
     @GetMapping("/getTenantIdByClientId")  // ✅ 应该改为GET
     @Log(value = "通过 clientId 获取 tenantId）", module = LogModuleEnum.TENANT)

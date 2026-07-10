@@ -2,6 +2,7 @@ package com.aioveu.common.security.filter;
 
 import com.aioveu.common.TokenManager.service.TokenManagerService;
 import com.aioveu.common.security.config.property.SecurityProperties;
+import com.aioveu.common.security.model.SecurityFilterOrders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -9,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.Ordered;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -43,13 +45,21 @@ import java.util.Map;
 @Slf4j
 @Component  // ✅ 让 Spring 自动管理  步骤2：确保 JwtBlacklistFilter是 @Component
 @RequiredArgsConstructor  // 使用 Lombok 自动生成构造函数
-public class JwtBlacklistFilter extends OncePerRequestFilter {
+public class JwtBlacklistFilter extends OncePerRequestFilter implements Ordered {
 
     // ❌ 错误：如果没有 @Autowired 或构造函数注入，这个字段会是 null
     // ✅ 使用 final 字段 + @RequiredArgsConstructor
     private final TokenManagerService tokenManagerService;
 
     private final SecurityProperties securityProperties;
+
+
+
+    @Override
+    public int getOrder() {
+        //（静态引用）
+        return SecurityFilterOrders.JWT_BLACKLIST_FILTER;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

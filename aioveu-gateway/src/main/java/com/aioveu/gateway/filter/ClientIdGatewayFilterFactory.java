@@ -35,7 +35,7 @@ import java.util.List;
 *
 *
 * */
-@Component
+//@Component
 public class ClientIdGatewayFilterFactory  extends AbstractGatewayFilterFactory<ClientIdGatewayFilterFactory.Config> {
 
     public ClientIdGatewayFilterFactory() {

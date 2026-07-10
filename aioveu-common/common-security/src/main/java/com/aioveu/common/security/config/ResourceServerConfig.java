@@ -219,11 +219,13 @@ public class ResourceServerConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 注册过滤器 - 注意顺序很重要！  //在Security配置类中直接注册（推荐）
                 //方案1：将租户过滤器移到认证之后（推荐）
-                .addFilterBefore(tenantFilter, BearerTokenAuthenticationFilter.class) // 在认证过滤器之后 // 租户过滤器最先
-                .addFilterBefore(jwtVersionFilter, BearerTokenAuthenticationFilter.class)
+                // ✅ 白名单请求：clientId → tenantId
                 .addFilterBefore(publicTenantFilter, BearerTokenAuthenticationFilter.class)
-                .addFilterBefore(jwtBlacklistFilter, BearerTokenAuthenticationFilter.class); // ✅ 使用注入的过滤器 // 然后是JWT黑名单
-
+                // ✅ JWT 相关过滤器
+                .addFilterBefore(jwtVersionFilter, BearerTokenAuthenticationFilter.class)
+                .addFilterBefore(jwtBlacklistFilter, BearerTokenAuthenticationFilter.class)
+                // ✅ 所有请求：从 JWT 拿 tenantId
+                .addFilterBefore(tenantFilter, BearerTokenAuthenticationFilter.class)
 
         /*
                     Todo   过滤器执行顺序（重要

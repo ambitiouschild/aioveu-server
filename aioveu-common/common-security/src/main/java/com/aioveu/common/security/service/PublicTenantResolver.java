@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * @ClassName: PublicTenantResolver
- * @Description TODO
+ * @Description TODO  配套的 PublicTenantResolver（同步版）
  * @Author aioveu
  * @Author 雒世松
  * @Date 2026/7/10 10:22
@@ -34,43 +34,36 @@ public class PublicTenantResolver {
     private final TenantQueryService tenantQueryService;
 
     /**
-     * ✅ 缓存
-     * - 最大 10,000 个 clientId
-     * - 写入后 5 分钟过期
-     * - 后台异步刷新（不阻塞读）
+     * ✅ 同步 LoadingCache
+     * Cache Miss 时同步查 Feign
+     * refreshAfterWrite 保证后台异步刷新
      */
-    private final LoadingCache<String, CompletableFuture<Long>> cache =
+    private final LoadingCache<String, Long> cache =
             Caffeine.newBuilder()
                     .maximumSize(10_000)
-                    .refreshAfterWrite(Duration.ofMinutes(5))
-                    .build(this::loadTenantIdAsync);
+                    .expireAfterWrite(Duration.ofMinutes(5))
+                    .build(this::loadTenantId);
 
     /**
      * ❌ 不允许业务直接调用
      * ✅ 只允许 Caffeine 调用
      */
-    private CompletableFuture<Long> loadTenantIdAsync(String clientId) {
-        log.info("【PublicTenantResolver】异步刷新 tenantId, clientId={}", clientId);
+    private Long loadTenantId(String clientId) {
 
-        return CompletableFuture.supplyAsync(() ->
-                tenantQueryService.getTenantIdByClientId(clientId)
-        );
+        Long loadTenantId =  tenantQueryService.getTenantIdByClientId(clientId);
+        log.info("【PublicTenantResolver】clientId:{},加载 tenantId", clientId,loadTenantId);
+        return loadTenantId;
     }
 
 
     /**
      * ✅ Filter 唯一入口
-     * - 永远不阻塞
-     * - 返回的是 Future
      */
-    public CompletableFuture<Long> resolve(HttpServletRequest request) {
-        String clientId = request.getHeader("X-Client-Id");
-        if (clientId == null) {
-            return CompletableFuture.failedFuture(
-                    new BadRequestException("Missing X-Client-Id")
-            );
-        }
+    public Long resolve(String clientId) {
 
+        if (clientId == null) {
+            throw new IllegalArgumentException("Missing X-Client-Id");
+        }
         return cache.get(clientId);
     }
 

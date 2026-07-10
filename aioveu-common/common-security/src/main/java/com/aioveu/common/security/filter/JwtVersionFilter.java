@@ -3,6 +3,7 @@ package com.aioveu.common.security.filter;
 
 import com.aioveu.common.constant.JwtClaimConstants;
 import com.aioveu.common.security.config.property.SecurityProperties;
+import com.aioveu.common.security.model.SecurityFilterOrders;
 import com.aioveu.common.security.util.ClaimUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.Ordered;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,10 +36,21 @@ import java.io.IOException;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class JwtVersionFilter extends OncePerRequestFilter {
+public class JwtVersionFilter extends OncePerRequestFilter implements Ordered {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final SecurityProperties securityProperties;
+
+
+    static {
+        System.err.println("✅ JwtVersionFilter loaded by: " + JwtVersionFilter.class.getName());
+        System.err.println("✅ Is proxy: " + JwtVersionFilter.class.getName().contains("$$"));
+    }
+
+    @Override
+    public int getOrder() {
+        return SecurityFilterOrders.JWT_VERSION_FILTER;
+    }
 
     @Override
     protected void doFilterInternal(
@@ -75,19 +88,6 @@ public class JwtVersionFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
-    }
-
-
-    /**
-     * ✅ 可选：放行公开接口（如果你不想在公共接口上查黑名单）
-     * 第一步：白名单接口 必须跳过你的三个 Filter
-     */
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        AntPathMatcher matcher = new AntPathMatcher();
-
-        return securityProperties.getWhitelistPaths().stream()
-                .anyMatch(path -> matcher.match(path, request.getRequestURI()));
     }
 
 }

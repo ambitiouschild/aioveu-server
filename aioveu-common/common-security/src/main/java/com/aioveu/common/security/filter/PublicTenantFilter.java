@@ -1,14 +1,18 @@
 package com.aioveu.common.security.filter;
 
 
-import com.aioveu.common.annotation.PublicApi;
+import cn.hutool.core.collection.CollectionUtil;
+import com.aioveu.common.security.config.property.SecurityProperties;
+import com.aioveu.common.security.model.SecurityFilterOrders;
 import com.aioveu.common.security.service.PublicTenantResolver;
 import com.aioveu.common.tenant.TenantContextHolder;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -16,10 +20,12 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerMapping;
 
 import java.io.IOException;
+import java.util.Enumeration;
+import java.util.List;
 
 /**
  * @ClassName: PublicTenantFilter
- * @Description TODO  Filter 里只允许“计算”，不允许“通信” （适配 CompletableFuture）
+ * @Description TODO  Filter 里只允许“计算”，不允许“通信”
  * @Author aioveu
  * @Author 雒世松
  * @Date 2026/7/10 10:20
@@ -29,7 +35,6 @@ import java.io.IOException;
  * 公共接口租户解析过滤器
  *
  * <p><b>核心职责：</b>
- * 仅对标注了 {@link PublicApi} 的接口，根据 {@code X-Client-Id} 解析并设置租户上下文。
  *
  * <p><b>设计原则：</b>
  * <ul>
@@ -59,8 +64,13 @@ import java.io.IOException;
  */
 @Slf4j
 @Component
-public class PublicTenantFilter extends OncePerRequestFilter {
+@RequiredArgsConstructor
+public class PublicTenantFilter extends OncePerRequestFilter implements Ordered {
 
+
+    private static final String HEADER_CLIENT_ID = "X-Client-Id";
+    private static final String HEADER_CLIENT_VERIFIED = "X-Client-Verified";
+    private final SecurityProperties securityProperties;
 
     /**
      * 公共租户解析器
@@ -75,10 +85,13 @@ public class PublicTenantFilter extends OncePerRequestFilter {
      */
     private final PublicTenantResolver publicTenantResolver;
 
-    public PublicTenantFilter(PublicTenantResolver publicTenantResolver) {
-        this.publicTenantResolver = publicTenantResolver;
+//    public PublicTenantFilter(PublicTenantResolver publicTenantResolver) {
+//        this.publicTenantResolver = publicTenantResolver;
+//    }
+    @Override
+    public int getOrder() {
+        return SecurityFilterOrders.PUBLIC_TENANT_FILTER;
     }
-
 
     /**
      * 判断是否跳过当前过滤器
@@ -87,7 +100,6 @@ public class PublicTenantFilter extends OncePerRequestFilter {
      * <ol>
      *   <li>从 Spring MVC 上下文中获取当前 HandlerMethod</li>
      *   <li>若不是 MVC 请求（如 actuator、静态资源），直接跳过</li>
-     *   <li>检查方法上是否存在 {@link PublicApi} 注解</li>
      *   <li>存在 → 执行 Filter；不存在 → 跳过</li>
      * </ol>
      *
@@ -100,17 +112,43 @@ public class PublicTenantFilter extends OncePerRequestFilter {
      *
      * @param request 当前 HTTP 请求
      * @return true = 跳过过滤器；false = 执行过滤器
+     * @PublicApi从来就不是给 Filter 用的
+     *
+     * 它是给人、给文档、给 AOP、给扫描工具用的
+     * 专门处理“白名单请求”的租户解析
      */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
+
+        log.error("【PublicTenantFilter】shouldNotFilter called, URI={}", request.getRequestURI());
         HandlerMethod handlerMethod = getHandlerMethod(request);
 
-        // 非 MVC 请求（如 /actuator/health、静态资源）
-        if (handlerMethod == null) {
-            return true; // 非 MVC 请求（如 actuator、static）
+        log.error("【PublicTenantFilter】handlerMethod={}", handlerMethod);
+
+
+
+        /*
+        * shouldNotFilter()的语义是：
+                ✅ true  = 不执行这个 Filter
+        * */
+        String uri = request.getRequestURI();
+        List<String> whitelist = securityProperties.getWhitelistPaths();
+        if (CollectionUtil.isEmpty(whitelist)) {
+            return true;
         }
-        // 仅对标注 @PublicApi 的方法生效
-        return handlerMethod.getMethodAnnotation(PublicApi.class) == null;
+
+
+        /*
+        * shouldNotFilter()的语义是：
+                ✅ false = 执行这个 Filter
+                * // ✅ 在白名单 → 执行 Filter → false
+                *  // ✅ 不在白名单 → 跳过 Filter → true
+        * */
+        boolean isWhitelist = whitelist.stream()
+                .anyMatch(uri::startsWith);
+
+        log.info("【PublicTenantFilter】URI={}, isWhitelist={}", uri, isWhitelist);
+        return !isWhitelist;
     }
 
 
@@ -120,7 +158,6 @@ public class PublicTenantFilter extends OncePerRequestFilter {
      *
      * <p><b>执行流程：</b>
      * <ol>
-     *   <li>调用 {@link PublicTenantResolver#resolve(HttpServletRequest)} 获取 tenantId</li>
      *   <li>将 tenantId 设置到 {@link TenantContextHolder}</li>
      *   <li>继续执行过滤器链</li>
      *   <li>无论成功与否，最终清理租户上下文</li>
@@ -151,30 +188,56 @@ public class PublicTenantFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        publicTenantResolver.resolve(request)
-                // 解析成功后设置租户上下文
-                .thenApply(tenantId -> {
-                    TenantContextHolder.setTenantId(tenantId);
-                    log.debug("PublicTenantFilter set tenantId={}", tenantId);
-                    return tenantId;
-                })
-                // 租户上下文就绪后继续执行过滤器链
-                .thenRun(() -> {
-                    try {
-                        filterChain.doFilter(request, response);
-                    } catch (Exception e) {
-                        // 包装异常，保证 CompletableFuture 链路不中断
-                        throw new RuntimeException(e);
-                    }
-                })
-                // 解析失败或执行异常时的兜底处理
-                .exceptionally(ex -> {
-                    log.warn("【PublicTenantFilter】解析失败", ex);
-                    response.setStatus(HttpStatus.BAD_REQUEST.value());
-                    return null;
-                })
-                // 必须 join，否则 Filter 会提前返回
-                .join(); // ✅ 等待完成，保证顺序
+        String clientId;
+        String verified = request.getHeader(HEADER_CLIENT_VERIFIED);
+        log.info("【PublicTenantFilter】请求提取解析verified: {}", verified);
+
+// ✅ Gateway 转发请求
+        if ("true".equals(verified)) {
+            clientId = request.getHeader(HEADER_CLIENT_ID);
+            log.info("【PublicTenantFilter】Gateway request, clientId:{}", clientId);
+            if (clientId == null) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing X-Client-Id");
+                return;
+            }
+        }
+// ✅ Feign 内部调用（重点！） //Feign 没盖章 → 必须走 Param / 内部信任
+        else {
+            // ❗❗❗ 这里！必须从 param 拿
+            clientId = request.getParameter("clientId");
+            log.info("【PublicTenantFilter】Internal Feign request, clientId:{}", clientId);
+            if (clientId == null) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing clientId param");
+                return;
+            }
+        }
+
+
+
+        Long tenantId;
+        try {
+            // ✅ 同步解析（Cache 内部异步刷新，Filter 不关心）
+            tenantId = publicTenantResolver.resolve(clientId);
+            log.info("【PublicTenantFilter】同步解析tenantId: {}", tenantId);
+        } catch (IllegalArgumentException e) {
+            log.warn("【PublicTenantFilter】参数非法: {}", e.getMessage());
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            return;
+        } catch (Exception e) {
+            log.error("【PublicTenantFilter】解析 tenantId 失败", e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "租户解析失败");
+            return;
+        }
+
+        TenantContextHolder.setTenantId(tenantId);
+        log.info("【PublicTenantFilter】设置到上下文 tenantId：{}", tenantId);
+
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            // ✅ 必须清理，防止线程复用
+            TenantContextHolder.clear();
+        }
     }
 
 

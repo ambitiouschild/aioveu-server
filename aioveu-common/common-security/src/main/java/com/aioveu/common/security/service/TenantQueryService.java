@@ -33,7 +33,7 @@ public class TenantQueryService {
             }
             return result.getData();
         } catch (Exception e) {
-            log.error("【TenantQueryService】查询 tenantId 失败, clientId={}", clientId, e);
+            log.error("【TenantQueryService】查询 tenantId 失败, clientId:{}", clientId, e);
             throw e; // 交给 Cache / Filter 处理
         }
     }

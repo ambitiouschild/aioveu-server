@@ -1,12 +1,15 @@
 package com.aioveu.common.security.filter;
 
+import com.aioveu.common.security.model.SecurityFilterOrders;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.common.tenant.TenantContextHolder;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.Ordered;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -43,9 +46,17 @@ import java.io.IOException;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 //因为 OncePerRequestFilter本身是一个抽象类，你需要用 extends而不是 implements。
-public class TenantFilter extends OncePerRequestFilter {
+public class TenantFilter extends OncePerRequestFilter implements Ordered {
 
+
+
+
+    @Override
+    public int getOrder() {
+        return SecurityFilterOrders.TENANT_FILTER;
+    }
 
     /*
     * 方案3：调试SecurityUtils.getTenantId()

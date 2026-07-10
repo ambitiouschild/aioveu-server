@@ -51,7 +51,7 @@ import java.text.ParseException;
  * @return:
  **/
 
-@Component  // 标记为Spring组件，由Spring容器管理
+//@Component  // 标记为Spring组件，由Spring容器管理
 @RequiredArgsConstructor   // Lombok注解，自动生成包含final字段的构造函数
 @Slf4j  // SLF4J日志注解
 public class TokenValidationGlobalFilter implements GlobalFilter, Ordered {
