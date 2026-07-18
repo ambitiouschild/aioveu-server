@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -31,5 +32,5 @@ public class SecurityProperties {
      *     - "/actuator/info"
      */
 //    @Setter
-    private List<String> whitelistPaths;
+    private List<String> whitelistPaths = Collections.emptyList();
 }
