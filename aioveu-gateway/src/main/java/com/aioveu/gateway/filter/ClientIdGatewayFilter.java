@@ -22,6 +22,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -60,7 +61,7 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
     private static final Set<String> BYPASS_PATHS = Set.of(
             "/oauth2/jwks",
-            "/oauth2/token",
+//            "/oauth2/token",
             "/oauth2/authorize"
     );
 
@@ -183,10 +184,20 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
      * ✅ 解析 clientId（JWT > Header）
      * JWT 是权威来源，Header 是传输载体
      */
-    private Mono<String> resolveTenantFromJwt(String token) {
+//    private Mono<String> resolveTenantFromJwt(String token) {
+//        return jwtDecoder.decode(token)
+//                .map(jwt -> jwt.getClaimAsString(JwtClaimConstants.Tenant.ID))
+//                .filter(StringUtils::isNotBlank);
+//    }
+    private Mono<Long> resolveTenantFromJwt(String token) {
         return jwtDecoder.decode(token)
-                .map(jwt -> jwt.getClaimAsString(JwtClaimConstants.Tenant.ID))
-                .filter(StringUtils::isNotBlank);
+                .map(jwt -> {
+                    Object value = jwt.getClaims().get(JwtClaimConstants.Tenant.ID);
+                    if (value instanceof Long l) return l;
+                    if (value instanceof Integer i) return i.longValue();
+                    return null;
+                })
+                .filter(Objects::nonNull);
     }
 
     private Mono<String> resolveClientId(ServerWebExchange exchange) {
@@ -203,9 +214,9 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
     /*
     Header 注入（只注入，不覆盖）
     * */
-    private ServerHttpRequest mutateTenantHeader(ServerWebExchange exchange, String tenantId) {
+    private ServerHttpRequest mutateTenantHeader(ServerWebExchange exchange, Long tenantId) {
         return exchange.getRequest().mutate()
-                .header(HEADER_TEENANT_ID, tenantId)
+                .header(HEADER_TEENANT_ID, tenantId.toString())
                 .build();
     }
 
