@@ -128,19 +128,23 @@ public class MyTenantLineHandler implements TenantLineHandler {
             log.info("【MyTenantLineHandler】这个场景下，sys_user 和 sys_tenant 表都需要特殊处理");
 
             if ("sys_user".equalsIgnoreCase(tableName)) {
-                log.info("【MyTenantLineHandler】✅ 租户ID为null,✅ 查询用户租户场景，忽略 sys_user 表");
+                log.info("【MyTenantLineHandler】✅ 租户ID为null,✅ 查询用户租户场景，忽略过滤 sys_user 表");
                 return true;
             }
             if ("sys_tenant".equalsIgnoreCase(tableName)) {
-                log.info("【MyTenantLineHandler】✅ 租户ID为null,✅ 查询用户租户场景，忽略 sys_tenant 表");
+                log.info("【MyTenantLineHandler】✅ 租户ID为null,✅ 查询用户租户场景，忽略过滤 sys_tenant 表");
                 return true;
             }
             if ("pay_config_wechat".equalsIgnoreCase(tableName)) {
-                log.info("【MyTenantLineHandler】✅ 租户ID为null,✅ 查询用户租户场景，忽略 pay_config_wechat 表");
+                log.info("【MyTenantLineHandler】✅ 租户ID为null,✅ 查询用户租户场景，忽略过滤 pay_config_wechat 表");
                 return true;
             }
             if ("pay_config_alipay".equalsIgnoreCase(tableName)) {
-                log.info("【MyTenantLineHandler】✅ 租户ID为null,✅ 查询用户租户场景，忽略 pay_config_alipay 表");
+                log.info("【MyTenantLineHandler】✅ 租户ID为null,✅ 查询用户租户场景，忽略过滤 pay_config_alipay 表");
+                return true;
+            }
+            if ("ums_member".equalsIgnoreCase(tableName)) {
+                log.info("【MyTenantLineHandler】✅ 租户ID为null,✅ 查询用户租户场景，忽略过滤 ums_member 表");
                 return true;
             }
         }

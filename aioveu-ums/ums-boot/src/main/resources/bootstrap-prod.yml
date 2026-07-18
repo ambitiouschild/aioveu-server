@@ -39,3 +39,8 @@ spring:
           version: 1.0
           env: prod
           zone: zone1
+
+tenant:
+  column: tenant_id
+  ignore-tables:
+    - ums_member   # ✅ 关键：登录期系统表

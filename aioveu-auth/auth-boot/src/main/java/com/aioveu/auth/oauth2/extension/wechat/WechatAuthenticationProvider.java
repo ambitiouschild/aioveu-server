@@ -223,6 +223,8 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
 
         log.info("openId获取：getTenantIdByClientId,tenantId:{}",tenantId);
 
+
+        //登录期（系统态）接口：租户 ID 按参数传,❌ 不要依赖“租户上下文工具类”, 租户上下文 = 用户态,参数传递 = 系统态
         MemberDetails memberDetails = memberDetailsService.loadMemberByOpenIdAndTenantId(openId,tenantId);
         // ✅ principalName = openId（与 JWT sub 保持一致）
         String principalName = memberDetails.getOpenId();
