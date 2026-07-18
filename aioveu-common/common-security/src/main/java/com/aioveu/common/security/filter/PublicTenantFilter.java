@@ -135,6 +135,11 @@ public class PublicTenantFilter extends OncePerRequestFilter implements Ordered 
             return true; // ✅ 不执行本 Filter
         }
 
+        if (request.getRequestURI().contains("/openIdAndTenantId/")) {
+            log.info("【PublicTenantFilter】openIdAndTenantId接口即跳过, URI={}", request.getRequestURI());
+            return true; // ✅ 不执行本 Filter
+        }
+
         /*
         * shouldNotFilter()的语义是：
                 ✅ true  = 不执行这个 Filter
