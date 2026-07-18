@@ -53,11 +53,13 @@ public class MyTenantLineHandler implements TenantLineHandler {
 
         log.info("=== 【MyTenantLineHandler】 被创建 ===");
 
-        log.info("getTenantId() 被调用");
+        log.info("=== 【MyTenantLineHandler】getTenantId() 被调用 ===");
+        // ✅ 1. 登录期接口：直接返回 null（由 ignoreTable 控制）
 
-        //如果有就赋值到租户上下文工具类
-        Long tenantId =  TenantContextHolder.getTenantId();
-        log.info("【MyTenantLineHandler】如果有租户id就赋值到租户上下文工具类: {}", tenantId);
+        // ✅ 2. 用户态：从 JWT 拿（唯一真理源）
+        Long tenantId = SecurityUtils.getTenantId();
+//        Long tenantId =  TenantContextHolder.getTenantId();
+        log.info("【MyTenantLineHandler】如果JWT有租户id就赋值到租户上下文工具类: {}", tenantId);
         log.info("【MyTenantLineHandler】过滤器 → 解析Token → 设置租户上下文 → 后续所有组件都从上下文获取");
 
         // 如果租户ID为null，不添加租户条件

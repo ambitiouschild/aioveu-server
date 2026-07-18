@@ -271,7 +271,7 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
         String openId = SecurityUtils.getOpenId();  //之前是这里的问题
         Long tenantId = SecurityUtils.getTenantId();
 
-        log.info("【Ums】构建查询条件：按openId 和 tenantId精确匹配，只查询必要字段");
+        log.info("【Ums】构建查询条件：按openId 和 tenantId精确匹配，只查询必要字段openId:{},tenantId:{}",openId,tenantId);
         UmsMember umsMember = this.getOne(new LambdaQueryWrapper<UmsMember>()
                 .eq(UmsMember::getOpenId, openId)
                 .eq(UmsMember::getTenantId, tenantId)
