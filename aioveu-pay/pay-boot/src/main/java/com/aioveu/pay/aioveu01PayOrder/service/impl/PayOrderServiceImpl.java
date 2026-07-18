@@ -2,10 +2,14 @@ package com.aioveu.pay.aioveu01PayOrder.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.web.exception.BizException;
+import com.aioveu.order.api.OrderFeignClient;
+import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
+import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
@@ -17,6 +21,7 @@ import com.aioveu.pay.aioveu01PayOrder.utils.PayOrderNoGenerator;
 import com.aioveu.common.enums.pay.PaymentCallbackStatusEnum;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderForm;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderCreateForm;
+import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -58,10 +63,10 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
 
     private final PayOrderNoGenerator payOrderNoGenerator;
 
-
+    private final OrderFeignClient orderFeignClient;
     // 创建 ObjectMapper 实例
     private final ObjectMapper objectMapper = new ObjectMapper();
-
+    private final WeChatPayService wechatPayService;
     /**
      * 获取支付订单分页列表
      *
@@ -238,7 +243,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean updateOrderStatus(PayOrder order, PaymentCallbackDTO callback){
+    public Boolean updatePayOrderStatusForCallBack(PayOrder order, PaymentCallbackDTO callback){
 
         PaymentCallbackStatusEnum status = callback.getStatus();
         // 设置状态
@@ -265,7 +270,8 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
 //                PaymentStatusEnum.PENDING.getValue(),
 //                order.getPaymentStatus(),
 //                "回调通知");
-        return this.save(order);
+        //update()
+        return this.updateById(order);
     }
 
 
@@ -442,10 +448,10 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
                 }
             }
 
-            // 4. 更新版本号（乐观锁）
-            if (payOrder.getVersion() != null) {
-                payOrder.setVersion(payOrder.getVersion() + 1);
-            }
+            // 4. 更新版本号（乐观锁）  （推荐，用 MP 乐观锁注解）
+//            if (payOrder.getVersion() != null) {
+//                payOrder.setVersion(payOrder.getVersion() + 1);
+//            }
 
             // 5. 执行更新
             int rows = this.baseMapper.updateById(payOrder);
@@ -500,36 +506,238 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         return updatePaymentStatus(payOrder, success, params);
     }
 
+
     /**
-     * 将支付单从 UNPAID 推进到 PAYING
-     * 仅在并发创建支付请求时调用
+     * 将支付单从 UNPAID 推进到目标状态（如 PAYING）
+     * 原子操作，并发安全
      */
     @Override
-    public boolean updateStatusToPaying(String paymentNo) {
-        if (StringUtils.isEmpty(paymentNo)) {
-            return false;
-        }
-
-        // 先查询订单
-        PayOrder payOrder = getByPaymentNo(paymentNo);
-        if (payOrder == null) {
-            log.error("更新支付状态失败：支付订单不存在: paymentNo={}", paymentNo);
+    public boolean updateStatusToTargetStatus(
+            String paymentNo,
+            PaymentStatusEnum fromStatus,
+            PaymentStatusEnum targetStatus,
+            Integer version
+    ) {
+        if (StringUtils.isEmpty(paymentNo)
+                || fromStatus == null
+                || targetStatus == null
+                || version == null) {
             return false;
         }
 
         LambdaUpdateWrapper<PayOrder> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper
+                // 支付单号
                 .eq(PayOrder::getPaymentNo, paymentNo)
-                .eq(PayOrder::getPaymentStatus, PaymentStatusEnum.UNPAID)
-                .set(PayOrder::getPaymentStatus, PaymentStatusEnum.PAYING);
+                // 当前状态必须是 fromStatus
+                .eq(PayOrder::getPaymentStatus, fromStatus)  //fromStatus 必须是“当前真实状态”，不能硬编码
+                // ✅ 乐观锁
+                .eq(PayOrder::getVersion, version)
+                // 新状态
+                .set(PayOrder::getPaymentStatus, targetStatus)
+                // ✅ 状态变更时间
+//                .set(PayOrder::getLastUpdateTime, LocalDateTime.now())
+                // ✅ 乐观锁自增
+                .setSql("version = version + 1");
 
         boolean updated = this.update(updateWrapper);
 
         if (!updated) {
-            log.warn("支付单状态推进失败，可能已被处理，paymentNo={}", paymentNo);
+            log.warn("支付单状态推进失败，可能已被其他线程处理，" +
+                            "paymentNo={}, from={}, to={}",
+                    paymentNo, fromStatus, targetStatus);
+        }
+
+        return updated;
+    }
+
+
+    /**
+     * 前端轮询支付状态
+     * ✅ 只查本地支付单
+     * ✅ 必要时才调用微信
+     * ✅ 不依赖订单状态反推支付状态
+     */
+    @Override
+    public PaymentStatusVO queryPaymentStatusByPaymentNo(String paymentNo){
+
+        PaymentStatusVO paymentStatusVO =new PaymentStatusVO();
+        paymentStatusVO.setPaymentNo(paymentNo);
+        // 1️查支付单（不是订单）
+        PayOrder payOrder = this.selectByPaymentNo(paymentNo);
+        if (payOrder == null) {
+            paymentStatusVO.setErrorMessage("订单不存在");
+            paymentStatusVO.setPaymentStatus(PaymentStatusEnum.UNKNOWN); // 特殊状态：订单不存在
+            log.info("【前端调用：查询支付状态】订单不存在");
+            return paymentStatusVO;
+        }
+        paymentStatusVO.setPaymentStatus(payOrder.getPaymentStatus());
+
+        // 2. 如果订单已支付，直接返回
+        if (paymentStatusVO.getPaymentStatus() == PaymentStatusEnum.PAID) {
+            paymentStatusVO.setErrorMessage("订单已支付");
+            return paymentStatusVO;
+        }
+
+        // 3️非终态，且距离上次查询超过 5 秒，才查微信
+        if (needQueryWechat(payOrder)){
+
+            try {
+                //“回调说了算，查询只是确认，轮询只是安慰用户。”
+                //只在“真的查了微信”时更新
+                PaymentStatusVO wxResult = wechatPayService.queryPayment(paymentNo);
+                log.info("【wechatPayService】微信支付状态返回结果wxResult:{}",wxResult);
+
+                // 4️状态不一致才更新
+                if (wxResult.getPaymentStatus() != paymentStatusVO.getPaymentStatus()) {
+                    //同步支付状态 微信查询 → 视同“回调”
+
+                    PayOrder update = new PayOrder();
+                    update.setId(payOrder.getId());
+                    update.setPaymentStatus(wxResult.getPaymentStatus());
+                    update.setThirdTransactionNo(wxResult.getThirdPaymentNo());
+
+                    if (wxResult.getPaymentStatus() == PaymentStatusEnum.PAID) {
+                        update.setPaymentTime(wxResult.getPaymentTime()); // ✅
+                    }
+
+                    //微信查询 → 视同“回调”
+                    this.updateById(update);
+                     // ✅ 更新最后查询时间
+                    this.updateLastQueryTime(paymentNo, LocalDateTime.now());
+
+                }
+                paymentStatusVO.setPaymentStatus(wxResult.getPaymentStatus());
+                paymentStatusVO.setErrorMessage("支付状态已同步");
+            } catch (Exception e) {
+                log.error("微信查询异常, paymentNo={}", paymentNo, e);
+                paymentStatusVO.setErrorMessage("查询微信支付状态失败");
+            }
+
+        }
+
+        return paymentStatusVO;
+    }
+
+
+
+    /*
+    *
+    * ✅ 前端轮询 2 秒一次
+✅ 微信最多 5 秒查一次
+✅ 微信不封你
+✅ 用户体验不差
+    * */
+    private boolean needQueryWechat(PayOrder payOrder) {
+        // 1. 已终态，不查
+        if (PaymentStatusEnum.isFinalStatus(payOrder.getPaymentStatus())) {
+            return false;
+        }
+
+        // 2. 从未查过，可以查
+        if (payOrder.getLastQueryTime() == null) {
+            return true;
+        }
+
+        // 3. 距上次查询超过 5 秒，才允许再查
+        return payOrder.getLastQueryTime()
+                .plusSeconds(5)
+                .isBefore(LocalDateTime.now());
+    }
+
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateLocalPayAndOrderStatus(PayOrder payOrder, PaymentStatusVO wxResult) {
+
+        // 1. 更新支付单
+        boolean result = this.updateStatusByPaymentNo(
+                payOrder.getPaymentNo(),
+                wxResult.getPaymentStatus()
+        );
+
+//        // 2. 只更新订单支付状态，不改订单主状态
+//        orderFeignClient.updatePaymentStatus(
+//                payOrder.getOrderSn(),
+//                wxResult.getPaymentStatus()
+//        );
+
+        return result;
+    }
+
+
+    /*
+    * 更新最后微信查询时间
+    * */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateLastQueryTime(String paymentNo, LocalDateTime lastQueryTime){
+
+        LambdaUpdateWrapper<PayOrder> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper
+                .eq(PayOrder::getPaymentNo, paymentNo)
+                .set(PayOrder::getLastQueryTime, lastQueryTime);
+
+        boolean updated = this.update(updateWrapper);
+
+        if (!updated) {
+            log.warn("更新最后微信查询时间失败,paymentNo={}", paymentNo);
             throw new BizException("订单已在支付中或已完成");
         }
         return updated;
+
     }
+
+
+    /**
+     * 更新支付状态（幂等、安全）
+     *
+     * @param paymentNo    支付流水号
+     * @param targetStatus 目标状态
+     * @return true=更新成功，false=无需更新
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateStatusByPaymentNo(String paymentNo, PaymentStatusEnum targetStatus) {
+
+        PayOrder payOrder = this.selectByPaymentNo(paymentNo);
+        if (payOrder == null) {
+            log.warn("支付单不存在, paymentNo={}", paymentNo);
+            return false;
+        }
+
+        // ✅ 终态保护
+        if (PaymentStatusEnum.isFinalStatus(payOrder.getPaymentStatus())) {
+
+            log.info("支付单已是终态，跳过更新, paymentNo={}, currentStatus={}",
+                    paymentNo, payOrder.getPaymentStatus());
+            return false;
+        }
+
+        // ✅ 状态未变化
+        if (payOrder.getPaymentStatus() == targetStatus) {
+            return false;
+        }
+
+        boolean success = this.updateStatusToTargetStatus(
+                paymentNo,
+                payOrder.getPaymentStatus(), // ✅ 用当前状态  //fromStatus 必须是“当前真实状态”，不能硬编码
+                targetStatus,
+                payOrder.getVersion()
+        );
+
+        if (!success) {
+            // ✅ 不抛异常，交给上层决定
+            throw new BizException("订单已在支付中或已完成");
+        }
+
+        log.info("支付状态更新成功, paymentNo={}, {}→{}",
+                paymentNo,
+                payOrder.getPaymentStatus(),
+                targetStatus.getCode());
+
+        return true;
+    }
+
 
 }

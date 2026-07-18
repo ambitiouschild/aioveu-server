@@ -9,6 +9,7 @@ import com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderForm;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderCreateForm;
+import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -108,5 +109,18 @@ public class PayOrderControllerForApp {
     ) {
         boolean result = payOrderService.deletePayOrders(ids);
         return Result.judge(result);
+    }
+
+
+    /**
+     * 前端调用：查询支付状态 使用路径参数（推荐）
+     */
+    @Operation(summary ="前端调用：查询支付状态")
+    @GetMapping("/query/{paymentNo}")
+    @Log( value = "前端调用：查询支付状态",module = LogModuleEnum.PAY)
+    public Result<PaymentStatusVO> queryPaymentStatusByPaymentNo(@PathVariable String paymentNo) {
+
+        PaymentStatusVO paymentStatusVO= payOrderService.queryPaymentStatusByPaymentNo(paymentNo);
+        return Result.success(paymentStatusVO);
     }
 }

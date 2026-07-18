@@ -82,8 +82,8 @@ public class PaymentServiceImpl implements PaymentService {
     private final PayOrderConverter payOrderConverter;
     private final PayAccountService payAccountService;
     private final PayNotifyService payNotifyService;
-    private final WeChatPayService wechatPayService;
-    private final OrderFeignClient orderFeignClient;
+
+
     private final MqSendRecordService mqSendRecordService;
     private final PayCommonMessageProducerService payCommonMessageProducerService;
     private final MessageIdGenerator messageIdGenerator;
@@ -152,77 +152,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
 
-    /**
-     * 前端调用：查询支付状态
-     *
-     * @return
-     */
-    @Override
-    public PaymentStatusVO queryPaymentStatus(String orderNo){
 
-        PaymentStatusVO paymentStatusVO =new PaymentStatusVO();
-
-        // 1. 查询本地数据库
-
-        log.info("【前端调用：查询支付状态】调用orderFeignClient，查询本地oms数据库");
-
-        OmsOrderForm orderForm = orderFeignClient.getOrderDetailByOrderNo(orderNo);
-        if (orderForm == null) {
-            paymentStatusVO.setErrorMessage("订单不存在");
-            paymentStatusVO.setPaymentStatus(PaymentStatusEnum.UNKNOWN); // 特殊状态：订单不存在
-            log.info("【前端调用：查询支付状态】订单不存在");
-            return paymentStatusVO;
-        }
-
-        // 2. 如果订单已支付，直接返回
-        if (orderForm.getStatus() == OrderStatusEnum.SHIPPED ||orderForm.getStatus() == OrderStatusEnum.COMPLETED ||orderForm.getStatus() == OrderStatusEnum.CANCELLED) {
-            paymentStatusVO.setPaymentNo(orderNo);
-            paymentStatusVO.setPaymentStatus(PaymentStatusEnum.PAID);
-            paymentStatusVO.setErrorMessage("订单已支付");
-            log.info("【前端调用：查询支付状态】本地订单已支付，状态: {}", orderForm.getStatus());
-            return paymentStatusVO;
-        }else{
-
-            log.info("【前端调用：查询支付状态】订单状态: {}，调用微信查询接口", orderForm.getStatus());
-            // 3. 如果订单未支付，调用微信查询接口
-            try {
-                paymentStatusVO = wechatPayService.queryPayment(orderNo);
-                log.info("【wechatPayService】微信支付状态返回结果:{}",paymentStatusVO);
-
-                PaymentStatusEnum weChatPaymentStatus =  paymentStatusVO.getPaymentStatus();
-
-                log.info("【wechatPayService】准备更新本地订单状态为微信支付状态weChatPaymentStatus:{}",weChatPaymentStatus);
-                // 4. 查询成功后，直接更新本地订单状态
-                log.info("【前端调用：查询支付状态】开始更新本地订单状态");
-
-
-                // 4. 根据微信返回结果更新本地状态
-                //支付状态：0-待支付 1-支付中 2-支付成功 3-支付失败 4-已关闭 5-已退款
-                try {
-                    boolean updateResult = orderFeignClient.updateOrderStatusByWechatPay(orderNo, weChatPaymentStatus);
-                    log.info("【前端调用：查询支付状态】更新订单状态结果: {}", updateResult);
-
-                    if (updateResult) {
-                        paymentStatusVO.setErrorMessage("订单状态已更新,状态已同步");
-                    } else {
-                        paymentStatusVO.setErrorMessage("更新订单状态失败,状态同步失败");
-                    }
-                } catch (Exception e) {
-                    log.error("【前端调用：查询支付状态】更新订单状态异常", e);
-                    paymentStatusVO.setErrorMessage("更新订单异常: " + e.getMessage());
-                }
-
-                return paymentStatusVO;
-
-            } catch (Exception e) {
-                paymentStatusVO.setErrorMessage("错误");
-                return paymentStatusVO;
-            }
-
-
-        }
-
-    }
 
 
     /**
@@ -261,7 +191,7 @@ public class PaymentServiceImpl implements PaymentService {
 
 
             // ============ 5. 更新订单状态 ============
-            Boolean result = payOrderService.updateOrderStatus(payorder,callback);
+            Boolean result = payOrderService.updatePayOrderStatusForCallBack(payorder,callback);
 
 
             // ============ 6. 处理业务逻辑 ============
@@ -999,7 +929,10 @@ public class PaymentServiceImpl implements PaymentService {
             }
 
             // 3️（可选）标记支付中状态，防止重复进入 ✅ 数据库级状态推进  //这里已经改为支付中
-            payOrderService.updateStatusToPaying(current.getPaymentNo());
+            payOrderService.updateStatusToTargetStatus(current.getPaymentNo(),
+                    current.getPaymentStatus(),
+                    PaymentStatusEnum.PAYING,
+                    current.getVersion());
             log.info("【createPaymentOmsToPay】先锁 → 再改状态 → 再解锁 → 再调微信,将支付单从 UNPAID 推进到 PAYING");
 
         } finally {

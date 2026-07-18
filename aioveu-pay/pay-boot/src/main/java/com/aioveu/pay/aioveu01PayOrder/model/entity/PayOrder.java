@@ -7,6 +7,8 @@ import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.math.BigDecimal;  // 必须是java.math.BigDecimal
+
+import com.baomidou.mybatisplus.annotation.Version;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -141,6 +143,19 @@ public class PayOrder extends BaseEntityWithTenantId {
      * 下次通知时间
      */
     private LocalDateTime nextNotifyTime;
+
+
+
+    /**
+     * 最后一次向第三方支付平台查询支付状态的时间
+     * 用途：
+     * 1. 前端轮询时防抖（避免频繁调用微信）
+     * 2. 定时任务校对频率控制
+     * 3. 排查“为何长时间未更新状态”
+     */
+    private LocalDateTime lastQueryTime;
+
+
     /**
      * 逻辑删除：0-未删除 1-已删除
      */
@@ -156,5 +171,6 @@ public class PayOrder extends BaseEntityWithTenantId {
     /**
      * 版本号（用于乐观锁）
      */
+    @Version
     private Integer version;
 }

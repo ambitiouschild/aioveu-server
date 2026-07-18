@@ -52,4 +52,35 @@ public enum PaymentStatusEnum {
         }
         throw new IllegalArgumentException("不支持的支付渠道编码：" + code);
     }
+
+    /**
+     * ✅ 判断是否为终态
+     * 终态：支付成功 / 支付失败 / 已关闭 / 已退款
+     */
+    public static boolean isFinalStatus(PaymentStatusEnum status) {
+        if (status == null) {
+            return false;
+        }
+        return status == PAID
+                || status == FAILED
+                || status == CLOSED
+                || status == REFUNDED;
+    }
+
+    /**
+     * ✅ 是否可进行支付操作
+     */
+    public static boolean canPay(PaymentStatusEnum status) {
+        return status == UNPAID || status == PAYING;
+    }
+
+    /**
+     * ✅ 是否可关闭
+     */
+    public static boolean canClose(PaymentStatusEnum status) {
+        return status == UNPAID || status == PAYING;
+    }
+
+
+
 }

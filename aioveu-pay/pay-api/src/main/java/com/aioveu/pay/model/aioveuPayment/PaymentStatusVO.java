@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 /**
@@ -29,6 +30,6 @@ public class PaymentStatusVO implements Serializable {
     private String thirdPaymentNo;     // 第三方支付单号
     private BigDecimal amount;         // 支付金额
     private PaymentStatusEnum paymentStatus;      // 支付状态
-    private Date paymentTime;          // 支付时间
+    private LocalDateTime paymentTime;          // 支付时间
     private String errorMessage;       // 错误信息
 }

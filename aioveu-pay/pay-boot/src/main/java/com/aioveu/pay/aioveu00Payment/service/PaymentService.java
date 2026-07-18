@@ -65,12 +65,7 @@ public interface PaymentService {
      */
     PaymentParamsVO createPaymentPayToTPP(PaymentRequestPayToTPPDTO request);
 
-    /**
-     * 前端调用：查询支付状态
-     *
-     * @return
-     */
-    PaymentStatusVO queryPaymentStatus(String orderNo);
+
 
     /**
      * 处理支付回调

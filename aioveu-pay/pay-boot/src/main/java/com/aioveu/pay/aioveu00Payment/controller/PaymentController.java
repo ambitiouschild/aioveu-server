@@ -72,17 +72,7 @@ public class PaymentController {
         return  Result.success(PaymentParamsVO);
     }
 
-    /**
-     * 前端调用：查询支付状态 使用路径参数（推荐）
-     */
-    @Operation(summary ="前端调用：查询支付状态")
-    @GetMapping("/query/{orderNo}")
-    @Log( value = "前端调用：查询支付状态",module = LogModuleEnum.PAY)
-    public Result<PaymentStatusVO> queryPaymentStatus(@PathVariable String orderNo) {
 
-        PaymentStatusVO paymentStatusVO= paymentService.queryPaymentStatus(orderNo);
-        return Result.success(paymentStatusVO);
-    }
 
     /**
      * 微信支付回调

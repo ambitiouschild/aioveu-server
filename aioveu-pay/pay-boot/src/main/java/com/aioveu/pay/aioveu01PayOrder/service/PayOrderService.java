@@ -1,14 +1,17 @@
 package com.aioveu.pay.aioveu01PayOrder.service;
 
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu01PayOrder.model.query.PayOrderQuery;
 import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderForm;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderCreateForm;
 import com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO;
+import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
@@ -91,7 +94,7 @@ public interface PayOrderService extends IService<PayOrder> {
      * @param order 支付单号,callback
      * @return Boolean
      */
-    Boolean updateOrderStatus(PayOrder order, PaymentCallbackDTO callback);
+    Boolean updatePayOrderStatusForCallBack(PayOrder order, PaymentCallbackDTO callback);
 
     /**
      *  处理业务逻辑
@@ -165,9 +168,38 @@ public interface PayOrderService extends IService<PayOrder> {
 
 
     /**
-     * 将支付单从 UNPAID 推进到 PAYING
-     * 仅在并发创建支付请求时调用
+     * 前端轮询支付状态
+     * ✅ 只查本地支付单
+     * ✅ 必要时才调用微信
+     * ✅ 不依赖订单状态反推支付状态
      */
-    boolean updateStatusToPaying(String paymentNo);
+    PaymentStatusVO queryPaymentStatusByPaymentNo(String paymentNo);
 
+
+    /**
+     * 更新支付状态（幂等、安全）
+     *
+     * @param paymentNo    支付流水号
+     * @param targetStatus 目标状态
+     * @return true=更新成功，false=无需更新
+     */
+    boolean updateStatusByPaymentNo(String paymentNo, PaymentStatusEnum targetStatus);
+
+
+    boolean updateLocalPayAndOrderStatus(PayOrder payOrder, PaymentStatusVO wxResult);
+
+
+    boolean updateLastQueryTime(String paymentNo, LocalDateTime lastQueryTime);
+
+
+    /**
+     * 将支付单从 UNPAID 推进到目标状态（如 PAYING）
+     * 原子操作，并发安全
+     */
+   boolean updateStatusToTargetStatus(
+           String paymentNo,
+           PaymentStatusEnum fromStatus,
+           PaymentStatusEnum targetStatus,
+           Integer version
+   );
 }
