@@ -145,7 +145,7 @@ public class SecurityUtils {
         if (tokenAttributes != null) {
 
             Long userId = Convert.toLong(tokenAttributes.get("userId"));
-            log.info("SecurityUtils获取当前认证用户的用户名（通常是登录账号）:{}", userId);
+            log.info("【SecurityUtils】获取当前认证用户的用户名（通常是登录账号）:{}", userId);
             return Convert.toLong(tokenAttributes.get("userId"));
         }
         return null;
@@ -179,7 +179,7 @@ public class SecurityUtils {
         if (authentication != null) {
 
             String name = authentication.getName();
-            log.info("SecurityUtils获取当前认证用户的用户名（通常是登录账号）:{}", name);
+            log.info("【SecurityUtils】获取当前认证用户的用户名（通常是登录账号）:{}", name);
             return authentication.getName();
         }
         return null;
@@ -248,10 +248,10 @@ public class SecurityUtils {
 //                        canSwitchTenant,
 //                        tokenAttributes.containsKey("can_switch_tenant"));
             } else {
-                log.info("Token Attributes 为空或null");
+                log.info("【SecurityUtils】Token Attributes 为空或null");
             }
 
-            log.info("获取JWT令牌的所有声明属性");
+            log.info("【SecurityUtils】获取JWT令牌的所有声明属性");
             return tokenAttributes;
         }else {
 //            log.info("❌ 不是JwtAuthenticationToken，实际类型: {}",
@@ -347,7 +347,7 @@ public class SecurityUtils {
         if (tokenAttributes != null) {
 
             Long deptId = (Long) tokenAttributes.get(JwtClaimConstants.User.DEPT_ID);
-            log.info("SecurityUtils获取当前用户所属的部门ID:{}", deptId);
+            log.info("【SecurityUtils】获取当前用户所属的部门ID:{}", deptId);
             return deptId;
         }
         return null;
@@ -360,16 +360,16 @@ public class SecurityUtils {
 
         // 1️已登录：JWT 优先（用户态）
         Map<String, Object> tokenAttributes = getTokenAttributes();
-        log.info("SecurityUtils获取tokenAttributes:{}", tokenAttributes);
         if (tokenAttributes != null) {
             Long tenantId = Convert.toLong(tokenAttributes.get(JwtClaimConstants.Tenant.ID));
-            log.info("SecurityUtils获取当前租户ID:{}", tenantId);
+            log.info("【SecurityUtils】从Token获取当前tenantId:{}", tenantId);
             return tenantId;
         }
 
         // 2️未登录 / 系统态：从 PublicTenantFilter 设置的值取
         Long publicTenantId = TenantContextHolder.getTenantId();
         if (publicTenantId != null) {
+            log.info("【SecurityUtils】从上下文获取当前publicTenantId:{}", publicTenantId);
             return publicTenantId;
         }
 
@@ -384,7 +384,7 @@ public class SecurityUtils {
         Map<String, Object> tokenAttributes = getTokenAttributes();
         if (tokenAttributes != null) {
             String openId = (String) tokenAttributes.get(JwtClaimConstants.Member.OPENID);
-            log.info("SecurityUtils获取当前openId:{}", openId);
+            log.info("【SecurityUtils】获取当前openId:{}", openId);
             return openId;
         }
         return null;
@@ -418,9 +418,9 @@ public class SecurityUtils {
 
             if (tokenAttributes != null) {
 
-                Object  canSwitchTenant = tokenAttributes.get("can_switch_tenant");
+                Object  canSwitchTenant = tokenAttributes.get(JwtClaimConstants.Tenant.CAN_SWITCH);
 
-                log.info("SecurityUtils获取当前用户是否可切换租户:{}", canSwitchTenant);
+                log.info("【SecurityUtils】获取当前用户是否可切换租户:{}", canSwitchTenant);
 
                 // 安全转换
                 if (canSwitchTenant instanceof Boolean) {
@@ -437,7 +437,7 @@ public class SecurityUtils {
 
 
         } catch (Exception e) {
-            log.error("检查租户切换权限失败", e);
+            log.error("【SecurityUtils】检查租户切换权限失败", e);
             return false;
         }
 
@@ -488,8 +488,8 @@ public class SecurityUtils {
         Map<String, Object> tokenAttributes = getTokenAttributes();
         if (tokenAttributes != null) {
 
-            var jti = (String) tokenAttributes.get("jti");
-            log.info("SecurityUtils获取JWT令牌的唯一标识符（JTI）:{}", jti);
+            var jti = (String) tokenAttributes.get(JwtClaimConstants.Token.JTI);
+            log.info("【SecurityUtils】获取JWT令牌的唯一标识符（JTI）:{}", jti);
             return String.valueOf(tokenAttributes.get("jti"));
         }
         return null;
@@ -516,7 +516,7 @@ public class SecurityUtils {
         if (tokenAttributes != null) {
 
             Long exp = Convert.toLong(tokenAttributes.get("exp"));
-            log.info("SecurityUtils获取JWT令牌的过期时间（Expiration Time）:{}", exp);
+            log.info("【SecurityUtils】获取JWT令牌的过期时间（Expiration Time）:{}", exp);
             return Convert.toLong(tokenAttributes.get("exp"));
         }
         return null;
@@ -550,8 +550,8 @@ public class SecurityUtils {
         Map<String, Object> tokenAttributes = getTokenAttributes();
         if (tokenAttributes != null) {
 
-            int dataScope = Convert.toInt(tokenAttributes.get("dataScope"));
-            log.info("SecurityUtils获取当前用户的数据权限范围:{}", dataScope);
+            int dataScope = Convert.toInt(tokenAttributes.get(JwtClaimConstants.User.DATA_SCOPE));
+            log.info("【SecurityUtils】获取当前用户的数据权限范围:{}", dataScope);
 
             return dataScope;
         }
@@ -581,8 +581,8 @@ public class SecurityUtils {
         Map<String, Object> tokenAttributes = getTokenAttributes();
         if (tokenAttributes != null) {
 
-            Long memberId = Convert.toLong(tokenAttributes.get("memberId"));
-            log.info("SecurityUtils获取会员ID（适用于多租户或会员体系）:{}", memberId);
+            Long memberId = Convert.toLong(tokenAttributes.get(JwtClaimConstants.Member.ID));
+            log.info("【SecurityUtils】获取会员ID（适用于多租户或会员体系）:{}", memberId);
             return memberId;
         }
         return null;
@@ -632,8 +632,6 @@ public class SecurityUtils {
      *   - String 原始Token，不可用时返回null
      */
     public static String getTokenFromAuthentication() {
-
-        log.info("获取当前的安全上下文（SecurityContext）中的认证信息（Authentication）");
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof JwtAuthenticationToken jwtAuthenticationToken) {
@@ -687,7 +685,7 @@ public class SecurityUtils {
         try {
             ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             if (requestAttributes == null) {
-                log.debug("无法获取请求上下文，可能不在Web环境中");
+                log.debug("【SecurityUtils】无法获取请求上下文，可能不在Web环境中");
                 return null;
             }
 
@@ -700,10 +698,10 @@ public class SecurityUtils {
 
             if (authorizationHeader != null && authorizationHeader.startsWith(SecurityConstants.BEARER_TOKEN_PREFIX)) {
                 String token = authorizationHeader.substring(SecurityConstants.BEARER_TOKEN_PREFIX.length()).trim();
-                log.debug("成功从请求头中提取Token");
+                log.debug("【SecurityUtils】成功从请求头中提取Token");
                 return token;
             } else {
-                log.debug("请求头中未找到有效的Bearer Token");
+                log.debug("【SecurityUtils】请求头中未找到有效的Bearer Token");
                 return null;
             }
         } catch (Exception e) {
@@ -739,8 +737,8 @@ public class SecurityUtils {
         Map<String, Object> tokenAttributes = getTokenAttributes();
         if (tokenAttributes != null) {
             // JWT 里的字段通常是字符串
-            String clientId = (String) tokenAttributes.get("client_id");
-            log.info("SecurityUtils 获取当前 ClientId: {}", clientId);
+            String clientId = (String) tokenAttributes.get(JwtClaimConstants.Client.ID);
+            log.info("【SecurityUtils】获取当前 ClientId: {}", clientId);
             return clientId;
         }
         return null;
