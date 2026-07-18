@@ -69,7 +69,7 @@ public interface MemberFeignClient {
      * @param tenantId
      * @return
      */
-    @GetMapping("/aioveu/api/v8/app/ums/members/inner/openIdAndTenantId/{openId}")
+    @GetMapping("/aioveu/api/v8/app/ums/members/openIdAndTenantId/{openId}")
     Result<MemberAuthDTO> loadMemberByOpenIdAndTenantId(
             @PathVariable("openId") String openId,
             @RequestParam("tenantId") Long tenantId
