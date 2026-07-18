@@ -6,6 +6,7 @@ import com.aioveu.gateway.service.ClientWhitelistWithRedisService;
 import com.alibaba.nacos.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.context.annotation.Lazy;
@@ -45,25 +46,23 @@ Spring Cloud Gateway 不是 Servlet
 没有 HttpSecurity
 没有 BearerTokenAuthenticationFilter
 👉 Gateway 只认 GlobalFilter/ GatewayFilter
-* */
-@Component
+* */  //Gateway 只认 Factory 创建出来的 Filter
 @Slf4j
-public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
+public class ClientIdGatewayFilter implements GatewayFilter, Ordered {
 
     /** 前端 / 内部约定的租户标识 Header */
 
     private static final String HEADER_CLIENT_ID = "X-Client-Id";
     private static final String HEADER_TEENANT_ID = "X-Tenant-Id";
     private static final String HEADER_CLIENT_VERIFIED = "X-Client-Verified";
-
     private final ReactiveJwtDecoder jwtDecoder;
     private final ClientWhitelistWithRedisService clientWhitelistWithRedisService;
 
-    private static final Set<String> BYPASS_PATHS = Set.of(
-            "/oauth2/jwks",
-            "/oauth2/token",
-            "/oauth2/authorize"
-    );
+//    private static final Set<String> BYPASS_PATHS = Set.of(
+//            "/oauth2/jwks",
+//            "/oauth2/token",
+//            "/oauth2/authorize"
+//    );
 
 
 
@@ -113,11 +112,19 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
                 .getFirst(HttpHeaders.AUTHORIZATION);
 
         // 1️有 Token：走 JWT → tenantId
-        //这一行能直接治好你前面的 JWKS 401
-        if (BYPASS_PATHS.stream().anyMatch(path::startsWith)) {
+        // ✅ 协议端点彻底不介入（架构正确）
+        if (path.startsWith("/oauth2/")) {
             return chain.filter(exchange);
         }
 
+        /*
+        * ✅ Gateway 只负责：按路径 → 转发到对应微服务
+            ❌ Gateway 不应该在 GlobalFilter 里判断 `/oauth2/ 是否放行**
+            ✅ /oauth2/**走独立路由，不挂 ClientIdGatewayFilter
+            ✅ Filter 只管“业务请求”
+        *
+        *
+        * */
         /*
         在网关里，X-Tenant-Id 的真正作用是：
         “给 JWT 里的 tenantId 做一个‘不可变的镜像’供校验使用”
