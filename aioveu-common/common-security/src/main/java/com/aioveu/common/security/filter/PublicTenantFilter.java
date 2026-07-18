@@ -4,7 +4,7 @@ package com.aioveu.common.security.filter;
 import cn.hutool.core.collection.CollectionUtil;
 import com.aioveu.common.security.config.property.SecurityProperties;
 import com.aioveu.common.security.model.SecurityFilterOrders;
-import com.aioveu.common.security.service.PublicTenantResolver;
+import com.aioveu.common.security.service.Impl.PublicTenantResolver;
 import com.aioveu.common.tenant.TenantContextHolder;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -12,15 +12,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.Ordered;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerMapping;
 
 import java.io.IOException;
-import java.util.Enumeration;
 import java.util.List;
 
 /**
@@ -83,7 +82,9 @@ public class PublicTenantFilter extends OncePerRequestFilter implements Ordered 
      *   <li>不阻塞 Filter 线程</li>
      * </ul>
      */
-    private final PublicTenantResolver publicTenantResolver;
+//    private final PublicTenantResolver publicTenantResolver;
+
+    private final ObjectProvider<PublicTenantResolver> tenantResolverProvider;
 
 //    public PublicTenantFilter(PublicTenantResolver publicTenantResolver) {
 //        this.publicTenantResolver = publicTenantResolver;
@@ -181,6 +182,16 @@ public class PublicTenantFilter extends OncePerRequestFilter implements Ordered 
      * @param response    当前 HTTP 响应
      * @param filterChain 过滤器链
      */
+
+    /**
+     * ⚠️ Filter 循环依赖解决方案：
+     *
+     * - Filter 使用 ObjectProvider 延迟获取 PublicTenantResolver
+     * - 避免在构造期触发 Security / Service 初始化链
+     * - 首次请求时再解析租户
+     *
+     * 这是 Spring 官方推荐的 Filter 依赖模式。
+     */
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
@@ -213,11 +224,21 @@ public class PublicTenantFilter extends OncePerRequestFilter implements Ordered 
         }
 
 
+        //这里是关键调用========================
+        PublicTenantResolver resolver =
+                tenantResolverProvider.getIfAvailable();
+
+        if (resolver == null) {
+            // 非 aioveu-tenant 服务，直接放行
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         Long tenantId;
         try {
             // ✅ 同步解析（Cache 内部异步刷新，Filter 不关心）
-            tenantId = publicTenantResolver.resolve(clientId);
+//            tenantId = publicTenantResolver.resolve(clientId);    // ✅ Feign
+            tenantId = resolver.resolve(clientId); // ✅ 不是 Feign
             log.info("【PublicTenantFilter】同步解析tenantId: {}", tenantId);
         } catch (IllegalArgumentException e) {
             log.warn("【PublicTenantFilter】参数非法: {}", e.getMessage());

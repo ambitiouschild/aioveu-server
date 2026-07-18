@@ -1,20 +1,15 @@
-package com.aioveu.common.security.service;
+package com.aioveu.common.security.service.Impl;
 
 
-import com.aioveu.tenant.api.TenantFeignClient;
-import com.github.benmanes.caffeine.cache.Cache;
+import com.aioveu.common.security.service.TenantLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
-import org.springframework.boot.autoconfigure.cache.CacheProperties;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Mono;
 
 import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * @ClassName: PublicTenantResolver
@@ -31,7 +26,16 @@ public class PublicTenantResolver {
 
 
 
-    private final TenantQueryService tenantQueryService;
+//    private final TenantQueryService tenantQueryService;
+
+    /**
+     * ✅ 加载函数：由 aioveu-tenant 注入
+     */
+    /**
+     * ✅ 可选：只有 aioveu-tenant 会提供
+     */
+    @Nullable
+    private final TenantLoader tenantLoader;
 
     /**
      * ✅ 同步 LoadingCache
@@ -48,13 +52,17 @@ public class PublicTenantResolver {
      * ❌ 不允许业务直接调用
      * ✅ 只允许 Caffeine 调用
      */
+//    private Long loadTenantId(String clientId) {
+//
+//        Long loadTenantId =  tenantQueryService.getTenantIdByClientId(clientId);
+//        log.info("【PublicTenantResolver】clientId:{},加载 tenantId", clientId,loadTenantId);
+//        return loadTenantId;
+//    }
+
     private Long loadTenantId(String clientId) {
-
-        Long loadTenantId =  tenantQueryService.getTenantIdByClientId(clientId);
-        log.info("【PublicTenantResolver】clientId:{},加载 tenantId", clientId,loadTenantId);
-        return loadTenantId;
+        log.info("【PublicTenantResolver】Cache Miss, clientId={}", clientId);
+        return tenantLoader.load(clientId);
     }
-
 
     /**
      * ✅ Filter 唯一入口

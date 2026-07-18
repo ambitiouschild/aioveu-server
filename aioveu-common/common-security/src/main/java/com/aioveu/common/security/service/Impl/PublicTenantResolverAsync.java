@@ -1,4 +1,4 @@
-package com.aioveu.common.security.service;
+package com.aioveu.common.security.service.Impl;
 
 
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
-import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;

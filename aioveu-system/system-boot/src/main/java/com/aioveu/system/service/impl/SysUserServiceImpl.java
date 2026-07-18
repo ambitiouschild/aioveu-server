@@ -8,7 +8,7 @@ import cn.hutool.json.JSONUtil;
 import com.aioveu.common.constant.GlobalConstants;
 import com.aioveu.common.constant.RedisConstants;
 import com.aioveu.common.constant.SystemConstants;
-import com.aioveu.common.security.service.PermissionService;
+import com.aioveu.common.security.service.Impl.PermissionService;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.common.sms.property.AliyunSmsProperties;
 import com.aioveu.common.sms.service.SmsService;

@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -88,8 +89,7 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
     private final MemberDetailsService memberDetailsService;  // 会员详情服务，用于加载用户信息
 
     private final WxMaService wxMaService;
-    private final RedisTemplate<String, Object> redisTemplate;
-
+    private final StringRedisTemplate stringRedisTemplate;
     private final WxMiniAppConfig wxMiniAppConfig; // ✅ 不再是 @Autowired
 
     // 微信小程序服务，用于调用微信API
@@ -220,6 +220,9 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
 
 //        MemberDetails memberDetails = memberDetailsService.loadUserByOpenId(openId);
         Long tenantId = tenantFeignClient.getTenantIdByClientId(clientId).getData();
+
+        log.info("openId获取：getTenantIdByClientId,tenantId:{}",tenantId);
+
         MemberDetails memberDetails = memberDetailsService.loadMemberByOpenIdAndTenantId(openId,tenantId);
         // ✅ principalName = openId（与 JWT sub 保持一致）
         String principalName = memberDetails.getOpenId();
@@ -247,10 +250,14 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
 
         if (memberId != null) {
             String versionKey = RedisConstants.Auth.USER_TOKEN_VERSION + memberId;
-            Long tokenVersion = redisTemplate.opsForValue().increment(versionKey);
-            if (tokenVersion == null) {
-                tokenVersion = 1L;
-            }
+//            Long tokenVersion = stringRedisTemplate.opsForValue().increment(versionKey); //INCR返回的就是 Long,INCR返回的就是 Long
+
+            Boolean absent = stringRedisTemplate.opsForValue()
+                    .setIfAbsent(versionKey, "1");
+
+            Long tokenVersion = absent != null && absent
+                    ? 1L
+                    : stringRedisTemplate.opsForValue().increment(versionKey);
 
             // ✅ 放进 Authentication.details
             Map<String, Object> details = new HashMap<>();
@@ -323,6 +330,7 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
 //                .attribute(Principal.class.getName(), usernamePasswordAuthentication);  // 存储完整的 Authentication
 //                .attribute(Principal.class.getName(), usernamePasswordAuthentication.getName());
                 // attribute 里只存 principalName（String）
+                .attribute(JwtClaimConstants.Tenant.ID, tenantId) // ✅ 关键
                 .attribute(Principal.class.getName(), principalName);
         //然后这个认证信息被序列化到数据库。刷新令牌时，Spring Security 尝试反序列化，但 MemberDetails不在 Jackson 白名单中。
         log.info("9. 构建授权信息:{}", authorizationBuilder);

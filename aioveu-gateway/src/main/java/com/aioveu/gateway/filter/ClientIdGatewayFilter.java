@@ -110,6 +110,16 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
         在网关里，X-Tenant-Id 的真正作用是：
         “给 JWT 里的 tenantId 做一个‘不可变的镜像’供校验使用”
         * */
+
+        /*
+        * /oauth2/jwks
+            ✅ 没有 Authorization Header
+            ✅ 不是 JWT 请求
+            ✅ 不属于任何 client
+        *
+        * */
+
+
         if (StringUtils.isNotBlank(auth) && auth.startsWith("Bearer ")) {
             return resolveTenantFromJwt(auth.substring(7))
                     .flatMap(tenantId ->

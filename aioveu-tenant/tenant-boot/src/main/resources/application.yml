@@ -13,6 +13,8 @@ spring:
 project:
   version: '@project.version@'  # 用单引号包裹
 
+tenant:
+  mode: db
 
 #  正确的启动流程
 #  1.启动Nacos服务器（单机或集群）

@@ -10,7 +10,7 @@ import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.model.Option;
 import com.aioveu.common.security.model.RoleDataScope;
 import com.aioveu.common.security.model.UserAuthInfoWithTenantId;
-import com.aioveu.common.security.service.PermissionService;
+import com.aioveu.common.security.service.Impl.PermissionService;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.common.sms.enmus.SmsTypeEnum;
 import com.aioveu.common.sms.service.SmsService;

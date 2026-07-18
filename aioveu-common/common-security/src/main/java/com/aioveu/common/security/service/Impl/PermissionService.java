@@ -1,4 +1,4 @@
-package com.aioveu.common.security.service;
+package com.aioveu.common.security.service.Impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;

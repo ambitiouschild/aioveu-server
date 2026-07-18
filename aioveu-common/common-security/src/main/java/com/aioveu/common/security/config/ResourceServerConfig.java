@@ -8,16 +8,11 @@ import com.aioveu.common.security.filter.JwtBlacklistFilter;
 import com.aioveu.common.security.filter.JwtVersionFilter;
 import com.aioveu.common.security.filter.PublicTenantFilter;
 import com.aioveu.common.security.filter.TenantFilter;
-import com.aioveu.common.security.service.PublicTenantResolver;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -39,8 +34,6 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
-
-import java.util.List;
 
 /**
  * @Description: TODO 资源服务器配置  - Spring Security OAuth2资源服务器核心配置类

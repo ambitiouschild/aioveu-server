@@ -1,4 +1,4 @@
-package com.aioveu.common.security.service;
+package com.aioveu.common.security.service.Impl;
 
 
 import com.aioveu.common.result.Result;

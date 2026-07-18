@@ -287,18 +287,18 @@ public class AuthorizationServerConfig {
 
                                                 List.of(
                                                         // 密码模式：使用用户名密码认证 // ✅ 这里是 Object RedisTemplate
-                                                        new PasswordAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator,sysUserDetailsService,redisTemplate),
+                                                        new PasswordAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator,sysUserDetailsService,stringRedisTemplate),
                                                         // 验证码模式：验证图形验证码+密码
                                                         new CaptchaAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator, stringRedisTemplate, codeGenerator),
                                                         // 微信模式：使用微信code认证
                                                         // 微信认证提供者使用WxMaService进行微信登录验证
-                                                        new WechatAuthenticationProvider(authorizationService, tokenGenerator, memberDetailsService, wxMaService,redisTemplate,wxMiniAppConfig,tenantFeignClient),
+                                                        new WechatAuthenticationProvider(authorizationService, tokenGenerator, memberDetailsService, wxMaService,stringRedisTemplate,wxMiniAppConfig,tenantFeignClient),
                                                         // 短信模式：使用手机号+短信验证码认证
                                                         new SmsCodeAuthenticationProvider(authorizationService, tokenGenerator, memberDetailsService, stringRedisTemplate),
                                                         // 添加Spring Security自带的刷新令牌提供者 推荐：只用你自己的（因为你做了 token_version）
                                                         // new OAuth2RefreshTokenAuthenticationProvider(authorizationService, tokenGenerator)
 
-                                                        new CustomRefreshTokenAuthenticationProvider(authorizationService, tokenGenerator,memberDetailsService, redisTemplate, reuseRefreshTokens)
+                                                        new CustomRefreshTokenAuthenticationProvider(authorizationService, tokenGenerator,memberDetailsService, stringRedisTemplate, reuseRefreshTokens)
 
                                                 )
                                         )

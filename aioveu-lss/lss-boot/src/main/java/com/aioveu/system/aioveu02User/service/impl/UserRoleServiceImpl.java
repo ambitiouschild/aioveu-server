@@ -1,7 +1,7 @@
 package com.aioveu.system.aioveu02User.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.aioveu.common.security.service.TokenService;
+import com.aioveu.common.security.service.Impl.TokenService;
 import com.aioveu.system.aioveu02User.mapper.UserRoleMapper;
 import com.aioveu.system.aioveu02User.model.entity.UserRole;
 import com.aioveu.system.aioveu02User.service.UserRoleService;

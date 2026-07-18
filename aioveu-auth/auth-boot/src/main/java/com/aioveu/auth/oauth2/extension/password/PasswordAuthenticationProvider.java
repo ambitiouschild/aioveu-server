@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -85,7 +86,7 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
     // 添加 UserDetailsService 依赖
     private final SysUserDetailsService sysUserDetailsService;
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
 //    /**
 //     * Constructs an {@code OAuth2ResourceOwnerPasswordAuthenticationProviderNew} using the provided parameters.
 //     * 构造函数：依赖注入所需的组件
@@ -220,10 +221,14 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
                 if (userId != null) {
                     String versionKey = RedisConstants.Auth.USER_TOKEN_VERSION + userId;
                     //获取当前版本号
-                    Long tokenVersion = redisTemplate.opsForValue().increment(versionKey);
-                    if (tokenVersion == null) {
-                        tokenVersion = 1L;
-                    }
+//            Long tokenVersion = stringRedisTemplate.opsForValue().increment(versionKey); //INCR返回的就是 Long,INCR返回的就是 Long
+
+                    Boolean absent = stringRedisTemplate.opsForValue()
+                            .setIfAbsent(versionKey, "1");
+
+                    Long tokenVersion = absent != null && absent
+                            ? 1L
+                            : stringRedisTemplate.opsForValue().increment(versionKey);
 
                     // ✅ 放入 additionalParameters，供 JWT Customizer 使用
                     //但实际上 JWT Customizer 根本拿不到。**
@@ -332,6 +337,7 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
                 .principalName(usernamePasswordAuthentication.getName())    // 主体名称（用户名）
                 .authorizationGrantType(AuthorizationGrantType.PASSWORD)    // 授权类型
                 .authorizedScopes(authorizedScopes)                         // 授权范围
+                .attribute(JwtClaimConstants.Tenant.ID, tenantId) // ✅ 关键
                 .attribute(Principal.class.getName(), usernamePasswordAuthentication); // attribute 字段  // 用户认证信息属性
 
         // 如果生成的访问令牌包含声明信息，特殊处理

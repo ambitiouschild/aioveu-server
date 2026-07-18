@@ -16,6 +16,7 @@ import me.chanjar.weixin.common.error.WxErrorException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -72,8 +73,8 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
     private final OAuth2AuthorizationService authorizationService;   // OAuth2授权服务，用于保存授权信息
     private final OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator;  // OAuth2令牌生成器
     private final MemberDetailsService memberDetailsService;  // 会员详情服务，用于加载用户信息
-    private final RedisTemplate<String, Object> redisTemplate;
-
+//    private final RedisTemplate<String, Object> redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
     /**
      * 是否重用刷新令牌（配置驱动，默认 false）
      * reuseRefreshTokens的正确使用位置只有一个：
@@ -190,7 +191,7 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
         //✅ 方案 1（最推荐）：从 Authorization 里拿 .attribute("tenant_id", tenantId) // ✅
         //✅ 方案 2：从 JWT 里拿（资源服务器用） claims.put("tenant_id", tenantId);
         //✅ 方案 3：从 clientId 再查一次（不推荐）
-
+//tenantId 从 Authorization attribute 拿（核心正确）
         Long tenantId = authorization.getAttribute(JwtClaimConstants.Tenant.ID);
         log.info("获取tenantId: {}", tenantId);
         // 7. 重新加载用户
@@ -211,12 +212,15 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
             String versionKey = RedisConstants.Auth.USER_TOKEN_VERSION + memberId;
 
             // ✅ 只读取，不 increment ✅ 这是唯一正确的刷新令牌校验方式
-            Long tokenVersion = (Long) redisTemplate.opsForValue().get(versionKey);
-            if (tokenVersion == null) {
+//            Long tokenVersion = (Long) redisTemplate.opsForValue().get(versionKey);
+            String value = stringRedisTemplate.opsForValue().get(versionKey);
+            if (value == null) {
                 throw new OAuth2AuthenticationException(
                         new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT, "令牌已失效", ERROR_URI)
                 );
             }
+
+            Long tokenVersion = Long.valueOf(value);
 
             Map<String, Object> details = new HashMap<>();
             details.put(JwtClaimConstants.Token.VERSION, tokenVersion);
