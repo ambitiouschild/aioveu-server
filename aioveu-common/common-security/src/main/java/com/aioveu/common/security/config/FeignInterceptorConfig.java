@@ -22,7 +22,7 @@ import org.springframework.context.annotation.Configuration;
     基础设施 = common 模块
     不是业务模块
 * */
-@Configuration
+//@Configuration
 public class FeignInterceptorConfig {
 
     @Bean
