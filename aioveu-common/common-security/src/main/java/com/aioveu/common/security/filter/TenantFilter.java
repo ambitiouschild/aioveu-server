@@ -44,6 +44,22 @@ import java.io.IOException;
  * ❌ 不兜底、不解析 Header、不解析参数
  * ❌ 不信任前端直接传来的 tenantId
  */
+
+/**
+ * 租户过滤器
+ *
+ * ✅ 职责：
+ * 1. 从 SecurityUtils 获取 JWT 中的 tenantId
+ * 2. 设置到 TenantContextHolder
+ * 3. 供【业务代码 / 日志 / 审计 / 非 MP SQL】使用
+ *
+ * ❌ 注意：
+ * MyBatis-Plus 的 TenantLineHandler **不会**使用 TenantContextHolder
+ * 它只使用 SecurityUtils 中的 JWT 信息
+ *
+ * 因此：本 Filter 对 MP 插件“无感知、无影响”
+ */
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -68,22 +84,22 @@ public class TenantFilter extends OncePerRequestFilter implements Ordered {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        log.info("=== 【租户过滤器工作】TenantFilter里永远只认 SecurityUtils ===");
+        log.info("=== 【TenantFilter】TenantFilter里永远只认 SecurityUtils ===");
 
         try {
             // 直接从SecurityUtils获取当前用户的租户ID
             // 调试1：直接调用   // 1. 从JWT解析租户ID
             Long tenantId = SecurityUtils.getTenantId();
-            log.info("【租户过滤器工作】SecurityUtils.getTenantId() 结果: " + tenantId);
+            log.info("【TenantFilter】SecurityUtils.getTenantId() 结果: " + tenantId);
 
 
             if (tenantId != null) {
                 // 设置到租户上下文
                 TenantContextHolder.setTenantId(tenantId);
-                log.info("【租户过滤器工作】设置租户ID到设置到租户上下文: " + tenantId);
+                log.info("【TenantFilter】TenantContextHolder = 复印件,设置租户ID到设置到租户上下文: " + tenantId);
             } else {
                 // ✅ 没有 tenantId 是异常情况，但不是 Filter 的责任
-                log.info("【租户过滤器工作】⚠️ 没有租户ID，跳过设置");
+                log.info("【TenantFilter】⚠️ 没有租户ID，跳过设置");
             }
             filterChain.doFilter(request, response);
         } finally {

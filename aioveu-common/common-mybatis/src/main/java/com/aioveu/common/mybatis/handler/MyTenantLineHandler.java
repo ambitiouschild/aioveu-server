@@ -54,6 +54,7 @@ public class MyTenantLineHandler implements TenantLineHandler {
         log.info("=== 【MyTenantLineHandler】 被创建 ===");
 
         log.info("=== 【MyTenantLineHandler】getTenantId() 被调用 ===");
+        log.info("=== 【MyTenantLineHandler】JWT = 原件,MP = 只认原件, 永远只认 SecurityUtils ===");
         // ✅ 1. 登录期接口：直接返回 null（由 ignoreTable 控制）
 
         // ✅ 2. 用户态：从 JWT 拿（唯一真理源）
