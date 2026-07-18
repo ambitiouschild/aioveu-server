@@ -262,6 +262,7 @@ public class PublicTenantFilter extends OncePerRequestFilter implements Ordered 
             return;
         }
 
+        //✅ TenantContextHolder 里有✅ TenantContextHolder 里有
         TenantContextHolder.setTenantId(tenantId);
         log.info("【PublicTenantFilter】设置到上下文 tenantId：{}", tenantId);
 
@@ -270,7 +271,7 @@ public class PublicTenantFilter extends OncePerRequestFilter implements Ordered 
         } finally {
             // ✅ 必须清理，防止线程复用
 //            TenantContextHolder.clear();
-            log.info("【TenantFilter】⚠️ TenantFilter（只 set，不清空）");
+            log.info("【PublicTenantFilter】tenantId 已设置，由 TenantInterceptor 负责清理");
         }
     }
 

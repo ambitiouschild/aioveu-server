@@ -106,7 +106,7 @@ public class TenantFilter extends OncePerRequestFilter implements Ordered {
         finally {
             // 清理租户上下文
 //            TenantContextHolder.clear();
-            log.info("【TenantFilter】⚠️ TenantFilter（只 set，不清空）");
+            log.info("【TenantFilter】tenantId 已设置，由 TenantInterceptor 负责清理");
         }
     }
 

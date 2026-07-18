@@ -8,6 +8,7 @@ import com.aioveu.common.constant.SecurityConstants;
 import com.aioveu.common.constant.SystemConstants;
 import com.aioveu.common.security.model.RoleDataScope;
 import com.aioveu.common.security.model.SysUserDetails;
+import com.aioveu.common.tenant.TenantContextHolder;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -356,15 +357,23 @@ public class SecurityUtils {
     * 获取租户ID
     * */
     public static Long getTenantId() {
-        Map<String, Object> tokenAttributes = getTokenAttributes();
 
+        // 1️已登录：JWT 优先（用户态）
+        Map<String, Object> tokenAttributes = getTokenAttributes();
         log.info("SecurityUtils获取tokenAttributes:{}", tokenAttributes);
         if (tokenAttributes != null) {
-
             Long tenantId = Convert.toLong(tokenAttributes.get(JwtClaimConstants.Tenant.ID));
             log.info("SecurityUtils获取当前租户ID:{}", tenantId);
             return tenantId;
         }
+
+        // 2️未登录 / 系统态：从 PublicTenantFilter 设置的值取
+        Long publicTenantId = TenantContextHolder.getTenantId();
+        if (publicTenantId != null) {
+            return publicTenantId;
+        }
+
+        // 3️都没有
         return null;
     }
 
