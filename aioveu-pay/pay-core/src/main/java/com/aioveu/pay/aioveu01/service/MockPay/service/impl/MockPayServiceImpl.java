@@ -23,11 +23,14 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Map;
 import java.util.Random;
 
+import static com.aioveu.pay.utils.LocalDateTimeUtil.toLocalDateTime;
 import static com.fasterxml.jackson.core.io.NumberInput.parseBigDecimal;
 import static org.bouncycastle.math.ec.rfc8032.Ed25519.sign;
 
@@ -346,12 +349,13 @@ public class MockPayServiceImpl implements MockPayService {
             throw new RuntimeException(errorMsg);
         }
 
+
         return PaymentStatusVO.builder()
                 .paymentNo(response.getOutTradeNo())
                 .thirdPaymentNo(response.getTradeNo())
                 .amount(parseBigDecimal(response.getTotalAmount()))
                 .paymentStatus(convertAlipayStatus(response.getTradeStatus()))
-                .paymentTime(response.getSendPayDate())  // 直接使用Date类型
+                .paymentTime(toLocalDateTime(response.getSendPayDate()))
                 .build();
     }
 

@@ -41,7 +41,12 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.Map;
+
+import static com.aioveu.pay.utils.LocalDateTimeUtil.parseWechatTime;
 
 /**
  * @ClassName: WechatPayServiceImpl
@@ -573,10 +578,10 @@ public class WeChatPayServiceImpl implements WeChatPayService {
 
         if (transaction.getSuccessTime() != null) {
             try {
-                statusVO.setPaymentTime(DateUtil.parse(
-                        transaction.getSuccessTime(),
-                        "yyyy-MM-dd'T'HH:mm:ssXXX"
-                ));
+                // ✅ 微信时间 → 系统时间
+                // 封装成工具方法（全系统统一）
+                statusVO.setPaymentTime(parseWechatTime(transaction.getSuccessTime()));
+
             } catch (Exception e) {
                 log.warn("解析支付时间失败", e);
             }

@@ -30,6 +30,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 
+import static com.aioveu.pay.utils.LocalDateTimeUtil.toLocalDateTime;
+
 /**
  * @ClassName: AlipayEasyServiceImpl
  * @Description TODO 支付宝EasySDK支付服务实现   - 返回支付参数
@@ -385,7 +387,7 @@ public class AlipayEasyServiceImpl implements AlipayEasyService {
                 .thirdPaymentNo(response.tradeNo)
                 .amount(parseBigDecimal(response.totalAmount))
                 .paymentStatus(convertAlipayStatus(response.tradeStatus))
-                .paymentTime(parsePaymentTime(response.sendPayDate))
+                .paymentTime(toLocalDateTime(parsePaymentTime(response.sendPayDate)))
                 .build();
     }
 

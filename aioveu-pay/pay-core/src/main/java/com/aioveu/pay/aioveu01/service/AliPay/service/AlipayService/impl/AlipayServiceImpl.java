@@ -23,10 +23,14 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
+
+import static com.aioveu.pay.utils.LocalDateTimeUtil.toLocalDateTime;
 
 /**
  * @ClassName: AlipayStrategyImpl
@@ -365,12 +369,13 @@ public class AlipayServiceImpl implements AlipayService {
             throw new RuntimeException(errorMsg);
         }
 
+
         return PaymentStatusVO.builder()
                 .paymentNo(response.getOutTradeNo())
                 .thirdPaymentNo(response.getTradeNo())
                 .amount(parseBigDecimal(response.getTotalAmount()))
                 .paymentStatus(convertAlipayStatus(response.getTradeStatus()))
-                .paymentTime(response.getSendPayDate())  // 直接使用Date类型
+                .paymentTime(toLocalDateTime(response.getSendPayDate()))
                 .build();
     }
 
