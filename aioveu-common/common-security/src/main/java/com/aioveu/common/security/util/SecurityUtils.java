@@ -250,8 +250,6 @@ public class SecurityUtils {
             } else {
                 log.info("【SecurityUtils】Token Attributes 为空或null");
             }
-
-            log.info("【SecurityUtils】获取JWT令牌的所有声明属性");
             return tokenAttributes;
         }else {
 //            log.info("❌ 不是JwtAuthenticationToken，实际类型: {}",
