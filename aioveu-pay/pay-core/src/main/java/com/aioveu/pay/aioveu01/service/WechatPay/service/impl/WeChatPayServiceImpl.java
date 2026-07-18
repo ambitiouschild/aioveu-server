@@ -574,7 +574,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
         statusVO.setAmount(convertFenToYuan(transaction.getAmount().getTotal()));
 
         String tradeState = transaction.getTradeState().name();
-        statusVO.setPaymentStatus(convertWechatStatus(tradeState));
+        statusVO.setPaymentStatus(convertWechatStatus(tradeState).getCode());
 
         if (transaction.getSuccessTime() != null) {
             try {

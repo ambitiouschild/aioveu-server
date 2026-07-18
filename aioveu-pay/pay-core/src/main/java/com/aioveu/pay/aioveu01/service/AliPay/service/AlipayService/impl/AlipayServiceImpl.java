@@ -374,7 +374,7 @@ public class AlipayServiceImpl implements AlipayService {
                 .paymentNo(response.getOutTradeNo())
                 .thirdPaymentNo(response.getTradeNo())
                 .amount(parseBigDecimal(response.getTotalAmount()))
-                .paymentStatus(convertAlipayStatus(response.getTradeStatus()))
+                .paymentStatus(convertAlipayStatus(response.getTradeStatus()).getCode())
                 .paymentTime(toLocalDateTime(response.getSendPayDate()))
                 .build();
     }

@@ -567,14 +567,14 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         PayOrder payOrder = this.selectByPaymentNo(paymentNo);
         if (payOrder == null) {
             paymentStatusVO.setErrorMessage("订单不存在");
-            paymentStatusVO.setPaymentStatus(PaymentStatusEnum.UNKNOWN); // 特殊状态：订单不存在
+            paymentStatusVO.setPaymentStatus(PaymentStatusEnum.UNKNOWN.getCode()); // 特殊状态：订单不存在
             log.info("【前端调用：查询支付状态】订单不存在");
             return paymentStatusVO;
         }
-        paymentStatusVO.setPaymentStatus(payOrder.getPaymentStatus());
+        paymentStatusVO.setPaymentStatus(payOrder.getPaymentStatus().getCode());
 
         // 2. 如果订单已支付，直接返回
-        if (paymentStatusVO.getPaymentStatus() == PaymentStatusEnum.PAID) {
+        if (paymentStatusVO.getPaymentStatus() == PaymentStatusEnum.PAID.getCode()) {
             paymentStatusVO.setErrorMessage("订单已支付");
             return paymentStatusVO;
         }
@@ -594,10 +594,10 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
 
                     PayOrder update = new PayOrder();
                     update.setId(payOrder.getId());
-                    update.setPaymentStatus(wxResult.getPaymentStatus());
+                    update.setPaymentStatus(PaymentStatusEnum.fromCode(wxResult.getPaymentStatus()));
                     update.setThirdTransactionNo(wxResult.getThirdPaymentNo());
 
-                    if (wxResult.getPaymentStatus() == PaymentStatusEnum.PAID) {
+                    if (wxResult.getPaymentStatus() == PaymentStatusEnum.PAID.getCode()) {
                         update.setPaymentTime(wxResult.getPaymentTime()); // ✅
                     }
 
@@ -653,7 +653,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         // 1. 更新支付单
         boolean result = this.updateStatusByPaymentNo(
                 payOrder.getPaymentNo(),
-                wxResult.getPaymentStatus()
+                PaymentStatusEnum.fromCode(wxResult.getPaymentStatus())
         );
 
 //        // 2. 只更新订单支付状态，不改订单主状态

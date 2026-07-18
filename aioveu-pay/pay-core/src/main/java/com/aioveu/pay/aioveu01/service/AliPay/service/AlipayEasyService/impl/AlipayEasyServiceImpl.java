@@ -386,7 +386,7 @@ public class AlipayEasyServiceImpl implements AlipayEasyService {
                 .paymentNo(response.outTradeNo)
                 .thirdPaymentNo(response.tradeNo)
                 .amount(parseBigDecimal(response.totalAmount))
-                .paymentStatus(convertAlipayStatus(response.tradeStatus))
+                .paymentStatus(convertAlipayStatus(response.tradeStatus).getCode())
                 .paymentTime(toLocalDateTime(parsePaymentTime(response.sendPayDate)))
                 .build();
     }
