@@ -102,10 +102,11 @@ public class TenantFilter extends OncePerRequestFilter implements Ordered {
                 log.info("【TenantFilter】⚠️ 没有租户ID，跳过设置");
             }
             filterChain.doFilter(request, response);
-        } finally {
+        }
+        finally {
             // 清理租户上下文
-            TenantContextHolder.clear();
-            log.info("【租户过滤器工作】⚠️ 过滤后清理租户上下文");
+//            TenantContextHolder.clear();
+            log.info("【TenantFilter】⚠️ TenantFilter（只 set，不清空）");
         }
     }
 

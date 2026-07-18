@@ -269,7 +269,8 @@ public class PublicTenantFilter extends OncePerRequestFilter implements Ordered 
             filterChain.doFilter(request, response);
         } finally {
             // ✅ 必须清理，防止线程复用
-            TenantContextHolder.clear();
+//            TenantContextHolder.clear();
+            log.info("【TenantFilter】⚠️ TenantFilter（只 set，不清空）");
         }
     }
 
