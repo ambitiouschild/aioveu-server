@@ -90,7 +90,7 @@ public class MemberController {
     @GetMapping("/openIdAndTenantId/{openId}")
     public Result<MemberAuthDTO> loadMemberByOpenIdAndTenantId(
             @PathVariable("openId") String openId,
-            @RequestHeader("X-Tenant-Id") Long tenantId
+            @RequestParam("tenantId") Long tenantId
     ){
         MemberAuthDTO memberAuthInfo = memberService.loadMemberByOpenIdAndTenantId(openId,tenantId);
         return Result.success(memberAuthInfo);

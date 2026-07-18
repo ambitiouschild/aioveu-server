@@ -14,7 +14,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.Ordered;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerMapping;
@@ -126,7 +128,12 @@ public class PublicTenantFilter extends OncePerRequestFilter implements Ordered 
 
         log.error("【PublicTenantFilter】handlerMethod={}", handlerMethod);
 
-
+        // ✅ 1. 有 JWT = 直接跳过（最关键的放行）
+        String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (StringUtils.hasText(auth) && auth.startsWith("Bearer ")) {
+            log.info("【PublicTenantFilter】JWT 存在即跳过, JWT detected, skip filter, URI={}", request.getRequestURI());
+            return true; // ✅ 不执行本 Filter
+        }
 
         /*
         * shouldNotFilter()的语义是：

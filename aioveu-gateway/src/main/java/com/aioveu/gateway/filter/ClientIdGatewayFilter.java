@@ -61,7 +61,7 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
     private static final Set<String> BYPASS_PATHS = Set.of(
             "/oauth2/jwks",
-//            "/oauth2/token",
+            "/oauth2/token",
             "/oauth2/authorize"
     );
 
