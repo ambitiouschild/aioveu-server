@@ -22,6 +22,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
 
 /**
  * @ClassName: ClientIdGatewayFilter
@@ -56,6 +57,13 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
 
     private final ReactiveJwtDecoder jwtDecoder;
     private final ClientWhitelistWithRedisService clientWhitelistWithRedisService;
+
+    private static final Set<String> BYPASS_PATHS = Set.of(
+            "/oauth2/jwks",
+            "/oauth2/token",
+            "/oauth2/authorize"
+    );
+
 
 
     //构造函数注入
@@ -104,7 +112,10 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
                 .getFirst(HttpHeaders.AUTHORIZATION);
 
         // 1️有 Token：走 JWT → tenantId
-
+        //这一行能直接治好你前面的 JWKS 401
+        if (BYPASS_PATHS.stream().anyMatch(path::startsWith)) {
+            return chain.filter(exchange);
+        }
 
         /*
         在网关里，X-Tenant-Id 的真正作用是：
@@ -120,6 +131,14 @@ public class ClientIdGatewayFilter implements GlobalFilter, Ordered {
         * */
 
 
+        /*
+        *  ✅ 网关：解析 + 传 Header（用于路由/限流/日志）
+            ✅ 资源服务器：自己解析 JWT 拿 tenantId（业务权威来源）
+            ✅ 你现在的“资源服务器兜底解析”是 100% 正确的
+            ❌ 不要让资源服务器“只依赖网关传的 Header”
+        *
+        *
+        * */
         if (StringUtils.isNotBlank(auth) && auth.startsWith("Bearer ")) {
             return resolveTenantFromJwt(auth.substring(7))
                     .flatMap(tenantId ->
