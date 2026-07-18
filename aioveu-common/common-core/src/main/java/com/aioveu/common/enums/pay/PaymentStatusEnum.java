@@ -12,7 +12,8 @@ import lombok.Getter;
  * @return:
  **/
 
-
+//⚠️ Jackson 默认序列化：enum.name() 前端返回name
+//json.writeField("paymentStatus", PaymentStatusEnum.PAID.name());
 public enum PaymentStatusEnum {
 
     UNPAID(1, "UNPAID", "待支付"),
