@@ -1,8 +1,9 @@
 package com.aioveu.pay.aioveu10MqSendRecord.model.entity;
 
 
-import com.aioveu.common.base.BaseEntity;
 import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.common.enums.pay.PaymentSceneEnum;
+import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -12,7 +13,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.Map;
 
 /**
@@ -50,6 +50,12 @@ public class MqSendRecord extends BaseEntityWithTenantId {
      * 业务类型:payment_success
      */
     private String bizType;
+
+    /**
+     * 支付场景：ORDER-商品订单 MEMBERSHIP-会员开通 RECHARGE-账户充值 ACTIVITY-活动订单
+     */
+    private Integer paymentScene;
+
     /**
      * Topic
      */

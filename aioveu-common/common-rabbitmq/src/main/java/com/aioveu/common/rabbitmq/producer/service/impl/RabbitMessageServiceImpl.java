@@ -1,6 +1,6 @@
 package com.aioveu.common.rabbitmq.producer.service.impl;
 
-import com.aioveu.common.rabbitmq.enums.SendStatus;
+import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
 import com.aioveu.common.rabbitmq.producer.monitor.ProducerMetricsCollector;
 import com.aioveu.common.rabbitmq.producer.model.vo.RabbitSendResult;
 import com.aioveu.common.rabbitmq.producer.service.RabbitMessageService;
@@ -227,7 +227,7 @@ public class RabbitMessageServiceImpl implements RabbitMessageService {
     public RabbitSendResult updateResultWithConvenienceMethods(RabbitSendResult original, Long tenantId) {
         return original.toBuilderTenant(tenantId)
                 .toBuilderMessageType("ORDER_DELETE")
-                .toBuilderWithStatus(SendStatus.SUCCESS);
+                .toBuilderWithStatus(SendStatusEnum.SUCCESS);
     }
 
 
@@ -620,7 +620,7 @@ public class RabbitMessageServiceImpl implements RabbitMessageService {
         int success = 0;
         int failure = 0;
         Map<Long, Integer> tenantStats = new HashMap<>();
-        Map<SendStatus, Integer> statusStats = new HashMap<>();
+        Map<SendStatusEnum, Integer> statusStats = new HashMap<>();
 
         for (RabbitSendResult result : results) {
             if (result.isSuccess()) {
@@ -635,8 +635,8 @@ public class RabbitMessageServiceImpl implements RabbitMessageService {
             }
 
             // 状态统计
-            if (result.getSendStatus() != null) {
-                statusStats.merge(result.getSendStatus(), 1, Integer::sum);
+            if (result.getSendStatusEnum() != null) {
+                statusStats.merge(result.getSendStatusEnum(), 1, Integer::sum);
             }
         }
 

@@ -1,7 +1,8 @@
 package com.aioveu.pay.aioveu10MqSendRecord.service;
 
 
-import com.aioveu.common.rabbitmq.enums.SendStatus;
+import com.aioveu.common.enums.pay.PaymentSceneEnum;
+import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.model.form.MqSendRecordForm;
 import com.aioveu.pay.aioveu10MqSendRecord.model.query.MqSendRecordQuery;
@@ -88,7 +89,7 @@ public interface MqSendRecordService extends IService<MqSendRecord> {
      * @param status MQ消息发送记录表单对象
      * @return 是否修改成功
      */
-    boolean updateSendStatus(String messageId, SendStatus status, String errorMsg);
+    boolean updateSendStatus(String messageId, SendStatusEnum status, String errorMsg);
 
 
 
@@ -148,4 +149,34 @@ public interface MqSendRecordService extends IService<MqSendRecord> {
      */
     SendRecordStats getDetailedSendRecordStats(LocalDateTime startTime, LocalDateTime endTime);
 
+
+    /**
+     * ✅ 判断支付成功事件是否已发送（幂等判断）
+     */
+    boolean bizEventAlreadySent(String paymentNo);
+
+    //插入即幂等（最安全）
+    void markBizEventSent(String paymentNo, PaymentSceneEnum scene);
+
+
+    /**
+     * 插入未发送记录（事务内调用）
+     */
+    void insertUnSent(String paymentNo, PaymentSceneEnum scene);
+
+
+    /**
+     * 标记为已发送
+     */
+    void markSent(String paymentNo);
+
+    /**
+     * 保存重试记录（发送失败时调用）
+     */
+    void saveRetryRecord(String bizId, Throwable t);
+
+    /**
+     * 增加重试次数
+     */
+    void increaseRetryCount(Long id);
 }

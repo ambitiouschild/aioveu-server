@@ -10,7 +10,7 @@ package com.aioveu.common.rabbitmq.producer.model.vo;
  * @Version 1.0
  **/
 
-import com.aioveu.common.rabbitmq.enums.SendStatus;
+import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -50,7 +50,7 @@ public class RetryCheckResult {
     private Integer maxRetryCount;
 
     /** 消息状态 */
-    private SendStatus sendStatus;
+    private SendStatusEnum sendStatusEnum;
 
     /** 消息ID */
     private String messageId;
@@ -62,12 +62,12 @@ public class RetryCheckResult {
      */
     public static RetryCheckResult canRetry(String messageId,
                                             Integer currentRetryCount,
-                                            SendStatus sendStatus) {
+                                            SendStatusEnum sendStatusEnum) {
         return RetryCheckResult.builder()
                 .canRetry(true)
                 .messageId(messageId)
                 .currentRetryCount(currentRetryCount)
-                .sendStatus(sendStatus)
+                .sendStatusEnum(sendStatusEnum)
                 .maxRetryCount(3) // 默认3次
                 .build();
     }
@@ -92,20 +92,20 @@ public class RetryCheckResult {
                 .reason("消息已发送成功，无需重试")
                 .errorCode("ALREADY_SUCCESS")
                 .messageId(messageId)
-                .sendStatus(SendStatus.SUCCESS)
+                .sendStatusEnum(SendStatusEnum.SUCCESS)
                 .build();
     }
 
     /**
      * 不可重试的状态
      */
-    public static RetryCheckResult invalidStatus(String messageId, SendStatus status) {
+    public static RetryCheckResult invalidStatus(String messageId, SendStatusEnum status) {
         return RetryCheckResult.builder()
                 .canRetry(false)
                 .reason("消息状态不可重试: " + status.getLabel())
                 .errorCode("INVALID_STATUS")
                 .messageId(messageId)
-                .sendStatus(status)
+                .sendStatusEnum(status)
                 .build();
     }
 
@@ -149,7 +149,7 @@ public class RetryCheckResult {
                 .reason("路由失败，重试无效")
                 .errorCode("ROUTING_FAILED")
                 .messageId(messageId)
-                .sendStatus(SendStatus.ROUTING_FAILED)
+                .sendStatusEnum(SendStatusEnum.ROUTING_FAILED)
                 .build();
     }
 

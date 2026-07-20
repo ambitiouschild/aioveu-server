@@ -1,6 +1,5 @@
 package com.aioveu.common.rabbitmq.enums;
 
-import com.aioveu.common.base.IBaseEnum;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -23,7 +22,7 @@ import java.util.Map;
 *
 * */
 
-public enum SendStatus implements IBaseEnum<Integer> {
+public enum SendStatusEnum {
 
     PENDING(0, "未发送"),
     SENDING(1, "发送中"),
@@ -45,10 +44,11 @@ public enum SendStatus implements IBaseEnum<Integer> {
 
 
 
-    SendStatus(Integer value, String label) {
+    SendStatusEnum(Integer value, String label) {
         this.value = value;
         this.label = label;
     }
+
 
     @Getter
     private Integer value;
@@ -57,11 +57,11 @@ public enum SendStatus implements IBaseEnum<Integer> {
     private String label;
 
     // 静态映射，提高查找效率
-    private static final Map<Integer, SendStatus> VALUE_MAP = new HashMap<>();
+    private static final Map<Integer, SendStatusEnum> VALUE_MAP = new HashMap<>();
 
     static {
         // 初始化映射
-        for (SendStatus status : SendStatus.values()) {
+        for (SendStatusEnum status : SendStatusEnum.values()) {
             VALUE_MAP.put(status.getValue(), status);
         }
     }
@@ -70,7 +70,7 @@ public enum SendStatus implements IBaseEnum<Integer> {
     /**
      * 通过value查找枚举
      */
-    public static SendStatus fromValue(Integer value) {
+    public static SendStatusEnum fromValue(Integer value) {
         if (value == null) {
             return UNKNOWN;
         }
@@ -80,11 +80,11 @@ public enum SendStatus implements IBaseEnum<Integer> {
     /**
      * 通过value查找枚举（严格模式，找不到抛异常）
      */
-    public static SendStatus fromValueStrict(Integer value) {
+    public static SendStatusEnum fromValueStrict(Integer value) {
         if (value == null) {
             throw new IllegalArgumentException("value不能为空");
         }
-        SendStatus status = VALUE_MAP.get(value);
+        SendStatusEnum status = VALUE_MAP.get(value);
         if (status == null) {
             throw new IllegalArgumentException("无效的value: " + value);
         }

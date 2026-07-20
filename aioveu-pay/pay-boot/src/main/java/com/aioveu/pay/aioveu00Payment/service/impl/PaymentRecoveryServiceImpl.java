@@ -1,11 +1,13 @@
-package com.aioveu.pay.aioveu01PayOrder.service.impl;
+package com.aioveu.pay.aioveu00Payment.service.impl;
 
 
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
+import com.aioveu.pay.aioveu00Payment.Processor.Impl.BusinessProcessorComposite;
+import com.aioveu.pay.aioveu00Payment.service.PaymentRecoveryService;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
-import com.aioveu.pay.aioveu01PayOrder.Processor.BusinessProcessor;
+import com.aioveu.pay.aioveu00Payment.Processor.BusinessProcessor;
 import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import jakarta.annotation.Resource;
@@ -28,44 +30,41 @@ import java.time.LocalDateTime;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PaymentRecoveryServiceImpl {
+public class PaymentRecoveryServiceImpl implements PaymentRecoveryService {
 
-    @Resource
+
     private PayOrderMapper payOrderMapper;
-    @Resource
     private WeChatPayService weChatPayService;
-
     //Spring 会自动注入 唯一实现类（如果有多个再配合 @Qualifier）。
-    @Resource
-    private BusinessProcessor businessProcessor;
+    private final BusinessProcessorComposite processorComposite;
 
     /**
-     * 单笔订单兜底查单
+     * 单笔订单兜底查单（Job / 回调触发）
      */
-    @Transactional(rollbackFor = Exception.class)
     public void recover(String paymentNo) {
         PayOrder order = payOrderMapper.selectOne(
                 Wrappers.<PayOrder>lambdaQuery()
                         .eq(PayOrder::getPaymentNo, paymentNo)
         );
 
-        if (order == null || PaymentStatusEnum.isTerminal(order.getPaymentStatus())){
+        if (order == null || PaymentStatusEnum.isTerminal(PaymentStatusEnum.fromCode(order.getPaymentStatus()))){
             return;
         }
 
         // 5 分钟内查过，直接跳过
-        if (order.getLastQueryTime() != null &&
-                order.getLastQueryTime().isAfter(LocalDateTime.now().minusMinutes(5))) {
+        if (skipByRecentQuery(order)) {
             return;
         }
 
         try {
             PaymentStatusVO wx = weChatPayService.queryPayment(paymentNo);
 
-            PaymentStatusEnum statusEnum =
-                    PaymentStatusEnum.fromCode(wx.getPaymentStatus());
+            if (wx == null) {
+                return;
+            }
 
-            if (wx == null || !PaymentStatusEnum.isTerminal(statusEnum)) {
+            PaymentStatusEnum statusEnum = PaymentStatusEnum.fromCode(wx.getPaymentStatus());
+            if (!PaymentStatusEnum.isTerminal(statusEnum)) {
                 payOrderMapper.updateLastQueryTime(
                         order.getId(),
                         LocalDateTime.now()
@@ -75,27 +74,36 @@ public class PaymentRecoveryServiceImpl {
 
 
             // 支付状态必须先落库（你已经做到了）
-            int rows = payOrderMapper.updateStatusIfNonTerminal(
-                    order.getId(),
-                    wx.getPaymentStatus(),
-                    wx.getThirdPaymentNo(),
-                    wx.getPaymentTime()
-            );
-
-
-
-
-
-            if (rows == 1) {
+            boolean updated = updateLocalStatus(order, wx);
+            // 只有真正更新支付状态时，才触发业务处理（防止回调/Job并发重复投递）
+            if (updated) {
                 log.info("兜底查单成功, paymentNo={}", paymentNo);
-
-
                 //支付模块只认 Composite（关键） ✅ 支付模块从此不关心有多少个业务 // 实际是 Composite
-                businessProcessor.onPaid(paymentNo);
+                // ✅ 只有状态真正变更，才触发业务
+                processorComposite.onPaid(paymentNo);
             }
 
         } catch (Exception e) {
             log.error("兜底查单异常, paymentNo={}", paymentNo, e);
         }
     }
+
+
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateLocalStatus(PayOrder order, PaymentStatusVO wx) {
+        int rows = payOrderMapper.updateStatusIfNonTerminal(
+                order.getId(),
+                wx.getPaymentStatus(),
+                wx.getThirdPaymentNo(),
+                wx.getPaymentTime()
+        );
+        return rows == 1;
+    }
+
+    private boolean skipByRecentQuery(PayOrder order) {
+        return order.getLastQueryTime() != null
+                && order.getLastQueryTime().isAfter(LocalDateTime.now().minusMinutes(5));
+    }
+
+
 }

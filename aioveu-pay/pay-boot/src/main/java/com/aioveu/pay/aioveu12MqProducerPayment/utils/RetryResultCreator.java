@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.utils;
 
 
-import com.aioveu.common.rabbitmq.enums.SendStatus;
+import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.common.rabbitmq.producer.model.vo.RetryCheckResult;
 import com.aioveu.common.rabbitmq.producer.model.vo.RetryResult;
@@ -56,7 +56,7 @@ public class RetryResultCreator {
                 .toBuilder()
                 .errorCode("INVALID_ID")
                 .maxRetryReached(false)
-                .sendStatus(SendStatus.FAILED)
+                .sendStatusEnum(SendStatusEnum.FAILED)
                 .build();
     }
 
@@ -75,7 +75,7 @@ public class RetryResultCreator {
                 .toBuilder()
                 .errorCode("DUPLICATE_RETRY")
                 .maxRetryReached(false)
-                .sendStatus(SendStatus.FAILED)
+                .sendStatusEnum(SendStatusEnum.FAILED)
                 .build();
     }
 
@@ -94,7 +94,7 @@ public class RetryResultCreator {
                 .toBuilder()
                 .errorCode("NOT_FOUND")
                 .maxRetryReached(false)
-                .sendStatus(SendStatus.FAILED)
+                .sendStatusEnum(SendStatusEnum.FAILED)
                 .build();
     }
 
@@ -107,7 +107,7 @@ public class RetryResultCreator {
         long costTime = System.currentTimeMillis() - startTime;
 
         Integer statusValue = entity.getSendStatus(); // 假设这是从数据库读取的值
-        SendStatus status = SendStatus.fromValue(statusValue);
+        SendStatusEnum status = SendStatusEnum.fromValue(statusValue);
 
         return RetryResult.failure(
                         entity.getMessageId(),
@@ -118,7 +118,7 @@ public class RetryResultCreator {
                 .toBuilder()
                 .errorCode(checkResult.getErrorCode())
                 .maxRetryReached(checkResult.isMaxRetryReached())
-                .sendStatus(status)
+                .sendStatusEnum(status)
 //                .exchange(entity.getExchange())
 //                .routingKey(entity.getRoutingKey())
 //                .addExtra("currentStatus", entity.getSendStatus().getLabel())
@@ -141,7 +141,7 @@ public class RetryResultCreator {
                 )
                 .toBuilder()
                 .maxRetryReached(false)
-                .sendStatus(SendStatus.FAILED)
+                .sendStatusEnum(SendStatusEnum.FAILED)
                 .build()   // 先 build 再 addExtra
                 .addExtra("exceptionClass", e.getClass().getName())
                 .addExtra("stackTrace", getStackTrace(e));
@@ -157,7 +157,7 @@ public class RetryResultCreator {
         // 检查状态
 
         Integer statusValue = entity.getSendStatus(); // 假设这是从数据库读取的值
-        SendStatus status = SendStatus.fromValue(statusValue);
+        SendStatusEnum status = SendStatusEnum.fromValue(statusValue);
 
         if (!isRetryableStatus(status)) {
             result.setCanRetry(false);
@@ -203,19 +203,19 @@ public class RetryResultCreator {
     /**
      * 判断状态是否可重试
      */
-    public boolean isRetryableStatus(SendStatus status) {
-        return status == SendStatus.FAILED ||
-                status == SendStatus.TIMEOUT ||
-                status == SendStatus.CONFIRM_TIMEOUT ||
-                status == SendStatus.CONFIRM_NACK ||
-                status == SendStatus.ROUTING_FAILED;
+    public boolean isRetryableStatus(SendStatusEnum status) {
+        return status == SendStatusEnum.FAILED ||
+                status == SendStatusEnum.TIMEOUT ||
+                status == SendStatusEnum.CONFIRM_TIMEOUT ||
+                status == SendStatusEnum.CONFIRM_NACK ||
+                status == SendStatusEnum.ROUTING_FAILED;
     }
 
     /**
      * 更新实体为重试中状态
      */
     public void updateEntityAsRetrying(MqSendRecord entity) {
-        entity.setSendStatus(SendStatus.SENDING.getValue());
+        entity.setSendStatus(SendStatusEnum.SENDING.getValue());
         entity.setRetryCount(entity.getRetryCount() != null ? entity.getRetryCount() + 1 : 1);
 //        entity.setRetried(true);
         entity.setUpdateTime(LocalDateTime.now());
@@ -258,7 +258,7 @@ public class RetryResultCreator {
                         .toBuilder()
                         .exchange(entity.getExchange())
                         .routingKey(entity.getRoutingKey())
-                        .sendStatus(SendStatus.SUCCESS)
+                        .sendStatusEnum(SendStatusEnum.SUCCESS)
                         .build()
                         .addExtra("ackTime", LocalDateTime.now())
                         .addExtra("correlationId", correlationData.getId());
@@ -274,7 +274,7 @@ public class RetryResultCreator {
                         .toBuilder()
                         .exchange(entity.getExchange())
                         .routingKey(entity.getRoutingKey())
-                        .sendStatus(SendStatus.CONFIRM_NACK)
+                        .sendStatusEnum(SendStatusEnum.CONFIRM_NACK)
                         .build()
                         .addExtra("ackCause", confirm.getReason());
 
@@ -292,7 +292,7 @@ public class RetryResultCreator {
                     .toBuilder()
                     .exchange(entity.getExchange())
                     .routingKey(entity.getRoutingKey())
-                    .sendStatus(SendStatus.TIMEOUT)
+                    .sendStatusEnum(SendStatusEnum.TIMEOUT)
                     .build();
 
         } catch (Exception e) {
@@ -307,7 +307,7 @@ public class RetryResultCreator {
                     .toBuilder()
                     .exchange(entity.getExchange())
                     .routingKey(entity.getRoutingKey())
-                    .sendStatus(SendStatus.FAILED)
+                    .sendStatusEnum(SendStatusEnum.FAILED)
                     .build()
                     .addExtra("exception", e.getClass().getName());
 
@@ -319,7 +319,7 @@ public class RetryResultCreator {
      */
     public void updateEntityAfterRetry(MqSendRecord entity, RetryResult retryResult) {
         if (retryResult.isSuccess()) {
-            entity.setSendStatus(SendStatus.SUCCESS.getValue());
+            entity.setSendStatus(SendStatusEnum.SUCCESS.getValue());
             entity.setErrorMsg(null);
 //            entity.setErrorCode(null);
             entity.setConfirmTime(LocalDateTime.now());
@@ -336,7 +336,7 @@ public class RetryResultCreator {
             }
 
         } else {
-            entity.setSendStatus(SendStatus.FAILED.getValue());
+            entity.setSendStatus(SendStatusEnum.FAILED.getValue());
             entity.setErrorMsg("重试失败: " + retryResult.getError());
 //            entity.setErrorCode(retryResult.getErrorCode());
 

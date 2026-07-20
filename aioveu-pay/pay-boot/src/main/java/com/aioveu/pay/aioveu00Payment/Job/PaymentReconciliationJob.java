@@ -1,10 +1,10 @@
-package com.aioveu.pay.aioveu01PayOrder.Job;
+package com.aioveu.pay.aioveu00Payment.Job;
 
 
 import cn.hutool.core.collection.CollUtil;
 import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
-import com.aioveu.pay.aioveu01PayOrder.service.PaymentRecoveryService;
+import com.aioveu.pay.aioveu00Payment.service.PaymentRecoveryService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

@@ -44,7 +44,7 @@ public class WeChatPayStrategyAdapter implements PaymentStrategy {
 
         //如果现有的 WechatPayService已经支持多种支付方式（JSAPI、APP、Native、H5），可以这样增强
         // 根据请求类型调用不同的支付方法
-        PaymentMethodEnum paymentMethod = request.getPaymentMethod();
+        PaymentMethodEnum paymentMethod = PaymentMethodEnum.fromCode(request.getPaymentMethod());
         log.info("【微信支付策略适配器】根据请求类型调用不同的支付方法paymentMethod：{}",paymentMethod);
 
         switch (paymentMethod) {

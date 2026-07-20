@@ -3,7 +3,7 @@ package com.aioveu.pay.aioveu11MqCompensationTask.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.rabbitmq.enums.SendStatus;
+import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
 import com.aioveu.pay.aioveu11MqCompensationTask.converter.MqCompensationTaskConverter;
@@ -23,7 +23,6 @@ import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -148,7 +147,7 @@ public class MqCompensationTaskServiceImpl extends ServiceImpl<MqCompensationTas
 
                 if (record.getRetryCount() >= 5) {
                     log.error("消息重试超过5次，进入死信: messageId={}", record.getMessageId());
-                    mqSendRecordService.updateSendStatus(record.getMessageId(), SendStatus.DEAD, "重试超过5次");
+                    mqSendRecordService.updateSendStatus(record.getMessageId(), SendStatusEnum.DEAD, "重试超过5次");
                     continue;
                 }
 
@@ -168,11 +167,11 @@ public class MqCompensationTaskServiceImpl extends ServiceImpl<MqCompensationTas
                     );
 
                     if (sendSuccess) {
-                        mqSendRecordService.updateSendStatus(record.getMessageId(), SendStatus.SUCCESS, null);
+                        mqSendRecordService.updateSendStatus(record.getMessageId(), SendStatusEnum.SUCCESS, null);
                         log.info("补偿发送成功: messageId={}", record.getMessageId());
                         successCount++;
                     } else {
-                        mqSendRecordService.updateSendStatus(record.getMessageId(), SendStatus.FAILED,
+                        mqSendRecordService.updateSendStatus(record.getMessageId(), SendStatusEnum.FAILED,
                                 "RabbitMQ发送失败");
                         log.error("补偿发送失败: messageId={}", record.getMessageId());
                         failCount++;
@@ -180,7 +179,7 @@ public class MqCompensationTaskServiceImpl extends ServiceImpl<MqCompensationTas
 
                 } catch (Exception e) {
                     log.error("补偿发送异常: messageId={}", record.getMessageId(), e);
-                    mqSendRecordService.updateSendStatus(record.getMessageId(), SendStatus.FAILED, e.getMessage());
+                    mqSendRecordService.updateSendStatus(record.getMessageId(), SendStatusEnum.FAILED, e.getMessage());
                     failCount++;
                 }
             }
@@ -272,7 +271,7 @@ public class MqCompensationTaskServiceImpl extends ServiceImpl<MqCompensationTas
         if (success) {
             mqSendRecordService.updateSendStatus(
                     record.getMessageId(),
-                    SendStatus.SUCCESS,
+                    SendStatusEnum.SUCCESS,
                     null
             );
             log.info("RabbitMQ发送成功: messageId={}, correlationId={}",
@@ -280,7 +279,7 @@ public class MqCompensationTaskServiceImpl extends ServiceImpl<MqCompensationTas
         } else {
             mqSendRecordService.updateSendStatus(
                     record.getMessageId(),
-                    SendStatus.FAILED,
+                    SendStatusEnum.FAILED,
                     "RabbitMQ发送失败"
             );
             log.error("RabbitMQ发送失败: messageId={}, correlationId={}",

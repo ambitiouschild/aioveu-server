@@ -35,7 +35,7 @@ public class PayOrderCreateForm implements Serializable {
 
     @Schema(description = "业务类型")
     @NotNull(message = "【PayOrderCreateForm】业务类型不能为空")
-    private PaymentBizTypeEnum bizType;
+    private Integer bizType;
 
     @Schema(description = "用户ID")
     @NotNull(message = "【PayOrderCreateForm】用户ID不能为空")
@@ -47,11 +47,11 @@ public class PayOrderCreateForm implements Serializable {
 
     @Schema(description = "支付渠道")
     @NotNull(message = "【PayOrderCreateForm】支付渠道不能为空")
-    private PaymentChannelEnum paymentChannel;
+    private Integer paymentChannel;
 
     @Schema(description = "支付方式")
     @NotNull(message = "【PayOrderCreateForm】支付方式不能为空")
-    private PaymentMethodEnum paymentMethod;
+    private Integer paymentMethod;
 
     @Schema(description = "订单标题")
     @Size(max = 200)

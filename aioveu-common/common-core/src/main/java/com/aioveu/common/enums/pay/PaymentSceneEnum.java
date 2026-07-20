@@ -12,7 +12,7 @@ import lombok.Getter;
  * @return:
  **/
 
-public enum PaymentScene {
+public enum PaymentSceneEnum {
 
 
     ORDER(1, "ORDER", "商品订单"),
@@ -22,16 +22,16 @@ public enum PaymentScene {
 
     ;
 
-    PaymentScene(int code, String value, String label) {
+    PaymentSceneEnum(int code, String value, String label) {
         this.code = code;
         this.value = value;
         this.label = label;
     }
 
+    @EnumValue
     @Getter
     private int code;     // OMS 用
 
-    @EnumValue                      // 关键！
     @Getter
     private String value;    // PAY 用
 
@@ -39,8 +39,8 @@ public enum PaymentScene {
     private String label;
 
 
-    public static PaymentScene fromCode(Integer code) {
-        for (PaymentScene e : values()) {
+    public static PaymentSceneEnum fromCode(Integer code) {
+        for (PaymentSceneEnum e : values()) {
             if (e.code == code) {
                 return e;
             }

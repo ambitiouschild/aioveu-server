@@ -12,7 +12,7 @@ package com.aioveu.common.rabbitmq.producer.model.vo;
  * @Version 1.0
  **/
 
-import com.aioveu.common.rabbitmq.enums.SendStatus;
+import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -68,7 +68,7 @@ public class RetryResult {
     private Map<String, Object> extraInfo = new HashMap<>();
 
     /** 重试后的消息状态 */
-    private SendStatus sendStatus;
+    private SendStatusEnum sendStatusEnum;
 
     /** 交换机 */
     private String exchange;
@@ -90,7 +90,7 @@ public class RetryResult {
                 .originalMessageId(originalMessageId)
                 .newMessageId(newMessageId)
                 .retryCount(retryCount)
-                .sendStatus(SendStatus.SUCCESS)
+                .sendStatusEnum(SendStatusEnum.SUCCESS)
                 .build();
     }
 
@@ -106,7 +106,7 @@ public class RetryResult {
                 .retryTime(LocalDateTime.now())
                 .originalMessageId(originalMessageId)
                 .retryCount(retryCount)
-                .sendStatus(SendStatus.FAILED)
+                .sendStatusEnum(SendStatusEnum.FAILED)
                 .build();
     }
 
@@ -123,7 +123,7 @@ public class RetryResult {
                 .retryTime(LocalDateTime.now())
                 .originalMessageId(originalMessageId)
                 .retryCount(retryCount)
-                .sendStatus(SendStatus.FAILED)
+                .sendStatusEnum(SendStatusEnum.FAILED)
                 .build();
     }
 
@@ -141,7 +141,7 @@ public class RetryResult {
                 .originalMessageId(originalMessageId)
                 .retryCount(maxRetryCount)
                 .maxRetryReached(true)
-                .sendStatus(SendStatus.FAILED)
+                .sendStatusEnum(SendStatusEnum.FAILED)
                 .build();
     }
 
@@ -245,7 +245,7 @@ public class RetryResult {
         map.put("newMessageId", newMessageId);
         map.put("retryCount", retryCount);
         map.put("maxRetryReached", maxRetryReached);
-        map.put("sendStatus", sendStatus != null ? sendStatus.name() : null);
+        map.put("sendStatus", sendStatusEnum != null ? sendStatusEnum.name() : null);
         map.put("exchange", exchange);
         map.put("routingKey", routingKey);
         if (extraInfo != null && !extraInfo.isEmpty()) {

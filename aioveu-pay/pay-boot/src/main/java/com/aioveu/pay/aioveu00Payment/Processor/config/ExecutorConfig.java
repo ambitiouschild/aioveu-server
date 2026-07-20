@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu01PayOrder.Processor.config;
+package com.aioveu.pay.aioveu00Payment.Processor.config;
 
 
 import org.springframework.context.annotation.Bean;

@@ -50,8 +50,8 @@
             <if test="queryParams.tag != null and queryParams.tag != ''">
                 AND tag LIKE CONCAT(#{queryParams.tag}, '%')
             </if>
-            <if test="queryParams.sendStatus != null">
-                AND send_status LIKE CONCAT(#{queryParams.sendStatus}, '%')
+            <if test="queryParams.sendStatusEnum != null">
+                AND send_status LIKE CONCAT(#{queryParams.sendStatusEnum}, '%')
             </if>
             <if test="queryParams.sendTime != null">
                 AND send_time LIKE CONCAT(#{queryParams.sendTime}, '%')
@@ -74,7 +74,7 @@
 
     <delete id="deleteBySendStatusAndCreateTimeBefore">
         DELETE FROM mq_send_record
-        WHERE send_status = #{sendStatus}
+        WHERE send_status = #{sendStatusEnum}
         AND create_time &lt; #{createTime}
         <if test="tenantId != null">
             AND tenant_id = #{tenantId}
@@ -93,8 +93,8 @@
     <delete id="deleteRecords">
         DELETE FROM mq_send_record
         WHERE 1=1
-        <if test="sendStatus != null">
-            AND send_status = #{sendStatus}
+        <if test="sendStatusEnum != null">
+            AND send_status = #{sendStatusEnum}
         </if>
         <if test="createTime != null">
             AND create_time &lt; #{createTime}

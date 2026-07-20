@@ -1,7 +1,7 @@
 package com.aioveu.common.rabbitmq.producer.monitor;
 
 
-import com.aioveu.common.rabbitmq.enums.SendStatus;
+import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
 import com.aioveu.common.rabbitmq.producer.model.vo.RabbitSendResult;
 import com.aioveu.common.rabbitmq.producer.model.vo.SendReport;
 import com.aioveu.common.rabbitmq.producer.model.vo.SendStats;
@@ -47,11 +47,11 @@ public class RabbitSendResultMonitor {
                 stats.incrementFailureCount();
 
                 // 按失败原因统计
-                if (result.getSendStatus() == SendStatus.TIMEOUT) {
+                if (result.getSendStatusEnum() == SendStatusEnum.TIMEOUT) {
                     stats.incrementTimeoutCount();
-                } else if (result.getSendStatus() == SendStatus.ROUTING_FAILED) {
+                } else if (result.getSendStatusEnum() == SendStatusEnum.ROUTING_FAILED) {
                     stats.incrementRoutingFailedCount();
-                } else if (result.getSendStatus() == SendStatus.CONFIRM_NACK) {
+                } else if (result.getSendStatusEnum() == SendStatusEnum.CONFIRM_NACK) {
                     stats.incrementNackCount();
                 } else {
                     stats.incrementOtherFailureCount();

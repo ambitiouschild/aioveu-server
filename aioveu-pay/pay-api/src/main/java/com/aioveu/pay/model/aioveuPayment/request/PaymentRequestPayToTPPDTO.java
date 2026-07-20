@@ -21,7 +21,11 @@ import java.util.Map;
  * @Date 2026/2/10 16:44
  * @Version 1.0
  **/
-
+/**
+ * 支付下单请求 DTO（对外接口）
+ * 所有业务语义字段均使用整型编码，由 {@link com.aioveu.common.enums.pay}
+ * 包下的枚举统一定义；Service 层负责将编码转换为枚举，以保障接口兼容性与内部类型安全。
+ */
 @Getter
 @Setter
 @Builder //需要为 VO 类添加 Lombok 的构建器模式支持
@@ -46,7 +50,7 @@ public class PaymentRequestPayToTPPDTO implements Serializable {
      * 业务类型：REFUND-退款 ORDER-订单 RECHARGE-充值
      */
     @NotNull(message = "【PaymentRequestPayToTPPDTO】业务类型不能为空")
-    private PaymentBizTypeEnum bizType;
+    private Integer bizType;
 
     @NotNull(message = "【PaymentRequestPayToTPPDTO】用户ID不能为空")
     private Long userId;
@@ -62,7 +66,7 @@ public class PaymentRequestPayToTPPDTO implements Serializable {
     比喻：银行/支付机构，就像不同的银行*/
     @Schema(description = "支付渠道")
     @NotNull(message = "【PaymentRequestPayToTPPDTO】支付渠道不能为空")
-    private PaymentChannelEnum paymentChannel;
+    private Integer paymentChannel;
 
     /*    支付类型/方式 (Pay Type)
     定义：指具体的支付交互方式
@@ -71,7 +75,7 @@ public class PaymentRequestPayToTPPDTO implements Serializable {
     比喻：银行的支付方式，就像银行的ATM、网银、手机银行*/
     @Schema(description = "支付类型/方式")
     @NotNull(message = "【PaymentRequestPayToTPPDTO】支付类型/方式不能为空")
-    private PaymentMethodEnum paymentMethod;
+    private Integer paymentMethod;
 
     @NotBlank(message = "订单标题不能为空")
     private String subject;

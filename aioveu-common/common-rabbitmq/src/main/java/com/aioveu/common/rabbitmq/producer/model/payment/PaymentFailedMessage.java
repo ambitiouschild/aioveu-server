@@ -54,7 +54,7 @@ public class PaymentFailedMessage implements Serializable {
     /**
      * 支付渠道
      */
-    private PaymentChannelEnum channel;
+    private Integer channel;
 
     /**
      * 业务类型（PAY / REFUND / CLOSE）

@@ -4,7 +4,7 @@ package com.aioveu.pay.aioveu12MqProducerPayment.service.impl;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.rabbitmq.constant.PayCommonMqConstantWithBizName;
-import com.aioveu.common.rabbitmq.enums.SendStatus;
+import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
 import com.aioveu.common.rabbitmq.producer.monitor.ProducerMetricsCollector;
 import com.aioveu.common.rabbitmq.producer.monitor.ProducerMonitor;
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
@@ -123,7 +123,7 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
             // 渠道
             dto.setChannel(
                     payOrder.getPaymentChannel() != null
-                            ? payOrder.getPaymentChannel()
+                            ? PaymentChannelEnum.fromCode(payOrder.getPaymentChannel())
                             : PaymentChannelEnum.ALIPAY
             );
 
@@ -228,7 +228,7 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
             //MyBatis 一级缓存 / 自动提交 / 多数据源，都可能导致“同一线程查不到”
             // ✅ 方案一：根本不查，直接 update（最稳）更新发送状态
             mqSendRecordService.updateSendStatus(messageId,
-                    success ? SendStatus.SUCCESS : SendStatus.FAILED,
+                    success ? SendStatusEnum.SUCCESS : SendStatusEnum.FAILED,
                     success ? null : errorMsg
             );
 
@@ -248,7 +248,7 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
             // 记录发送失败，后续补偿任务会重试
             mqSendRecordService.updateSendStatus(
                     messageId,
-                    SendStatus.FAILED,
+                    SendStatusEnum.FAILED,
                     e.getMessage()
             );
             return false;
@@ -324,7 +324,7 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
 
             // 更新发送状态
             mqSendRecordService.updateSendStatus(messageId,
-                    success ? SendStatus.SUCCESS : SendStatus.FAILED,
+                    success ? SendStatusEnum.SUCCESS : SendStatusEnum.FAILED,
                     success ? null : errorMsg
             );
 
@@ -339,7 +339,7 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
             log.error("发送支付失败消息异常: paymentNo={}", payOrder.getPaymentNo(), e);
 
             if (messageId != null) {
-                mqSendRecordService.updateSendStatus(messageId, SendStatus.FAILED, e.getMessage());
+                mqSendRecordService.updateSendStatus(messageId, SendStatusEnum.FAILED, e.getMessage());
             }
             return false;
 
@@ -499,10 +499,10 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
                 .paymentNo(payOrder.getPaymentNo())
                 .orderNo(payOrder.getOrderNo())
                 .tenantId(payOrder.getTenantId())   // ✅ 从 PayOrder 取
-                .transactionId(dto.getTransactionId())  // ✅ 可能 mock
-                .amount(dto.getPaymentAmount())   // ✅ 已兜底
-                .channel(payOrder.getPaymentChannel())   //✅ MQ 消息永远用 DTO 的时间
-                .paymentTime(dto.getPaymentTime()) // ✅ 关键
+                .transactionId(payOrder.getThirdTransactionNo()) // ✅ 可能 mock
+                .amount(payOrder.getPaymentAmount())  // ✅ 已兜底
+                .channel(payOrder.getPaymentChannel())   //这行代码本身：✅ 非常合理（甚至标准）
+                .paymentTime(payOrder.getPaymentTime()) // ✅ 关键
                 .memberId(payOrder.getUserId())
                 .build();
     }
@@ -545,7 +545,7 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
         record.setBizType(request.getBizType());   //业务类型，必填
         record.setTopic(request.getTopic());   // ✅ 这一行必须有
         record.setMessageBody(request.getMessageBody()); // ✅ 必须有
-        record.setSendStatus(SendStatus.SENDING.getValue());
+        record.setSendStatus(SendStatusEnum.SENDING.getValue());
         record.setCreateTime(LocalDateTime.now());
 
         return mqSendRecordService.save(record);

@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.model.query;
 
 
-import com.aioveu.common.rabbitmq.enums.SendStatus;
+import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -114,11 +114,11 @@ public class FailedMessageQuery {
      */
     public List<Integer> getFailedStatuses() {
         List<Integer> statuses = new ArrayList<>();
-        statuses.add(SendStatus.FAILED.getValue());
-        statuses.add(SendStatus.TIMEOUT.getValue());
-        statuses.add(SendStatus.CONFIRM_TIMEOUT.getValue());
-        statuses.add(SendStatus.CONFIRM_NACK.getValue());
-        statuses.add(SendStatus.ROUTING_FAILED.getValue());
+        statuses.add(SendStatusEnum.FAILED.getValue());
+        statuses.add(SendStatusEnum.TIMEOUT.getValue());
+        statuses.add(SendStatusEnum.CONFIRM_TIMEOUT.getValue());
+        statuses.add(SendStatusEnum.CONFIRM_NACK.getValue());
+        statuses.add(SendStatusEnum.ROUTING_FAILED.getValue());
         return statuses;
     }
 

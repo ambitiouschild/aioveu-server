@@ -2,7 +2,7 @@ package com.aioveu.common.rabbitmq.producer.model.vo;
 
 import com.aioveu.common.rabbitmq.enums.AckType;
 import com.aioveu.common.rabbitmq.enums.ErrorCategory;
-import com.aioveu.common.rabbitmq.enums.SendStatus;
+import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -48,7 +48,7 @@ public class RabbitSendResult {
 
 
     /** 发送状态（SUCCESS/FAILURE） */
-    private SendStatus sendStatus;
+    private SendStatusEnum sendStatusEnum;
 
     /** 错误码 */
     private String errorCode;
@@ -165,7 +165,7 @@ public class RabbitSendResult {
         return RabbitSendResult.builder()
                 .messageId(messageId)
                 .correlationId(correlationId)
-                .sendStatus(SendStatus.SUCCESS)
+                .sendStatusEnum(SendStatusEnum.SUCCESS)
                 .costTime(costTime)
                 .exchange(exchange)
                 .routingKey(routingKey)
@@ -185,7 +185,7 @@ public class RabbitSendResult {
                                            long costTime, String exchange, String routingKey) {
         return RabbitSendResult.builder()
                 .messageId(messageId)
-                .sendStatus(SendStatus.FAILED)
+                .sendStatusEnum(SendStatusEnum.FAILED)
                 .errorMessage(errorMessage)
                 .costTime(costTime)
                 .exchange(exchange)
@@ -201,7 +201,7 @@ public class RabbitSendResult {
                                            String exchange, String routingKey) {
         return RabbitSendResult.builder()
                 .messageId(messageId)
-                .sendStatus(SendStatus.TIMEOUT)
+                .sendStatusEnum(SendStatusEnum.TIMEOUT)
                 .errorMessage("发送超时")
                 .costTime(costTime)
                 .exchange(exchange)
@@ -216,7 +216,7 @@ public class RabbitSendResult {
     public static RabbitSendResult routingFailed(String messageId, ReturnedMessage returnedMessage) {
         return RabbitSendResult.builder()
                 .messageId(messageId)
-                .sendStatus(SendStatus.ROUTING_FAILED)
+                .sendStatusEnum(SendStatusEnum.ROUTING_FAILED)
                 .errorMessage("消息路由失败")
                 .messageReturned(true)
                 .replyCode(returnedMessage.getReplyCode())
@@ -235,7 +235,7 @@ public class RabbitSendResult {
         return RabbitSendResult.builder()
                 .messageId(messageId)
                 .correlationId(correlationId)
-                .sendStatus(SendStatus.CONFIRM_NACK)
+                .sendStatusEnum(SendStatusEnum.CONFIRM_NACK)
                 .ackReceived(true)
                 .ackType(AckType.NACK)
                 .ackCause(cause)
@@ -270,24 +270,24 @@ public class RabbitSendResult {
                     result.setConfirmTime(new Date());
 
                     if (confirm.isAck()) {
-                        result.setSendStatus(SendStatus.SUCCESS);
+                        result.setSendStatusEnum(SendStatusEnum.SUCCESS);
                         result.setAckType(AckType.ACK);
                         result.setRoutedToQueue(true);
                     } else {
-                        result.setSendStatus(SendStatus.CONFIRM_NACK);
+                        result.setSendStatusEnum(SendStatusEnum.CONFIRM_NACK);
                         result.setAckType(AckType.NACK);
                         result.setAckCause(confirm.getReason());
                         result.setErrorMessage("Broker NACK: " + confirm.getReason());
                     }
                 } else {
-                    result.setSendStatus(SendStatus.UNKNOWN);
+                    result.setSendStatusEnum(SendStatusEnum.UNKNOWN);
                 }
             } catch (Exception e) {
-                result.setSendStatus(SendStatus.FAILED);
+                result.setSendStatusEnum(SendStatusEnum.FAILED);
                 result.setErrorMessage("获取确认结果异常: " + e.getMessage());
             }
         } else {
-            result.setSendStatus(SendStatus.CONFIRM_TIMEOUT);
+            result.setSendStatusEnum(SendStatusEnum.CONFIRM_TIMEOUT);
             result.setErrorMessage("确认超时");
         }
 
@@ -322,17 +322,17 @@ public class RabbitSendResult {
      * 判断是否发送成功
      */
     public boolean isSuccess() {
-        return SendStatus.SUCCESS == sendStatus;
+        return SendStatusEnum.SUCCESS == sendStatusEnum;
     }
 
     /**
      * 判断是否需要重试
      */
     public boolean shouldRetry() {
-        return sendStatus == SendStatus.FAILED ||
-                sendStatus == SendStatus.TIMEOUT ||
-                sendStatus == SendStatus.CONFIRM_TIMEOUT ||
-                (sendStatus == SendStatus.CONFIRM_NACK && isRetryableNack());
+        return sendStatusEnum == SendStatusEnum.FAILED ||
+                sendStatusEnum == SendStatusEnum.TIMEOUT ||
+                sendStatusEnum == SendStatusEnum.CONFIRM_TIMEOUT ||
+                (sendStatusEnum == SendStatusEnum.CONFIRM_NACK && isRetryableNack());
     }
 
     /**
@@ -471,8 +471,8 @@ public class RabbitSendResult {
         return this.toBuilder().messageType(messageType).build();
     }
 
-    public RabbitSendResult toBuilderWithStatus(SendStatus sendStatus) {
-        return this.toBuilder().sendStatus(sendStatus).build();
+    public RabbitSendResult toBuilderWithStatus(SendStatusEnum sendStatusEnum) {
+        return this.toBuilder().sendStatusEnum(sendStatusEnum).build();
     }
 
 
@@ -484,7 +484,7 @@ public class RabbitSendResult {
         Map<String, Object> map = new HashMap<>();
         map.put("messageId", messageId);
         map.put("correlationId", correlationId);
-        map.put("sendStatus", sendStatus != null ? sendStatus.name() : null);
+        map.put("sendStatus", sendStatusEnum != null ? sendStatusEnum.name() : null);
         map.put("errorCode", errorCode);
         map.put("errorMessage", errorMessage);
         map.put("costTime", costTime);
@@ -535,7 +535,7 @@ public class RabbitSendResult {
     public String getSimpleInfo() {
         return String.format("RabbitSendResult{messageId=%s, status=%s, exchange=%s, routingKey=%s, cost=%dms, success=%s, tenant=%s}",
                 messageId,
-                sendStatus,
+                sendStatusEnum,
                 exchange,
                 routingKey,
                 costTime,
@@ -552,7 +552,7 @@ public class RabbitSendResult {
         StringBuilder sb = new StringBuilder();
         sb.append("RabbitSendResult:\n");
         sb.append("  messageId: ").append(messageId).append("\n");
-        sb.append("  status: ").append(sendStatus).append("\n");
+        sb.append("  status: ").append(sendStatusEnum).append("\n");
         sb.append("  exchange: ").append(exchange).append("\n");
         sb.append("  routingKey: ").append(routingKey).append("\n");
         sb.append("  tenantId: ").append(tenantId).append("\n");
@@ -586,21 +586,21 @@ public class RabbitSendResult {
      * 判断是否为路由失败
      */
     public boolean isRoutingFailed() {
-        return sendStatus == SendStatus.ROUTING_FAILED;
+        return sendStatusEnum == SendStatusEnum.ROUTING_FAILED;
     }
 
     /**
      * 判断是否为超时
      */
     public boolean isTimeout() {
-        return sendStatus == SendStatus.TIMEOUT || sendStatus == SendStatus.CONFIRM_TIMEOUT;
+        return sendStatusEnum == SendStatusEnum.TIMEOUT || sendStatusEnum == SendStatusEnum.CONFIRM_TIMEOUT;
     }
 
     /**
      * 判断是否为Broker拒绝
      */
     public boolean isNack() {
-        return sendStatus == SendStatus.CONFIRM_NACK;
+        return sendStatusEnum == SendStatusEnum.CONFIRM_NACK;
     }
 
     /**
@@ -633,7 +633,7 @@ public class RabbitSendResult {
         RabbitSendResult copy = new RabbitSendResult();
         copy.messageId = this.messageId;
         copy.correlationId = this.correlationId;
-        copy.sendStatus = this.sendStatus;
+        copy.sendStatusEnum = this.sendStatusEnum;
         copy.errorCode = this.errorCode;
         copy.errorMessage = this.errorMessage;
         copy.costTime = this.costTime;
@@ -682,7 +682,7 @@ public class RabbitSendResult {
     public static class RabbitSendResultBuilder {
         private String messageId;
         private String correlationId;
-        private SendStatus sendStatus;
+        private SendStatusEnum sendStatusEnum;
         private String errorCode;
         private String errorMessage;
         private long costTime;
@@ -733,7 +733,7 @@ public class RabbitSendResult {
             this.confirmTime = new Date();
             this.ackType = ack ? AckType.ACK : AckType.NACK;
             this.ackCause = cause;
-            this.sendStatus = ack ? SendStatus.SUCCESS : SendStatus.CONFIRM_NACK;
+            this.sendStatusEnum = ack ? SendStatusEnum.SUCCESS : SendStatusEnum.CONFIRM_NACK;
             if (!ack) {
                 this.errorMessage = "Broker返回NACK: " + cause;
             }
@@ -742,7 +742,7 @@ public class RabbitSendResult {
 
         public RabbitSendResultBuilder withReturnedMessage(ReturnedMessage returnedMessage) {
             this.messageReturned = true;
-            this.sendStatus = SendStatus.ROUTING_FAILED;
+            this.sendStatusEnum = SendStatusEnum.ROUTING_FAILED;
             this.replyCode = returnedMessage.getReplyCode();
             this.replyText = returnedMessage.getReplyText();
             this.returnedExchange = returnedMessage.getExchange();

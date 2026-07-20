@@ -1,6 +1,7 @@
 package com.aioveu.pay.aioveu10MqSendRecord.model.form;
 
 
+import com.aioveu.common.enums.pay.PaymentSceneEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -50,6 +51,11 @@ public class MqSendRecordForm implements Serializable {
     @NotBlank(message = "业务类型:payment_success不能为空")
     @Size(max=50, message="业务类型:payment_success长度不能超过50个字符")
     private String bizType;
+
+    /**
+     * 支付场景：ORDER-商品订单 MEMBERSHIP-会员开通 RECHARGE-账户充值 ACTIVITY-活动订单
+     */
+    private Integer paymentScene;
 
     @Schema(description = "Topic")
     @NotBlank(message = "Topic不能为空")

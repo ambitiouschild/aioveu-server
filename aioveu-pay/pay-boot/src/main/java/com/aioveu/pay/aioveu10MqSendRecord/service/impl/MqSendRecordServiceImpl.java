@@ -3,9 +3,10 @@ package com.aioveu.pay.aioveu10MqSendRecord.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.common.enums.pay.PaymentSceneEnum;
+import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
 import com.aioveu.common.rabbitmq.producer.model.vo.*;
 import com.aioveu.pay.aioveu10MqSendRecord.converter.MqSendRecordConverter;
-import com.aioveu.common.rabbitmq.enums.SendStatus;
 import com.aioveu.pay.aioveu10MqSendRecord.mapper.MqSendRecordMapper;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.model.form.MqSendRecordForm;
@@ -22,6 +23,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,9 +40,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -153,7 +154,7 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
         record.setTag(tag);
         record.setShardingKey(bizId);  // 使用业务ID作为分片key
         record.setMessageBody(JSON.toJSONString(message));
-        record.setSendStatus(SendStatus.PENDING.getValue());
+        record.setSendStatus(SendStatusEnum.PENDING.getValue());
         record.setCreateTime(LocalDateTime.now());
         record.setUpdateTime(LocalDateTime.now());
 
@@ -171,7 +172,7 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
      * @return 是否修改成功
      */
     @Override
-    public boolean updateSendStatus(String messageId, SendStatus status, String errorMsg) {
+    public boolean updateSendStatus(String messageId, SendStatusEnum status, String errorMsg) {
 
         if (messageId == null) {
             return false;
@@ -185,7 +186,7 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
 
 
         // ✅ 成功：设置 confirm_time
-        if (status == SendStatus.SUCCESS) {
+        if (status == SendStatusEnum.SUCCESS) {
             wrapper.set(MqSendRecord::getConfirmTime, LocalDateTime.now());
         }
 
@@ -204,7 +205,7 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
                 *
             * */
         // ✅ 失败：重试次数 + 下次重试时间（数据库原子操作）
-        if (status == SendStatus.FAILED) {
+        if (status == SendStatusEnum.FAILED) {
 
             // 1️重试次数 +1
             wrapper.setSql("retry_count = retry_count + 1");
@@ -480,17 +481,17 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
 
             // 统计成功数
             LambdaQueryWrapper<MqSendRecord> successWrapper = wrapper.clone();
-            successWrapper.eq(MqSendRecord::getSendStatus, SendStatus.SUCCESS.getValue());
+            successWrapper.eq(MqSendRecord::getSendStatus, SendStatusEnum.SUCCESS.getValue());
             long successCount = this.baseMapper.selectCount(successWrapper);
 
             // 统计失败数
             LambdaQueryWrapper<MqSendRecord> failedWrapper = wrapper.clone();
-            failedWrapper.eq(MqSendRecord::getSendStatus, SendStatus.FAILED.getValue());
+            failedWrapper.eq(MqSendRecord::getSendStatus, SendStatusEnum.FAILED.getValue());
             long failedCount = this.baseMapper.selectCount(failedWrapper);
 
             // 统计未确认数
             LambdaQueryWrapper<MqSendRecord> unconfirmedWrapper = wrapper.clone();
-            unconfirmedWrapper.eq(MqSendRecord::getSendStatus, SendStatus.SUCCESS.getValue())
+            unconfirmedWrapper.eq(MqSendRecord::getSendStatus, SendStatusEnum.SUCCESS.getValue())
                     .isNull(MqSendRecord::getConfirmTime);
             long unconfirmedCount = this.baseMapper.selectCount(unconfirmedWrapper);
 
@@ -541,22 +542,22 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
             Map<Integer, Long> statusCounts = allRecords.stream()
                     .collect(Collectors.groupingBy(MqSendRecord::getSendStatus, Collectors.counting()));
 
-            Long successCount = statusCounts.getOrDefault(SendStatus.SUCCESS.getValue(), 0L);
-            Long failedCount = statusCounts.getOrDefault(SendStatus.FAILED.getValue(), 0L);
+            Long successCount = statusCounts.getOrDefault(SendStatusEnum.SUCCESS.getValue(), 0L);
+            Long failedCount = statusCounts.getOrDefault(SendStatusEnum.FAILED.getValue(), 0L);
 
             stats.setSuccessCount(successCount);
             stats.setFailedCount(failedCount);
 
             // 未确认数
             Long unconfirmedCount = allRecords.stream()
-                    .filter(record -> record.getSendStatus() == SendStatus.SUCCESS.getValue())
+                    .filter(record -> record.getSendStatus() == SendStatusEnum.SUCCESS.getValue())
                     .filter(record -> record.getConfirmTime() == null)
                     .count();
             stats.setUnconfirmedCount(unconfirmedCount);
 
             // 已确认数
             Long confirmedCount = allRecords.stream()
-                    .filter(record -> record.getSendStatus() == SendStatus.SUCCESS.getValue())
+                    .filter(record -> record.getSendStatus() == SendStatusEnum.SUCCESS.getValue())
                     .filter(record -> record.getConfirmTime() != null)
                     .count();
             stats.setConfirmedCount(confirmedCount);
@@ -575,7 +576,7 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
 
             // 正在重试中的消息数
             Long retryingCount = allRecords.stream()
-                    .filter(record -> record.getSendStatus() == SendStatus.FAILED.getValue())
+                    .filter(record -> record.getSendStatus() == SendStatusEnum.FAILED.getValue())
                     .filter(record -> record.getRetryCount() > 0)
                     //record.getNextRetryTime().after(new Date())
                     //record.getNextRetryTime().isAfter(LocalDateTime.now())
@@ -594,7 +595,7 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
 
                 long topicTotal = topicRecords.size();
                 long topicSuccess = topicRecords.stream()
-                        .filter(r -> r.getSendStatus() == SendStatus.SUCCESS.getValue())
+                        .filter(r -> r.getSendStatus() == SendStatusEnum.SUCCESS.getValue())
                         .count();
                 double topicSuccessRate = topicTotal > 0 ? (topicSuccess * 100.0 / topicTotal) : 0.0;
 
@@ -610,13 +611,13 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
             // 按状态统计
             List<SendRecordStats.StatusStats> statusStatsList = new ArrayList<>();
             for (Map.Entry<Integer, Long> entry : statusCounts.entrySet()) {
-                Integer status = entry.getKey();
+                Integer  status = entry.getKey();
                 Long count = entry.getValue();
                 // 在需要获取 label 的地方
-                String statusDesc = Arrays.stream(SendStatus.values())
+                String statusDesc = Arrays.stream(SendStatusEnum.values())
                         .filter(s -> s.getValue().equals(status))
                         .findFirst()
-                        .map(SendStatus::getLabel)
+                        .map(SendStatusEnum::getLabel)
                         .orElse("未发送");
 
                 double rate = allRecords.size() > 0 ? (count * 100.0 / allRecords.size()) : 0.0;
@@ -848,11 +849,11 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
     public List<MqSendRecord> getRetryableMessages() {
         // 查询状态为失败、超时、路由失败等的消息
         List<Integer> retryableStatuses = Arrays.asList(
-                SendStatus.FAILED.getValue(),
-                SendStatus.TIMEOUT.getValue(),
-                SendStatus.ROUTING_FAILED.getValue(),
-                SendStatus.CONFIRM_TIMEOUT.getValue(),
-                SendStatus.CONFIRM_NACK.getValue()
+                SendStatusEnum.FAILED.getValue(),
+                SendStatusEnum.TIMEOUT.getValue(),
+                SendStatusEnum.ROUTING_FAILED.getValue(),
+                SendStatusEnum.CONFIRM_TIMEOUT.getValue(),
+                SendStatusEnum.CONFIRM_NACK.getValue()
         );
 
         return this.baseMapper.findBySendStatusInAndRetryCountLessThan(
@@ -880,12 +881,12 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
 
             // 失败状态
             wrapper.in("send_status",
-                    SendStatus.FAILED.getValue(),
-                    SendStatus.TIMEOUT.getValue(),
-                    SendStatus.ROUTING_FAILED.getValue(),
-                    SendStatus.CONFIRM_TIMEOUT.getValue(),
-                    SendStatus.CONFIRM_NACK.getValue(),
-                    SendStatus.DEAD.getValue()
+                    SendStatusEnum.FAILED.getValue(),
+                    SendStatusEnum.TIMEOUT.getValue(),
+                    SendStatusEnum.ROUTING_FAILED.getValue(),
+                    SendStatusEnum.CONFIRM_TIMEOUT.getValue(),
+                    SendStatusEnum.CONFIRM_NACK.getValue(),
+                    SendStatusEnum.DEAD.getValue()
             );
 
             // 租户ID
@@ -969,7 +970,7 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
 
         // 只清理已成功的消息
         int deletedCount = this.baseMapper.deleteBySendStatusAndCreateTimeBefore(
-                SendStatus.SUCCESS.getValue(),
+                SendStatusEnum.SUCCESS.getValue(),
                 expireTime,
                 null  // 不按租户筛选，传 null
 //                "your-tenant-id"  // 特定租户
@@ -1005,7 +1006,7 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
 
     private void updateFailureInfo(MqSendRecord entity, RabbitSendResult result) {
         // 转换状态
-        SendStatus status = convertToSendStatus(result.getSendStatus());
+        SendStatusEnum status = convertToSendStatus(result.getSendStatusEnum());
         entity.setSendStatus(status.getValue());
 
         // 设置错误信息
@@ -1036,25 +1037,25 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
 //        }
     }
 
-    private SendStatus convertToSendStatus(SendStatus rabbitStatus) {
+    private SendStatusEnum convertToSendStatus(SendStatusEnum rabbitStatus) {
         if (rabbitStatus == null) {
-            return SendStatus.FAILED;
+            return SendStatusEnum.FAILED;
         }
 
         switch (rabbitStatus) {
             case SUCCESS:
-                return SendStatus.SUCCESS;
+                return SendStatusEnum.SUCCESS;
             case FAILED:
-                return SendStatus.FAILED;
+                return SendStatusEnum.FAILED;
             case TIMEOUT:
             case CONFIRM_TIMEOUT:
-                return SendStatus.TIMEOUT;
+                return SendStatusEnum.TIMEOUT;
             case ROUTING_FAILED:
-                return SendStatus.ROUTING_FAILED;
+                return SendStatusEnum.ROUTING_FAILED;
             case CONFIRM_NACK:
-                return SendStatus.CONFIRM_NACK;
+                return SendStatusEnum.CONFIRM_NACK;
             default:
-                return SendStatus.UNKNOWN;
+                return SendStatusEnum.UNKNOWN;
         }
     }
 
@@ -1077,11 +1078,11 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
     }
 
     private String analyzeErrorCode(RabbitSendResult result) {
-        if (result.getSendStatus() == null) {
+        if (result.getSendStatusEnum() == null) {
             return "UNKNOWN";
         }
 
-        switch (result.getSendStatus()) {
+        switch (result.getSendStatusEnum()) {
             case TIMEOUT:
             case CONFIRM_TIMEOUT:
                 return "TIMEOUT";
@@ -1110,8 +1111,7 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
     }
 
     private void calculateNextRetryTime(MqSendRecord entity) {
-        Integer statusValue = entity.getSendStatus(); // 假设这是从数据库读取的值
-        SendStatus status = SendStatus.fromValue(statusValue);
+        SendStatusEnum status =  SendStatusEnum.fromValue(entity.getSendStatus());
 
         if (!isRetryable(status)) {
             return;
@@ -1128,18 +1128,17 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
         addExtraInfo(entity, "retryDelay", delaySeconds + "s");
     }
 
-    private boolean isRetryable(SendStatus status) {
-        return status == SendStatus.FAILED ||
-                status == SendStatus.TIMEOUT ||
-                status == SendStatus.CONFIRM_TIMEOUT ||
-                status == SendStatus.CONFIRM_NACK;
+    private boolean isRetryable(SendStatusEnum status) {
+        return status == SendStatusEnum.FAILED ||
+                status == SendStatusEnum.TIMEOUT ||
+                status == SendStatusEnum.CONFIRM_TIMEOUT ||
+                status == SendStatusEnum.CONFIRM_NACK;
     }
 
     private boolean canRetry(MqSendRecord entity) {
         // 检查状态是否可重试
 
-        Integer statusValue = entity.getSendStatus(); // 假设这是从数据库读取的值
-        SendStatus status = SendStatus.fromValue(statusValue);
+        SendStatusEnum status = SendStatusEnum.fromValue(entity.getSendStatus());
 
         if (!isRetryable(status)) {
             return false;
@@ -1170,7 +1169,7 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
 
     private void updateRetryResult(MqSendRecord entity, RetryResult retryResult) {
         if (retryResult.isSuccess()) {
-            entity.setSendStatus(SendStatus.SUCCESS.getValue());
+            entity.setSendStatus(SendStatusEnum.SUCCESS.getValue());
             entity.setConfirmTime(LocalDateTime.now());
             entity.setCostTime(retryResult.getCostTime());
             entity.setErrorMsg(null); // 清空错误信息
@@ -1178,7 +1177,7 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
             log.info("重试成功: messageId={}, retryCount={}",
                     entity.getMessageId(), entity.getRetryCount());
         } else {
-            entity.setSendStatus(SendStatus.FAILED.getValue());
+            entity.setSendStatus(SendStatusEnum.FAILED.getValue());
             entity.setErrorMsg("重试失败: " + retryResult.getError());
 
             log.warn("重试失败: messageId={}, error={}",
@@ -1280,8 +1279,7 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
 
     private void logFailure(MqSendRecord entity, RabbitSendResult result) {
 
-        Integer statusValue = entity.getSendStatus(); // 假设这是从数据库读取的值
-        SendStatus status = SendStatus.fromValue(statusValue);
+        SendStatusEnum status = SendStatusEnum.fromValue(entity.getSendStatus());
 
         log.error("消息发送失败记录: messageId={}, status={}, error={}, retryCount={}",
                 entity.getMessageId(),
@@ -1353,5 +1351,91 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
         return sw.toString();
     }
 
+    /**
+     * ✅ 判断支付成功事件是否已发送
+     */
+    @Override
+    public boolean bizEventAlreadySent(String paymentNo) {
 
+        if (StringUtils.isBlank(paymentNo)) {
+            return true;
+        }
+
+        Long count = this.baseMapper.selectCount(
+                Wrappers.<MqSendRecord>lambdaQuery()
+                        .eq(MqSendRecord::getBizId, paymentNo)
+                        .eq(MqSendRecord::getSendStatus, SendStatusEnum.SUCCESS)
+        );
+
+        return count != null && count > 0;
+    }
+
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void markBizEventSent(String paymentNo, PaymentSceneEnum scene) {
+
+        MqSendRecord mqSendRecord = new MqSendRecord();
+        mqSendRecord.setBizId(paymentNo);
+        mqSendRecord.setPaymentScene(scene.getCode());
+        mqSendRecord.setSendStatus(SendStatusEnum.SUCCESS.getValue());
+        mqSendRecord.setRetryCount(0);
+
+        try {
+            this.baseMapper.insert(mqSendRecord);
+        } catch (DuplicateKeyException e) {
+            // ✅ 唯一索引冲突 = 已发送
+            log.warn("支付成功事件已存在, paymentNo={}", paymentNo);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void insertUnSent(String paymentNo, PaymentSceneEnum scene) {
+        MqSendRecord mqSendRecord = new MqSendRecord();
+        mqSendRecord.setBizId(paymentNo);
+        mqSendRecord.setPaymentScene(scene.getCode());
+        mqSendRecord.setSendStatus(SendStatusEnum.SUCCESS.getValue());
+        mqSendRecord.setRetryCount(0);
+        this.baseMapper.insert(mqSendRecord);
+    }
+
+    @Transactional
+    public void markSent(String paymentNo) {
+        this.baseMapper.update(
+                null,
+                Wrappers.<MqSendRecord>lambdaUpdate()
+                        .eq(MqSendRecord::getBizId, paymentNo)
+                        .set(MqSendRecord::getSendStatus, SendStatusEnum.SUCCESS)
+                        .set(MqSendRecord::getUpdateTime, LocalDateTime.now())
+        );
+    }
+
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void saveRetryRecord(String bizId, Throwable t) {
+        this.lambdaUpdate()
+                .eq(MqSendRecord::getBizId, bizId)
+                .set(MqSendRecord::getSendStatus, SendStatusEnum.FAILED)
+                .setSql("retry_count = retry_count + 1")
+                .set(MqSendRecord::getErrorMsg,
+                        t.getMessage() == null ? "unknown error" : t.getMessage())
+                .set(MqSendRecord::getNextRetryTime,
+                        LocalDateTime.now().plusMinutes(1))
+                .set(MqSendRecord::getUpdateTime, LocalDateTime.now())
+                .update();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void increaseRetryCount(Long id) {
+        this.lambdaUpdate()
+                .eq(MqSendRecord::getId, id)
+                .setSql("retry_count = retry_count + 1")
+                .set(MqSendRecord::getNextRetryTime,
+                        LocalDateTime.now().plusMinutes(1))
+                .set(MqSendRecord::getUpdateTime, LocalDateTime.now())
+                .update();
+    }
 }

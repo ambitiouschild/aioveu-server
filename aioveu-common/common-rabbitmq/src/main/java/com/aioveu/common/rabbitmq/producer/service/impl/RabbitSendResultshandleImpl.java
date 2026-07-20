@@ -124,7 +124,7 @@ public class RabbitSendResultshandleImpl implements RabbitSendResultshandle {
             System.out.println("\n=== 失败消息列表 ===");
             for (RabbitSendResult failed : report.getFailedMessages()) {
                 System.out.println("消息ID: " + failed.getMessageId() +
-                        ", 状态: " + failed.getSendStatus() +
+                        ", 状态: " + failed.getSendStatusEnum() +
                         ", 错误: " + failed.getErrorMessage());
             }
         }
@@ -199,7 +199,7 @@ public class RabbitSendResultshandleImpl implements RabbitSendResultshandle {
         for (RabbitSendResult failed : failedMessages) {
             try {
                 // 根据失败原因采取不同策略
-                switch (failed.getSendStatus()) {
+                switch (failed.getSendStatusEnum()) {
                     case TIMEOUT:
                         handleTimeoutMessage(failed);
                         break;

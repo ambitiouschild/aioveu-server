@@ -1,7 +1,7 @@
-package com.aioveu.pay.aioveu01PayOrder.Processor.Impl;
+package com.aioveu.pay.aioveu00Payment.Processor.Impl;
 
-import com.aioveu.common.enums.pay.PaymentScene;
-import com.aioveu.pay.aioveu01PayOrder.Processor.BusinessProcessor;
+import com.aioveu.common.enums.pay.PaymentSceneEnum;
+import com.aioveu.pay.aioveu00Payment.Processor.BusinessProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -23,8 +23,8 @@ public class MembershipBusinessProcessorImpl implements BusinessProcessor {
 
 
     @Override
-    public boolean supports(PaymentScene scene) {
-        return scene == PaymentScene.MEMBERSHIP;
+    public boolean supports(PaymentSceneEnum scene) {
+        return scene == PaymentSceneEnum.MEMBERSHIP;
     }
 
 

@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu10MqSendRecord.mapper;
 
 
-import com.aioveu.common.rabbitmq.enums.SendStatus;
+import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.model.query.MqSendRecordQuery;
 import com.aioveu.pay.aioveu10MqSendRecord.model.vo.MqSendRecordVo;
@@ -120,12 +120,12 @@ public interface MqSendRecordMapper extends BaseMapper<MqSendRecord> {
 
         // 总失败数
         List<Integer> failedStatuses = Arrays.asList(
-                SendStatus.FAILED.getValue(),
-                SendStatus.TIMEOUT.getValue(),
-                SendStatus.ROUTING_FAILED.getValue(),
-                SendStatus.CONFIRM_TIMEOUT.getValue(),
-                SendStatus.CONFIRM_NACK.getValue(),
-                SendStatus.DEAD.getValue()
+                SendStatusEnum.FAILED.getValue(),
+                SendStatusEnum.TIMEOUT.getValue(),
+                SendStatusEnum.ROUTING_FAILED.getValue(),
+                SendStatusEnum.CONFIRM_TIMEOUT.getValue(),
+                SendStatusEnum.CONFIRM_NACK.getValue(),
+                SendStatusEnum.DEAD.getValue()
         );
 
         // 使用 QueryWrapper 统计
@@ -143,12 +143,12 @@ public interface MqSendRecordMapper extends BaseMapper<MqSendRecord> {
 
         // 总失败数
         List<Integer> failedStatuses = Arrays.asList(
-                SendStatus.FAILED.getValue(),
-                SendStatus.TIMEOUT.getValue(),
-                SendStatus.ROUTING_FAILED.getValue(),
-                SendStatus.CONFIRM_TIMEOUT.getValue(),
-                SendStatus.CONFIRM_NACK.getValue(),
-                SendStatus.DEAD.getValue()
+                SendStatusEnum.FAILED.getValue(),
+                SendStatusEnum.TIMEOUT.getValue(),
+                SendStatusEnum.ROUTING_FAILED.getValue(),
+                SendStatusEnum.CONFIRM_TIMEOUT.getValue(),
+                SendStatusEnum.CONFIRM_NACK.getValue(),
+                SendStatusEnum.DEAD.getValue()
         );
 
         // 获取今日开始时间
@@ -171,17 +171,17 @@ public interface MqSendRecordMapper extends BaseMapper<MqSendRecord> {
 
         // 总失败数
         List<Integer> failedStatuses = Arrays.asList(
-                SendStatus.FAILED.getValue(),
-                SendStatus.TIMEOUT.getValue(),
-                SendStatus.ROUTING_FAILED.getValue(),
-                SendStatus.CONFIRM_TIMEOUT.getValue(),
-                SendStatus.CONFIRM_NACK.getValue(),
-                SendStatus.DEAD.getValue()
+                SendStatusEnum.FAILED.getValue(),
+                SendStatusEnum.TIMEOUT.getValue(),
+                SendStatusEnum.ROUTING_FAILED.getValue(),
+                SendStatusEnum.CONFIRM_TIMEOUT.getValue(),
+                SendStatusEnum.CONFIRM_NACK.getValue(),
+                SendStatusEnum.DEAD.getValue()
         );
 
         // 批量查询统计
         Map<String, Long> statusCountMap = new HashMap<>();
-        for (SendStatus status : SendStatus.values()) {
+        for (SendStatusEnum status : SendStatusEnum.values()) {
             if (failedStatuses.contains(status.getValue())) {
                 QueryWrapper<MqSendRecord> queryWrapper = new QueryWrapper<>();
                 queryWrapper.eq("send_status", status.getValue());

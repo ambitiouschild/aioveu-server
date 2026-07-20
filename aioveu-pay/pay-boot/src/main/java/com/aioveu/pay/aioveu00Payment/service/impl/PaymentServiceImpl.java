@@ -11,10 +11,11 @@ import com.aioveu.common.result.Result;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.common.web.exception.BizException;
+import com.aioveu.pay.aioveu00Payment.Processor.Impl.BusinessProcessorComposite;
 import com.aioveu.pay.aioveu00Payment.service.PaymentService;
 import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
-import com.aioveu.pay.aioveu01PayOrder.Processor.BusinessProcessor;
+import com.aioveu.pay.aioveu00Payment.Processor.BusinessProcessor;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
 import com.aioveu.pay.aioveu06PayFlow.service.PayFlowService;
 import com.aioveu.pay.aioveu07PayNotify.service.PayNotifyService;
@@ -97,6 +98,8 @@ public class PaymentServiceImpl implements PaymentService {
     @Value("${pay.mock.enabled:true}")
     private Boolean mockPayEnabled;
 
+
+
     // 分布式锁客户端
     private final RedissonClient redissonClient;
     // 会员服务Feign客户端
@@ -105,6 +108,7 @@ public class PaymentServiceImpl implements PaymentService {
     //Spring 会自动注入 唯一实现类（如果有多个再配合 @Qualifier）。
     @Resource
     private BusinessProcessor businessProcessor;
+
 
     /**
      * 统一支付接口
@@ -126,12 +130,12 @@ public class PaymentServiceImpl implements PaymentService {
             String paymentNo = payOrder.getPaymentNo();
             log.info("【Pay】支付订单支付单号paymentNo：{}",paymentNo);
 
-            if (payOrder.getPaymentStatus() != PaymentStatusEnum.PAYING) {
+            if (payOrder.getPaymentStatus() != PaymentStatusEnum.PAYING.getCode()) {
                 throw new BusinessException("支付单状态异常");
             }
 
             // 3. 根据支付渠道选择支付策略
-            PaymentStrategy strategy = strategyFactory.getStrategy(request.getPaymentChannel());
+            PaymentStrategy strategy = strategyFactory.getStrategy(PaymentChannelEnum.fromCode(request.getPaymentChannel()));
             log.info("【Pay】获取支付策略：{}",strategy.getClass().getSimpleName());
 
             // 4. 调用策略获取支付参数,调第三方
@@ -181,9 +185,10 @@ public class PaymentServiceImpl implements PaymentService {
                 throw new BusinessException(ResultCode.ORDER_NOT_FOUND, "支付订单不存在");
             }
 
+            PaymentStatusEnum paymentStatus = PaymentStatusEnum.fromCode(payorder.getPaymentStatus());
             // ============ 3. 避免重复处理 ============
-            if (payorder.getPaymentStatus() != PaymentStatusEnum.UNPAID
-                    && payorder.getPaymentStatus() != PaymentStatusEnum.PAYING) {
+            if ( paymentStatus != PaymentStatusEnum.UNPAID
+                    && paymentStatus != PaymentStatusEnum.PAYING) {
                 log.warn("订单已处理，跳过回调: paymentNo={}, status={}",
                         callback.getPaymentNo(), payorder.getPaymentStatus());
                 return Result.success();
@@ -498,7 +503,7 @@ public class PaymentServiceImpl implements PaymentService {
      * 检查订单是否可处理
      */
     private boolean isProcessable(PayOrder payOrder) {
-        PaymentStatusEnum status = payOrder.getPaymentStatus();
+        PaymentStatusEnum status = PaymentStatusEnum.fromCode(payOrder.getPaymentStatus());
         return status == PaymentStatusEnum.UNPAID
                 || status == PaymentStatusEnum.PAYING;
     }

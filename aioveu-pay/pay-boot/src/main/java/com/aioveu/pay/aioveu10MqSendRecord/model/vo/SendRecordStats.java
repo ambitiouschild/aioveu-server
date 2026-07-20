@@ -1,6 +1,7 @@
 package com.aioveu.pay.aioveu10MqSendRecord.model.vo;
 
 
+import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;

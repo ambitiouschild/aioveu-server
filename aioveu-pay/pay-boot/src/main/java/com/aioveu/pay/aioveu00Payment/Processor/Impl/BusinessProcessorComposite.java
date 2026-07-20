@@ -1,10 +1,12 @@
-package com.aioveu.pay.aioveu01PayOrder.Processor.Impl;
+package com.aioveu.pay.aioveu00Payment.Processor.Impl;
 
 
-import com.aioveu.common.enums.pay.PaymentScene;
+import com.aioveu.common.enums.pay.PaymentSceneEnum;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
-import com.aioveu.pay.aioveu01PayOrder.Processor.BusinessProcessor;
+import com.aioveu.pay.aioveu00Payment.Processor.BusinessProcessor;
+import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
 import jakarta.annotation.Resource;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -29,27 +31,30 @@ import java.util.List;
 
 @Component
 @Slf4j
+@AllArgsConstructor
 public class BusinessProcessorComposite implements BusinessProcessor {
 
 
     @Resource
     private List<BusinessProcessor> processors;
 
+
+    private final PayOrderService payOrderService;
+
     @Override
-    public boolean supports(PaymentScene scene) {
+    public boolean supports(PaymentSceneEnum scene) {
         return true;
     }
 
     @Override
     public void onPaid(String paymentNo) {
 
-        PayOrder order = payOrderMapper.selectByPaymentNo(paymentNo);
+        PayOrder order = payOrderService.selectByPaymentNo(paymentNo);
         if (order == null) {
             return;
         }
 
-        PaymentScene scene =
-                PaymentScene.fromCode(order.getPaymentScene());
+        PaymentSceneEnum scene = PaymentSceneEnum.fromCode(order.getPaymentScene());
 
         if (scene == null) {
             log.error("未知支付场景, paymentNo={}", paymentNo);
