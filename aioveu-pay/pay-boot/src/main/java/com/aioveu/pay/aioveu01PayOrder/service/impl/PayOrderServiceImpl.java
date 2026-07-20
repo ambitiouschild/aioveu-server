@@ -2,18 +2,17 @@ package com.aioveu.pay.aioveu01PayOrder.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.order.api.OrderFeignClient;
-import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu01PayOrder.model.query.PayOrderQuery;
+import com.aioveu.pay.aioveu01PayOrder.Processor.BusinessProcessor;
 import com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
 import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
@@ -30,6 +29,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 //import org.apache.commons.lang3.StringUtils;
@@ -67,6 +67,13 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
     // 创建 ObjectMapper 实例
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final WeChatPayService wechatPayService;
+
+
+    //Spring 会自动注入 唯一实现类（如果有多个再配合 @Qualifier）。
+    @Resource
+    private BusinessProcessor businessProcessor;
+
+
     /**
      * 获取支付订单分页列表
      *
@@ -606,6 +613,10 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
                      // ✅ 更新最后查询时间
                     this.updateLastQueryTime(paymentNo, LocalDateTime.now());
 
+
+                    //回调 / Job / 轮询 统一入口（终极形态）
+                    businessProcessor.onPaid(paymentNo);
+
                 }
                 paymentStatusVO.setPaymentStatus(wxResult.getPaymentStatus());
                 paymentStatusVO.setErrorMessage("支付状态已同步");
@@ -630,7 +641,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
     * */
     private boolean needQueryWechat(PayOrder payOrder) {
         // 1. 已终态，不查
-        if (PaymentStatusEnum.isFinalStatus(payOrder.getPaymentStatus())) {
+        if (PaymentStatusEnum.isTerminal(payOrder.getPaymentStatus())) {
             return false;
         }
 
@@ -707,7 +718,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         }
 
         // ✅ 终态保护
-        if (PaymentStatusEnum.isFinalStatus(payOrder.getPaymentStatus())) {
+        if (PaymentStatusEnum.isTerminal(payOrder.getPaymentStatus())) {
 
             log.info("支付单已是终态，跳过更新, paymentNo={}, currentStatus={}",
                     paymentNo, payOrder.getPaymentStatus());

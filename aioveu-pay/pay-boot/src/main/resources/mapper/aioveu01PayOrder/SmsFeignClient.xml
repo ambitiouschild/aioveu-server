@@ -85,4 +85,41 @@
         </where>
     </select>
 
+
+
+
+    <select id="selectPendingOrdersForQuery">
+        SELECT *
+        FROM pay_order
+        WHERE payment_status IN (0, 10)
+          AND create_time &gt;= #{maxCreatedAt}
+          AND create_time &lt;= #{lastCreatedAt}
+          AND id &lt; #{lastId}
+        ORDER BY create_time DESC, id DESC
+            LIMIT #{limit}
+    </select>
+
+    <update id="updateStatusIfNonTerminal">
+        UPDATE pay_order
+        SET payment_status = #{status},
+            third_transaction_no = #{thirdNo},
+            payment_time = #{paymentTime},
+            last_query_time = NOW(),
+            update_time = NOW(),
+            version = version + 1
+        WHERE id = #{id}
+          AND payment_status IN (0, 10)
+    </update>
+
+    <update id="updateLastQueryTime">
+        UPDATE pay_order
+        SET last_query_time = #{time},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+
+
+
+
 </mapper>

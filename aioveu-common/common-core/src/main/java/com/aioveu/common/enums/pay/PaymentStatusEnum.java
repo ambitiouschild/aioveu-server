@@ -58,7 +58,7 @@ public enum PaymentStatusEnum {
      * ✅ 判断是否为终态
      * 终态：支付成功 / 支付失败 / 已关闭 / 已退款
      */
-    public static boolean isFinalStatus(PaymentStatusEnum status) {
+    public static boolean isTerminal(PaymentStatusEnum status) {
         if (status == null) {
             return false;
         }

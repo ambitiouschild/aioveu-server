@@ -11,6 +11,9 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 /**
  * @ClassName: PayOrderMapper
  * @Description TODO 支付订单Mapper接口
@@ -70,4 +73,28 @@ public interface PayOrderMapper extends BaseMapper<PayOrder>{
     }
 
 
+    /**
+     * 游标分页：查询需要兜底查微信的订单
+     */
+    List<PayOrder> selectPendingOrdersForQuery(
+            @Param("maxCreatedAt") LocalDateTime maxCreatedAt,
+            @Param("lastCreatedAt") LocalDateTime lastCreatedAt,
+            @Param("lastId") Long lastId,
+            @Param("limit") int limit
+    );
+
+    /**
+     * 状态机更新：只允许非终态 → 终态
+     */
+    int updateStatusIfNonTerminal(@Param("id") Long id,
+                                  @Param("status") Integer status,
+                                  @Param("thirdNo") String thirdNo,
+                                  @Param("paymentTime") LocalDateTime paymentTime);
+
+
+    /**
+     * 仅更新查询时间
+     */
+    int updateLastQueryTime(@Param("id") Long id,
+                            @Param("time") LocalDateTime time);
 }

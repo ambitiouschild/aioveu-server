@@ -2,7 +2,6 @@ package com.aioveu.pay.aioveu00Payment.service.impl;
 
 import cn.hutool.json.JSONUtil;
 import com.aioveu.common.constant.OrderConstants;
-import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.common.enums.pay.PaymentMethodEnum;
@@ -12,11 +11,10 @@ import com.aioveu.common.result.Result;
 import com.aioveu.common.result.ResultCode;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.common.web.exception.BizException;
-import com.aioveu.order.api.OrderFeignClient;
-import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
 import com.aioveu.pay.aioveu00Payment.service.PaymentService;
 import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
+import com.aioveu.pay.aioveu01PayOrder.Processor.BusinessProcessor;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
 import com.aioveu.pay.aioveu06PayFlow.service.PayFlowService;
 import com.aioveu.pay.aioveu07PayNotify.service.PayNotifyService;
@@ -24,7 +22,6 @@ import com.aioveu.pay.aioveu08PayAccount.service.PayAccountService;
 import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategy;
 import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategyFactory;
 //import com.aioveu.pay.aioveuModule.channelRouter.ChannelRouter;
-import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
 import com.aioveu.pay.aioveu12MqProducerPayment.enums.PaymentMqBizType;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.SendPaymentMqDTO;
@@ -37,9 +34,9 @@ import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestOmsToPayDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 import com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO;
 import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
-import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.aioveu.ums.api.MemberFeignClient;
 import com.alibaba.fastjson.JSON;
+import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
@@ -104,6 +101,11 @@ public class PaymentServiceImpl implements PaymentService {
     private final RedissonClient redissonClient;
     // 会员服务Feign客户端
     private final MemberFeignClient memberFeignClient;
+
+    //Spring 会自动注入 唯一实现类（如果有多个再配合 @Qualifier）。
+    @Resource
+    private BusinessProcessor businessProcessor;
+
     /**
      * 统一支付接口
      */
@@ -410,6 +412,9 @@ public class PaymentServiceImpl implements PaymentService {
                     paymentNo, payOrder.getOrderNo(), params.get("transaction_id"), costTime);
 
 
+
+            // 微信回调 回调 / Job / 轮询 统一入口（终极形态）
+            businessProcessor.onPaid(paymentNo);
 
         } catch (Exception e) {
             log.error("【微信回调】支付成功处理异常: paymentNo={}", payOrder.getPaymentNo(), e);
