@@ -8,7 +8,7 @@ import com.aioveu.pay.aioveu01.service.MockPay.MockRequestFactory.MockRequestFac
 import com.aioveu.pay.aioveu01.service.MockPay.config.MockPayConfig;
 import com.aioveu.pay.aioveu01.service.MockPay.service.MockPayService;
 import com.aioveu.pay.aioveu01.service.WechatPay.utils.weChatPay.aioveuWeChatPayGeneratePayParamsUtil;
-import com.aioveu.pay.model.aioveuPayAdapter.MockPayQueryResult;
+import com.aioveu.pay.model.aioveuPayQueryResultAdapter.MockPayQueryResult;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
 import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;

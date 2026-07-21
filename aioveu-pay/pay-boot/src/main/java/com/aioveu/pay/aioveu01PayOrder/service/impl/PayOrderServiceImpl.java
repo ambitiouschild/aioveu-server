@@ -21,7 +21,7 @@ import com.aioveu.common.enums.pay.PaymentCallbackStatusEnum;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderForm;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderCreateForm;
 import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
-import com.aioveu.pay.model.aioveuPayAdapter.WechatPayQueryResult;
+import com.aioveu.pay.model.aioveuPayQueryResultAdapter.WechatPayQueryResult;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;

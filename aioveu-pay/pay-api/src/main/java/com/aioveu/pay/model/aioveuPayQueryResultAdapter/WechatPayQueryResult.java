@@ -1,4 +1,4 @@
-package com.aioveu.pay.model.aioveuPayAdapter;
+package com.aioveu.pay.model.aioveuPayQueryResultAdapter;
 
 
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
@@ -10,8 +10,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * @ClassName: AliPayQueryResult
- * @Description TODO 支付宝支付查询结果  ✅ 支付宝适配层
+ * @ClassName: WechatPayQueryResult
+ * @Description TODO 微信支付查询结果  ✅ 微信支付适配层
  * @Author 可我不敌可爱
  * @Author 雒世松
  * @Date 2026/7/21 22:16
@@ -21,11 +21,11 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Builder //需要为 VO 类添加 Lombok 的构建器模式支持
-@Schema( description = "支付宝支付查询结果")
+@Schema( description = "微信支付查询结果")
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(callSuper = true)
-public class AliPayQueryResult implements Serializable{
+public class WechatPayQueryResult implements Serializable{
 
     /** 支付单号 */
     private String paymentNo;          // 支付单号

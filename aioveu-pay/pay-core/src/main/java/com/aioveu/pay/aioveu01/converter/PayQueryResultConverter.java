@@ -1,8 +1,8 @@
 package com.aioveu.pay.aioveu01.converter;
-import com.aioveu.pay.model.aioveuPayAdapter.AliPayQueryResult;
-import com.aioveu.pay.model.aioveuPayAdapter.MockPayQueryResult;
-import com.aioveu.pay.model.aioveuPayAdapter.PaymentStatusDTO;
-import com.aioveu.pay.model.aioveuPayAdapter.WechatPayQueryResult;
+import com.aioveu.pay.model.aioveuPayQueryResultAdapter.AliPayQueryResult;
+import com.aioveu.pay.model.aioveuPayQueryResultAdapter.MockPayQueryResult;
+import com.aioveu.pay.model.aioveuPayQueryResultAdapter.PaymentStatusDTO;
+import com.aioveu.pay.model.aioveuPayQueryResultAdapter.WechatPayQueryResult;
 import org.mapstruct.Mapper;
 
 /**

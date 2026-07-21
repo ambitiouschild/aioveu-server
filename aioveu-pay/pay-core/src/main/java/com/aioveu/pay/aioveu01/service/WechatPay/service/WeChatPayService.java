@@ -2,7 +2,7 @@ package com.aioveu.pay.aioveu01.service.WechatPay.service;
 
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
 import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
-import com.aioveu.pay.model.aioveuPayAdapter.WechatPayQueryResult;
+import com.aioveu.pay.model.aioveuPayQueryResultAdapter.WechatPayQueryResult;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 
 /**

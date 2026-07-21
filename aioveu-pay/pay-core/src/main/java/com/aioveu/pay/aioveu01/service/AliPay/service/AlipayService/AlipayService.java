@@ -1,6 +1,6 @@
 package com.aioveu.pay.aioveu01.service.AliPay.service.AlipayService;
 
-import com.aioveu.pay.model.aioveuPayAdapter.AliPayQueryResult;
+import com.aioveu.pay.model.aioveuPayQueryResultAdapter.AliPayQueryResult;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
 import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;

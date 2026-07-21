@@ -1,5 +1,4 @@
-package com.aioveu.pay.model.aioveuPayAdapter;
-
+package com.aioveu.pay.model.aioveuPayQueryResultAdapter;
 
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -10,22 +9,22 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * @ClassName: MockPayQueryResult
- * @Description TODO 模拟支付查询结果  ✅ 模拟支付适配层
+ * @ClassName: PaymentStatusDTO
+ * @Description TODO 支付状态对象  ✅ 内部统一模型
  * @Author 可我不敌可爱
  * @Author 雒世松
- * @Date 2026/7/21 22:16
+ * @Date 2026/2/10 16:48
  * @Version 1.0
  **/
 
 @Getter
 @Setter
 @Builder //需要为 VO 类添加 Lombok 的构建器模式支持
-@Schema( description = "模拟支付查询结果")
+@Schema( description = "支付状态对象✅ 内部统一模型")
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(callSuper = true)
-public class MockPayQueryResult implements Serializable{
+public class PaymentStatusDTO implements Serializable {
 
     /** 支付单号 */
     private String paymentNo;          // 支付单号
@@ -38,6 +37,9 @@ public class MockPayQueryResult implements Serializable{
 
     /** 支付状态（数字） */
     private PaymentStatusEnum paymentStatus;      // 支付状态
+
+    /** 支付状态文案（可选） */
+    private String paymentStatusText;
 
     /** 支付金额（元） */
     private LocalDateTime paymentTime;          // 支付时间

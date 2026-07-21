@@ -19,7 +19,7 @@ import com.aioveu.pay.aioveu01.service.WechatPay.utils.weChatPay.aioveuWeChatPay
 import com.aioveu.pay.aioveu01.service.WechatPay.utils.weChatPay.aioveuWeChatPayGetServiceUtil;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
 import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
-import com.aioveu.pay.model.aioveuPayAdapter.WechatPayQueryResult;
+import com.aioveu.pay.model.aioveuPayQueryResultAdapter.WechatPayQueryResult;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 import com.wechat.pay.java.service.payments.jsapi.JsapiService;  //- 普通商户支付
 import com.wechat.pay.java.service.payments.app.AppService;  // - 普通商户支付

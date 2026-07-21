@@ -1,6 +1,6 @@
 package com.aioveu.pay.aioveu01.service.MockPay.service;
 
-import com.aioveu.pay.model.aioveuPayAdapter.MockPayQueryResult;
+import com.aioveu.pay.model.aioveuPayQueryResultAdapter.MockPayQueryResult;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
 import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;

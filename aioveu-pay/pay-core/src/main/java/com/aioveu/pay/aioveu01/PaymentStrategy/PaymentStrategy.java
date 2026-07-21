@@ -1,6 +1,6 @@
 package com.aioveu.pay.aioveu01.PaymentStrategy;
 
-import com.aioveu.pay.model.aioveuPayAdapter.PaymentStatusDTO;
+import com.aioveu.pay.model.aioveuPayQueryResultAdapter.PaymentStatusDTO;
 import com.aioveu.pay.model.aioveuPayment.*;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 
