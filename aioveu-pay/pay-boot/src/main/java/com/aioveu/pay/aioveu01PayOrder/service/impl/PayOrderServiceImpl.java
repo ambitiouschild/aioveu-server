@@ -7,6 +7,7 @@ import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.order.api.OrderFeignClient;
+import com.aioveu.pay.aioveu00Payment.Processor.Impl.BusinessProcessorComposite;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
@@ -71,7 +72,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
 
     //Spring 会自动注入 唯一实现类（如果有多个再配合 @Qualifier）。
     @Resource
-    private BusinessProcessor businessProcessor;
+    private BusinessProcessorComposite businessProcessorComposite;
 
 
     /**
@@ -615,7 +616,8 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
 
 
                     //回调 / Job / 轮询 统一入口（终极形态）
-                    businessProcessor.onPaid(paymentNo);
+                    // 支付成功 → 触发业务处理
+                    triggerBusinessProcess(paymentNo);
 
                 }
                 paymentStatusVO.setPaymentStatus(wxResult.getPaymentStatus());
@@ -630,7 +632,14 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         return paymentStatusVO;
     }
 
-
+    private void triggerBusinessProcess(String paymentNo) {
+        try {
+            businessProcessorComposite.onPaid(paymentNo);
+        } catch (Exception e) {
+            log.error("支付成功业务处理失败, paymentNo={}", paymentNo, e);
+            // 不抛异常，避免影响支付状态
+        }
+    }
 
     /*
     *

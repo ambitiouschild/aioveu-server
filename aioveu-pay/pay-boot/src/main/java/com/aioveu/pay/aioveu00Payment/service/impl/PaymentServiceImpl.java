@@ -107,7 +107,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     //Spring 会自动注入 唯一实现类（如果有多个再配合 @Qualifier）。
     @Resource
-    private BusinessProcessor businessProcessor;
+    private BusinessProcessorComposite businessProcessorComposite;
 
 
     /**
@@ -419,13 +419,26 @@ public class PaymentServiceImpl implements PaymentService {
 
 
             // 微信回调 回调 / Job / 轮询 统一入口（终极形态）
-            businessProcessor.onPaid(paymentNo);
+            // 支付成功 → 触发业务处理
+            triggerBusinessProcess(paymentNo);
 
         } catch (Exception e) {
             log.error("【微信回调】支付成功处理异常: paymentNo={}", payOrder.getPaymentNo(), e);
 
         }
     }
+
+
+    private void triggerBusinessProcess(String paymentNo) {
+        try {
+            businessProcessorComposite.onPaid(paymentNo);
+        } catch (Exception e) {
+            log.error("支付成功业务处理失败, paymentNo={}", paymentNo, e);
+            // 不抛异常，避免影响支付状态
+        }
+    }
+
+
 
 
     private PaymentCallbackDTO convertToDto(PayOrder payOrder, Map<String, String> params) {

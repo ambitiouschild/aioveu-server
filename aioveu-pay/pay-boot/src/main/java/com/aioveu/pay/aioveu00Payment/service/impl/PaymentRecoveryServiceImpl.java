@@ -36,7 +36,7 @@ public class PaymentRecoveryServiceImpl implements PaymentRecoveryService {
     private PayOrderMapper payOrderMapper;
     private WeChatPayService weChatPayService;
     //Spring 会自动注入 唯一实现类（如果有多个再配合 @Qualifier）。
-    private final BusinessProcessorComposite processorComposite;
+    private final BusinessProcessorComposite businessProcessorComposite;
 
     /**
      * 单笔订单兜底查单（Job / 回调触发）
@@ -80,7 +80,8 @@ public class PaymentRecoveryServiceImpl implements PaymentRecoveryService {
                 log.info("兜底查单成功, paymentNo={}", paymentNo);
                 //支付模块只认 Composite（关键） ✅ 支付模块从此不关心有多少个业务 // 实际是 Composite
                 // ✅ 只有状态真正变更，才触发业务
-                processorComposite.onPaid(paymentNo);
+                // 支付成功 → 触发业务处理
+                triggerBusinessProcess(paymentNo);
             }
 
         } catch (Exception e) {
@@ -88,6 +89,14 @@ public class PaymentRecoveryServiceImpl implements PaymentRecoveryService {
         }
     }
 
+    private void triggerBusinessProcess(String paymentNo) {
+        try {
+            businessProcessorComposite.onPaid(paymentNo);
+        } catch (Exception e) {
+            log.error("支付成功业务处理失败, paymentNo={}", paymentNo, e);
+            // 不抛异常，避免影响支付状态
+        }
+    }
 
     @Transactional(rollbackFor = Exception.class)
     public boolean updateLocalStatus(PayOrder order, PaymentStatusVO wx) {

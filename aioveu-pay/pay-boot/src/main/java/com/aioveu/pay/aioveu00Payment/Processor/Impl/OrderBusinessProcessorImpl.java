@@ -56,7 +56,7 @@ public class OrderBusinessProcessorImpl implements BusinessProcessor {
     @Override
     public void onPaid(String paymentNo) {
 
-        log.info("处理订单支付, paymentNo={}", paymentNo);
+        log.info("【OrderBusinessProcessorImpl】处理订单支付, paymentNo={}", paymentNo);
         log.info("支付成功，开始处理业务，paymentNo={}", paymentNo);
 
         // 1. 查订单
@@ -73,7 +73,7 @@ public class OrderBusinessProcessorImpl implements BusinessProcessor {
 
             //判断支付成功事件是否已发送
             if (mqSendRecordService.bizEventAlreadySent(paymentNo)) {
-                log.info("支付成功事件已发送，跳过, paymentNo={}", paymentNo);
+                log.info("【OrderBusinessProcessorImpl】支付成功事件已发送，跳过, paymentNo={}", paymentNo);
                 return;
             }
 
@@ -88,10 +88,10 @@ public class OrderBusinessProcessorImpl implements BusinessProcessor {
             //标记支付成功事件是否已发送
             mqSendRecordService.markBizEventSent(paymentNo, PaymentSceneEnum.ORDER);
 
-            log.info("支付成功事件发送RabbitMQ成功, paymentNo={}", paymentNo);
+            log.info("【OrderBusinessProcessorImpl】支付成功事件发送RabbitMQ成功, paymentNo={}", paymentNo);
 
         } catch (Exception e) {
-            log.error("支付成功事件发送RabbitMQ失败, paymentNo={}", paymentNo, e);
+            log.error("【OrderBusinessProcessorImpl】支付成功事件发送RabbitMQ失败, paymentNo={}", paymentNo, e);
             mqSendRecordService.saveRetryRecord(paymentNo, e);
         } finally {
             MDC.clear();

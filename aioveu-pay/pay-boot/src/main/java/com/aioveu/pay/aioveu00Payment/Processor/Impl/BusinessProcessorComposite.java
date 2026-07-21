@@ -31,20 +31,33 @@ import java.util.List;
 
 @Component
 @Slf4j
-@AllArgsConstructor
 public class BusinessProcessorComposite implements BusinessProcessor {
 
 
+    //是 Spring 在启动时，把所有 BusinessProcessor实现类塞进了 List<BusinessProcessor>
+    //Composite只是按顺序遍历，问每个 Processor：“你支持这个场景吗？”
+    //✅ 谁说 supports(scene) == true，谁就干活
     @Resource
     private List<BusinessProcessor> processors;
 
 
     private final PayOrderService payOrderService;
 
+    public BusinessProcessorComposite(PayOrderService payOrderService,List<BusinessProcessor> processors) {
+        this.payOrderService = payOrderService;
+        // ✅ 把自己排除掉
+        this.processors = processors.stream()
+                .filter(p -> !(p instanceof BusinessProcessorComposite))
+                .toList();
+    }
+
     @Override
     public boolean supports(PaymentSceneEnum scene) {
-        return true;
+        return true;// 我全都要
     }
+
+
+
 
     @Override
     public void onPaid(String paymentNo) {
@@ -57,10 +70,13 @@ public class BusinessProcessorComposite implements BusinessProcessor {
         PaymentSceneEnum scene = order.getPaymentScene();
 
         if (scene == null) {
-            log.error("未知支付场景, paymentNo={}", paymentNo);
+            log.error("【BusinessProcessorComposite】未知支付场景, paymentNo={}", paymentNo);
             return;
         }
 
+
+        //processors= Spring 注入的 List<BusinessProcessor>
+        log.error("【BusinessProcessorComposite】关键点：processors= Spring 注入的 List<BusinessProcessor>");
         for (BusinessProcessor processor : processors) {
             try {
                 if (processor.supports(scene)) {
@@ -68,7 +84,7 @@ public class BusinessProcessorComposite implements BusinessProcessor {
                 }
             } catch (Exception e) {
                 // ✅ 单个失败不影响其他
-                log.error("业务处理器执行失败, class={}, paymentNo={}",
+                log.error("【BusinessProcessorComposite】业务处理器执行失败, class={}, paymentNo={}",
                         processor.getClass().getSimpleName(),
                         paymentNo, e);
             }
