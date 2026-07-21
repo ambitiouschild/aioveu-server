@@ -17,7 +17,7 @@ import lombok.Getter;
 //json.writeField("paymentStatus", PaymentStatusEnum.PAID.name());
 public enum PaymentStatusEnum {
 
-    UNPAID(1, "UNPAID", "待支付"),
+    UNPAID(0, "UNPAID", "待支付"),
     PAYING(10, "PAYING", "支付中"),
     PAID(20, "PAID", "支付成功"),
     REFUNDING(30, "REFUNDING", "退款中"),
