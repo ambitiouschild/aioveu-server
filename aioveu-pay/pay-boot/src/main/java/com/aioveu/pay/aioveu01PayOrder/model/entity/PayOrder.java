@@ -41,7 +41,7 @@ public class PayOrder extends BaseEntityWithTenantId {
     /**
      * 业务类型：REFUND-退款 ORDER-订单 RECHARGE-充值
      */
-    private Integer bizType;
+    private PaymentBizTypeEnum bizType;
     /**
      * 用户ID
      */
@@ -53,7 +53,7 @@ public class PayOrder extends BaseEntityWithTenantId {
     /**
      * 支付状态：0-待支付 1-支付中 2-支付成功 3-支付失败 4-已关闭 5-已退款   支付状态永远用枚举，不用布尔值
      */
-    private Integer paymentStatus;
+    private PaymentStatusEnum paymentStatus;
     /**
      * 支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额
      */
@@ -61,16 +61,16 @@ public class PayOrder extends BaseEntityWithTenantId {
      * 数据库：VARCHAR
      * 使用 @EnumValue
      */
-    private Integer paymentChannel;
+    private PaymentChannelEnum paymentChannel;
     /**
      * 支付方式：APP-APP支付 H5-H5支付 JSAPI-小程序/公众号 NATIVE-扫码支付
      */
-    private Integer paymentMethod;
+    private PaymentMethodEnum paymentMethod;
 
     /**
      * 支付场景：ORDER-商品订单 MEMBERSHIP-会员开通 RECHARGE-账户充值 ACTIVITY-活动订单
      */
-    private Integer paymentScene;
+    private PaymentSceneEnum paymentScene;
 
     /**
      * 支付时间
