@@ -168,5 +168,8 @@ public interface OrderService extends IService<OmsOrder> {
 
 
     void handleOrderPaid(String paymentNo, String orderNo);
+
+
+    void markPaid(String orderSn);
 }
 

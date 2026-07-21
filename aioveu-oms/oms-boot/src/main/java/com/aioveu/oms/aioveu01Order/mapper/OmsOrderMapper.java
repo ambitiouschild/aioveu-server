@@ -203,7 +203,7 @@ public interface OmsOrderMapper extends BaseMapper<OmsOrder> {
     default boolean updateOrderStatus(Long orderId, Integer oldStatus, OrderStatusEnum newStatus) {
         OmsOrder order = new OmsOrder();
         order.setId(orderId);
-        order.setStatus(newStatus.getValue());
+        order.setStatus(newStatus);
         order.setUpdateTime(LocalDateTime.now());
 
         LambdaQueryWrapper<OmsOrder> wrapper = new LambdaQueryWrapper<>();
@@ -219,7 +219,7 @@ public interface OmsOrderMapper extends BaseMapper<OmsOrder> {
      */
     default int batchUpdateStatus(List<Long> orderIds, OrderStatusEnum status) {
         OmsOrder order = new OmsOrder();
-        order.setStatus(status.getValue());
+        order.setStatus(status);
         order.setUpdateTime(LocalDateTime.now());
 
         LambdaQueryWrapper<OmsOrder> wrapper = new LambdaQueryWrapper<>();

@@ -36,6 +36,7 @@ import com.alibaba.nacos.shaded.com.google.common.util.concurrent.ThreadFactoryB
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -506,11 +507,11 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             // 2. 调用支付微服务
             PayOrderCreateForm formData =  new PayOrderCreateForm();
             formData.setUserId(omsOrder.getMemberId());
-            formData.setOrderNo(omsOrder.getOrderSn());
-            formData.setBizType(PaymentBizTypeEnum.ORDER_PAY.getCode());
+            formData.setOrderSn(omsOrder.getOrderSn());
+            formData.setBizType(PaymentBizTypeEnum.ORDER_PAY);
             formData.setPaymentChannel(omsOrder.getPaymentChannel());
             formData.setPaymentMethod(omsOrder.getPaymentMethod());
-            formData.setPaymentScene(PaymentSceneEnum.ORDER.getCode());
+            formData.setPaymentScene(PaymentSceneEnum.ORDER);
             formData.setPaymentAmount(
                     BigDecimal.valueOf(omsOrder.getTotalAmount())
             );
@@ -871,11 +872,11 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             log.info("【创建订单】4.商品总数: {}", totalAmount);
 
             // 订单来源
-            Integer source = OrderSourceEnum.WX.getValue();
+            OrderSourceEnum source = OrderSourceEnum.WX;
             log.info("【创建订单】5.订单来源: {}", source);
 
             // 订单状态
-            Integer status = OrderStatusEnum.UNPAID.getValue();
+            OrderStatusEnum status = OrderStatusEnum.UNPAID;
             log.info("【创建订单】6.订单状态: {}", status);
 
             // 订单备注
@@ -903,11 +904,11 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             log.info("【创建订单】13.支付时间: {}", paymentTime);
 
             // 支付渠道
-            Integer paymentChannel= submitForm.getPaymentChannel() != null ? submitForm.getPaymentChannel() : PaymentChannelEnum.WECHAT.getCode();
+            PaymentChannelEnum paymentChannel= submitForm.getPaymentChannel() != null ? submitForm.getPaymentChannel() : PaymentChannelEnum.WECHAT;
             log.info("【创建订单】14.支付渠道: {}", paymentChannel);
 
             // 支付方式
-            Integer paymentMethod= submitForm.getPaymentMethod() != null ? submitForm.getPaymentMethod() : PaymentMethodEnum.JSAPI.getCode();
+            PaymentMethodEnum paymentMethod= submitForm.getPaymentMethod() != null ? submitForm.getPaymentMethod() : PaymentMethodEnum.JSAPI;
             log.info("【创建订单】15.支付方式: {}", paymentMethod);
 
             // 前端指定 clientId
@@ -1170,9 +1171,9 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         // 更新订单状态
         log.info("3. 更新订单状态为已支付");
-        order.setStatus(OrderStatusEnum.PAID.getValue());
-        order.setPaymentChannel(PaymentChannelEnum.BALANCE.getCode());
-        order.setPaymentMethod(PaymentMethodEnum.JSAPI.getCode());
+        order.setStatus(OrderStatusEnum.PAID);
+        order.setPaymentChannel(PaymentChannelEnum.BALANCE);
+        order.setPaymentMethod(PaymentMethodEnum.JSAPI);
         order.setPaymentTime(LocalDateTime.now());
         this.updateById(order);
 
@@ -1568,7 +1569,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     public boolean updateOrderPaymentStatus(OmsOrder order, PaymentSuccessMessage message) {
         try {
             // 更新订单状态
-            order.setStatus(OrderStatusEnum.PAID.getValue());  // 待发货
+            order.setStatus(OrderStatusEnum.PAID);  // 待发货
 //            order.setPayStatus(PayStatusEnum.PAID.getCode());     // 已支付
             order.setTransactionId(message.getTransactionId());
 
@@ -1695,7 +1696,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         if (json.has("errcode") && json.get("errcode").asInt() == 0) {
 
             // 2️本地状态变更
-            order.setStatus(OrderStatusEnum.SHIPPED.getValue());
+            order.setStatus(OrderStatusEnum.SHIPPED);
             this.baseMapper.updateById(order);
 
             log.info("✅ 订单发货成功 orderSn={}", orderSn);
@@ -1872,7 +1873,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         }
 
         // 2. 从支付服务获取微信支付单号
-        PayOrderVO payOrderVO= payFeignClient.getPayOrderByOmsOrderNo(omsOrder.getOrderSn());
+        PayOrderVO payOrderVO= payFeignClient.getPayOrderByOmsOrderSn(omsOrder.getOrderSn());
 //        String transactionId = payOrderVO.getThirdTransactionNo();
 
         String transactionId =
@@ -2100,12 +2101,38 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         }
 
         // 5. 更新订单状态（只改订单）
-        baseMapper.markPaid(orderSn);
+        this.markPaid(orderSn);
 
         // 6. 发货 / 开通权益
 //        deliverService.deliver(orderSn);
     }
 
+    @Override
+    public void markPaid(String orderSn) {
 
+        boolean updated = update(
+                new LambdaUpdateWrapper<OmsOrder>()
+                        .eq(OmsOrder::getOrderSn, orderSn)
+                        .eq(OmsOrder::getStatus, OrderStatusEnum.UNPAID)
+                        .eq(OmsOrder::getDeleted, 0)
+                        .set(OmsOrder::getStatus, OrderStatusEnum.PAID)
+                        .set(OmsOrder::getPaymentTime, LocalDateTime.now())
+                        .set(OmsOrder::getUpdateTime, LocalDateTime.now())
+        );
+
+        if (!updated) {
+            // 同上逻辑
+            OmsOrder order = getOne(
+                    Wrappers.<OmsOrder>lambdaQuery()
+                            .eq(OmsOrder::getOrderSn, orderSn)
+                            .last("LIMIT 1")
+            );
+            if (order != null && OrderStatusEnum.PAID.equals(order.getStatus())) {
+                log.info("订单已支付，幂等忽略, orderSn={}", orderSn);
+                return;
+            }
+            throw new BizException("订单支付失败，状态异常");
+        }
+    }
 
 }

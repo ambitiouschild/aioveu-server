@@ -60,12 +60,12 @@ public class OmsOrder extends BaseEntityWithTenantId {
 	/**
 	 * 订单来源(0-PC订单；1-app订单)
 	 */
-	private Integer source;
+	private OrderSourceEnum source;
 
 	/**
 	 * 订单状态(1-待付款;2-待发货;3-已发货;4-已完成;)
 	 */
-	private Integer status;
+	private OrderStatusEnum status;
 	/**
 	 * 订单备注
 	 */
@@ -111,7 +111,7 @@ public class OmsOrder extends BaseEntityWithTenantId {
 	 */
 	@TableField(value = "payment_channel",
 			typeHandler = PaymentChannelEnumCodeTypeHandler.class)
-	private Integer paymentChannel;
+	private PaymentChannelEnum paymentChannel;
 
 	/**
 	 * 数据库：INT
@@ -122,7 +122,7 @@ public class OmsOrder extends BaseEntityWithTenantId {
 	 */
 	@TableField(value = "payment_method",
 			typeHandler = PaymentMethodEnumCodeTypeHandler.class)
-	private Integer paymentMethod;
+	private PaymentMethodEnum paymentMethod;
 
 	/**
 	 * 商户侧支付订单号 = outTradeNo = paymentNo
