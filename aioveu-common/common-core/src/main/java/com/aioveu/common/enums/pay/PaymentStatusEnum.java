@@ -34,7 +34,7 @@ public enum PaymentStatusEnum {
         this.label = label;
     }
 
-    @JsonValue   // ✅ 关键：告诉 Jackson，JSON 用这个
+
     @EnumValue                      // 关键！
     @Getter
     private int code;     // OMS 用

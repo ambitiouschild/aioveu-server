@@ -2,12 +2,17 @@ package com.aioveu.pay.aioveu01.PaymentStrategy.impl;
 
 import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategy;
+import com.aioveu.pay.aioveu01.converter.PayQueryResultConverter;
 import com.aioveu.pay.aioveu01.service.MockPay.service.MockPayService;
+import com.aioveu.pay.model.aioveuPayAdapter.AliPayQueryResult;
+import com.aioveu.pay.model.aioveuPayAdapter.MockPayQueryResult;
+import com.aioveu.pay.model.aioveuPayAdapter.PaymentStatusDTO;
 import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
 import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,13 +33,14 @@ import java.util.Map;
 @Slf4j
 @Component
 @Qualifier("mockPayStrategy")
+@AllArgsConstructor
 public class MockStrategyAdapter implements PaymentStrategy {
 
     /**
      * 模拟支付服务
      */
     private final MockPayService mockPayService;
-
+    private final PayQueryResultConverter payQueryResultConverter;
 
     /**
      * 支付类型映射
@@ -49,10 +55,6 @@ public class MockStrategyAdapter implements PaymentStrategy {
         PAY_TYPE_MAPPING.put("H5", "WAP");  // H5使用WAP支付
     }
 
-    @Autowired
-    public MockStrategyAdapter(MockPayService mockPayService) {
-        this.mockPayService = mockPayService;
-    }
 
     /**
      * 发起支付
@@ -154,12 +156,19 @@ public class MockStrategyAdapter implements PaymentStrategy {
      * @return 支付状态
      */
     @Override
-    public PaymentStatusVO queryStatus(String paymentNo) {
+    public PaymentStatusDTO queryStatus(String paymentNo) {
         try {
             log.info("【Mock】Mock查询支付状态, 订单号: {}", paymentNo);
 
-            // 使用传统SDK查询
-            return mockPayService.queryPayment(paymentNo);
+
+
+            // ✅ 支付宝适配层
+            MockPayQueryResult mockResult = mockPayService.queryPayment(paymentNo);
+
+            // ✅ 内部统一模型
+            PaymentStatusDTO statusDTO = payQueryResultConverter.mockResultToDTO(mockResult);
+
+            return statusDTO;
 
             // 或者使用EasySDK查询
             // return alipayEasyService.queryPayment(paymentNo);

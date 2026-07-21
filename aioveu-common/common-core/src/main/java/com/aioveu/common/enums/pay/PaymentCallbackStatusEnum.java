@@ -26,7 +26,7 @@ public enum PaymentCallbackStatusEnum {
     /** 已关闭 */
     CLOSED(4, "已关闭");
 
-    @JsonValue   // ✅ 关键：告诉 Jackson，JSON 用这个
+
     private final int code;
     private final String desc;
 

@@ -18,8 +18,8 @@ import com.aioveu.pay.aioveu01.service.WechatPay.utils.weChatPay.aioveuWeChatPay
 //如果您确实是普通商户（非服务商）
 import com.aioveu.pay.aioveu01.service.WechatPay.utils.weChatPay.aioveuWeChatPayGetServiceUtil;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
-import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
+import com.aioveu.pay.model.aioveuPayAdapter.WechatPayQueryResult;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 import com.wechat.pay.java.service.payments.jsapi.JsapiService;  //- 普通商户支付
 import com.wechat.pay.java.service.payments.app.AppService;  // - 普通商户支付
@@ -41,9 +41,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.util.Map;
 
 import static com.aioveu.pay.utils.LocalDateTimeUtil.parseWechatTime;
@@ -377,7 +374,7 @@ public class WeChatPayServiceImpl implements WeChatPayService {
      * 查询支付结果
      */
     @Override
-    public PaymentStatusVO queryPayment(String paymentNo) {
+    public WechatPayQueryResult queryPayment(String paymentNo) {
         try {
 
             if (StringUtils.isBlank(paymentNo)) {
@@ -565,29 +562,29 @@ public class WeChatPayServiceImpl implements WeChatPayService {
     /**
      * 转换支付状态
      */
-    private PaymentStatusVO convertToPaymentStatus(
+    private WechatPayQueryResult convertToPaymentStatus(
             com.wechat.pay.java.service.payments.model.Transaction transaction) {
 
-        PaymentStatusVO statusVO = new PaymentStatusVO();
-        statusVO.setPaymentNo(transaction.getOutTradeNo());
-        statusVO.setThirdPaymentNo(transaction.getTransactionId());
-        statusVO.setAmount(convertFenToYuan(transaction.getAmount().getTotal()));
+        WechatPayQueryResult wechatPayQueryResult = new WechatPayQueryResult();
+        wechatPayQueryResult.setPaymentNo(transaction.getOutTradeNo());
+        wechatPayQueryResult.setThirdPaymentNo(transaction.getTransactionId());
+        wechatPayQueryResult.setAmount(convertFenToYuan(transaction.getAmount().getTotal()));
 
         String tradeState = transaction.getTradeState().name();
-        statusVO.setPaymentStatus(convertWechatStatus(tradeState));
+        wechatPayQueryResult.setPaymentStatus(convertWechatStatus(tradeState));
 
         if (transaction.getSuccessTime() != null) {
             try {
                 // ✅ 微信时间 → 系统时间
                 // 封装成工具方法（全系统统一）
-                statusVO.setPaymentTime(parseWechatTime(transaction.getSuccessTime()));
+                wechatPayQueryResult.setPaymentTime(parseWechatTime(transaction.getSuccessTime()));
 
             } catch (Exception e) {
                 log.warn("解析支付时间失败", e);
             }
         }
 
-        return statusVO;
+        return wechatPayQueryResult;
     }
 
     /**

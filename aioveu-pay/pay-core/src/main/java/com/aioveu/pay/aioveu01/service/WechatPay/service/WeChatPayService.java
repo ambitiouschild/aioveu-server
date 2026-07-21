@@ -1,8 +1,8 @@
 package com.aioveu.pay.aioveu01.service.WechatPay.service;
 
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
-import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
+import com.aioveu.pay.model.aioveuPayAdapter.WechatPayQueryResult;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 
 /**
@@ -40,7 +40,7 @@ public interface WeChatPayService {
     /**
      * 查询支付结果
      */
-    PaymentStatusVO queryPayment(String paymentNo);
+    WechatPayQueryResult queryPayment(String paymentNo);
 
     /**
      * 关闭订单

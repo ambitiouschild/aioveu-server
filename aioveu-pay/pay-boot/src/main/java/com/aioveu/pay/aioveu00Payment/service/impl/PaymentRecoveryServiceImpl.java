@@ -9,6 +9,7 @@ import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu00Payment.Processor.BusinessProcessor;
 import com.aioveu.pay.aioveu12MqProducerPayment.Publisher.PaymentEventPublisher;
+import com.aioveu.pay.model.aioveuPayAdapter.WechatPayQueryResult;
 import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import jakarta.annotation.Resource;
@@ -68,7 +69,7 @@ public class PaymentRecoveryServiceImpl implements PaymentRecoveryService {
         try {
 
             //查询微信状态
-            PaymentStatusVO wx = weChatPayService.queryPayment(paymentNo);
+            WechatPayQueryResult wx = weChatPayService.queryPayment(paymentNo);
 
             if (wx == null) {
                 return;
@@ -134,7 +135,7 @@ public class PaymentRecoveryServiceImpl implements PaymentRecoveryService {
 
     //确保 updateStatusIfNonTerminal使用了乐观锁
     @Transactional(rollbackFor = Exception.class)
-    public boolean updateLocalStatus(PayOrder order, PaymentStatusVO wx) {
+    public boolean updateLocalStatus(PayOrder order, WechatPayQueryResult wx) {
         int rows = payOrderMapper.updateStatusIfNonTerminal(
                 order.getId(),
                 wx.getPaymentStatus(),

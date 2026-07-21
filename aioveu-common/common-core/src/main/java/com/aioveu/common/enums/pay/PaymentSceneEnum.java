@@ -29,7 +29,7 @@ public enum PaymentSceneEnum {
         this.label = label;
     }
 
-    @JsonValue   // ✅ 关键：告诉 Jackson，JSON 用这个
+
     @EnumValue
     @Getter
     private int code;     // OMS 用

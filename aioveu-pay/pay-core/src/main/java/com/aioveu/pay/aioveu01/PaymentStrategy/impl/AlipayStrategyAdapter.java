@@ -3,13 +3,18 @@ package com.aioveu.pay.aioveu01.PaymentStrategy.impl;
 
 import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategy;
+import com.aioveu.pay.aioveu01.converter.PayQueryResultConverter;
 import com.aioveu.pay.aioveu01.service.AliPay.service.AlipayEasyService.AlipayEasyService;
 import com.aioveu.pay.aioveu01.service.AliPay.service.AlipayService.AlipayService;
+import com.aioveu.pay.model.aioveuPayAdapter.AliPayQueryResult;
+import com.aioveu.pay.model.aioveuPayAdapter.PaymentStatusDTO;
+import com.aioveu.pay.model.aioveuPayAdapter.WechatPayQueryResult;
 import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
 import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -53,6 +58,7 @@ import java.util.Map;
 
 @Slf4j
 @Component("alipayStrategy")
+@AllArgsConstructor
 public class AlipayStrategyAdapter implements PaymentStrategy{
 
     /**
@@ -64,7 +70,7 @@ public class AlipayStrategyAdapter implements PaymentStrategy{
      * 支付宝EasySDK服务
      */
     private final AlipayEasyService alipayEasyService;
-
+    private final PayQueryResultConverter payQueryResultConverter;
     /**
      * 支付类型映射
      */
@@ -76,13 +82,6 @@ public class AlipayStrategyAdapter implements PaymentStrategy{
         PAY_TYPE_MAPPING.put("PAGE", "PAGE");
         PAY_TYPE_MAPPING.put("WAP", "WAP");
         PAY_TYPE_MAPPING.put("H5", "WAP");  // H5使用WAP支付
-    }
-
-    @Autowired
-    public AlipayStrategyAdapter(AlipayService alipayService,
-                                 AlipayEasyService alipayEasyService) {
-        this.alipayService = alipayService;
-        this.alipayEasyService = alipayEasyService;
     }
 
     /**
@@ -187,12 +186,18 @@ public class AlipayStrategyAdapter implements PaymentStrategy{
      * @return 支付状态
      */
     @Override
-    public PaymentStatusVO queryStatus(String paymentNo) {
+    public PaymentStatusDTO queryStatus(String paymentNo) {
         try {
             log.info("支付宝查询支付状态, 订单号: {}", paymentNo);
 
-            // 使用传统SDK查询
-            return alipayService.queryPayment(paymentNo);
+
+            // ✅ 支付宝适配层 使用传统SDK查询
+            AliPayQueryResult aliResult = alipayService.queryPayment(paymentNo);
+
+            // ✅ 内部统一模型
+            PaymentStatusDTO statusDTO = payQueryResultConverter.aliResultToDTO(aliResult);
+
+            return statusDTO;
 
             // 或者使用EasySDK查询
             // return alipayEasyService.queryPayment(paymentNo);

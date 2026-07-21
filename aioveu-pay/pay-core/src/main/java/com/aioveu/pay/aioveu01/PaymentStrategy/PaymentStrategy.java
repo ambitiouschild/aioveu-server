@@ -1,5 +1,6 @@
 package com.aioveu.pay.aioveu01.PaymentStrategy;
 
+import com.aioveu.pay.model.aioveuPayAdapter.PaymentStatusDTO;
 import com.aioveu.pay.model.aioveuPayment.*;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 
@@ -18,7 +19,9 @@ public interface PaymentStrategy {
 
     boolean verifyCallback(PaymentCallbackDTO callback);
 
-    PaymentStatusVO queryStatus(String paymentNo);
+
+    // ✅ 内部统一模型 适用于多种支付
+    PaymentStatusDTO queryStatus(String paymentNo);
 
     boolean closePayment(String paymentNo);
 

@@ -8,8 +8,8 @@ import com.aioveu.pay.aioveu01.service.AliPay.AlipayRequestFactory.AlipayRequest
 import com.aioveu.pay.aioveu01.service.AliPay.config.AlipayConfig;
 import com.aioveu.pay.aioveu01.service.AliPay.service.AlipayEasyService.AlipayEasyService;
 import com.aioveu.pay.aioveu01.service.WechatPay.utils.aliPay.aioveuAlipayGeneratePayParamsUtil;
+import com.aioveu.pay.model.aioveuPayAdapter.AliPayQueryResult;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
-import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 import com.alipay.easysdk.payment.app.models.AlipayTradeAppPayResponse;
@@ -272,7 +272,7 @@ public class AlipayEasyServiceImpl implements AlipayEasyService {
      * @return 支付状态
      */
     @Override
-    public PaymentStatusVO queryPayment(String paymentNo) {
+    public AliPayQueryResult queryPayment(String paymentNo) {
         try {
             log.info("查询支付宝订单状态, 订单号: {}", paymentNo);
 
@@ -288,7 +288,7 @@ public class AlipayEasyServiceImpl implements AlipayEasyService {
             AlipayTradeQueryResponse response = requestFactory.createEasyCommonClient()
                     .query(paymentNo);
 
-            PaymentStatusVO result = convertToPaymentStatus(response);
+            AliPayQueryResult result = convertToPaymentStatus(response);
             log.info("查询支付宝订单状态成功, 订单号: {}, 状态: {}",
                     paymentNo, result.getPaymentStatus());
 
@@ -376,13 +376,13 @@ public class AlipayEasyServiceImpl implements AlipayEasyService {
      * @param response 支付宝查询响应
      * @return 支付状态VO
      */
-    private PaymentStatusVO convertToPaymentStatus(AlipayTradeQueryResponse response) {
+    private AliPayQueryResult convertToPaymentStatus(AlipayTradeQueryResponse response) {
         if (!ALIPAY_SUCCESS_CODE.equals(response.code)) {
             String errorMsg = String.format("查询失败: %s - %s", response.subCode, response.subMsg);
             throw new RuntimeException(errorMsg);
         }
 
-        return PaymentStatusVO.builder()
+        return AliPayQueryResult.builder()
                 .paymentNo(response.outTradeNo)
                 .thirdPaymentNo(response.tradeNo)
                 .amount(parseBigDecimal(response.totalAmount))

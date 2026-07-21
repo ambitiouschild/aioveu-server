@@ -2,14 +2,16 @@ package com.aioveu.pay.aioveu01.PaymentStrategy.impl;
 
 import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategy;
+import com.aioveu.pay.aioveu01.converter.PayQueryResultConverter;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
+import com.aioveu.pay.model.aioveuPayAdapter.PaymentStatusDTO;
+import com.aioveu.pay.model.aioveuPayAdapter.WechatPayQueryResult;
 import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
-import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -29,14 +31,12 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component("WeChatPayService")
+@AllArgsConstructor
 public class WeChatPayStrategyAdapter implements PaymentStrategy {
 
     private final WeChatPayService weChatPayService;
 
-    @Autowired
-    public WeChatPayStrategyAdapter(WeChatPayService weChatPayService) {
-        this.weChatPayService = weChatPayService;
-    }
+    private final PayQueryResultConverter payQueryResultConverter;
 
     @Override
     public PaymentParamsVO appPay(String paymentNo, PaymentRequestPayToTPPDTO request) {
@@ -75,9 +75,15 @@ public class WeChatPayStrategyAdapter implements PaymentStrategy {
     }
 
     @Override
-    public PaymentStatusVO queryStatus(String paymentNo) {
+    public PaymentStatusDTO queryStatus(String paymentNo) {
         // 直接调用现有的查询方法
-        return weChatPayService.queryPayment(paymentNo);
+        // ✅ 微信适配层
+        WechatPayQueryResult wxResult = weChatPayService.queryPayment(paymentNo);
+
+        // ✅ 内部统一模型
+        PaymentStatusDTO statusDTO = payQueryResultConverter.wxResultToDTO(wxResult);
+
+        return statusDTO;
     }
 
     @Override

@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu01.service.AliPay.service.AlipayService;
 
+import com.aioveu.pay.model.aioveuPayAdapter.AliPayQueryResult;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
-import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 
@@ -35,7 +35,7 @@ public interface AlipayService {
     /**
      * 查询订单状态
      */
-    PaymentStatusVO queryPayment(String paymentNo);
+    AliPayQueryResult queryPayment(String paymentNo);
 
     /**
      * 退款

@@ -13,8 +13,6 @@ import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu01PayOrder.model.query.PayOrderQuery;
-import com.aioveu.pay.aioveu00Payment.Processor.BusinessProcessor;
-import com.aioveu.pay.aioveu12MqProducerPayment.Publisher.PaymentEventPublisher;
 import com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
 import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
@@ -23,6 +21,7 @@ import com.aioveu.common.enums.pay.PaymentCallbackStatusEnum;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderForm;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderCreateForm;
 import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
+import com.aioveu.pay.model.aioveuPayAdapter.WechatPayQueryResult;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -575,15 +574,15 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         PayOrder payOrder = this.selectByPaymentNo(paymentNo);
         if (payOrder == null) {
             paymentStatusVO.setErrorMessage("订单不存在");
-            paymentStatusVO.setPaymentStatus(PaymentStatusEnum.UNKNOWN); // 特殊状态：订单不存在
+            paymentStatusVO.setPaymentStatus(PaymentStatusEnum.UNKNOWN.getCode()); // 特殊状态：订单不存在
             log.info("【前端调用：查询支付状态】订单不存在");
             return paymentStatusVO;
         }
-        paymentStatusVO.setPaymentStatus(payOrder.getPaymentStatus());
 
         // 2. 如果订单已支付，直接返回
-        if (paymentStatusVO.getPaymentStatus() == PaymentStatusEnum.PAID) {
+        if (payOrder.getPaymentStatus() == PaymentStatusEnum.PAID) {
             paymentStatusVO.setErrorMessage("订单已支付");
+            log.info("【queryPaymentStatusByPaymentNo】如果订单已支付，直接返回");
             return paymentStatusVO;
         }
 
@@ -593,16 +592,17 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
             try {
                 //“回调说了算，查询只是确认，轮询只是安慰用户。”
                 //只在“真的查了微信”时更新
-                PaymentStatusVO wxResult = wechatPayService.queryPayment(paymentNo);
-                log.info("【wechatPayService】微信支付状态返回结果wxResult:{}",wxResult);
+                WechatPayQueryResult wxResult = wechatPayService.queryPayment(paymentNo);
+                log.info("【queryPaymentStatusByPaymentNo】微信支付状态返回结果wxResult:{}",wxResult);
 
                 // 4️状态不一致才更新
-                if (wxResult.getPaymentStatus() != paymentStatusVO.getPaymentStatus()) {
+                if (wxResult.getPaymentStatus() != payOrder.getPaymentStatus()) {
                     //同步支付状态 微信查询 → 视同“回调”
-
+                    log.info("【queryPaymentStatusByPaymentNo】同步支付状态 微信查询 → 视同“回调”, paymentNo={}", payOrder.getPaymentNo());
                     PayOrder update = new PayOrder();
                     update.setId(payOrder.getId());
                     update.setPaymentStatus(wxResult.getPaymentStatus());
+
                     update.setThirdTransactionNo(wxResult.getThirdPaymentNo());
 
                     if (wxResult.getPaymentStatus() == PaymentStatusEnum.PAID) {
@@ -611,6 +611,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
 
                     //微信查询 → 视同“回调”
                     this.updateById(update);
+                    log.info("【queryPaymentStatusByPaymentNo】微信查询 → 视同“回调”, 更新支付订单");
                      // ✅ 更新最后查询时间
                     this.updateLastQueryTime(paymentNo, LocalDateTime.now());
 
@@ -622,8 +623,18 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
                     //✅ 不负责“发 MQ”
 
                 }
-                paymentStatusVO.setPaymentStatus(wxResult.getPaymentStatus());
+                //这里必须是数字
+                paymentStatusVO.setPaymentStatus(wxResult.getPaymentStatus().getCode()); // ✅ 数字
+                paymentStatusVO.setPaymentStatusText(wxResult.getPaymentStatus().getLabel()); // ✅ 文案
+                log.info("【queryPaymentStatusByPaymentNo】返回给前端的支付状态必须是数字,paymentStatus:{},paymentStatusText:{}",
+                        paymentStatusVO.getPaymentStatus(),
+                        paymentStatusVO.getPaymentStatusText()
+
+                );
                 paymentStatusVO.setErrorMessage("支付状态已同步");
+
+                log.info("【queryPaymentStatusByPaymentNo】支付状态查询结果,paymentStatusVO:{}",paymentStatusVO);
+
             } catch (Exception e) {
                 log.error("微信查询异常, paymentNo={}", paymentNo, e);
                 paymentStatusVO.setErrorMessage("查询微信支付状态失败");
@@ -645,11 +656,13 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
     private boolean needQueryWechat(PayOrder payOrder) {
         // 1. 已终态，不查
         if (PaymentStatusEnum.isTerminal(payOrder.getPaymentStatus())) {
+            log.info("【needQueryWechat】订单已是终态，忽略微信查询结果, paymentNo={}", payOrder.getPaymentNo());
             return false;
         }
 
         // 2. 从未查过，可以查
         if (payOrder.getLastQueryTime() == null) {
+            log.info("【needQueryWechat】从未查过，可以查, paymentNo={}", payOrder.getPaymentNo());
             return true;
         }
 
@@ -667,7 +680,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         // 1. 更新支付单
         boolean result = this.updateStatusByPaymentNo(
                 payOrder.getPaymentNo(),
-                wxResult.getPaymentStatus()
+                PaymentStatusEnum.fromCode(wxResult.getPaymentStatus())
         );
 
 //        // 2. 只更新订单支付状态，不改订单主状态

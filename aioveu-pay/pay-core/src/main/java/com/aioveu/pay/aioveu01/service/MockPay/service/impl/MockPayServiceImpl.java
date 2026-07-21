@@ -8,8 +8,8 @@ import com.aioveu.pay.aioveu01.service.MockPay.MockRequestFactory.MockRequestFac
 import com.aioveu.pay.aioveu01.service.MockPay.config.MockPayConfig;
 import com.aioveu.pay.aioveu01.service.MockPay.service.MockPayService;
 import com.aioveu.pay.aioveu01.service.WechatPay.utils.weChatPay.aioveuWeChatPayGeneratePayParamsUtil;
+import com.aioveu.pay.model.aioveuPayAdapter.MockPayQueryResult;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
-import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 import com.alipay.api.request.AlipayTradeCloseRequest;
@@ -23,8 +23,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Map;
@@ -232,7 +230,7 @@ public class MockPayServiceImpl implements MockPayService {
 
      */
     @Override
-    public PaymentStatusVO queryPayment(String paymentNo)  {
+    public MockPayQueryResult queryPayment(String paymentNo)  {
         try {
             log.info("查询支付宝订单状态, 订单号: {}", paymentNo);
 
@@ -252,7 +250,7 @@ public class MockPayServiceImpl implements MockPayService {
 //            AlipayTradeQueryResponse response = alipayClient.execute(alipayRequest);
             AlipayTradeQueryResponse response = new AlipayTradeQueryResponse();
 
-            PaymentStatusVO result = convertToPaymentStatus(response);
+            MockPayQueryResult result = convertToPaymentStatus(response);
             log.info("查询支付宝订单状态成功, 订单号: {}, 状态: {}",
                     paymentNo, result.getPaymentStatus());
 
@@ -341,7 +339,7 @@ public class MockPayServiceImpl implements MockPayService {
     /**
      * 转换支付状态
      */
-    private PaymentStatusVO convertToPaymentStatus(AlipayTradeQueryResponse response) {
+    private MockPayQueryResult convertToPaymentStatus(AlipayTradeQueryResponse response) {
 
         if (!true) {
             String errorMsg = String.format("查询失败: %s - %s",
@@ -350,7 +348,7 @@ public class MockPayServiceImpl implements MockPayService {
         }
 
 
-        return PaymentStatusVO.builder()
+        return MockPayQueryResult.builder()
                 .paymentNo(response.getOutTradeNo())
                 .thirdPaymentNo(response.getTradeNo())
                 .amount(parseBigDecimal(response.getTotalAmount()))

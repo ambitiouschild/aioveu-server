@@ -4,8 +4,8 @@ import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01.service.WechatPay.utils.aliPay.aioveuAlipayGeneratePayParamsUtil;
+import com.aioveu.pay.model.aioveuPayAdapter.AliPayQueryResult;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
-import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 import com.alipay.api.AlipayClient;
@@ -23,8 +23,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.Calendar;
 import java.util.Date;
@@ -257,7 +255,7 @@ public class AlipayServiceImpl implements AlipayService {
      *              这样既保证了准确性，又优化了性能！🎉
      */
     @Override
-    public PaymentStatusVO queryPayment(String paymentNo)  {
+    public AliPayQueryResult queryPayment(String paymentNo)  {
         try {
             log.info("查询支付宝订单状态, 订单号: {}", paymentNo);
 
@@ -276,7 +274,7 @@ public class AlipayServiceImpl implements AlipayService {
             // 执行请求
             AlipayTradeQueryResponse response = alipayClient.execute(alipayRequest);
 
-            PaymentStatusVO result = convertToPaymentStatus(response);
+            AliPayQueryResult result = convertToPaymentStatus(response);
             log.info("查询支付宝订单状态成功, 订单号: {}, 状态: {}",
                     paymentNo, result.getPaymentStatus());
 
@@ -361,7 +359,7 @@ public class AlipayServiceImpl implements AlipayService {
     /**
      * 转换支付状态
      */
-    private PaymentStatusVO convertToPaymentStatus(AlipayTradeQueryResponse response) {
+    private AliPayQueryResult convertToPaymentStatus(AlipayTradeQueryResponse response) {
 
         if (!ALIPAY_SUCCESS_CODE.equals(response.getCode())) {
             String errorMsg = String.format("查询失败: %s - %s",
@@ -370,7 +368,7 @@ public class AlipayServiceImpl implements AlipayService {
         }
 
 
-        return PaymentStatusVO.builder()
+        return AliPayQueryResult.builder()
                 .paymentNo(response.getOutTradeNo())
                 .thirdPaymentNo(response.getTradeNo())
                 .amount(parseBigDecimal(response.getTotalAmount()))

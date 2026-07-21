@@ -34,12 +34,13 @@ public class PaymentController2 {
         return strategy.appPay(paymentNo, request);
     }
 
-    @GetMapping("/status/{channel}/{paymentNo}")
-    public PaymentStatusVO queryStatus(@PathVariable com.aioveu.common.enums.pay.PaymentChannelEnum channel,
-                                       @PathVariable String paymentNo) {
-        PaymentStrategy strategy = strategyFactory.getStrategy(channel);
-        return strategy.queryStatus(paymentNo);
-    }
+//    @GetMapping("/status/{channel}/{paymentNo}")
+//    public PaymentStatusVO queryStatus(@PathVariable com.aioveu.common.enums.pay.PaymentChannelEnum channel,
+//                                       @PathVariable String paymentNo) {
+//        PaymentStrategy strategy = strategyFactory.getStrategy(channel);
+//        return strategy.queryStatus(paymentNo);
+//
+//    }
 
     @PostMapping("/refund/{channel}")
     public com.aioveu.pay.model.aioveuPayment.RefundResultVO refund(@PathVariable com.aioveu.common.enums.pay.PaymentChannelEnum channel,

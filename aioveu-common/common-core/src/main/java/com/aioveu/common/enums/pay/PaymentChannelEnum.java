@@ -30,9 +30,10 @@ public enum PaymentChannelEnum {
         this.label = label;
     }
 
-    @JsonValue   // ✅ 关键：告诉 Jackson，JSON 用这个
+
     @Getter
     private int code;     // OMS 用
+
 
     @EnumValue                      // 关键！
     @Getter

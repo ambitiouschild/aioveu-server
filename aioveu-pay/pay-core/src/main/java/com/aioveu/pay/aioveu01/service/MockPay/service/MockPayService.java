@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu01.service.MockPay.service;
 
+import com.aioveu.pay.model.aioveuPayAdapter.MockPayQueryResult;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
-import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 
@@ -34,7 +34,7 @@ public interface MockPayService {
     /**
      * 查询订单状态
      */
-    PaymentStatusVO queryPayment(String paymentNo);
+    MockPayQueryResult queryPayment(String paymentNo);
 
     /**
      * 退款

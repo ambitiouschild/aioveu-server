@@ -25,7 +25,7 @@ public enum RefundStatusEnum {
         this.label = label;
     }
 
-    @JsonValue   // ✅ 关键：告诉 Jackson，JSON 用这个
+
     @Getter
     private Integer value;
 
