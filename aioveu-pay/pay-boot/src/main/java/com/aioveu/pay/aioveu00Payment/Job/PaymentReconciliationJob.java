@@ -41,9 +41,9 @@ public class PaymentReconciliationJob {
     public void reconcile() {
         log.info("支付兜底Job开始执行");
 
-        LocalDateTime maxCreatedAt = LocalDateTime.now().minusMinutes(30);
-        LocalDateTime lastCreatedAt = LocalDateTime.now();
-        Long lastId = Long.MAX_VALUE;
+        LocalDateTime maxCreatedAt = LocalDateTime.now().minusMinutes(30);  //-- ✅ 最早创建时间（now - 30min）
+        LocalDateTime lastCreatedAt = LocalDateTime.now();   //- ✅ 最晚创建时间（now）
+        Long lastId = Long.MAX_VALUE;    //-- ✅ 游标分页（防重复）
         int batchSize = 200;
 
 
@@ -84,9 +84,9 @@ public class PaymentReconciliationJob {
         while (true) {
             List<PayOrder> orders = payOrderMapper
                     .selectPendingOrdersForQuery(
-                            maxCreatedAt,   //-- ✅ 最早创建时间（now - 30min）
-                            lastCreatedAt,  //- ✅ 最晚创建时间（now）
-                            lastId,      //-- ✅ 游标分页（防重复）
+                            maxCreatedAt,
+                            lastCreatedAt,
+                            lastId,
                             batchSize
                     );
 
