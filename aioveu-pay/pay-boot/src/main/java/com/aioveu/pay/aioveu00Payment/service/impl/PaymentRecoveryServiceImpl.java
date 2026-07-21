@@ -97,8 +97,14 @@ public class PaymentRecoveryServiceImpl implements PaymentRecoveryService {
 //                    return;
 //                }
 
-                PayOrder freshOrder = payOrderMapper.selectById(payOrder.getId());
+                // 失败 / 关闭：只更新状态，不推进业务
+                log.info("【PaymentRecoveryServiceImpl】Job兜底,支付状态必须先落库, paymentNo={}, status={}",
+                        paymentNo, wx.getPaymentStatus());
 
+
+                PayOrder freshOrder = payOrderMapper.selectById(payOrder.getId());
+                log.info("【PaymentRecoveryServiceImpl】MQ 消息应该是“更新后的事实”, freshOrder:{}",
+                        freshOrder);
                 //MQ 消息应该是“更新后的事实”
                 paymentEventPublisher.publishPaymentSuccess(freshOrder);
                 triggerBusinessProcess(paymentNo);

@@ -58,20 +58,20 @@ public class PaymentEventPublisher {
 
             // 如果MQ发送失败，记录到补偿表
             if (!mqSuccess) {
-                log.warn("【微信回调】MQ发送失败，记录到补偿表: paymentNo={}", payOrder.getPaymentNo());
+                log.warn("【PaymentEventPublisher】MQ发送失败，记录到补偿表: paymentNo={}", payOrder.getPaymentNo());
                 mqCompensationTaskService.saveToCompensation(payOrder, "MQ_SEND_FAILED");
             }
 
             // 7. 记录处理时间
             long costTime = System.currentTimeMillis() - startTime;
-            log.info("【微信回调】支付成功处理完成: paymentNo={}, 订单号={}, 微信订单号={}, 耗时={}ms",
+            log.info("【PaymentEventPublisher】支付成功处理完成: paymentNo={}, 订单号={}, 微信订单号={}, 耗时={}ms",
                     payOrder.getPaymentNo(), payOrder.getOrderNo(), payOrder.getThirdTransactionNo(), costTime);
     }
 
 
 
     /**
-     * 支付成功事件（只发一次）
+     * 支付失败事件（只发一次）
      */
     public void publishPaymentFailure(PayOrder payOrder) {
 
@@ -94,13 +94,13 @@ public class PaymentEventPublisher {
 
         // 如果MQ发送失败，记录到补偿表
         if (!mqSuccess) {
-            log.warn("【微信回调】MQ发送失败，记录到补偿表: paymentNo={}", payOrder.getPaymentNo());
+            log.warn("【PaymentEventPublisher】支付失败事件MQ发送失败，记录到补偿表: paymentNo={}", payOrder.getPaymentNo());
             mqCompensationTaskService.saveToCompensation(payOrder, "MQ_SEND_FAILED");
         }
 
         // 7. 记录处理时间
         long costTime = System.currentTimeMillis() - startTime;
-        log.info("【微信回调】支付失败处理完成: paymentNo={}, 订单号={}, 微信订单号={}, 耗时={}ms",
+        log.info("【PaymentEventPublisher】支付失败处理完成: paymentNo={}, 订单号={}, 微信订单号={}, 耗时={}ms",
                 payOrder.getPaymentNo(), payOrder.getOrderNo(), payOrder.getThirdTransactionNo(), costTime);
     }
 

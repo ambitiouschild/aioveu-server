@@ -94,7 +94,7 @@ public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSen
 
         PayOrder payOrder = payOrderMapper.getPayOrderByNo(dto.getPaymentNo());
         if (payOrder == null) {
-            throw new BusinessException("支付订单不存在:{}",dto.getPaymentNo());
+            throw new BusinessException("【Mq ProducerServiceImpl】支付订单不存在:{}",dto.getPaymentNo());
         }
 
 
@@ -112,7 +112,7 @@ public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSen
                     .orElse(new BigDecimal("0.01"));
 
             dto.setPaymentAmount(amount);
-            log.info("金额兜底amount=:{}",amount);
+            log.info("【Mq ProducerServiceImpl】金额兜底amount=:{}",amount);
 
             // 交易号（没有就 mock）
             dto.setTransactionId(
@@ -133,7 +133,7 @@ public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSen
             LocalDateTime paymentTime = payOrder.getPaymentTime();
 
             if (paymentTime == null) {
-                log.warn("【Pay-mq】订单支付时间为空，使用当前时间兜底, paymentNo={}",
+                log.warn("【Mq ProducerServiceImpl】订单支付时间为空，使用当前时间兜底, paymentNo={}",
                         payOrder.getPaymentNo());
                 paymentTime = LocalDateTime.now();
             }
@@ -155,13 +155,13 @@ public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSen
             if (StringUtils.isBlank(messageId)) {
                 messageId = messageIdGenerator.generatePaymentMessageId(payOrder.getPaymentNo());
                 dto.setMessageId(messageId); // ✅ 这一行必须有  写入 DTO
-                log.info("【Pay-mq】使用payOrder.getPaymentNo(),生成messageId:{}",messageId);
+                log.info("【Mq ProducerServiceImpl】使用payOrder.getPaymentNo(),生成messageId:{}",messageId);
             }
 
             // 构建消息
             PaymentSuccessMessage message = buildPaymentSuccessMessage(payOrder, dto);
             //1️把 PaymentSuccessMessage设计成 “不可变、自解释”
-            log.info("【Pay-mq】构建消息成功:{}",message);
+            log.info("【Mq ProducerServiceImpl】构建消息成功:{}",message);
 
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
@@ -186,16 +186,16 @@ public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSen
                     .build();
 
             //2️把 RabbitSendRequest抽成 通用 MQ 发送模型
-            log.info("【Pay-mq】构建mq成功, RabbitSendRequest 不做任何业务决策:{}",request);
+            log.info("【Mq ProducerServiceImpl】构建mq成功, RabbitSendRequest 不做任何业务决策:{}",request);
 
             // 保存发送记录
             boolean saveMqSendRecord = saveMqSendRecord(request);
             if (!saveMqSendRecord) {
-                log.error("【Pay-mq】保存发送记录失败, messageId={}", messageId);
+                log.error("【Mq ProducerServiceImpl】保存发送记录失败, messageId={}", messageId);
                 return false;
             }
             //3️把 MqSendRecord做成 完全从 Request 映射，零业务逻辑
-            log.info("【Pay-mq】保存发送记录成功,saveMqSendRecord()—— 只负责落库:{}",saveMqSendRecord);
+            log.info("【Mq ProducerServiceImpl】保存发送记录成功,saveMqSendRecord()—— 只负责落库:{}",saveMqSendRecord);
 
 
 
@@ -211,7 +211,7 @@ public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSen
                 Throwable cause = e;
                 while (cause != null) {
                     if (cause instanceof java.util.concurrent.TimeoutException) {
-                        log.warn("MQ发送超时，但可能已送达, messageId={}", request.getMessageId());
+                        log.warn("【Mq ProducerServiceImpl】MQ发送超时，但可能已送达, messageId={}", request.getMessageId());
                         success = true;
                         break;
                     }
@@ -223,7 +223,7 @@ public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSen
                 }
             }
 
-            log.info("【Pay-mq】发送消息结果: success={}, messageId={}", success, messageId);
+            log.info("【Mq ProducerServiceImpl】发送消息结果: success={}, messageId={}", success, messageId);
 
 
             //MyBatis 一级缓存 / 自动提交 / 多数据源，都可能导致“同一线程查不到”
@@ -234,16 +234,16 @@ public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSen
             );
 
             if (success) {
-                log.info("【MQ发送】支付成功消息发送成功: paymentNo={}, messageId={}",
+                log.info("【Mq ProducerServiceImpl】支付成功消息发送成功: paymentNo={}, messageId={}",
                         payOrder.getPaymentNo(), messageId);
             } else {
-                log.error("消息发送失败: status={}", messageId);
+                log.error("【Mq ProducerServiceImpl】消息发送失败: status={}", messageId);
             }
 
             return success;
 
         } catch (Exception e) {
-            log.error("发送支付成功消息异常: paymentNo={}", payOrder.getPaymentNo(), e);
+            log.error("【Mq ProducerServiceImpl】发送支付成功消息异常: paymentNo={}", payOrder.getPaymentNo(), e);
             // 可以记录到补偿表，定时任务重试
 
             // 记录发送失败，后续补偿任务会重试
@@ -276,7 +276,7 @@ public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSen
 
         PayOrder payOrder = payOrderMapper.getPayOrderByNo(dto.getPaymentNo());
         if (payOrder == null) {
-            throw new BusinessException("支付订单不存在");
+            throw new BusinessException("【Mq ProducerServiceImpl】支付订单不存在");
         }
 
         //✅ 成功 / 失败用同一个生成规则
@@ -284,7 +284,7 @@ public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSen
         if (StringUtils.isBlank(messageId)) {
             messageId = messageIdGenerator.generatePaymentMessageId(payOrder.getPaymentNo());
             dto.setMessageId(messageId); // ✅ 这一行必须有
-            log.info("【Pay-mq】使用payOrder.getPaymentNo(),生成messageId:{}", messageId);
+            log.info("【Mq ProducerServiceImpl】失败消息使用payOrder.getPaymentNo(),生成messageId:{}", messageId);
         }
 
         try {
@@ -315,7 +315,7 @@ public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSen
             } catch (Exception e) {
 
                 if (e instanceof java.util.concurrent.TimeoutException) {
-                    log.warn("MQ发送超时，但可能已送达, messageId={}", request.getMessageId());
+                    log.warn("【Mq ProducerServiceImpl】失败消息MQ发送超时，但可能已送达, messageId={}", request.getMessageId());
                     success = true;
                 } else {
                     success = false;
@@ -330,14 +330,14 @@ public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSen
             );
 
             if (success) {
-                log.info("【RabbitMQ发送】支付失败消息发送成功: paymentNo={}, messageId={}",
+                log.info("【Mq ProducerServiceImpl】支付失败消息发送成功: paymentNo={}, messageId={}",
                         payOrder.getPaymentNo(), messageId);
             }
 
             return success;
 
         } catch (Exception e) {
-            log.error("发送支付失败消息异常: paymentNo={}", payOrder.getPaymentNo(), e);
+            log.error("【Mq ProducerServiceImpl】发送支付失败消息异常: paymentNo={}", payOrder.getPaymentNo(), e);
 
             if (messageId != null) {
                 mqSendRecordService.updateSendStatus(messageId, SendStatusEnum.FAILED, e.getMessage());
@@ -397,7 +397,7 @@ public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSen
 
                     // ✅ Timeout 不算失败
                     if (e instanceof java.util.concurrent.TimeoutException) {
-                        log.warn("MQ发送超时，但可能已送达, messageId={}", request.getMessageId());
+                        log.warn("【Mq ProducerServiceImpl】失败消息 MQ发送超时，但可能已送达, messageId={}", request.getMessageId());
                         success = true; // ✅ 或单独状态
                     } else {
                         success = false;
@@ -409,7 +409,7 @@ public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSen
             }catch (Exception e) {
                 result.incrementFailed();
                 result.addFailedMessage(message.getMessageId(), e.getMessage());
-                log.warn("批量发送消息失败: paymentNo={}", message.getPaymentNo(), e);
+                log.warn("【Mq ProducerServiceImpl】批量发送消息失败: paymentNo={}", message.getPaymentNo(), e);
 
             } finally {
                 long costTime = System.currentTimeMillis() - startTime;
@@ -473,7 +473,7 @@ public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSen
                 }
                 cause = cause.getCause();
             }
-            throw new MessageSendException("消息发送失败", e, messageId);
+            throw new MessageSendException("【Mq ProducerServiceImpl】消息发送失败", e, messageId);
         }
     }
 
@@ -487,7 +487,7 @@ public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSen
         String bizType = dto.getBizTypeEnum().getBizType();
         String topic =  dto.getBizTypeEnum().getTopic();
 
-        log.info("构建支付成功消息:bizType:{},topic:{}",bizType,topic);
+        log.info("【Mq ProducerServiceImpl】构建支付成功消息:bizType:{},topic:{}",bizType,topic);
 
 
         return PaymentSuccessMessage.builder()

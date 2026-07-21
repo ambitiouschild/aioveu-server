@@ -42,6 +42,21 @@ recover()
    * ✅ 这是标准支付兜底流程
 *
 * */
+
+/*
+* Job / 回调
+   ↓
+paymentEventPublisher.publishPaymentSuccess()
+   ↓
+RabbitMQ
+   ↓
+OMS Consumer
+   ↓
+更新订单状态
+*
+*
+*
+* */
 @Component
 @Slf4j
 public class PaymentReconciliationJob {
