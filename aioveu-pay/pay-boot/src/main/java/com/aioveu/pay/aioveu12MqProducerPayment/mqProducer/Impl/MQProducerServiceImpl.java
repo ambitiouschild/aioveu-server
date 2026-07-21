@@ -1,4 +1,4 @@
-package com.aioveu.pay.aioveu12MqProducerPayment.service.impl;
+package com.aioveu.pay.aioveu12MqProducerPayment.mqProducer.Impl;
 
 
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
@@ -24,7 +24,8 @@ import com.aioveu.common.rabbitmq.producer.model.payment.PaymentFailedMessage;
 import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
 import com.aioveu.pay.aioveu12MqProducerPayment.enums.PaymentMqBizType;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.SendPaymentMqDTO;
-import com.aioveu.pay.aioveu12MqProducerPayment.service.PayCommonMessageProducerService;
+import com.aioveu.pay.aioveu12MqProducerPayment.mqProducer.MQProducerService;
+import com.aioveu.pay.aioveu12MqProducerPayment.service.impl.AdapterMessageBuilderImpl;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -55,7 +56,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSendRecord> implements PayCommonMessageProducerService {
+public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSendRecord> implements MQProducerService {
 
 
     private final MessageIdGenerator messageIdGenerator;

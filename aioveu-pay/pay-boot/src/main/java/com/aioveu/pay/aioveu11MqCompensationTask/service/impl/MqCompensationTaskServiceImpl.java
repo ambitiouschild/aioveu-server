@@ -4,6 +4,7 @@ package com.aioveu.pay.aioveu11MqCompensationTask.service.impl;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
+import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
 import com.aioveu.pay.aioveu11MqCompensationTask.converter.MqCompensationTaskConverter;
@@ -29,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 // 正确的导入
@@ -267,6 +269,7 @@ public class MqCompensationTaskServiceImpl extends ServiceImpl<MqCompensationTas
     /**
      * 处理RabbitMQ发送结果
      */
+    @Override
     public void handleRabbitSendResult(boolean success, String correlationId, MqSendRecord record) {
         if (success) {
             mqSendRecordService.updateSendStatus(
@@ -284,6 +287,34 @@ public class MqCompensationTaskServiceImpl extends ServiceImpl<MqCompensationTas
             );
             log.error("RabbitMQ发送失败: messageId={}, correlationId={}",
                     record.getMessageId(), correlationId);
+        }
+    }
+
+
+    /**
+     * 保存到补偿表
+     */
+    @Override
+    public void saveToCompensation(PayOrder payOrder, String reason) {
+        try {
+            // TODO: 实现补偿表保存逻辑
+            log.info("保存到补偿表: paymentNo={}, reason={}", payOrder.getPaymentNo(), reason);
+
+            // 示例代码：
+            // CompensationRecord record = new CompensationRecord();
+            // record.setPaymentNo(payOrder.getPaymentNo());
+            // record.setOrderNo(payOrder.getOrderNo());
+            // record.setTenantId(payOrder.getTenantId());
+            // record.setEventType("WECHAT_CALLBACK");
+            // record.setReason(reason);
+            // record.setParams(JSON.toJSONString(params));
+            // record.setRetryCount(0);
+            // record.setStatus(CompensationStatusEnum.PENDING.getValue());
+            // record.setCreateTime(LocalDateTime.now());
+            // compensationRecordService.save(record);
+
+        } catch (Exception e) {
+            log.error("保存到补偿表异常: paymentNo={}", payOrder.getPaymentNo(), e);
         }
     }
 }

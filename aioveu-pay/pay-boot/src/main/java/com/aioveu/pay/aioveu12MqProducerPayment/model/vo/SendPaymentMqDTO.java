@@ -5,20 +5,26 @@ import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.pay.aioveu12MqProducerPayment.enums.PaymentMqBizType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
  * @ClassName: SendPaymentMqDTO
- * @Description TODO 请求 DTO（专门给 MQ 用）
+ * @Description TODO 请求 DTO（专门给 MQ 用） 这是 Spring / MQ / Builder 的“黄金组合”
  * @Author aioveu
  * @Author 雒世松
  * @Date 2026/5/20 23:44
  * @Version 1.0
  **/
 @Data
+@Builder //Builder只会生成“全参构造器”
+@AllArgsConstructor
+@NoArgsConstructor
 public class SendPaymentMqDTO {
 
 
@@ -39,7 +45,7 @@ public class SendPaymentMqDTO {
      * 订单号（oms_order.order_sn）
      */
 //    @NotBlank(message = "订单号不能为空")
-    private String omsOrderNo;
+    private String omsOrderSn;
 
 
     /**
@@ -73,7 +79,7 @@ public class SendPaymentMqDTO {
     private PaymentMqBizType BizTypeEnum;
 
     /** ✅ 消息类型 */
-    private String messageType = "PAYMENT_SUCCESS";
+    private PaymentMqBizType messageType;
 
     /**
      * 是否人工发送

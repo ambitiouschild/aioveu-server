@@ -1,6 +1,7 @@
 package com.aioveu.pay.aioveu11MqCompensationTask.service;
 
 
+import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu11MqCompensationTask.model.entity.MqCompensationTask;
 import com.aioveu.pay.aioveu11MqCompensationTask.model.form.MqCompensationTaskForm;
@@ -9,6 +10,8 @@ import com.aioveu.pay.aioveu11MqCompensationTask.model.vo.MqCompensationTaskVo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.apache.rocketmq.client.producer.SendResult;
+
+import java.util.Map;
 
 /**
  * @ClassName: MqCompensationTaskService
@@ -70,4 +73,15 @@ public interface MqCompensationTaskService extends IService<MqCompensationTask> 
 
     // 更详细的处理
     void handleSendResult(SendResult sendResult, MqSendRecord record);
+
+
+    /**
+     * 处理RabbitMQ发送结果
+     */
+    void handleRabbitSendResult(boolean success, String correlationId, MqSendRecord record);
+
+    /**
+     * 保存到补偿表
+     */
+    void saveToCompensation(PayOrder payOrder, String reason);
 }

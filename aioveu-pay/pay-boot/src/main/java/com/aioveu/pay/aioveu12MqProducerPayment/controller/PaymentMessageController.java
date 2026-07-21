@@ -5,7 +5,7 @@ import com.aioveu.common.annotation.Log;
 import com.aioveu.common.enums.LogModuleEnum;
 import com.aioveu.common.result.Result;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.SendPaymentMqDTO;
-import com.aioveu.pay.aioveu12MqProducerPayment.service.PayCommonMessageProducerService;
+import com.aioveu.pay.aioveu12MqProducerPayment.mqProducer.MQProducerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 public class PaymentMessageController {
 
 
-    private final PayCommonMessageProducerService payCommonMessageProducerService;
+    private final MQProducerService MQProducerService;
 
 
     /*
@@ -49,7 +49,7 @@ public class PaymentMessageController {
         log.info("【Pay-mq-send-message】不传 transactionId");
         log.info("【Pay-mq-send-message】不传 channel");
         sendPaymentMqDTO.setManualSend(true); // ✅ 标记为人工发送
-        boolean result = payCommonMessageProducerService.sendPaymentSuccessMessage(sendPaymentMqDTO);
+        boolean result = MQProducerService.sendPaymentSuccessMessage(sendPaymentMqDTO);
         return Result.judge(result);
     }
 
@@ -68,7 +68,7 @@ public class PaymentMessageController {
         SendPaymentMqDTO dto = new SendPaymentMqDTO();
         dto.setPaymentNo(paymentNo);
 
-        boolean success = payCommonMessageProducerService.sendPaymentSuccessMessage(dto);
+        boolean success = MQProducerService.sendPaymentSuccessMessage(dto);
         return success ? "ok" : "fail";
     }
 
@@ -85,7 +85,7 @@ public class PaymentMessageController {
         SendPaymentMqDTO dto = new SendPaymentMqDTO();
         dto.setPaymentNo(paymentNo);
 
-        boolean success = payCommonMessageProducerService.sendPaymentFailedMessage(dto);
+        boolean success = MQProducerService.sendPaymentFailedMessage(dto);
         return success ? "ok" : "fail";
     }
 
@@ -101,7 +101,7 @@ public class PaymentMessageController {
     public Result<Void> sendPaymentFailedMessage(
             @Parameter(description = "请求 DTO") @Valid @RequestBody SendPaymentMqDTO sendPaymentMqDTO
     ) {
-        boolean result = payCommonMessageProducerService.sendPaymentFailedMessage(sendPaymentMqDTO);
+        boolean result = MQProducerService.sendPaymentFailedMessage(sendPaymentMqDTO);
         return Result.judge(result);
     }
 

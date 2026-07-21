@@ -15,7 +15,6 @@ import com.aioveu.pay.aioveu00Payment.Processor.Impl.BusinessProcessorComposite;
 import com.aioveu.pay.aioveu00Payment.service.PaymentService;
 import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
-import com.aioveu.pay.aioveu00Payment.Processor.BusinessProcessor;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
 import com.aioveu.pay.aioveu06PayFlow.service.PayFlowService;
 import com.aioveu.pay.aioveu07PayNotify.service.PayNotifyService;
@@ -24,9 +23,9 @@ import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategy;
 import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategyFactory;
 //import com.aioveu.pay.aioveuModule.channelRouter.ChannelRouter;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
-import com.aioveu.pay.aioveu12MqProducerPayment.enums.PaymentMqBizType;
+import com.aioveu.pay.aioveu12MqProducerPayment.Publisher.PaymentEventPublisher;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.SendPaymentMqDTO;
-import com.aioveu.pay.aioveu12MqProducerPayment.service.PayCommonMessageProducerService;
+import com.aioveu.pay.aioveu12MqProducerPayment.mqProducer.MQProducerService;
 import com.aioveu.common.enums.pay.PaymentCallbackStatusEnum;
 import com.aioveu.pay.aioveu13PayCallbackRecord.model.entity.PayCallbackRecord;
 import com.aioveu.pay.aioveu13PayCallbackRecord.service.PayCallbackRecordService;
@@ -83,7 +82,7 @@ public class PaymentServiceImpl implements PaymentService {
 
 
     private final MqSendRecordService mqSendRecordService;
-    private final PayCommonMessageProducerService payCommonMessageProducerService;
+    private final MQProducerService MQProducerService;
     private final MessageIdGenerator messageIdGenerator;
 
     private final PayCallbackRecordService payCallbackRecordService;
@@ -108,6 +107,8 @@ public class PaymentServiceImpl implements PaymentService {
     //Spring 会自动注入 唯一实现类（如果有多个再配合 @Qualifier）。
     @Resource
     private BusinessProcessorComposite businessProcessorComposite;
+
+    private final PaymentEventPublisher paymentEventPublisher;
 
 
     /**
@@ -392,34 +393,13 @@ public class PaymentServiceImpl implements PaymentService {
             payFlowService.recordPaymentFlow(payOrder, paymentCallbackdto);
 
 
-            // 6. 发送MQ成功消息
-            SendPaymentMqDTO dto =  new SendPaymentMqDTO();
-            dto.setMessageId(messageIdGenerator.generatePaymentMessageId(paymentNo));
-            dto.setPaymentNo(payOrder.getPaymentNo());
-            dto.setOmsOrderNo(payOrder.getOrderNo());
-            dto.setPaymentAmount(payOrder.getPaymentAmount());
-            dto.setTransactionId(params.get("transaction_id"));
-            dto.setPaymentTime(LocalDateTime.now());
-            // ✅ 补上这两行
-            dto.setBizTypeEnum(PaymentMqBizType.PAYMENT_SUCCESS);
-
-            boolean mqSuccess = payCommonMessageProducerService.sendPaymentSuccessMessage(dto);
-
-            // 如果MQ发送失败，记录到补偿表
-            if (!mqSuccess) {
-                log.warn("【微信回调】MQ发送失败，记录到补偿表: paymentNo={}", paymentNo);
-                saveToCompensation(payOrder, params, "MQ_SEND_FAILED");
-            }
-
-            // 7. 记录处理时间
-            long costTime = System.currentTimeMillis() - startTime;
-            log.info("【微信回调】支付成功处理完成: paymentNo={}, 订单号={}, 微信订单号={}, 耗时={}ms",
-                    paymentNo, payOrder.getOrderNo(), params.get("transaction_id"), costTime);
+            // 2. 发布支付成功事件（只发 MQ）
+            paymentEventPublisher.publishPaymentSuccess(payOrder);
 
 
 
             // 微信回调 回调 / Job / 轮询 统一入口（终极形态）
-            // 支付成功 → 触发业务处理
+            // 支付成功 → 触发业务处理（不发 MQ）
             triggerBusinessProcess(paymentNo);
 
         } catch (Exception e) {
@@ -482,27 +462,9 @@ public class PaymentServiceImpl implements PaymentService {
                     params
             );
 
+            // 2. 发布支付是失败事件（只发 MQ）
+            paymentEventPublisher.publishPaymentFailure(payOrder);
 
-            // 3. 发送MQ失败消息
-            SendPaymentMqDTO dto = new SendPaymentMqDTO();
-
-            dto.setMessageId(messageIdGenerator.generatePaymentMessageId(paymentNo));
-            dto.setPaymentNo(payOrder.getPaymentNo());
-            dto.setOmsOrderNo(payOrder.getOrderNo());
-            dto.setPaymentAmount(payOrder.getPaymentAmount());
-            dto.setTransactionId(params.get("transaction_id"));
-            dto.setPaymentTime(LocalDateTime.now());
-
-
-            boolean mqSuccess = sendPaymentFailureMessage(dto);
-            if (!mqSuccess) {
-                log.warn("【微信回调】MQ失败消息发送失败，记录到补偿表: paymentNo={}", paymentNo);
-                saveToCompensation(payOrder, params, "MQ_FAILURE_SEND_FAILED");
-            }
-
-            // 4. 记录处理时间
-            long costTime = System.currentTimeMillis() - startTime;
-            log.warn("【微信回调】支付失败处理完成: paymentNo={}, 耗时={}ms", paymentNo, costTime);
 
             return generateWechatSuccessResponse(); // 对微信返回成功，避免重复通知
 
@@ -589,38 +551,14 @@ public class PaymentServiceImpl implements PaymentService {
      */
     private boolean sendPaymentFailureMessage(SendPaymentMqDTO dto) {
         try {
-            return payCommonMessageProducerService.sendPaymentFailedMessage(dto);
+            return MQProducerService.sendPaymentFailedMessage(dto);
         } catch (Exception e) {
             log.error("发送支付失败MQ消息异常: paymentNo={}", dto.getPaymentNo(), e);
             return false;
         }
     }
 
-    /**
-     * 保存到补偿表
-     */
-    private void saveToCompensation(PayOrder payOrder, Map<String, String> params, String reason) {
-        try {
-            // TODO: 实现补偿表保存逻辑
-            log.info("保存到补偿表: paymentNo={}, reason={}", payOrder.getPaymentNo(), reason);
 
-            // 示例代码：
-            // CompensationRecord record = new CompensationRecord();
-            // record.setPaymentNo(payOrder.getPaymentNo());
-            // record.setOrderNo(payOrder.getOrderNo());
-            // record.setTenantId(payOrder.getTenantId());
-            // record.setEventType("WECHAT_CALLBACK");
-            // record.setReason(reason);
-            // record.setParams(JSON.toJSONString(params));
-            // record.setRetryCount(0);
-            // record.setStatus(CompensationStatusEnum.PENDING.getValue());
-            // record.setCreateTime(LocalDateTime.now());
-            // compensationRecordService.save(record);
-
-        } catch (Exception e) {
-            log.error("保存到补偿表异常: paymentNo={}", payOrder.getPaymentNo(), e);
-        }
-    }
 
 
     /**
