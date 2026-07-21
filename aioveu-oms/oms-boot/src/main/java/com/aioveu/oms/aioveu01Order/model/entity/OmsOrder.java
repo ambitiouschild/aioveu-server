@@ -35,7 +35,7 @@ public class OmsOrder extends BaseEntityWithTenantId {
 	@TableId(type = IdType.AUTO)
 	private Long id;
 	/**
-	 * 订单号
+	 * 商户订单号 = orderSn
 	 */
 	private String orderSn;
 
@@ -60,12 +60,12 @@ public class OmsOrder extends BaseEntityWithTenantId {
 	/**
 	 * 订单来源(0-PC订单；1-app订单)
 	 */
-	private OrderSourceEnum source;
+	private Integer source;
 
 	/**
 	 * 订单状态(1-待付款;2-待发货;3-已发货;4-已完成;)
 	 */
-	private OrderStatusEnum status;
+	private Integer status;
 	/**
 	 * 订单备注
 	 */
@@ -111,7 +111,7 @@ public class OmsOrder extends BaseEntityWithTenantId {
 	 */
 	@TableField(value = "payment_channel",
 			typeHandler = PaymentChannelEnumCodeTypeHandler.class)
-	private PaymentChannelEnum paymentChannel;
+	private Integer paymentChannel;
 
 	/**
 	 * 数据库：INT
@@ -122,16 +122,24 @@ public class OmsOrder extends BaseEntityWithTenantId {
 	 */
 	@TableField(value = "payment_method",
 			typeHandler = PaymentMethodEnumCodeTypeHandler.class)
-	private PaymentMethodEnum paymentMethod;
+	private Integer paymentMethod;
 
 	/**
-	 * 商户订单号
+	 * 商户侧支付订单号 = outTradeNo = paymentNo
+	 * 商户侧支付订单号（支付服务生成的 paymentNo）
+	 * 对应微信/支付宝 out_trade_no
+	 * outTradeNo 是“微信/支付宝眼里的 paymentNo”
+	 * paymentNo 是“你支付服务眼里的 outTradeNo”
 	 */
-	@TableField(updateStrategy = FieldStrategy.IGNORED)
+//	@TableField(updateStrategy = FieldStrategy.IGNORED)
+			//支付订单号一旦写入，绝不允许修改
+	@TableField(updateStrategy = FieldStrategy.NEVER)
 	private String outTradeNo;
 	/**
 	 * 微信支付订单号
 	 * 发货时：oms → 查 pay → 拿 transaction_id,transaction_id是“钱”的属性.弃用
+	 * transactionId ≠ paymentNo / outTradeNo
+	 * 它是“钱已经落袋”之后，微信/支付宝给你的“银行回单号”。
 	 */
 	private String transactionId;
 	/**

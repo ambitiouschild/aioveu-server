@@ -144,7 +144,7 @@ public interface PayOrderService extends IService<PayOrder> {
     /**
      * 根据订单号查询支付订单
      */
-    PayOrderVO getPayOrderByOmsOrderNo(String orderNo);
+    PayOrderVO getPayOrderByOmsOrderSn(String orderSn);
 
     /**
      * 根据omsOrderSn查询ThirdTransactionNo

@@ -30,6 +30,9 @@ public class PaymentMessage implements Serializable {
     /** 商户支付单号（唯一幂等键） */
     private String paymentNo;
 
+    /** 商户支付单号（唯一幂等键） */
+    private String orderSn;
+
     /** 支付场景 ✅ 推荐（强类型）*/
     private PaymentSceneEnum paymentSceneEnum;
 

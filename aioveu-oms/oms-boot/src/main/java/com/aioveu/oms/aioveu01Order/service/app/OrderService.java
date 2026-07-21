@@ -164,5 +164,9 @@ public interface OrderService extends IService<OmsOrder> {
     * 订单支付
     * */
     PaymentParamsVO payOrder(PaymentRequestFEToOmsDTO form);
+
+
+
+    void handleOrderPaid(String paymentNo, String orderNo);
 }
 

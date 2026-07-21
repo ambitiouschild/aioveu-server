@@ -76,8 +76,8 @@ public interface PayFeignClient {
     /**
      * 根据订单号查询支付订单 no = 我引用别人的
      */
-    @GetMapping("/aioveu/api/v8/app/pay/pay-order/getPayOrderByOmsOrderNo")
-    PayOrderVO getPayOrderByOmsOrderNo(@RequestParam("orderNo") String orderNo);
+    @GetMapping("/aioveu/api/v8/app/pay/pay-order/getPayOrderByOmsOrderSn")
+    PayOrderVO getPayOrderByOmsOrderSn(@RequestParam("orderSn") String orderSn);
 
     /**
      * 根据omsOutTradeNo查询ThirdTransactionNo

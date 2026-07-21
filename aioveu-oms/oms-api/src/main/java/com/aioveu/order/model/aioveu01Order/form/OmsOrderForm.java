@@ -47,11 +47,11 @@ public class OmsOrderForm implements Serializable {
     private Integer totalQuantity;
 
     @Schema(description = "订单来源(1:APP；2:网页)")
-    private OrderSourceEnum source;
+    private Integer source;
 
     @Schema(description = "订单状态：")
     @NotNull(message = "【OmsOrderForm】订单状态不能为空")
-    private OrderStatusEnum status;
+    private Integer status;
 
     @Schema(description = "订单备注")
     @NotBlank(message = "【OmsOrderForm】订单备注不能为空")
@@ -90,10 +90,10 @@ public class OmsOrderForm implements Serializable {
     /**
      * 支付渠道【1->支付宝；2->微信支付；3->银联；4->余额；5->模拟支付；6->未知；】
      */
-    private PaymentChannelEnum paymentChannel;
+    private Integer paymentChannel;
 
     @Schema(description = "支付方式(1：微信JSAPI；2：支付宝；3：余额；4：微信APP)")
-    private PaymentMethodEnum paymentMethod;
+    private Integer paymentMethod;
 
     @Schema(description = "微信支付等第三方支付平台的商户订单号")
     @Size(max=32, message="微信支付等第三方支付平台的商户订单号长度不能超过32个字符")

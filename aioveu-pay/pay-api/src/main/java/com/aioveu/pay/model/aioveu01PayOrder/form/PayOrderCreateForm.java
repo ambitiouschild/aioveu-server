@@ -53,6 +53,12 @@ public class PayOrderCreateForm implements Serializable {
     @NotNull(message = "【PayOrderCreateForm】支付方式不能为空")
     private Integer paymentMethod;
 
+
+    /**
+     * 支付场景：ORDER-商品订单 MEMBERSHIP-会员开通 RECHARGE-账户充值 ACTIVITY-活动订单
+     */
+    private Integer paymentScene;
+
     @Schema(description = "订单标题")
     @Size(max = 200)
     private String subject;

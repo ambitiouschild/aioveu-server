@@ -332,15 +332,15 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public PayOrderVO getPayOrderByOmsOrderNo(String orderNo) {
+    public PayOrderVO getPayOrderByOmsOrderSn(String orderSn) {
 
-        if (StrUtil.isBlank(orderNo)) {
+        if (StrUtil.isBlank(orderSn)) {
             return null;
         }
 
         PayOrder payOrder = this.baseMapper.selectOne(
                 new LambdaQueryWrapper<PayOrder>()
-                        .eq(PayOrder::getOrderNo, orderNo)
+                        .eq(PayOrder::getOrderNo, orderSn)
                         .last("limit 1")
         );
         // 转换并保存
@@ -348,7 +348,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
 
         // 1. 校验 outTradeNo
         if (payOrderVO == null) {
-            throw new BusinessException("【PayOrder】payOrder不存在,orderNo:{}",orderNo);
+            throw new BusinessException("【PayOrder】payOrder不存在,orderSn:{}",orderSn);
         }
 
         // ✅ 永远用 orderNo 查

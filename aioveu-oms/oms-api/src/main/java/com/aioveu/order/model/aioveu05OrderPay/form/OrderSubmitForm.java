@@ -69,13 +69,13 @@ public class OrderSubmitForm {
      * 支付方式【1->支付宝；2->微信；3->银联；4->余额；】
      */
 
-    private PaymentChannelEnum paymentChannel;
+    private Integer paymentChannel;
 
     /**
      * 支付方式【1->APP支付；2->H5支付；3->小程序/公众号支付；4->扫码支付；】
      */
 
-    private PaymentMethodEnum paymentMethod;
+    private Integer paymentMethod;
 
 
     @Schema(description="收获地址")
