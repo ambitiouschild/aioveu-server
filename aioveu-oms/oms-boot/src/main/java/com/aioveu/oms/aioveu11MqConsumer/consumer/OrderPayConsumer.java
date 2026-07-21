@@ -2,6 +2,7 @@ package com.aioveu.oms.aioveu11MqConsumer.consumer;
 
 
 import com.aioveu.common.exception.BusinessException;
+import com.aioveu.common.rabbitmq.constant.PayCommonMqConstantWithBizName;
 import com.aioveu.common.rabbitmq.producer.model.payment.PaymentMessage;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
 import com.rabbitmq.client.Channel;
@@ -48,7 +49,7 @@ public class OrderPayConsumer {
      * 支付成功消息消费
      */
     @RabbitListener(
-            queues = "order.pay.success.queue",
+            queues = PayCommonMqConstantWithBizName.Queue.SUCCESS,
             ackMode = "MANUAL"
     )
     public void onMessage(
