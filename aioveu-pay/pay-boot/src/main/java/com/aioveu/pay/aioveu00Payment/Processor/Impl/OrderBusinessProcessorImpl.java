@@ -52,7 +52,14 @@ public class OrderBusinessProcessorImpl implements BusinessProcessor {
      * ✅ 只负责：发送支付成功事件
      */
     //@Async放在「BusinessProcessor 的具体实现类」里
-    @Async("bizExecutor")
+//    @Async("bizExecutor")
+
+    /*
+        MQ 发送本身就是异步
+        RabbitTemplate 非阻塞
+        你已经在 Job / 回调线程里了
+        再 @Async= 线程浪费 + Trace 丢失
+* */
     @Override
     public void onPaid(String paymentNo) {
 

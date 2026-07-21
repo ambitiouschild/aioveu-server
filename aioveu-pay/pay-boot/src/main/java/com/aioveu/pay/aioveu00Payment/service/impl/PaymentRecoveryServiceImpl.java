@@ -66,6 +66,8 @@ public class PaymentRecoveryServiceImpl implements PaymentRecoveryService {
         }
 
         try {
+
+            //查询微信状态
             PaymentStatusVO wx = weChatPayService.queryPayment(paymentNo);
 
             if (wx == null) {
