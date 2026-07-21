@@ -148,14 +148,14 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
     @Transactional(rollbackFor = Exception.class)
     public String createPayOrder(PayOrderCreateForm formData) {
 
-        String orderNo = formData.getOrderNo();
+        String orderSn = formData.getOrderSn();
 
         // 幂等校验（最关键）
         if (this.lambdaQuery()
-                .eq(PayOrder::getOrderNo, orderNo)
+                .eq(PayOrder::getOrderNo, orderSn)
                 .exists()) {
-            log.warn("支付订单已存在，orderNo={}", orderNo);
-            return orderNo;
+            log.warn("支付订单已存在，orderSn={}", orderSn);
+            return orderSn;
         }
 
 
@@ -166,7 +166,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
 
 
         // 3️拷贝业务字段（OMS 主权）
-        entity.setOrderNo(formData.getOrderNo());
+        entity.setOrderNo(formData.getOrderSn());
         entity.setBizType(formData.getBizType());
         entity.setUserId(formData.getUserId());
         entity.setPaymentAmount(formData.getPaymentAmount());
@@ -176,7 +176,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         //Pay 在 PayOrderForm 中显式指定 bizType = ORDER
         // 4️ Pay 自己控制的字段
 
-        entity.setPaymentStatus(PaymentStatusEnum.UNPAID.getCode());
+        entity.setPaymentStatus(PaymentStatusEnum.UNPAID);
         entity.setIsDeleted(0);
         entity.setNotifyStatus(0);
         entity.setNotifyCount(0);
@@ -184,7 +184,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
 
 
         entity.setSubject("商品购买");
-        entity.setBody("订单号：" + formData.getOrderNo());
+        entity.setBody("订单号：" + formData.getOrderSn());
 
         // 5️落库
         this.baseMapper.insert(entity);
@@ -255,13 +255,13 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         PaymentCallbackStatusEnum status = callback.getStatus();
         // 设置状态
         if (status == PaymentCallbackStatusEnum.SUCCESS) {
-            order.setPaymentStatus(PaymentStatusEnum.PAID.getCode());
+            order.setPaymentStatus(PaymentStatusEnum.PAID);
             order.setPaymentTime(callback.getPaidTime());
             order.setThirdPaymentNo(callback.getThirdTransactionId());
             order.setErrorCode(null);
             order.setErrorMessage(null);
         } else {
-            order.setPaymentStatus(PaymentStatusEnum.FAILED.getCode());
+            order.setPaymentStatus(PaymentStatusEnum.FAILED);
             order.setErrorCode(callback.getErrorCode());
             order.setErrorMessage(callback.getErrorMessage());
         }
@@ -296,7 +296,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         }
 
         // 根据业务类型处理
-        PaymentBizTypeEnum bizType = PaymentBizTypeEnum.fromCode(order.getBizType());
+        PaymentBizTypeEnum bizType = order.getBizType();
 //        String bizId = order.getBizId();
 
         switch (bizType) {
@@ -399,7 +399,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         try {
             // 1. 更新订单状态
             PaymentStatusEnum newStatus = success ? PaymentStatusEnum.PAID : PaymentStatusEnum.FAILED;
-            payOrder.setPaymentStatus(newStatus.getCode());
+            payOrder.setPaymentStatus(newStatus);
 
             // 2. 更新支付完成时间
             if (success) {
@@ -574,14 +574,14 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         PayOrder payOrder = this.selectByPaymentNo(paymentNo);
         if (payOrder == null) {
             paymentStatusVO.setErrorMessage("订单不存在");
-            paymentStatusVO.setPaymentStatus(PaymentStatusEnum.UNKNOWN.getCode()); // 特殊状态：订单不存在
+            paymentStatusVO.setPaymentStatus(PaymentStatusEnum.UNKNOWN); // 特殊状态：订单不存在
             log.info("【前端调用：查询支付状态】订单不存在");
             return paymentStatusVO;
         }
         paymentStatusVO.setPaymentStatus(payOrder.getPaymentStatus());
 
         // 2. 如果订单已支付，直接返回
-        if (paymentStatusVO.getPaymentStatus() == PaymentStatusEnum.PAID.getCode()) {
+        if (paymentStatusVO.getPaymentStatus() == PaymentStatusEnum.PAID) {
             paymentStatusVO.setErrorMessage("订单已支付");
             return paymentStatusVO;
         }
@@ -604,7 +604,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
                     update.setPaymentStatus(wxResult.getPaymentStatus());
                     update.setThirdTransactionNo(wxResult.getThirdPaymentNo());
 
-                    if (wxResult.getPaymentStatus() == PaymentStatusEnum.PAID.getCode()) {
+                    if (wxResult.getPaymentStatus() == PaymentStatusEnum.PAID) {
                         update.setPaymentTime(wxResult.getPaymentTime()); // ✅
                     }
 
@@ -641,7 +641,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
     * */
     private boolean needQueryWechat(PayOrder payOrder) {
         // 1. 已终态，不查
-        if (PaymentStatusEnum.isTerminal(PaymentStatusEnum.fromCode(payOrder.getPaymentStatus()))) {
+        if (PaymentStatusEnum.isTerminal(payOrder.getPaymentStatus())) {
             return false;
         }
 
@@ -664,7 +664,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         // 1. 更新支付单
         boolean result = this.updateStatusByPaymentNo(
                 payOrder.getPaymentNo(),
-                PaymentStatusEnum.fromCode(wxResult.getPaymentStatus())
+                wxResult.getPaymentStatus()
         );
 
 //        // 2. 只更新订单支付状态，不改订单主状态
@@ -718,7 +718,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         }
 
         // ✅ 终态保护
-        if (PaymentStatusEnum.isTerminal(PaymentStatusEnum.fromCode(payOrder.getPaymentStatus()))) {
+        if (PaymentStatusEnum.isTerminal(payOrder.getPaymentStatus())) {
 
             log.info("支付单已是终态，跳过更新, paymentNo={}, currentStatus={}",
                     paymentNo, payOrder.getPaymentStatus());
@@ -726,13 +726,13 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         }
 
         // ✅ 状态未变化
-        if (payOrder.getPaymentStatus() == targetStatus.getCode()) {
+        if (payOrder.getPaymentStatus() == targetStatus) {
             return false;
         }
 
         boolean success = this.updateStatusToTargetStatus(
                 paymentNo,
-                PaymentStatusEnum.fromCode(payOrder.getPaymentStatus()), // ✅ 用当前状态  //fromStatus 必须是“当前真实状态”，不能硬编码
+                payOrder.getPaymentStatus(), // ✅ 用当前状态  //fromStatus 必须是“当前真实状态”，不能硬编码
                 targetStatus,
                 payOrder.getVersion()
         );

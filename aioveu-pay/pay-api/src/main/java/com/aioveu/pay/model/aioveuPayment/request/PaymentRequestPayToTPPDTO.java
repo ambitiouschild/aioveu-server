@@ -50,7 +50,7 @@ public class PaymentRequestPayToTPPDTO implements Serializable {
      * 业务类型：REFUND-退款 ORDER-订单 RECHARGE-充值
      */
     @NotNull(message = "【PaymentRequestPayToTPPDTO】业务类型不能为空")
-    private Integer bizType;
+    private PaymentBizTypeEnum bizType;
 
     @NotNull(message = "【PaymentRequestPayToTPPDTO】用户ID不能为空")
     private Long userId;
@@ -66,7 +66,7 @@ public class PaymentRequestPayToTPPDTO implements Serializable {
     比喻：银行/支付机构，就像不同的银行*/
     @Schema(description = "支付渠道")
     @NotNull(message = "【PaymentRequestPayToTPPDTO】支付渠道不能为空")
-    private Integer paymentChannel;
+    private PaymentChannelEnum paymentChannel;
 
     /*    支付类型/方式 (Pay Type)
     定义：指具体的支付交互方式
@@ -75,7 +75,7 @@ public class PaymentRequestPayToTPPDTO implements Serializable {
     比喻：银行的支付方式，就像银行的ATM、网银、手机银行*/
     @Schema(description = "支付类型/方式")
     @NotNull(message = "【PaymentRequestPayToTPPDTO】支付类型/方式不能为空")
-    private Integer paymentMethod;
+    private PaymentMethodEnum paymentMethod;
 
     @NotBlank(message = "订单标题不能为空")
     private String subject;

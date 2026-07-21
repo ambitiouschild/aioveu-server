@@ -4,6 +4,7 @@ package com.aioveu.pay.model.aioveu01PayOrder.form;
 import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.common.enums.pay.PaymentMethodEnum;
+import com.aioveu.common.enums.pay.PaymentSceneEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -31,11 +32,11 @@ public class PayOrderCreateForm implements Serializable {
 
     @Schema(description = "业务订单号")
     @NotBlank(message = "【PayOrderCreateForm】业务订单号不能为空")
-    private String orderNo;
+    private String orderSn;
 
     @Schema(description = "业务类型")
     @NotNull(message = "【PayOrderCreateForm】业务类型不能为空")
-    private Integer bizType;
+    private PaymentBizTypeEnum bizType;
 
     @Schema(description = "用户ID")
     @NotNull(message = "【PayOrderCreateForm】用户ID不能为空")
@@ -47,17 +48,17 @@ public class PayOrderCreateForm implements Serializable {
 
     @Schema(description = "支付渠道")
     @NotNull(message = "【PayOrderCreateForm】支付渠道不能为空")
-    private Integer paymentChannel;
+    private PaymentChannelEnum paymentChannel;
 
     @Schema(description = "支付方式")
     @NotNull(message = "【PayOrderCreateForm】支付方式不能为空")
-    private Integer paymentMethod;
+    private PaymentMethodEnum paymentMethod;
 
 
     /**
      * 支付场景：ORDER-商品订单 MEMBERSHIP-会员开通 RECHARGE-账户充值 ACTIVITY-活动订单
      */
-    private Integer paymentScene;
+    private PaymentSceneEnum paymentScene;
 
     @Schema(description = "订单标题")
     @Size(max = 200)

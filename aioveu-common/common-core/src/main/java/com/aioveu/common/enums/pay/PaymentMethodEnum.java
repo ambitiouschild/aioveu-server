@@ -1,6 +1,7 @@
 package com.aioveu.common.enums.pay;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 /**
@@ -32,6 +33,7 @@ public enum PaymentMethodEnum {
     }
 
                 // 关键！
+    @JsonValue   // ✅ 关键：告诉 Jackson，JSON 用这个
     @Getter
     private int code;     // OMS 用
 

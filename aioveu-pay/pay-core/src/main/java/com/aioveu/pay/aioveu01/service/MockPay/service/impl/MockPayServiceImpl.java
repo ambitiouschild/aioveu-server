@@ -354,7 +354,7 @@ public class MockPayServiceImpl implements MockPayService {
                 .paymentNo(response.getOutTradeNo())
                 .thirdPaymentNo(response.getTradeNo())
                 .amount(parseBigDecimal(response.getTotalAmount()))
-                .paymentStatus(convertAlipayStatus(response.getTradeStatus()).getCode())
+                .paymentStatus(convertAlipayStatus(response.getTradeStatus()))
                 .paymentTime(toLocalDateTime(response.getSendPayDate()))
                 .build();
     }

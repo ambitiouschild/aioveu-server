@@ -1,6 +1,7 @@
 package com.aioveu.pay.aioveu01PayOrder.mapper;
 
 
+import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu01PayOrder.model.query.PayOrderQuery;
 import com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO;
@@ -87,7 +88,7 @@ public interface PayOrderMapper extends BaseMapper<PayOrder>{
      * 状态机更新：只允许非终态 → 终态
      */
     int updateStatusIfNonTerminal(@Param("id") Long id,
-                                  @Param("status") Integer status,
+                                  @Param("status") PaymentStatusEnum status,
                                   @Param("thirdNo") String thirdNo,
                                   @Param("paymentTime") LocalDateTime paymentTime);
 

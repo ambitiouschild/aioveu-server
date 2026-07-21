@@ -47,7 +47,7 @@ public class PaymentRecoveryServiceImpl implements PaymentRecoveryService {
                         .eq(PayOrder::getPaymentNo, paymentNo)
         );
 
-        if (order == null || PaymentStatusEnum.isTerminal(PaymentStatusEnum.fromCode(order.getPaymentStatus()))){
+        if (order == null || PaymentStatusEnum.isTerminal(order.getPaymentStatus())){
             return;
         }
 
@@ -63,7 +63,7 @@ public class PaymentRecoveryServiceImpl implements PaymentRecoveryService {
                 return;
             }
 
-            PaymentStatusEnum statusEnum = PaymentStatusEnum.fromCode(wx.getPaymentStatus());
+            PaymentStatusEnum statusEnum = wx.getPaymentStatus();
             if (!PaymentStatusEnum.isTerminal(statusEnum)) {
                 payOrderMapper.updateLastQueryTime(
                         order.getId(),

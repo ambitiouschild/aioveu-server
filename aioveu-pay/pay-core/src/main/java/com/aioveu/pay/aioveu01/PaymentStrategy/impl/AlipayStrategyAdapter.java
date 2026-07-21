@@ -101,7 +101,7 @@ public class AlipayStrategyAdapter implements PaymentStrategy{
             // 设置订单号
             request.setPayOrderNo(paymentNo);
 
-            PaymentMethodEnum paymentMethod = PaymentMethodEnum.fromCode(request.getPaymentMethod());
+            PaymentMethodEnum paymentMethod = request.getPaymentMethod();
 
             // 根据支付类型调用不同的支付方法
             switch (paymentMethod) {

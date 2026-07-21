@@ -41,7 +41,7 @@ public class PaymentSuccessMessage implements Serializable {
     private String orderNo;
     private String transactionId;
     private BigDecimal amount;
-    private Integer channel;  // wechat/alipay
+    private PaymentChannelEnum channel;  // wechat/alipay
 
     // 业务信息
     private Long tenantId;

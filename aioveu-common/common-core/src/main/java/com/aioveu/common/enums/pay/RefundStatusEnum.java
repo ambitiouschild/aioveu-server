@@ -1,6 +1,7 @@
 package com.aioveu.common.enums.pay;
 
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 /**
@@ -24,6 +25,7 @@ public enum RefundStatusEnum {
         this.label = label;
     }
 
+    @JsonValue   // ✅ 关键：告诉 Jackson，JSON 用这个
     @Getter
     private Integer value;
 

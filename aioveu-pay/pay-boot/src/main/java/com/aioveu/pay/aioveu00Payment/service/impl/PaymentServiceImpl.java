@@ -130,12 +130,12 @@ public class PaymentServiceImpl implements PaymentService {
             String paymentNo = payOrder.getPaymentNo();
             log.info("【Pay】支付订单支付单号paymentNo：{}",paymentNo);
 
-            if (payOrder.getPaymentStatus() != PaymentStatusEnum.PAYING.getCode()) {
+            if (payOrder.getPaymentStatus() != PaymentStatusEnum.PAYING) {
                 throw new BusinessException("支付单状态异常");
             }
 
             // 3. 根据支付渠道选择支付策略
-            PaymentStrategy strategy = strategyFactory.getStrategy(PaymentChannelEnum.fromCode(request.getPaymentChannel()));
+            PaymentStrategy strategy = strategyFactory.getStrategy(request.getPaymentChannel());
             log.info("【Pay】获取支付策略：{}",strategy.getClass().getSimpleName());
 
             // 4. 调用策略获取支付参数,调第三方
@@ -185,7 +185,7 @@ public class PaymentServiceImpl implements PaymentService {
                 throw new BusinessException(ResultCode.ORDER_NOT_FOUND, "支付订单不存在");
             }
 
-            PaymentStatusEnum paymentStatus = PaymentStatusEnum.fromCode(payorder.getPaymentStatus());
+            PaymentStatusEnum paymentStatus = payorder.getPaymentStatus();
             // ============ 3. 避免重复处理 ============
             if ( paymentStatus != PaymentStatusEnum.UNPAID
                     && paymentStatus != PaymentStatusEnum.PAYING) {
@@ -503,7 +503,7 @@ public class PaymentServiceImpl implements PaymentService {
      * 检查订单是否可处理
      */
     private boolean isProcessable(PayOrder payOrder) {
-        PaymentStatusEnum status = PaymentStatusEnum.fromCode(payOrder.getPaymentStatus());
+        PaymentStatusEnum status = payOrder.getPaymentStatus();
         return status == PaymentStatusEnum.UNPAID
                 || status == PaymentStatusEnum.PAYING;
     }
@@ -858,7 +858,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         //PayOrder 是“唯一可信资金来源”
         //✅ 1.查支付订单（✅ 必须补）（✅ 金额唯一可信来源）  ✅ 方案二（兜底）：Pay 完全不查订单状态
-        PayOrderVO payOrder = payOrderService.getPayOrderByOmsOrderNo(orderSn);
+        PayOrderVO payOrder = payOrderService.getPayOrderByOmsOrderSn(orderSn);
         if (payOrder == null) {
             throw new BizException("【createPaymentOmsToPay】支付订单不存在");
         }
@@ -927,7 +927,7 @@ public class PaymentServiceImpl implements PaymentService {
 
             // 1️再次确认 PayOrder 状态（防止并发）
             // 并发安全校验（幂等核心）
-            PayOrderVO current = payOrderService.getPayOrderByOmsOrderNo(orderSn);
+            PayOrderVO current = payOrderService.getPayOrderByOmsOrderSn(orderSn);
             if (current == null) {
                 throw new BizException("【createPaymentOmsToPay】支付订单不存在");
             }

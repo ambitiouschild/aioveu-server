@@ -50,7 +50,7 @@ public class PayOrderForm implements Serializable {
 
     @Schema(description = "业务类型：REFUND-退款 ORDER-订单 RECHARGE-充值")
     @NotNull(message = "业务类型：REFUND-退款 ORDER_PAY-订单 RECHARGE-充值不能为空")
-    private Integer bizType;
+    private PaymentBizTypeEnum bizType;
 
     @Schema(description = "用户ID")
     @NotNull(message = "用户ID不能为空")
@@ -62,15 +62,15 @@ public class PayOrderForm implements Serializable {
 
     @Schema(description = "支付状态：0-待支付 1-支付中 2-支付成功 3-支付失败 4-已关闭 5-已退款")
     @NotNull(message = "支付状态：0-待支付 1-支付中 2-支付成功 3-支付失败 4-已关闭 5-已退款不能为空")
-    private Integer paymentStatus;
+    private PaymentStatusEnum paymentStatus;
 
     @Schema(description = "支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额")
     @NotNull(message = "支付渠道：ALIPAY-支付宝 WECHAT-微信 UNIONPAY-银联 BALANCE-余额不能为空")
-    private Integer paymentChannel;
+    private PaymentChannelEnum paymentChannel;
 
     @Schema(description = "支付方式：APP-APP支付 H5-H5支付 JSAPI-小程序/公众号 NATIVE-扫码支付")
     @NotNull(message = "支付方式不能为空")
-    private Integer paymentMethod;
+    private PaymentMethodEnum paymentMethod;
 
     @Schema(description = "支付时间")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")

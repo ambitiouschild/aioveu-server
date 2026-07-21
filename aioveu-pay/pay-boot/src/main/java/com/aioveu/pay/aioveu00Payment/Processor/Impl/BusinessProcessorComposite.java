@@ -54,7 +54,7 @@ public class BusinessProcessorComposite implements BusinessProcessor {
             return;
         }
 
-        PaymentSceneEnum scene = PaymentSceneEnum.fromCode(order.getPaymentScene());
+        PaymentSceneEnum scene = order.getPaymentScene();
 
         if (scene == null) {
             log.error("未知支付场景, paymentNo={}", paymentNo);

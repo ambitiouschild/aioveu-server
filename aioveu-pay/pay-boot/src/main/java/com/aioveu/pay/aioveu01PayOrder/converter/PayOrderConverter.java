@@ -24,29 +24,10 @@ import org.mapstruct.Named;
 public interface PayOrderConverter {
 
 
-
-    @Named("enumToCode")
-    default Integer enumToCode(BaseEnum baseEnum) {
-        return baseEnum == null ? null : baseEnum.getCode();
-    }
-    //java: Can't map property "BigDecimal paymentAmount" to "BigDecimal paymentAmount".
-    // Consider to declare/implement a mapping method: "BigDecimal map(BigDecimal value)".
-    // 或者使用@Mapping的source属性
-    @Mapping(target = "bizType", source = "bizType", qualifiedByName = "enumToCode")
-    @Mapping(target = "paymentStatus", source = "paymentStatus", qualifiedByName = "enumToCode")
-    @Mapping(target = "paymentChannel", source = "paymentChannel", qualifiedByName = "enumToCode")
-    @Mapping(target = "paymentMethod", source = "paymentMethod", qualifiedByName = "enumToCode")
     PayOrderForm toForm(PayOrder entity);
 
     PayOrderVO toVO(PayOrder entity);
 
-
-    @Mapping(target = "paymentChannel",
-            expression = "java(com.aioveu.common.enums.pay.PaymentChannelEnum.fromCode(form.getPaymentChannel(), PaymentChannelEnum.class))")
-    @Mapping(target = "paymentMethod",
-            expression = "java(com.aioveu.common.enums.pay.PaymentMethodEnum.fromCode(form.getPaymentMethod(), PaymentMethodEnum.class))")
-    @Mapping(target = "bizType",
-            expression = "java(com.aioveu.common.enums.pay.PaymentBizTypeEnum.fromCode(form.getBizType(), PaymentBizTypeEnum.class))")
     PayOrder toEntity(PayOrderForm formData);
 
     PayNotifyDTO  toPayNotifyDTO(PayOrder order );

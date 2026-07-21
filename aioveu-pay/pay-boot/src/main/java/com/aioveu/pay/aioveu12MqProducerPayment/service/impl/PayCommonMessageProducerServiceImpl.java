@@ -123,7 +123,7 @@ public class PayCommonMessageProducerServiceImpl extends ServiceImpl<MqSendRecor
             // 渠道
             dto.setChannel(
                     payOrder.getPaymentChannel() != null
-                            ? PaymentChannelEnum.fromCode(payOrder.getPaymentChannel())
+                            ? payOrder.getPaymentChannel()
                             : PaymentChannelEnum.ALIPAY
             );
 
