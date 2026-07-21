@@ -14,6 +14,7 @@ import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu01PayOrder.model.query.PayOrderQuery;
 import com.aioveu.pay.aioveu00Payment.Processor.BusinessProcessor;
+import com.aioveu.pay.aioveu12MqProducerPayment.Publisher.PaymentEventPublisher;
 import com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
 import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
@@ -73,7 +74,6 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
     //Spring 会自动注入 唯一实现类（如果有多个再配合 @Qualifier）。
     @Resource
     private BusinessProcessorComposite businessProcessorComposite;
-
 
     /**
      * 获取支付订单分页列表
@@ -614,10 +614,12 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
                      // ✅ 更新最后查询时间
                     this.updateLastQueryTime(paymentNo, LocalDateTime.now());
 
+                    //✅ 只有“支付系统内部确认支付成功”时才发 MQ
+                    //✅ MQ 是系统行为，不是用户行为触发的副作用
 
-                    //回调 / Job / 轮询 统一入口（终极形态）
-                    // 支付成功 → 触发业务处理
-                    triggerBusinessProcess(paymentNo);
+                    //✅ 轮询只负责“同步状态”
+                    //✅ 不负责“推进业务”
+                    //✅ 不负责“发 MQ”
 
                 }
                 paymentStatusVO.setPaymentStatus(wxResult.getPaymentStatus());
@@ -632,14 +634,6 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         return paymentStatusVO;
     }
 
-    private void triggerBusinessProcess(String paymentNo) {
-        try {
-            businessProcessorComposite.onPaid(paymentNo);
-        } catch (Exception e) {
-            log.error("支付成功业务处理失败, paymentNo={}", paymentNo, e);
-            // 不抛异常，避免影响支付状态
-        }
-    }
 
     /*
     *

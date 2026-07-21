@@ -103,12 +103,20 @@
         UPDATE pay_order
         SET payment_status = #{status},
             third_transaction_no = #{thirdNo},
-            payment_time = #{paymentTime},
+            payment_time       = CASE
+                                     WHEN #{status} = #{@com.aioveu.common.enums.pay.PaymentStatusEnum@PAID.getCode()}
+                                         THEN #{paymentTime}
+                                     ELSE payment_time
+            END,
             last_query_time = NOW(),
             update_time = NOW(),
             version = version + 1
         WHERE id = #{id}
-          AND payment_status IN (0, 10)
+          AND payment_status NOT IN(
+               #{@com.aioveu.common.enums.pay.PaymentStatusEnum@PAID.getCode},
+               #{@com.aioveu.common.enums.pay.PaymentStatusEnum@FAILED.getCode},
+               #{@com.aioveu.common.enums.pay.PaymentStatusEnum@CLOSED.getCode}
+              )
     </update>
 
     <update id="updateLastQueryTime">

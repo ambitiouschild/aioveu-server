@@ -22,6 +22,26 @@ import java.util.List;
  * @Date 2026/7/20 19:31
  * @Version 1.0
  **/
+
+/*
+*
+Job / 回调
+   ↓
+recover()
+   ↓
+查微信
+   ↓
+非终态？跳过
+   ↓
+状态变更？
+   ↓
+是 PAID？
+   ├─ YES → 更新DB → 发MQ → 触发业务
+   └─ NO  → 更新DB → 仅记录
+   *
+   * ✅ 这是标准支付兜底流程
+*
+* */
 @Component
 @Slf4j
 public class PaymentReconciliationJob {

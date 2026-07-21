@@ -18,13 +18,13 @@ import lombok.Getter;
 public enum PaymentStatusEnum {
 
     UNPAID(1, "UNPAID", "待支付"),
-    PAYING(2, "PAYING", "支付中"),
-    PAID(3, "PAID", "支付成功"),
-    FAILED(4, "FAILED", "支付失败"),
-    CLOSED(5, "CLOSED", "已关闭"),
-    REFUNDING(6, "REFUNDING", "退款中"),
-    REFUNDED(7, "REFUNDED", "已退款"),
-    UNKNOWN(8, "UNKNOWN", "未知")
+    PAYING(10, "PAYING", "支付中"),
+    PAID(20, "PAID", "支付成功"),
+    REFUNDING(30, "REFUNDING", "退款中"),
+    REFUNDED(31, "REFUNDED", "已退款"),
+    FAILED(40, "FAILED", "支付失败"),
+    CLOSED(50, "CLOSED", "已关闭"),
+    UNKNOWN(60, "UNKNOWN", "未知")
 
     ;
 
