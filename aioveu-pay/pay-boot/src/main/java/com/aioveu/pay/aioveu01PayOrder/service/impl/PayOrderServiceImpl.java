@@ -173,7 +173,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         entity.setPaymentAmount(formData.getPaymentAmount());
         entity.setPaymentChannel(formData.getPaymentChannel()); // ✅ 不写死
         entity.setPaymentMethod(formData.getPaymentMethod());
-
+        entity.setPaymentScene(formData.getPaymentScene());
         //Pay 在 PayOrderForm 中显式指定 bizType = ORDER
         // 4️ Pay 自己控制的字段
 
