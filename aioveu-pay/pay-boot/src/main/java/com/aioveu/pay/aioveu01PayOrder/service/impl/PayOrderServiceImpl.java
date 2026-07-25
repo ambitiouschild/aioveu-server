@@ -13,6 +13,7 @@ import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu01PayOrder.model.query.PayOrderQuery;
+import com.aioveu.pay.aioveu12MqProducerPayment.Publisher.PaymentEventPublisher;
 import com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
 import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
@@ -68,7 +69,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
     // 创建 ObjectMapper 实例
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final WeChatPayService wechatPayService;
-
+    private final PaymentEventPublisher paymentEventPublisher;
 
     //Spring 会自动注入 唯一实现类（如果有多个再配合 @Qualifier）。
     @Resource
@@ -580,13 +581,15 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         }
 
         // 2. 如果订单已支付，直接返回
-        if (payOrder.getPaymentStatus() == PaymentStatusEnum.PAID) {
+        if (PaymentStatusEnum.PAID.equals(payOrder.getPaymentStatus())) {
+            paymentStatusVO.setPaymentStatus(PaymentStatusEnum.PAID.getCode());
             paymentStatusVO.setErrorMessage("订单已支付");
             log.info("【queryPaymentStatusByPaymentNo】如果订单已支付，直接返回");
             return paymentStatusVO;
         }
 
         // 3️非终态，且距离上次查询超过 5 秒，才查微信
+        // 节流查微信
         if (needQueryWechat(payOrder)){
 
             try {
@@ -596,7 +599,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
                 log.info("【queryPaymentStatusByPaymentNo】微信支付状态返回结果wxResult:{}",wxResult);
 
                 // 4️状态不一致才更新
-                if (wxResult.getPaymentStatus() != payOrder.getPaymentStatus()) {
+                if (!wxResult.getPaymentStatus().equals(payOrder.getPaymentStatus())) {
                     //同步支付状态 微信查询 → 视同“回调”
                     log.info("【queryPaymentStatusByPaymentNo】同步支付状态 微信查询 → 视同“回调”, paymentNo={}", payOrder.getPaymentNo());
                     PayOrder update = new PayOrder();
@@ -618,9 +621,14 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
                     //✅ 只有“支付系统内部确认支付成功”时才发 MQ
                     //✅ MQ 是系统行为，不是用户行为触发的副作用
 
-                    //✅ 轮询只负责“同步状态”
-                    //✅ 不负责“推进业务”
-                    //✅ 不负责“发 MQ”
+                    //结论：既然轮询执行了"状态同步"（把 PayOrder 改成 PAID），那它就该负责发 MQ。不然谁发？
+                    if (wxResult.getPaymentStatus() == PaymentStatusEnum.PAID){
+                        // 2. 发布支付成功事件（只发 MQ）
+                        log.info("【queryPaymentStatusByPaymentNo】轮询 = 同步 Pay 状态 + 发 Pay→OMS 的 MQ ✅");
+                        log.info("【queryPaymentStatusByPaymentNo】轮询 ≠ 直接改 OMS 状态 ❌");
+                        log.info("【queryPaymentStatusByPaymentNo】轮询 ≠ 发 OMS→下游的 MQ ❌");
+                        paymentEventPublisher.publishPaymentSuccess(payOrder);
+                    }
 
                 }
                 //这里必须是数字
@@ -641,6 +649,9 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
             }
 
         }
+
+
+
 
         return paymentStatusVO;
     }
