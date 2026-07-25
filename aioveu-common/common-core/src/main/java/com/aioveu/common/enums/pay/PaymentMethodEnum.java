@@ -34,22 +34,35 @@ public enum PaymentMethodEnum {
 
                 // 关键！
     @Getter
-    private int code;     // OMS 用
+    private int code;     // OMS 用  // OMS 用（INT 列）
 
-    @EnumValue
+//    @EnumValue
+    //去掉 @EnumValue，用全局 TypeHandler（架构最干净）
+    //PAY 服务注册 code TypeHandler
     @Getter
-    private String value;    // PAY 用
+    private String value;    // PAY 用 // PAY 用（VARCHAR 列）
 
     @Getter
     private String label;
 
-
+    // ---------- 反向查找 ----------
     public static PaymentMethodEnum fromCode(Integer code) {
+
+        if (code == null) return null;  // ✅ 改这里，别抛异常
+
         for (PaymentMethodEnum e : values()) {
             if (e.code == code) {
                 return e;
             }
         }
         throw new IllegalArgumentException("不支持的支付渠道编码：" + code);
+    }
+
+    public static PaymentMethodEnum fromValue(String value) {
+        if (value == null || value.isEmpty()) return null;
+        for (PaymentMethodEnum e : values()) {
+            if (e.value.equals(value)) return e;
+        }
+        return UNKNOWN;
     }
 }

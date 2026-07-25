@@ -5,8 +5,6 @@ import com.aioveu.common.enums.oms.OrderSourceEnum;
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.common.enums.oms.OrderStatusEnum;
 import com.aioveu.common.enums.pay.PaymentMethodEnum;
-import com.aioveu.oms.aioveu01Order.utils.PaymentChannelEnumCodeTypeHandler;
-import com.aioveu.oms.aioveu01Order.utils.PaymentMethodEnumCodeTypeHandler;
 import com.aioveu.oms.aioveu02OrderItem.model.entity.OmsOrderItem;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
@@ -109,9 +107,10 @@ public class OmsOrder extends BaseEntityWithTenantId {
 	/**
 	 * 支付渠道【1->支付宝；2->微信支付；3->银联；4->余额；5->模拟支付；6->未知；】
 	 */
-	@TableField(value = "payment_channel",
-			typeHandler = PaymentChannelEnumCodeTypeHandler.class)
-	private PaymentChannelEnum paymentChannel;
+//	@TableField(value = "payment_channel",
+//			typeHandler = PaymentChannelEnumCodeTypeHandler.class)
+	@TableField("payment_channel")
+	private PaymentChannelEnum paymentChannel; // ← 不加任何 typeHandler 注解，靠全局注册
 
 	/**
 	 * 数据库：INT
@@ -120,9 +119,15 @@ public class OmsOrder extends BaseEntityWithTenantId {
 	/**
 	 * 支付方式【1->APP支付；2->H5支付；3->小程序/公众号支付；4->扫码支付；】
 	 */
-	@TableField(value = "payment_method",
-			typeHandler = PaymentMethodEnumCodeTypeHandler.class)
-	private PaymentMethodEnum paymentMethod;
+//	@TableField(value = "payment_method",
+//			typeHandler = com.aioveu.common.util.PaymentMethodEnumCodeTypeHandlerForPay.class)
+	@TableField("payment_method")
+	private PaymentMethodEnum paymentMethod;  // ← 不加任何 typeHandler 注解，靠全局注册
+
+	/*
+	* @TableField(typeHandler = ...)的优先级 高于 @EnumValue。所以这里会强制用 code（int）来映射，
+	* 绕过 @EnumValue指向 value（String）的全局行为。
+	* */
 
 	/**
 	 * 商户侧支付订单号 = outTradeNo = paymentNo

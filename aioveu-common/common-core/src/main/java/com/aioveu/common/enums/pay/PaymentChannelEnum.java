@@ -35,7 +35,7 @@ public enum PaymentChannelEnum {
     private int code;     // OMS 用
 
 
-    @EnumValue                      // 关键！
+//    @EnumValue                      // 关键！
     @Getter
     private String value;    // PAY 用
 
@@ -51,4 +51,14 @@ public enum PaymentChannelEnum {
         }
         throw new IllegalArgumentException("不支持的支付渠道编码：" + code);
     }
+
+
+    public static PaymentChannelEnum fromValue(String value) {
+        if (value == null || value.isEmpty()) return null;
+        for (PaymentChannelEnum e : values()) {
+            if (e.value.equals(value)) return e;
+        }
+        return UNKNOWN;
+    }
+
 }

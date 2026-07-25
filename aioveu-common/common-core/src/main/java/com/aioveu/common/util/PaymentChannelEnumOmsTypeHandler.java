@@ -1,8 +1,7 @@
-package com.aioveu.oms.aioveu01Order.utils;
+package com.aioveu.common.util;
 
 
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
-import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedTypes;
@@ -28,31 +27,31 @@ import java.sql.SQLException;
 ✅ 不污染其他 Enum
 * */
 @MappedTypes(PaymentChannelEnum.class)
-public class PaymentMethodEnumCodeTypeHandler extends BaseTypeHandler<PaymentMethodEnum> {
+public class PaymentChannelEnumOmsTypeHandler extends BaseTypeHandler<PaymentChannelEnum> {
 
     @Override
     public void setNonNullParameter(PreparedStatement ps,
                                     int i,
-                                    PaymentMethodEnum parameter,
+                                    PaymentChannelEnum parameter,
                                     JdbcType jdbcType) throws SQLException {
         ps.setInt(i, parameter.getCode());
     }
 
     @Override
-    public PaymentMethodEnum getNullableResult(ResultSet rs, String columnName)
+    public PaymentChannelEnum getNullableResult(ResultSet rs, String columnName)
             throws SQLException {
-        return PaymentMethodEnum.fromCode(rs.getInt(columnName));
+        return PaymentChannelEnum.fromCode(rs.getInt(columnName));
     }
 
     @Override
-    public PaymentMethodEnum getNullableResult(ResultSet rs, int columnIndex)
+    public PaymentChannelEnum getNullableResult(ResultSet rs, int columnIndex)
             throws SQLException {
-        return PaymentMethodEnum.fromCode(rs.getInt(columnIndex));
+        return PaymentChannelEnum.fromCode(rs.getInt(columnIndex));
     }
 
     @Override
-    public PaymentMethodEnum getNullableResult(CallableStatement cs, int columnIndex)
+    public PaymentChannelEnum getNullableResult(CallableStatement cs, int columnIndex)
             throws SQLException {
-        return PaymentMethodEnum.fromCode(cs.getInt(columnIndex));
+        return PaymentChannelEnum.fromCode(cs.getInt(columnIndex));
     }
 }

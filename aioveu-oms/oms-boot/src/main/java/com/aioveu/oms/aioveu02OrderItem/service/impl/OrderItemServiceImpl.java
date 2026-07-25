@@ -4,6 +4,7 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.enums.oms.OrderSourceEnum;
 import com.aioveu.common.enums.oms.OrderStatusEnum;
+import com.aioveu.common.enums.pay.PaymentMethodEnum;
 import com.aioveu.oms.aioveu01Order.mapper.OmsOrderMapper;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
@@ -187,8 +188,14 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
         orderDetail.setStatusText(getOrderStatusText(order.getStatus()));
         orderDetail.setStatusDesc(getOrderStatusDesc(order.getStatus()));
 
+
+        PaymentMethodEnum paymentMethod =   order.getPaymentMethod();
+
+        log.info("【获取订单详情】支付方式, paymentMethod={}",
+                paymentMethod);
+
         // 2.3 设置支付方式文本
-        orderDetail.setPaymentMethodText(order.getPaymentMethod().getLabel());
+        orderDetail.setPaymentMethodText(order.getPaymentMethod().getValue());
 
         // 2.4 设置来源文本
         orderDetail.setSourceText(getSourceText(order.getSource()));
