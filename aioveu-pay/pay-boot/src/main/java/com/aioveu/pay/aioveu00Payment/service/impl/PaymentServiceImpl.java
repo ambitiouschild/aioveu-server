@@ -12,6 +12,7 @@ import com.aioveu.common.result.ResultCode;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.pay.aioveu00Payment.Processor.Impl.BusinessProcessorComposite;
+import com.aioveu.pay.aioveu00Payment.service.PayOrderSuccessHandlerService;
 import com.aioveu.pay.aioveu00Payment.service.PaymentService;
 import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
@@ -51,6 +52,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -81,9 +83,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PayNotifyService payNotifyService;
 
 
-    private final MqSendRecordService mqSendRecordService;
     private final MQProducerService MQProducerService;
-    private final MessageIdGenerator messageIdGenerator;
 
     private final PayCallbackRecordService payCallbackRecordService;
 
@@ -97,20 +97,12 @@ public class PaymentServiceImpl implements PaymentService {
     @Value("${pay.mock.enabled:true}")
     private Boolean mockPayEnabled;
 
-
-
     // 分布式锁客户端
     private final RedissonClient redissonClient;
-    // 会员服务Feign客户端
-    private final MemberFeignClient memberFeignClient;
-
-    //Spring 会自动注入 唯一实现类（如果有多个再配合 @Qualifier）。
-    @Resource
-    private BusinessProcessorComposite businessProcessorComposite;
 
     private final PaymentEventPublisher paymentEventPublisher;
 
-
+    private final PayOrderSuccessHandlerService payOrderSuccessHandlerService;
     /**
      * 统一支付接口
      */
@@ -343,82 +335,46 @@ public class PaymentServiceImpl implements PaymentService {
             String transactionId,
             Long startTime
     ) {
-        String paymentNo = payOrder.getPaymentNo();
 
-        try {
-
-            // 1. 状态校验
-            if (!isProcessable(payOrder)) {
-                log.warn("【微信回调】订单不可处理: {}", paymentNo);
-                return; // ✅ 合法
-            }
-
-            // mock 回调跳过金额校验
-            boolean isMock = transactionId != null && transactionId.startsWith("MOCK_");
-
-            // 2. 验证金额  方案二（✅ 推荐）：mock 跳过金额校验（仅 dev）
-            if (!isMock && !verifyAmount(payOrder, params)) {
-                log.error("【微信回调】金额不匹配: paymentNo={}, 订单金额={}, 回调金额={}",
-                        paymentNo, payOrder.getPaymentAmount(), getCallbackAmount(params));
-                throw new BizException("金额不匹配");
-            }
-
-
-            // 3. 更新支付单
-            boolean updateSuccess = payOrderService.updatePaymentStatus(payOrder, true, params);
-            if (!updateSuccess) {
-                log.error("【微信回调】更新支付订单状态失败: paymentNo={}", paymentNo);
-                throw new BizException("更新支付单失败");
-            }
-            payOrder.setThirdTransactionNo(transactionId); // ✅
-            payOrder.setPaymentTime(LocalDateTime.now());
-            payOrderService.updateById(payOrder);
-
-            // 4. ✅ 幂等落库（必须在事务内）
-            payCallbackRecordService.markConsumed(
-                    transactionId,
-                    paymentNo,
-                    payOrder.getOrderNo(),
-                    params
-            );
-
-
-            // 5. 支付流水
-            /*
-            * ❌ Map 不适合做业务参数
-                ✅ PaymentCallbackDTO 才是支付系统的“合同”
-            *
-            * */
-            PaymentCallbackDTO paymentCallbackdto = convertToDto(payOrder,params);
-            payFlowService.recordPaymentFlow(payOrder, paymentCallbackdto);
-
-
-            // 2. 发布支付成功事件（只发 MQ）
-            paymentEventPublisher.publishPaymentSuccess(payOrder);
-
-
-
-            // 微信回调 回调 / Job / 轮询 统一入口（终极形态）
-            // 支付成功 → 触发业务处理（不发 MQ）
-            triggerBusinessProcess(paymentNo);
-
-        } catch (Exception e) {
-            log.error("【微信回调】支付成功处理异常: paymentNo={}", payOrder.getPaymentNo(), e);
-
+        // 金额校验（微信特有）
+        if (!isMockWechatCallback(params) && !verifyAmount(payOrder, params)) {
+            throw new BizException("金额不匹配");
         }
+
+        // 幂等判断（微信特有，基于 transaction_id）
+        if (payCallbackRecordService.isConsumed(transactionId)) {
+            payCallbackRecordService.incrNotifyCount(transactionId);
+            return;
+        }
+
+        // ✅ 统一入口
+        payOrderSuccessHandlerService.handlePaySuccess(
+                payOrder.getPaymentNo(),
+                transactionId,
+                parseWxTime(params.get("time_end")),
+                params,
+                "WECHAT_CALLBACK"
+        );
+
     }
 
 
-    private void triggerBusinessProcess(String paymentNo) {
+    /**
+     * 解析微信回调的 time_end 字段
+     * 格式：yyyyMMddHHmmss（如 20191201235959）
+     */
+    private LocalDateTime parseWxTime(String timeEnd) {
+        if (!StringUtils.hasText(timeEnd)) {
+            return LocalDateTime.now();  // 解析不了就用当前时间
+        }
         try {
-            businessProcessorComposite.onPaid(paymentNo);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+            return LocalDateTime.parse(timeEnd, formatter);
         } catch (Exception e) {
-            log.error("支付成功业务处理失败, paymentNo={}", paymentNo, e);
-            // 不抛异常，避免影响支付状态
+            log.warn("解析微信支付时间失败: {}", timeEnd, e);
+            return LocalDateTime.now();
         }
     }
-
-
 
 
     private PaymentCallbackDTO convertToDto(PayOrder payOrder, Map<String, String> params) {

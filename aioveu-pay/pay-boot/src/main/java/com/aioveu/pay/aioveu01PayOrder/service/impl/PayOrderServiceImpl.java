@@ -8,6 +8,7 @@ import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.order.api.OrderFeignClient;
 import com.aioveu.pay.aioveu00Payment.Processor.Impl.BusinessProcessorComposite;
+import com.aioveu.pay.aioveu00Payment.service.PayOrderSuccessHandlerService;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
@@ -74,7 +75,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
     //Spring 会自动注入 唯一实现类（如果有多个再配合 @Qualifier）。
     @Resource
     private BusinessProcessorComposite businessProcessorComposite;
-
+    private final PayOrderSuccessHandlerService payOrderSuccessHandlerService;
     /**
      * 获取支付订单分页列表
      *
@@ -610,6 +611,22 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
 
                     if (wxResult.getPaymentStatus() == PaymentStatusEnum.PAID) {
                         update.setPaymentTime(wxResult.getPaymentTime()); // ✅
+                        //✅ 只有“支付系统内部确认支付成功”时才发 MQ
+                        //✅ MQ 是系统行为，不是用户行为触发的副作用
+                        //结论：既然轮询执行了"状态同步"（把 PayOrder 改成 PAID），那它就该负责发 MQ。不然谁发？
+
+                        log.info("【queryPaymentStatusByPaymentNo】轮询 = 同步 Pay 状态 + 发 Pay→OMS 的 MQ ✅");
+                        log.info("【queryPaymentStatusByPaymentNo】轮询 ≠ 直接改 OMS 状态 ❌");
+                        log.info("【queryPaymentStatusByPaymentNo】轮询 ≠ 发 OMS→下游的 MQ ❌");
+
+                        // ✅ 统一入口
+                        payOrderSuccessHandlerService.handlePaySuccess(
+                                paymentNo,
+                                wxResult.getThirdPaymentNo(),
+                                wxResult.getPaymentTime(),
+                                wxResult,   // WechatPayQueryResult
+                                "POLLING"
+                        );
                     }
 
                     //微信查询 → 视同“回调”
@@ -618,17 +635,8 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
                      // ✅ 更新最后查询时间
                     this.updateLastQueryTime(paymentNo, LocalDateTime.now());
 
-                    //✅ 只有“支付系统内部确认支付成功”时才发 MQ
-                    //✅ MQ 是系统行为，不是用户行为触发的副作用
 
-                    //结论：既然轮询执行了"状态同步"（把 PayOrder 改成 PAID），那它就该负责发 MQ。不然谁发？
-                    if (wxResult.getPaymentStatus() == PaymentStatusEnum.PAID){
-                        // 2. 发布支付成功事件（只发 MQ）
-                        log.info("【queryPaymentStatusByPaymentNo】轮询 = 同步 Pay 状态 + 发 Pay→OMS 的 MQ ✅");
-                        log.info("【queryPaymentStatusByPaymentNo】轮询 ≠ 直接改 OMS 状态 ❌");
-                        log.info("【queryPaymentStatusByPaymentNo】轮询 ≠ 发 OMS→下游的 MQ ❌");
-                        paymentEventPublisher.publishPaymentSuccess(payOrder);
-                    }
+
 
                 }
                 //这里必须是数字

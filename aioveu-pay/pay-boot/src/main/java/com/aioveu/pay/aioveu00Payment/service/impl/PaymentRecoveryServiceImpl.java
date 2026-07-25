@@ -3,6 +3,7 @@ package com.aioveu.pay.aioveu00Payment.service.impl;
 
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.pay.aioveu00Payment.Processor.Impl.BusinessProcessorComposite;
+import com.aioveu.pay.aioveu00Payment.service.PayOrderSuccessHandlerService;
 import com.aioveu.pay.aioveu00Payment.service.PaymentRecoveryService;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
@@ -37,17 +38,15 @@ public class PaymentRecoveryServiceImpl implements PaymentRecoveryService {
     //Spring 会自动注入 唯一实现类（如果有多个再配合 @Qualifier）。
     private final BusinessProcessorComposite businessProcessorComposite;
 
-    private final PaymentEventPublisher paymentEventPublisher;
+    //核心思路：Job 只做"查 + 调 handler"
+    private final PayOrderSuccessHandlerService payOrderSuccessHandlerService; // ✅ 统一 handler
+
 
     /**
      * 单笔订单兜底查单（Job / 回调触发）
      */
+    @Override
     public void recover(String paymentNo) {
-
-
-
-
-
 
         PayOrder payOrder = payOrderMapper.selectOne(
                 Wrappers.<PayOrder>lambdaQuery()
@@ -58,22 +57,28 @@ public class PaymentRecoveryServiceImpl implements PaymentRecoveryService {
             return;
         }
 
-        // 5 分钟内查过，直接跳过
+        // 1. 不存在或已是终态 → 跳过
+        if (payOrder == null || PaymentStatusEnum.isTerminal(payOrder.getPaymentStatus())) {
+            return;
+        }
+
+        // 2. 5 分钟内查过 → 跳过（节流）
         if (skipByRecentQuery(payOrder)) {
             return;
         }
 
         try {
 
-            //查询微信状态
+            //3.查询微信状态
             WechatPayQueryResult wx = weChatPayService.queryPayment(paymentNo);
 
             if (wx == null) {
                 return;
             }
 
-            PaymentStatusEnum statusEnum = wx.getPaymentStatus();
-            if (!PaymentStatusEnum.isTerminal(statusEnum)) {
+            //  // 4. 非终态 → 只更新查询时间，不推进
+            PaymentStatusEnum wxStatus = wx.getPaymentStatus();
+            if (!PaymentStatusEnum.isTerminal(wxStatus)) {
                 payOrderMapper.updateLastQueryTime(
                         payOrder.getId(),
                         LocalDateTime.now()
@@ -81,52 +86,39 @@ public class PaymentRecoveryServiceImpl implements PaymentRecoveryService {
                 return;
             }
 
-
-            // 支付状态必须先落库（你已经做到了）
-            boolean updated = updateLocalStatus(payOrder, wx);
-            // 只有真正更新支付状态时，才触发业务处理（防止回调/Job并发重复投递）
-
+            // 5. ✅ 终态 → 调统一 handler（不管成功失败都让它处理）
+            log.info("【Job兜底】查到终态, paymentNo={}, status={}", paymentNo, wxStatus);
             //⚠️ 一个“并发边缘风险”
             //recover()可能被并发调用
             //解决方案 1（推荐）：乐观锁 + 状态双判
             //✅ 解决方案 2（更保险）：业务幂等（可选）
-            if (updated && PaymentStatusEnum.PAID == wx.getPaymentStatus()) {
+            if (wxStatus == PaymentStatusEnum.PAID) {
 
-//                if (alreadyProcessed(paymentNo)) {
-//                    log.warn("支付单业务已处理，跳过, paymentNo={}", paymentNo);
-//                    return;
-//                }
-
-                // 失败 / 关闭：只更新状态，不推进业务
-                log.info("【PaymentRecoveryServiceImpl】Job兜底,支付状态必须先落库, paymentNo={}, status={}",
-                        paymentNo, wx.getPaymentStatus());
-
-
-                PayOrder freshOrder = payOrderMapper.selectById(payOrder.getId());
-                log.info("【PaymentRecoveryServiceImpl】MQ 消息应该是“更新后的事实”, freshOrder:{}",
-                        freshOrder);
-                //MQ 消息应该是“更新后的事实”
-                paymentEventPublisher.publishPaymentSuccess(freshOrder);
-                triggerBusinessProcess(paymentNo);
+                // ✅ 统一入口，handler 里做：更新DB + 流水 + MQ + 业务
+                payOrderSuccessHandlerService.handlePaySuccess(
+                        paymentNo,
+                        wx.getThirdPaymentNo(),
+                        wx.getPaymentTime(),
+                        wx,
+                        "JOB"
+                );
 
             } else {
                 // 失败 / 关闭：只更新状态，不推进业务
                 log.info("兜底查单确认非成功终态, paymentNo={}, status={}",
                         paymentNo, wx.getPaymentStatus());
+                // 失败/关闭：也走 handler（或者只更新状态，不发 MQ）
+                // 建议也走 handler，handler 内部会根据 status 决定是否发 MQ
+                payOrderSuccessHandlerService.handlePayFail(
+                        paymentNo,
+                        wxStatus,
+                        "JOB"
+                );
             }
 
 
         } catch (Exception e) {
             log.error("兜底查单异常, paymentNo={}", paymentNo, e);
-        }
-    }
-
-    private void triggerBusinessProcess(String paymentNo) {
-        try {
-            businessProcessorComposite.onPaid(paymentNo);
-        } catch (Exception e) {
-            log.error("支付成功业务处理失败, paymentNo={}", paymentNo, e);
-            // 不抛异常，避免影响支付状态
         }
     }
 
