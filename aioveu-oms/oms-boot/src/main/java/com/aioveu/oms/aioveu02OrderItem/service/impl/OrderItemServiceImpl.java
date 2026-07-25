@@ -185,6 +185,7 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
         BeanUtils.copyProperties(order, orderDetail);
 
         // 2.2 设置状态文本
+        orderDetail.setStatus(order.getStatus().getValue());
         orderDetail.setStatusText(getOrderStatusText(order.getStatus()));
         orderDetail.setStatusDesc(getOrderStatusDesc(order.getStatus()));
 
@@ -195,9 +196,11 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
                 paymentMethod);
 
         // 2.3 设置支付方式文本
-        orderDetail.setPaymentMethodText(order.getPaymentMethod().getValue());
+        orderDetail.setPaymentMethod(order.getPaymentMethod().getCode());
+        orderDetail.setPaymentMethodText(order.getPaymentMethod().getLabel());
 
         // 2.4 设置来源文本
+        orderDetail.setSource(order.getSource().getValue());
         orderDetail.setSourceText(getSourceText(order.getSource()));
 
         // 3. 查询订单商品项
