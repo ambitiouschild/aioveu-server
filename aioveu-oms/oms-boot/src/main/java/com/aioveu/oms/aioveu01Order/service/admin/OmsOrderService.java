@@ -28,20 +28,20 @@ public interface OmsOrderService extends IService<OmsOrder> {
     /**
      * 根据订单编号查询订单详情
      *
-     * @param orderNo {@link OrderPageQuery}
+     * @param orderSn {@link OrderPageQuery}
      * @return
      */
-    OmsOrderForm getOrderDetailByOrderNo(String orderNo);
+    OmsOrderForm getOrderDetailByOrderSn(String orderSn);
 
 
     /**
      * 根据微信返回结果更新订单状态
      *
-     * @param orderNo
+     * @param orderSn
      * @param status
      * @return
      */
-    boolean updateOrderStatusByWechatPay(String orderNo, PaymentStatusEnum status);
+    boolean updateOrderStatusByWechatPay(String orderSn, PaymentStatusEnum status);
 
 
     /**

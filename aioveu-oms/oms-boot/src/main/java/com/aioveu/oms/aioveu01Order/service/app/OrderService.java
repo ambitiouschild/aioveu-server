@@ -167,9 +167,34 @@ public interface OrderService extends IService<OmsOrder> {
 
 
 
+    /*
+    * 处理订单支付后
+    * */
     void handleOrderPaid(String paymentNo, String orderNo);
 
 
+    /*
+    * 标记已支付
+    * */
     void markPaid(String orderSn);
+
+
+    /**
+     * 取消订单
+     */
+    void cancelOrder(String orderSn);
+
+    /*
+     * 确认收货
+     * */
+    void confirmReceipt(String orderSn);   // ← 新增
+
+    /**
+     * 删除订单详情
+     *
+     * @param orderSns 订单详情ID，多个以英文逗号(,)分割
+     * @return 是否删除成功
+     */
+    void deleteOrders(String orderSns);
 }
 

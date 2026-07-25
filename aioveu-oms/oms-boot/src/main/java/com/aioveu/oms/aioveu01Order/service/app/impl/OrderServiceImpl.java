@@ -2074,6 +2074,10 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
                 .longValueExact();
     }
 
+
+    /*
+     * 处理订单支付后
+     * */
     @Override
     public void handleOrderPaid(String paymentNo, String orderSn) {
 
@@ -2107,6 +2111,10 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 //        deliverService.deliver(orderSn);
     }
 
+
+    /*
+     * 标记已支付
+     * */
     @Override
     public void markPaid(String orderSn) {
 
@@ -2133,6 +2141,146 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             }
             throw new BizException("订单支付失败，状态异常");
         }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void cancelOrder(String orderSn) {
+
+        // 1. 获取租户 ID
+        Long tenantId = SecurityUtils.getTenantId();
+        if (tenantId == null) {
+            throw new BusinessException("租户信息不存在");
+        }
+
+
+        // 2. 查询订单（带租户隔离）
+        OmsOrder order = this.baseMapper.selectOne(
+                Wrappers.<OmsOrder>lambdaQuery()
+                        .eq(OmsOrder::getOrderSn, orderSn)
+                        .eq(OmsOrder::getTenantId, tenantId)
+        );
+
+        if (order == null) {
+            throw new BusinessException("订单不存在");
+        }
+
+        // 2. 校验订单状态（只有待付款才能取消）
+        if (!OrderStatusEnum.UNPAID.equals(order.getStatus())) {
+            throw new BusinessException("当前订单状态无法取消");
+        }
+
+        // 3. 更新订单状态为已取消
+        order.setStatus(OrderStatusEnum.CANCELLED);
+        order.setUpdateTime(LocalDateTime.now());
+        this.baseMapper.updateById(order);
+        log.info("订单取消成功, orderSn={}", orderSn);
+    }
+
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void confirmReceipt(String orderSn) {
+        // 1. 获取租户
+        Long tenantId = SecurityUtils.getTenantId();
+        if (tenantId == null) {
+            throw new BusinessException("租户信息不存在");
+        }
+
+        // 2. 查询订单
+        OmsOrder order = this.baseMapper.selectOne(
+                Wrappers.<OmsOrder>lambdaQuery()
+                        .eq(OmsOrder::getOrderSn, orderSn)
+                        .eq(OmsOrder::getTenantId, tenantId)
+        );
+
+        if (order == null) {
+            throw new BusinessException("订单不存在");
+        }
+
+        // 3. 校验状态（只有已发货才能确认收货）
+        if (!OrderStatusEnum.SHIPPED.equals(order.getStatus())) {
+            throw new BusinessException("当前订单状态无法确认收货");
+        }
+
+        // 4. 乐观锁更新：SHIPPED → COMPLETE
+        OmsOrder updateEntity = new OmsOrder();
+        updateEntity.setId(order.getId());
+        updateEntity.setStatus(OrderStatusEnum.COMPLETED);
+        updateEntity.setReceiveTime(LocalDateTime.now());  // 确认收货时间
+        updateEntity.setUpdateTime(LocalDateTime.now());
+
+        int rows = this.baseMapper.update(
+                updateEntity,
+                Wrappers.<OmsOrder>lambdaUpdate()
+                        .eq(OmsOrder::getId, order.getId())
+                        .eq(OmsOrder::getStatus, OrderStatusEnum.SHIPPED)
+                        .eq(OmsOrder::getTenantId, tenantId)
+        );
+
+        if (rows == 0) {
+            throw new BusinessException("订单已被处理，请刷新后重试");
+        }
+
+        log.info("确认收货成功, orderSn={}", orderSn);
+
+        // 5. （可选）触发后续动作
+        // - 发送消息通知商家
+        // - 启动售后倒计时（7天可退货窗口）
+        // - 积分发放
+    }
+
+
+    /**
+     * 删除订单详情
+     *
+     * @param orderSns 订单详情ID，多个以英文逗号(,)分割
+     * @return 是否删除成功
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteOrders(String orderSns) {
+        Assert.isTrue(StrUtil.isNotBlank(orderSns), "删除的订单详情数据为空");
+
+        Long tenantId = SecurityUtils.getTenantId();
+        if (tenantId == null) {
+            throw new BusinessException("租户信息不存在");
+        }
+
+        List<String> orderSnList = StrUtil.splitTrim(orderSns, ',');
+
+
+        // 查询这些订单（带租户隔离）
+        List<OmsOrder> orders = this.baseMapper.selectList(
+                Wrappers.<OmsOrder>lambdaQuery()
+                        .in(OmsOrder::getOrderSn, orderSnList)
+                        .eq(OmsOrder::getTenantId, tenantId)
+                        .eq(OmsOrder::getDeleted, 0)
+        );
+
+        if (orders.isEmpty()) {
+            throw new BusinessException("订单不存在");
+        }
+
+        // 校验状态：只有已取消、已完成、已关闭才能删
+        //用 EnumSet（性能最好，语义最清晰）
+        EnumSet<OrderStatusEnum> allowedStatuses = EnumSet.of(
+                OrderStatusEnum.CANCELLED,
+                OrderStatusEnum.COMPLETED,
+                OrderStatusEnum.CLOSED
+        );
+
+        // 校验时
+        for (OmsOrder order : orders) {
+            if (!allowedStatuses.stream().map(OrderStatusEnum::getValue)
+                    .collect(Collectors.toList()).contains(order.getStatus())) {
+                throw new BusinessException("订单[" + order.getOrderSn() + "]当前状态不允许删除");
+            }
+        }
+        // 逻辑删除（MyBatis-Plus 会自动设置 deleted=1）
+        List<Long> idList = orders.stream().map(OmsOrder::getId).toList();
+
+        this.removeByIds(idList);
     }
 
 }

@@ -64,15 +64,15 @@ public class OmsOrderController {
 
     //在Spring MVC看来，{orderNo}和 {orderId}是相同的路径模式，都是路径变量
     @Operation(summary = "根据订单编号查询订单详情")
-    @GetMapping("/orderNo/{orderNo}")
+    @GetMapping("/orderSn/{orderSn}")
     @Log( value = "根据订单编号查询订单详情",module = LogModuleEnum.OMS)
-    public OmsOrderForm getOrderDetailByOrderNo(
-            @Parameter(name ="订单ID") @PathVariable String orderNo
+    public OmsOrderForm getOrderDetailByOrderSn(
+            @Parameter(name ="订单orderSn") @PathVariable String orderSn
     ) {
 
         log.info("根据订单编号查询订单详情");
 
-        OmsOrderForm omsOrderForm = omsOrderService.getOrderDetailByOrderNo(orderNo);
+        OmsOrderForm omsOrderForm = omsOrderService.getOrderDetailByOrderSn(orderSn);
 
         log.info("根据订单编号查询订单详情omsOrderForm:{}", omsOrderForm);
 
@@ -80,13 +80,13 @@ public class OmsOrderController {
     }
 
     @Operation(summary = "根据微信返回结果更新订单状态操作")
-    @PutMapping("/{orderNo}/{status}")
+    @PutMapping("/{orderSn}/{status}")
     @Log( value = "根据微信返回结果更新订单状态操作",module = LogModuleEnum.OMS)
     boolean updateOrderStatusByWechatPay(
-            @Parameter(name ="订单编号") @PathVariable String orderNo,
+            @Parameter(name ="订单编号orderSn") @PathVariable String orderSn,
             @Parameter(description = "微信返回结果") @PathVariable PaymentStatusEnum status
     ) {
-        boolean result = omsOrderService.updateOrderStatusByWechatPay(orderNo, status);
+        boolean result = omsOrderService.updateOrderStatusByWechatPay(orderSn, status);
 
         log.info("根据微信返回结果更新订单状态操作:{}",result);
         return result;

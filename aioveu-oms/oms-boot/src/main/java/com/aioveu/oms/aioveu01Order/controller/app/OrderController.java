@@ -28,6 +28,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -202,6 +203,42 @@ public class OrderController {
 
 
     /**
+     * 取消订单（商家后台 / 小程序）
+     */
+    @Operation(summary ="取消订单（商家后台 / 小程序）")
+    @PostMapping("/cancelOrder/{orderSn}")
+//    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrder:oms-order:statistics')")
+    @Log( value = "取消订单（商家后台 / 小程序）",module = LogModuleEnum.OMS)
+    public Result<Void> cancelOrder(
+            @Parameter(description = "订单orderSn") @PathVariable String orderSn ) {
+
+
+            orderService.cancelOrder(orderSn);
+
+        return Result.success();
+
+    }
+
+    /**
+     * 确认收货（商家后台 / 小程序）
+     */
+    @Operation(summary ="确认收货（商家后台 / 小程序）")
+    @PostMapping("/confirmReceipt/{orderSn}")
+//    @PreAuthorize("@ss.hasPerm('aioveuMallOmsOrder:oms-order:statistics')")
+    @Log( value = "确认收货（商家后台 / 小程序）",module = LogModuleEnum.OMS)
+    public Result<Void> confirmReceipt(
+            @Parameter(description = "订单orderSn") @PathVariable String orderSn ) {
+
+
+        orderService.confirmReceipt(orderSn);
+
+        return Result.success();
+
+    }
+
+
+
+    /**
      * 手动发货（商家后台 / 小程序）
      * ✅ **前端触发**
      * ✅ **微信发货**
@@ -233,6 +270,15 @@ public class OrderController {
     }
 
 
+    @Operation(summary = "删除订单详情")
+    @DeleteMapping("/deleteOrders/{orderSns}")
+    @Log( value = "删除订单详情",module = LogModuleEnum.OMS)
+    public Result<Void> deleteOrders(
+            @Parameter(description = "订单详情ID，多个以英文逗号(,)分割") @PathVariable String orderSns
+    ) {
+        orderService.deleteOrders(orderSns);
+        return Result.success();
+    }
 
 
 

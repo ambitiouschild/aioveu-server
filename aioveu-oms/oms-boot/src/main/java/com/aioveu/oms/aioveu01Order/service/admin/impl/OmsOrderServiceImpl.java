@@ -58,15 +58,15 @@ public class OmsOrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> i
     /**
      * 根据订单编号查询订单详情
      *
-     * @param orderNo {@link }
+     * @param orderSn {@link }
      * @return
      */
     @Override
-    public OmsOrderForm getOrderDetailByOrderNo(String orderNo) {
+    public OmsOrderForm getOrderDetailByOrderSn(String orderSn) {
 
         // 订单明细
         OmsOrder order = this.getOne(new LambdaQueryWrapper<OmsOrder>()
-                .eq(OmsOrder::getOrderSn, orderNo)
+                .eq(OmsOrder::getOrderSn, orderSn)
         );
 
 
@@ -77,18 +77,18 @@ public class OmsOrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> i
     /**
      * 根据微信返回结果更新订单状态
      *
-     * @param orderNo
+     * @param orderSn
      * @param status
      * @return
      */
     @Override
-    public boolean updateOrderStatusByWechatPay(String orderNo, PaymentStatusEnum status) {
+    public boolean updateOrderStatusByWechatPay(String orderSn, PaymentStatusEnum status) {
 
-        log.info("更新订单状态, orderNo: {}, status: {}", orderNo, status);
+        log.info("更新订单状态, orderSn: {}, status: {}", orderSn, status);
 
         // 使用UpdateWrapper
         UpdateWrapper<OmsOrder> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq("order_sn", orderNo)  // WHERE条件
+        updateWrapper.eq("order_sn", orderSn)  // WHERE条件
                 .set("status", status);
 
         // 执行更新

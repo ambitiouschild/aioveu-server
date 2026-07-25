@@ -158,15 +158,15 @@ public class OmsOrder extends BaseEntityWithTenantId {
 	/**
 	 * 发货时间
 	 */
-	private Date deliveryTime;
+	private LocalDateTime deliveryTime;
 	/**
 	 * 确认收货时间
 	 */
-	private Date receiveTime;
+	private LocalDateTime receiveTime;
 	/**
 	 * 评价时间
 	 */
-	private Date commentTime;
+	private LocalDateTime commentTime;
 
 	/**
 	 * 逻辑删除标识(1:已删除；0:正常)
