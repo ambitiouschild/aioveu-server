@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -314,14 +315,11 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
     /**
      * 检查是否在售后期限内
      */
-    private boolean checkAfterSalePeriod(Date receiveTime) {
+    private boolean checkAfterSalePeriod(LocalDateTime receiveTime) {
         if (receiveTime == null) return false;
 
-        long now = System.currentTimeMillis();
-        long receiveTimeMillis = receiveTime.getTime();
-        long sevenDays = 7L * 24 * 60 * 60 * 1000; // 7天
-
-        return (now - receiveTimeMillis) <= sevenDays;
+        LocalDateTime deadline = receiveTime.plusDays(7);
+        return !LocalDateTime.now().isAfter(deadline);
     }
 
     // ==================== 状态文本转换方法 ====================
