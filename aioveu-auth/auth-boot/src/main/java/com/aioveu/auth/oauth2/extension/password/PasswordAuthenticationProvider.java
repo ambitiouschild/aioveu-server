@@ -337,7 +337,7 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
                 .principalName(usernamePasswordAuthentication.getName())    // 主体名称（用户名）
                 .authorizationGrantType(AuthorizationGrantType.PASSWORD)    // 授权类型
                 .authorizedScopes(authorizedScopes)                         // 授权范围
-                .attribute(JwtClaimConstants.Tenant.ID, tenantId) // ✅ 关键
+//                .attribute(JwtClaimConstants.Tenant.ID, tenantId) // ✅ 关键  //如果你不需要把 tenantId 存到 oauth2_authorization表里
                 .attribute(Principal.class.getName(), usernamePasswordAuthentication); // attribute 字段  // 用户认证信息属性
 
         // 如果生成的访问令牌包含声明信息，特殊处理
