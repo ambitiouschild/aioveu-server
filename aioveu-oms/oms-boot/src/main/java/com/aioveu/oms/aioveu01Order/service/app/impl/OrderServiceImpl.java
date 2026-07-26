@@ -1869,11 +1869,13 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         // ========================
         // 1. 校验 outTradeNo
         if (StringUtils.isBlank(omsOrder.getOutTradeNo())) {
-            throw new BusinessException("【微信发货】omsOrder支付订单号不存在，无法发货");
+
+            log.warn("【微信发货】订单outTradeNo为空，尝试从pay_order反查，orderSn={}", omsOrder.getOrderSn());
+
         }
 
         // 2. 从支付服务获取微信支付单号
-        PayOrderVO payOrderVO= payFeignClient.getPayOrderByOmsOrderSn(omsOrder.getOrderSn());
+
 //        String transactionId = payOrderVO.getThirdTransactionNo();
 
         String transactionId =

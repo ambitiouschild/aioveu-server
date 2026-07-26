@@ -19,6 +19,7 @@ import com.aioveu.oms.aioveu11MqConsumer.utils.MqConsumerUtils;
 
 import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -185,8 +186,16 @@ public class MqConsumerServiceImpl implements MqConsumerService {
             }
 
 
+            // 3. 一次性补齐所有字段
+            LambdaUpdateWrapper<OmsOrder> updateWrapper = new LambdaUpdateWrapper<OmsOrder>()
+                    .eq(OmsOrder::getOrderSn, orderSn)
+                    .set(OmsOrder::getStatus, OrderStatusEnum.PAID)
+                    .set(OmsOrder::getOutTradeNo, message.getPaymentNo())           // ✅ 补支付单号
+                    .set(OmsOrder::getPaymentTime, message.getPaymentTime());         // ✅ 补支付时间
+
             // 3. 更新订单状态
-            boolean updateSuccess = orderService.updateOrderPaymentStatus(order, message);
+            boolean updateSuccess = orderService.update(updateWrapper);
+//            boolean updateSuccess = orderService.updateOrderPaymentStatus(order, message);
 
             if (!updateSuccess) {
                 log.error("【MQ消费者】更新订单状态失败: orderSn={}", orderSn);
