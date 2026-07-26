@@ -112,15 +112,5 @@ public class PayOrderControllerForApp {
     }
 
 
-    /**
-     * 前端调用：查询支付状态 使用路径参数（推荐）
-     */
-    @Operation(summary ="前端调用：查询支付状态")
-    @GetMapping("/query/{paymentNo}")
-    @Log( value = "前端调用：查询支付状态",module = LogModuleEnum.PAY)
-    public Result<PaymentStatusVO> queryPaymentStatusByPaymentNo(@PathVariable String paymentNo) {
 
-        PaymentStatusVO paymentStatusVO= payOrderService.queryPaymentStatusByPaymentNo(paymentNo);
-        return Result.success(paymentStatusVO);
-    }
 }

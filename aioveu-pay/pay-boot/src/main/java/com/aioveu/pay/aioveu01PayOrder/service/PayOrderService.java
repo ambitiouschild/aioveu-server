@@ -167,13 +167,7 @@ public interface PayOrderService extends IService<PayOrder> {
     boolean updatePaymentStatus(String paymentNo, boolean success, Map<String, String> params);
 
 
-    /**
-     * 前端轮询支付状态
-     * ✅ 只查本地支付单
-     * ✅ 必要时才调用微信
-     * ✅ 不依赖订单状态反推支付状态
-     */
-    PaymentStatusVO queryPaymentStatusByPaymentNo(String paymentNo);
+
 
 
     /**

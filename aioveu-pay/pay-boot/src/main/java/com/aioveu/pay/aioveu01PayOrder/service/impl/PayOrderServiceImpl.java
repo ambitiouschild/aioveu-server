@@ -6,15 +6,10 @@ import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.web.exception.BizException;
-import com.aioveu.order.api.OrderFeignClient;
-import com.aioveu.pay.aioveu00Payment.Processor.Impl.BusinessProcessorComposite;
-import com.aioveu.pay.aioveu00Payment.service.PayOrderSuccessHandlerService;
-import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
 import com.aioveu.pay.aioveu01PayOrder.converter.PayOrderConverter;
 import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu01PayOrder.model.query.PayOrderQuery;
-import com.aioveu.pay.aioveu12MqProducerPayment.Publisher.PaymentEventPublisher;
 import com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
 import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
@@ -62,20 +57,9 @@ import java.util.Map;
 public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> implements PayOrderService {
 
     private final PayOrderConverter payOrderConverter;
-
-
     private final PayOrderNoGenerator payOrderNoGenerator;
-
-    private final OrderFeignClient orderFeignClient;
     // 创建 ObjectMapper 实例
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final WeChatPayService wechatPayService;
-    private final PaymentEventPublisher paymentEventPublisher;
-
-    //Spring 会自动注入 唯一实现类（如果有多个再配合 @Qualifier）。
-    @Resource
-    private BusinessProcessorComposite businessProcessorComposite;
-    private final PayOrderSuccessHandlerService payOrderSuccessHandlerService;
     /**
      * 获取支付订单分页列表
      *
@@ -561,135 +545,10 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
     }
 
 
-    /**
-     * 前端轮询支付状态
-     * ✅ 只查本地支付单
-     * ✅ 必要时才调用微信
-     * ✅ 不依赖订单状态反推支付状态
-     */
-    @Override
-    public PaymentStatusVO queryPaymentStatusByPaymentNo(String paymentNo){
-
-        PaymentStatusVO paymentStatusVO =new PaymentStatusVO();
-        paymentStatusVO.setPaymentNo(paymentNo);
-        // 1️查支付单（不是订单）
-        PayOrder payOrder = this.selectByPaymentNo(paymentNo);
-        if (payOrder == null) {
-            paymentStatusVO.setErrorMessage("订单不存在");
-            paymentStatusVO.setPaymentStatus(PaymentStatusEnum.UNKNOWN.getCode()); // 特殊状态：订单不存在
-            log.info("【前端调用：查询支付状态】订单不存在");
-            return paymentStatusVO;
-        }
-
-        // 2. 如果订单已支付，直接返回
-        if (PaymentStatusEnum.PAID.equals(payOrder.getPaymentStatus())) {
-            paymentStatusVO.setPaymentStatus(PaymentStatusEnum.PAID.getCode());
-            paymentStatusVO.setErrorMessage("订单已支付");
-            log.info("【queryPaymentStatusByPaymentNo】如果订单已支付，直接返回");
-            return paymentStatusVO;
-        }
-
-        // 3️非终态，且距离上次查询超过 5 秒，才查微信
-        // 节流查微信
-        if (needQueryWechat(payOrder)){
-
-            try {
-                //“回调说了算，查询只是确认，轮询只是安慰用户。”
-                //只在“真的查了微信”时更新
-                WechatPayQueryResult wxResult = wechatPayService.queryPayment(paymentNo);
-                log.info("【queryPaymentStatusByPaymentNo】微信支付状态返回结果wxResult:{}",wxResult);
-
-                // 4️状态不一致才更新
-                if (!wxResult.getPaymentStatus().equals(payOrder.getPaymentStatus())) {
-                    //同步支付状态 微信查询 → 视同“回调”
-                    log.info("【queryPaymentStatusByPaymentNo】同步支付状态 微信查询 → 视同“回调”, paymentNo={}", payOrder.getPaymentNo());
-                    PayOrder update = new PayOrder();
-                    update.setId(payOrder.getId());
-                    update.setPaymentStatus(wxResult.getPaymentStatus());
-
-                    update.setThirdTransactionNo(wxResult.getThirdPaymentNo());
-
-                    if (wxResult.getPaymentStatus() == PaymentStatusEnum.PAID) {
-                        update.setPaymentTime(wxResult.getPaymentTime()); // ✅
-                        //✅ 只有“支付系统内部确认支付成功”时才发 MQ
-                        //✅ MQ 是系统行为，不是用户行为触发的副作用
-                        //结论：既然轮询执行了"状态同步"（把 PayOrder 改成 PAID），那它就该负责发 MQ。不然谁发？
-
-                        log.info("【queryPaymentStatusByPaymentNo】轮询 = 同步 Pay 状态 + 发 Pay→OMS 的 MQ ✅");
-                        log.info("【queryPaymentStatusByPaymentNo】轮询 ≠ 直接改 OMS 状态 ❌");
-                        log.info("【queryPaymentStatusByPaymentNo】轮询 ≠ 发 OMS→下游的 MQ ❌");
-
-                        // ✅ 统一入口
-                        payOrderSuccessHandlerService.handlePaySuccess(
-                                paymentNo,
-                                wxResult.getThirdPaymentNo(),
-                                wxResult.getPaymentTime(),
-                                wxResult,   // WechatPayQueryResult
-                                "POLLING"
-                        );
-                    }
-
-                    //微信查询 → 视同“回调”
-                    this.updateById(update);
-                    log.info("【queryPaymentStatusByPaymentNo】微信查询 → 视同“回调”, 更新支付订单");
-                     // ✅ 更新最后查询时间
-                    this.updateLastQueryTime(paymentNo, LocalDateTime.now());
 
 
 
 
-                }
-                //这里必须是数字
-                paymentStatusVO.setPaymentStatus(wxResult.getPaymentStatus().getCode()); // ✅ 数字
-                paymentStatusVO.setPaymentStatusText(wxResult.getPaymentStatus().getLabel()); // ✅ 文案
-                log.info("【queryPaymentStatusByPaymentNo】返回给前端的支付状态必须是数字,paymentStatus:{},paymentStatusText:{}",
-                        paymentStatusVO.getPaymentStatus(),
-                        paymentStatusVO.getPaymentStatusText()
-
-                );
-                paymentStatusVO.setErrorMessage("支付状态已同步");
-
-                log.info("【queryPaymentStatusByPaymentNo】支付状态查询结果,paymentStatusVO:{}",paymentStatusVO);
-
-            } catch (Exception e) {
-                log.error("微信查询异常, paymentNo={}", paymentNo, e);
-                paymentStatusVO.setErrorMessage("查询微信支付状态失败");
-            }
-
-        }
-
-
-
-
-        return paymentStatusVO;
-    }
-
-
-    /*
-    *
-    * ✅ 前端轮询 2 秒一次
-✅ 微信最多 5 秒查一次
-✅ 微信不封你
-✅ 用户体验不差
-    * */
-    private boolean needQueryWechat(PayOrder payOrder) {
-        // 1. 已终态，不查
-        if (PaymentStatusEnum.isTerminal(payOrder.getPaymentStatus())) {
-            log.info("【needQueryWechat】订单已是终态，忽略微信查询结果, paymentNo={}", payOrder.getPaymentNo());
-            return false;
-        }
-
-        // 2. 从未查过，可以查
-        if (payOrder.getLastQueryTime() == null) {
-            log.info("【needQueryWechat】从未查过，可以查, paymentNo={}", payOrder.getPaymentNo());
-            return true;
-        }
-
-        // 3. 距上次查询超过 5 秒，才允许再查
-        return payOrder.getLastQueryTime()
-                .plusSeconds(5)
-                .isBefore(LocalDateTime.now());
-    }
 
 
     @Override
