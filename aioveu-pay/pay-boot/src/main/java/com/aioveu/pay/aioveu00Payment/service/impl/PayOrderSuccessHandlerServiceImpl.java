@@ -77,7 +77,7 @@ public class PayOrderSuccessHandlerServiceImpl implements PayOrderSuccessHandler
         }
 
         // 3. 更新 PayOrder
-        PayOrder update = new PayOrder();
+        PayOrder update = payOrderService.getByPaymentNo(paymentNo);  // ← 带 version 这样 version有值，乐观锁插件能正常工作。
         update.setId(payOrder.getId());
         update.setPaymentStatus(PaymentStatusEnum.PAID);
         update.setThirdTransactionNo(transactionId);

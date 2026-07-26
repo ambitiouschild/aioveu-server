@@ -249,7 +249,7 @@ public class PaymentController {
     @GetMapping("/query/{paymentNo}")
     @Log( value = "前端调用：查询支付状态",module = LogModuleEnum.PAY)
     public Result<PaymentStatusVO> queryPaymentStatusByPaymentNo(@PathVariable String paymentNo) {
-
+        log.info(">>>>>> CONTROLLER HIT! paymentNo={}", paymentNo);  // ← 加这行
         PaymentStatusVO paymentStatusVO= paymentService.queryPaymentStatusByPaymentNo(paymentNo);
         return Result.success(paymentStatusVO);
     }
