@@ -134,11 +134,12 @@ public class PayFlowServiceImpl extends ServiceImpl<PayFlowMapper, PayFlow> impl
 
         if (exists) {
             log.warn("支付流水已存在，跳过: paymentNo:{}", payOrder.getPaymentNo());
+            log.warn("【流水记录】并发插入冲突，视为已处理: paymentNo={}", payOrder.getPaymentNo());
             return;
         }
 
         PayFlow flow = PayFlow.builder()
-                .flowNo(PayFlowNoGenerator.generatePayFlowNo(memberId))
+                .flowNo(PayFlowNoGenerator.generatePayFlowNoRandom(memberId))
                 .paymentNo(payOrder.getPaymentNo())
                 .orderNo(payOrder.getOrderNo())
                 .userId(payOrder.getUserId())

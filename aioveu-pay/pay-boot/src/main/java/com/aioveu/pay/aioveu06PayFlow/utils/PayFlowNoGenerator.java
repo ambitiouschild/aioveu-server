@@ -39,7 +39,7 @@ public class PayFlowNoGenerator {
     private static final String REFUND_SEQUENCE_KEY = "refund:sequence:";
 
     /**
-     * 生成退款单号
+     * 生成流水单号
      * 格式: 日期(8位) + 用户ID后6位 + 4位序列号
      * 因为当前实现是顺序递增的，在多实例部署时会有重复风险。
      */
@@ -49,7 +49,7 @@ public class PayFlowNoGenerator {
         int seq = SEQUENCE.getAndUpdate(i -> i >= MAX_SEQUENCE ? 1 : i + 1);
         String sequenceStr = String.format("%04d", seq);
 
-        return date + memberStr + sequenceStr;
+        return "FL" + date + memberStr + sequenceStr;
     }
 
     /**
@@ -68,7 +68,7 @@ public class PayFlowNoGenerator {
         // 3. 随机数部分（4位）
         String randomPart = String.format("%04d", ThreadLocalRandom.current().nextInt(10000));
 
-        return date + memberPart + randomPart;
+        return "FL" + date + memberPart + randomPart;
     }
 
     /**
