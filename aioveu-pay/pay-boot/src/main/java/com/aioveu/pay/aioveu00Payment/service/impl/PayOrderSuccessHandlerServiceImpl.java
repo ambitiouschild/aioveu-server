@@ -77,14 +77,13 @@ public class PayOrderSuccessHandlerServiceImpl implements PayOrderSuccessHandler
         }
 
         // 3. 更新 PayOrder
-        PayOrder update = payOrderService.getByPaymentNo(paymentNo);  // ← 带 version 这样 version有值，乐观锁插件能正常工作。
-        update.setId(payOrder.getId());
-        update.setPaymentStatus(PaymentStatusEnum.PAID);
-        update.setThirdTransactionNo(transactionId);
-        update.setPaymentTime(paidTime != null ? paidTime : LocalDateTime.now());
-        update.setVersion(payOrder.getVersion());
+        // 3. 直接在这个对象上改字段（version 已经在里面了，别动它）
+        payOrder.setPaymentStatus(PaymentStatusEnum.PAID);
+        payOrder.setThirdTransactionNo(transactionId);
+        payOrder.setPaymentTime(paidTime != null ? paidTime : LocalDateTime.now());
 
-        boolean updated =  payOrderService.updateById(update);
+        // 4. updateById（MP 乐观锁自动用 payOrder.version 做 CAS）
+        boolean updated =  payOrderService.updateById(payOrder);
         if (!updated) {
             log.warn("【支付成功处理】并发冲突，更新失败, paymentNo={}", paymentNo);
             return;
