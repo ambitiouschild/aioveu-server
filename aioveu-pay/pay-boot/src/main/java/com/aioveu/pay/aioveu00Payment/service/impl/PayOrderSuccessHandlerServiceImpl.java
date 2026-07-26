@@ -64,6 +64,8 @@ public class PayOrderSuccessHandlerServiceImpl implements PayOrderSuccessHandler
 
         // 1. 查 PayOrder（带乐观锁版本）
         PayOrder payOrder = payOrderService.getByPaymentNo(paymentNo);
+        Integer oldVersion = payOrder.getVersion();
+        log.error(">>>>>> oldVersion={}", oldVersion); // 确认有值
         if (payOrder == null) {
             log.error("【支付成功处理】支付单不存在: paymentNo={}", paymentNo);
             return;
@@ -136,6 +138,8 @@ public class PayOrderSuccessHandlerServiceImpl implements PayOrderSuccessHandler
         log.info("【支付失败处理】来源={}, paymentNo={}, status={}", source, paymentNo, targetStatus);
 
         PayOrder payOrder = payOrderService.getByPaymentNo(paymentNo);
+        Integer oldVersion = payOrder.getVersion();
+        log.error(">>>>>> oldVersion={}", oldVersion); // 确认有值
         if (payOrder == null) return;
 
         // 终态保护

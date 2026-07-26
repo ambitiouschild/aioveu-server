@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.autoconfigure.ConfigurationCustomizer;
 import com.baomidou.mybatisplus.core.config.GlobalConfig;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.DataPermissionInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.aioveu.common.mybatis.handler.*;
 import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
@@ -115,29 +116,32 @@ public class MybatisPlusConfig {
 
         boolean isAuthService = isAuthService();
 
+        // ✅✅✅ 1. 乐观锁插件 —— 必须在最前面！
+        interceptor.addInnerInterceptor(new OptimisticLockerInnerInterceptor());
+        log.info("【mybatisPlusInterceptor】已启用乐观锁插件");
+
 
         // 多租户插件（强制启用，必须在最前面）// 多租户插件（非auth服务才启用）
         if (myTenantLineHandler != null && !isAuthService) {
             interceptor.addInnerInterceptor(new TenantLineInnerInterceptor(myTenantLineHandler));
-            log.info("已启用多租户插件（当前非auth服务）");
+            log.info("【mybatisPlusInterceptor】已启用多租户插件（当前非auth服务）");
         }else if (isAuthService) {
-            log.info("当前为auth服务，跳过多租户插件");
+            log.info("【mybatisPlusInterceptor】当前为auth服务，跳过多租户插件");
         } else {
-            log.info("未找到MyTenantLineHandler，跳过多租户插件");
+            log.info("【mybatisPlusInterceptor】未找到MyTenantLineHandler，跳过多租户插件");
         }
-        log.info("【MyTenantLineHandler】也在处理租户过滤！");
 
 
         //数据权限
         // 数据权限（非auth服务才启用，如果auth服务也需要可以保留）
         if (!isAuthService) {
             interceptor.addInnerInterceptor(new DataPermissionInterceptor(new MyDataPermissionHandler()));
-            log.info("已启用数据权限插件（当前非auth服务）");
+            log.info("【mybatisPlusInterceptor】已启用数据权限插件（当前非auth服务）");
         } else {
-            log.info("当前为auth服务，跳过数据权限插件");
+            log.info("【mybatisPlusInterceptor】当前为auth服务，跳过数据权限插件");
         }
 
-        // 分页插件，根据配置动态选择数据库类型
+        // 分页插件，根据配置动态选择数据库类型 （永远最后）
         DbType mpDbType = DbType.MYSQL;
         String type = dbType == null ? "mysql" : dbType.toLowerCase();
         if ("postgres".equals(type) || "postgresql".equals(type)) {
