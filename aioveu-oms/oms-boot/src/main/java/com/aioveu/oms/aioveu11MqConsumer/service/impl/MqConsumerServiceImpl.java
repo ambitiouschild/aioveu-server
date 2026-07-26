@@ -187,15 +187,16 @@ public class MqConsumerServiceImpl implements MqConsumerService {
 
 
             // 3. 一次性补齐所有字段
-            LambdaUpdateWrapper<OmsOrder> updateWrapper = new LambdaUpdateWrapper<OmsOrder>()
-                    .eq(OmsOrder::getOrderSn, orderSn)
-                    .set(OmsOrder::getStatus, OrderStatusEnum.PAID)
-                    .set(OmsOrder::getOutTradeNo, message.getPaymentNo())           // ✅ 补支付单号
-                    .set(OmsOrder::getPaymentTime, message.getPaymentTime());         // ✅ 补支付时间
-
-            // 3. 更新订单状态
-            boolean updateSuccess = orderService.update(updateWrapper);
-//            boolean updateSuccess = orderService.updateOrderPaymentStatus(order, message);
+//            LambdaUpdateWrapper<OmsOrder> updateWrapper = new LambdaUpdateWrapper<OmsOrder>()
+//                    .eq(OmsOrder::getOrderSn, orderSn)
+//                    .set(OmsOrder::getStatus, OrderStatusEnum.PAID)
+//                    .set(OmsOrder::getTransactionId, message.getTransactionId())
+//                    .set(OmsOrder::getOutTradeNo, message.getPaymentNo())           // ✅ 补支付单号
+//                    .set(OmsOrder::getPaymentTime, message.getPaymentTime());         // ✅ 补支付时间
+//
+//            // 3. 更新订单状态
+//            boolean updateSuccess = orderService.update(updateWrapper);
+            boolean updateSuccess = orderService.updateOrderPaymentStatus(order, message);
 
             if (!updateSuccess) {
                 log.error("【MQ消费者】更新订单状态失败: orderSn={}", orderSn);

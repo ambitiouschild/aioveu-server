@@ -1569,10 +1569,9 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     public boolean updateOrderPaymentStatus(OmsOrder order, PaymentSuccessMessage message) {
         try {
             // 更新订单状态
-            order.setStatus(OrderStatusEnum.PAID);  // 待发货
-//            order.setPayStatus(PayStatusEnum.PAID.getCode());     // 已支付
+            order.setStatus(OrderStatusEnum.PAID);  // 已支付,待发货
             order.setTransactionId(message.getTransactionId());
-
+            order.setOutTradeNo(message.getPaymentNo());           // ✅ 补支付单号
             order.setPaymentTime(
                     message.getPaymentTime()
                             .atZone(ZoneId.systemDefault())
