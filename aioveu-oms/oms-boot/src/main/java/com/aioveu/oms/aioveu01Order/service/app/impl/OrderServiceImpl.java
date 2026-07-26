@@ -1873,22 +1873,22 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         }
 
-        // 2. 从支付服务获取微信支付单号
+        // 2. 从OmsOrder服务获取微信支付单号
+        String transactionId = omsOrder.getTransactionId();
 
-//        String transactionId = payOrderVO.getThirdTransactionNo();
+//        String transactionId =
+//                payFeignClient.getThirdTransactionNoByOmsOrderSn(omsOrder.getOutTradeNo());
+//        log.info("【微信发货】调用Pay获取transactionId, oms中的OrderSn={}, oms中的outTradeNo={}, Pay中的transactionId={}",
+//                omsOrder.getOrderSn(),
+//                omsOrder.getOutTradeNo(),
+//                transactionId);
 
-        String transactionId =
-                payFeignClient.getThirdTransactionNoByOmsOrderSn(omsOrder.getOutTradeNo());
-        log.info("【微信发货】调用Pay获取transactionId, oms中的OrderSn={}, oms中的outTradeNo={}, Pay中的transactionId={}",
-                omsOrder.getOrderSn(),
-                omsOrder.getOutTradeNo(),
-                transactionId);
-
-        // 3. 校验 transactionId
+        // 3. 校验 transactionId,微信 transaction_id是 420000+ 16位随机数字，
+        // 总共 28 位左右，但你没必要在校验里写死前缀——万一以后微信换格式了呢。
         if (StringUtils.isBlank(transactionId)) {
             throw new BusinessException("【微信发货】微信支付单号未回写，无法发货");
         }
-        if (!transactionId.startsWith("420000")) {
+        if (!transactionId.startsWith("420000")&& transactionId.length() < 10) {
             throw new BusinessException("【微信发货】微信支付单号格式非法");
         }
 
