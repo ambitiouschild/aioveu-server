@@ -189,7 +189,7 @@ public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSen
             log.info("【Mq ProducerServiceImpl】构建mq成功, RabbitSendRequest 不做任何业务决策:{}",request);
 
             // 保存发送记录
-            boolean saveMqSendRecord = saveMqSendRecord(request);
+            boolean saveMqSendRecord = mqSendRecordService.saveMqSendRecord(request,payOrder);
             if (!saveMqSendRecord) {
                 log.error("【Mq ProducerServiceImpl】保存发送记录失败, messageId={}", messageId);
                 return false;
@@ -306,7 +306,7 @@ public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSen
                     .build();
 
             // 保存发送记录
-            boolean saveMqSendRecord = saveMqSendRecord(request);
+            boolean saveMqSendRecord = mqSendRecordService.saveMqSendRecord(request,payOrder);
 
             // 发送消息
             try {
@@ -529,34 +529,7 @@ public class MQProducerServiceImpl extends ServiceImpl<MqSendRecordMapper, MqSen
     }
 
 
-    /**
-     * 保存消息发送记录
-     */
-    private Boolean saveMqSendRecord(RabbitSendRequest request) {
 
-
-        //✅ messageId 一旦生成，永不改变
-        //只要把 saveMqSendRecord改成「只保存，不返 ID」
-        //👉 就已经是标准支付中台实现了 👍
-        MqSendRecord record = new MqSendRecord();
-        record.setMessageId(request.getMessageId());
-        record.setExchange(request.getExchange());
-        record.setRoutingKey(request.getRoutingKey());
-        record.setBizId(request.getBizId());
-        record.setBizType(request.getBizType());   //业务类型，必填
-        record.setTopic(request.getTopic());   // ✅ 这一行必须有
-        record.setMessageBody(request.getMessageBody()); // ✅ 必须有
-        record.setSendStatus(SendStatusEnum.SENDING.getValue());
-        record.setCreateTime(LocalDateTime.now());
-
-        return mqSendRecordService.save(record);
-//        return mqSendRecordService.saveMqSendRecord(
-//                request.getExchange(),
-//                request.getRoutingKey(),
-//                request.getBizId(),
-//                request.getBody()
-//        );
-    }
 
 
     private String resolveTransactionId(SendPaymentMqDTO dto) {

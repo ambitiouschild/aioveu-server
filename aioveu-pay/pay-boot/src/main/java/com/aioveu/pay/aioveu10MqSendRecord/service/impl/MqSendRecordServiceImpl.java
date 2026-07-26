@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.enums.pay.PaymentSceneEnum;
 import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
 import com.aioveu.common.rabbitmq.producer.model.vo.*;
+import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu10MqSendRecord.converter.MqSendRecordConverter;
 import com.aioveu.pay.aioveu10MqSendRecord.mapper.MqSendRecordMapper;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
@@ -1377,7 +1378,7 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
 
         MqSendRecord mqSendRecord = new MqSendRecord();
         mqSendRecord.setBizId(paymentNo);
-        mqSendRecord.setPaymentScene(scene.getCode());
+        mqSendRecord.setPaymentScene(scene);
         mqSendRecord.setSendStatus(SendStatusEnum.SUCCESS.getValue());
         mqSendRecord.setRetryCount(0);
 
@@ -1394,7 +1395,7 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
     public void insertUnSent(String paymentNo, PaymentSceneEnum scene) {
         MqSendRecord mqSendRecord = new MqSendRecord();
         mqSendRecord.setBizId(paymentNo);
-        mqSendRecord.setPaymentScene(scene.getCode());
+        mqSendRecord.setPaymentScene(scene);
         mqSendRecord.setSendStatus(SendStatusEnum.SUCCESS.getValue());
         mqSendRecord.setRetryCount(0);
         this.baseMapper.insert(mqSendRecord);
@@ -1437,5 +1438,36 @@ public class MqSendRecordServiceImpl extends ServiceImpl<MqSendRecordMapper, MqS
                         LocalDateTime.now().plusMinutes(1))
                 .set(MqSendRecord::getUpdateTime, LocalDateTime.now())
                 .update();
+    }
+
+
+    /**
+     * 保存消息发送记录
+     */
+    @Override
+    public boolean saveMqSendRecord(RabbitSendRequest request, PayOrder payOrder) {
+
+
+        //✅ messageId 一旦生成，永不改变
+        //只要把 saveMqSendRecord改成「只保存，不返 ID」
+        //👉 就已经是标准支付中台实现了 👍
+        MqSendRecord record = new MqSendRecord();
+        record.setMessageId(request.getMessageId());
+        record.setExchange(request.getExchange());
+        record.setRoutingKey(request.getRoutingKey());
+        record.setBizId(request.getBizId());
+        record.setBizType(request.getBizType());   //业务类型，必填
+        record.setTopic(request.getTopic());   // ✅ 这一行必须有
+        record.setMessageBody(request.getMessageBody()); // ✅ 必须有
+        record.setSendStatus(SendStatusEnum.SENDING.getValue());
+        record.setCreateTime(LocalDateTime.now());
+
+
+        // ✅ 补上 paymentScene
+        if (payOrder != null && payOrder.getPaymentScene() != null) {
+            record.setPaymentScene(payOrder.getPaymentScene());
+        }
+
+        return this.save(record);
     }
 }

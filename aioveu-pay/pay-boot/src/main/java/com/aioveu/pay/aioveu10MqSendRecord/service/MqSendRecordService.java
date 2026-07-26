@@ -3,6 +3,8 @@ package com.aioveu.pay.aioveu10MqSendRecord.service;
 
 import com.aioveu.common.enums.pay.PaymentSceneEnum;
 import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
+import com.aioveu.common.rabbitmq.producer.model.vo.RabbitSendRequest;
+import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.model.form.MqSendRecordForm;
 import com.aioveu.pay.aioveu10MqSendRecord.model.query.MqSendRecordQuery;
@@ -179,4 +181,10 @@ public interface MqSendRecordService extends IService<MqSendRecord> {
      * 增加重试次数
      */
     void increaseRetryCount(Long id);
+
+    /**
+     * 保存消息发送记录
+     */
+
+    boolean saveMqSendRecord(RabbitSendRequest request, PayOrder payOrder);
 }

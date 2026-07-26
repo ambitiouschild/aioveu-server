@@ -54,7 +54,7 @@ public class MqSendRecord extends BaseEntityWithTenantId {
     /**
      * 支付场景：ORDER-商品订单 MEMBERSHIP-会员开通 RECHARGE-账户充值 ACTIVITY-活动订单
      */
-    private Integer paymentScene;
+    private PaymentSceneEnum paymentScene;
 
     /**
      * Topic
