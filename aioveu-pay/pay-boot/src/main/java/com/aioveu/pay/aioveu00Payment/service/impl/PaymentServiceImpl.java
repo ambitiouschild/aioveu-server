@@ -2,10 +2,7 @@ package com.aioveu.pay.aioveu00Payment.service.impl;
 
 import cn.hutool.json.JSONUtil;
 import com.aioveu.common.constant.OrderConstants;
-import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
-import com.aioveu.common.enums.pay.PaymentMethodEnum;
-import com.aioveu.common.enums.pay.PaymentStatusEnum;
+import com.aioveu.common.enums.pay.*;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.Result;
 import com.aioveu.common.result.ResultCode;
@@ -28,7 +25,6 @@ import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
 import com.aioveu.pay.aioveu12MqProducerPayment.Publisher.PaymentEventPublisher;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.SendPaymentMqDTO;
 import com.aioveu.pay.aioveu12MqProducerPayment.mqProducer.MQProducerService;
-import com.aioveu.common.enums.pay.PaymentCallbackStatusEnum;
 import com.aioveu.pay.aioveu13PayCallbackRecord.model.entity.PayCallbackRecord;
 import com.aioveu.pay.aioveu13PayCallbackRecord.service.PayCallbackRecordService;
 import com.aioveu.pay.model.aioveuPayQueryResultAdapter.WechatPayQueryResult;
@@ -357,7 +353,7 @@ public class PaymentServiceImpl implements PaymentService {
                 transactionId,
                 parseWxTime(params.get("time_end")),
                 params,
-                "WECHAT_CALLBACK"
+                CallbackTriggerSourceEnum.WECHAT_CALLBACK
         );
 
     }
@@ -1109,7 +1105,7 @@ public class PaymentServiceImpl implements PaymentService {
                                 wxResult.getThirdPaymentNo(),
                                 wxResult.getPaymentTime(),
                                 wxResult,   // WechatPayQueryResult
-                                "POLLING"
+                                CallbackTriggerSourceEnum.POLLING
                         );
                     }
 

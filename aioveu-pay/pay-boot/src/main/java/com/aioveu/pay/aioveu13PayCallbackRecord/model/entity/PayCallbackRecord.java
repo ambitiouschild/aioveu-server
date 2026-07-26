@@ -2,7 +2,9 @@ package com.aioveu.pay.aioveu13PayCallbackRecord.model.entity;
 
 
 import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.common.enums.pay.CallbackTriggerSourceEnum;
 import com.aioveu.common.enums.pay.PaymentCallbackStatusEnum;
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,10 +29,6 @@ public class PayCallbackRecord extends BaseEntityWithTenantId {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 租户ID，0表示平台
-     */
-    private Long tenantId;
-    /**
      * 内部支付单号
      */
     private String paymentNo;
@@ -45,7 +43,13 @@ public class PayCallbackRecord extends BaseEntityWithTenantId {
     /**
      * 支付渠道：WECHAT / ALIPAY / UNION
      */
-    private String channel;
+    private PaymentChannelEnum channel;
+
+    /**
+     * 触发来源：WECHAT_CALLBACK / POLLING / MANUAL / JOB_RETRY
+     */
+    private CallbackTriggerSourceEnum source;
+
     /**
      * 回调状态：0-接收 1-处理成功 2-处理失败
      */

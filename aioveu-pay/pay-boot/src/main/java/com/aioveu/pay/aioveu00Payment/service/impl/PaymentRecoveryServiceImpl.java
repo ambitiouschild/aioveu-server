@@ -1,6 +1,7 @@
 package com.aioveu.pay.aioveu00Payment.service.impl;
 
 
+import com.aioveu.common.enums.pay.CallbackTriggerSourceEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.pay.aioveu00Payment.Processor.Impl.BusinessProcessorComposite;
 import com.aioveu.pay.aioveu00Payment.service.PayOrderSuccessHandlerService;
@@ -100,7 +101,7 @@ public class PaymentRecoveryServiceImpl implements PaymentRecoveryService {
                         wx.getThirdPaymentNo(),
                         wx.getPaymentTime(),
                         wx,
-                        "JOB"
+                        CallbackTriggerSourceEnum.JOB_RETRY
                 );
 
             } else {
@@ -112,7 +113,7 @@ public class PaymentRecoveryServiceImpl implements PaymentRecoveryService {
                 payOrderSuccessHandlerService.handlePayFail(
                         paymentNo,
                         wxStatus,
-                        "JOB"
+                        CallbackTriggerSourceEnum.JOB_RETRY
                 );
             }
 

@@ -1,6 +1,7 @@
 package com.aioveu.pay.aioveu13PayCallbackRecord.service;
 
 
+import com.aioveu.common.enums.pay.CallbackTriggerSourceEnum;
 import com.aioveu.pay.aioveu13PayCallbackRecord.model.entity.PayCallbackRecord;
 import com.aioveu.pay.aioveu13PayCallbackRecord.model.form.PayCallbackRecordForm;
 import com.aioveu.pay.aioveu13PayCallbackRecord.model.query.PayCallbackRecordQuery;
@@ -99,5 +100,5 @@ public interface PayCallbackRecordService extends IService<PayCallbackRecord> {
     /*
     * 保存回调记录
     * */
-    void saveCallbackRecord(String paymentNo, String transactionId, LocalDateTime paidTime, Object rawParams, String source);
+    void saveCallbackRecord(String paymentNo, String transactionId, LocalDateTime paidTime, Object rawParams, CallbackTriggerSourceEnum source);
 }

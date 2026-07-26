@@ -3,7 +3,9 @@ package com.aioveu.pay.aioveu13PayCallbackRecord.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.aioveu.common.enums.pay.CallbackTriggerSourceEnum;
 import com.aioveu.common.enums.pay.PaymentCallbackStatusEnum;
+import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
 import com.aioveu.pay.aioveu13PayCallbackRecord.converter.PayCallbackRecordConverter;
@@ -142,7 +144,7 @@ public class PayCallbackRecordServiceImpl extends ServiceImpl<PayCallbackRecordM
         record.setTransactionId(transactionId);
         record.setPaymentNo(paymentNo);
         record.setOrderNo(orderNo);
-        record.setChannel("WECHAT");
+        record.setChannel(PaymentChannelEnum.WECHAT);
 
         // 3️金额（✅ 必须从回调取）
         BigDecimal paidAmount = parsePaidAmount(params);
@@ -195,7 +197,7 @@ public class PayCallbackRecordServiceImpl extends ServiceImpl<PayCallbackRecordM
         record.setTransactionId(transactionId);
         record.setPaymentNo(paymentNo);
         record.setOrderNo(orderNo);
-        record.setChannel("WECHAT");
+        record.setChannel(PaymentChannelEnum.WECHAT);
         record.setPaidAmount(parsePaidAmount(params));
         record.setMchId(params.get("mch_id"));
         record.setAppId(params.get("appid"));
@@ -243,7 +245,7 @@ public class PayCallbackRecordServiceImpl extends ServiceImpl<PayCallbackRecordM
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     //这样即使后面的流水/MQ 挂了，回调记录已经提交了，微信再来时 isConsumed能查到。
-    public void saveCallbackRecord(String paymentNo, String transactionId, LocalDateTime paidTime, Object rawParams, String source) {
+    public void saveCallbackRecord(String paymentNo, String transactionId, LocalDateTime paidTime, Object rawParams, CallbackTriggerSourceEnum source) {
 
         PayOrder payOrder = payOrderService.getByPaymentNo(paymentNo);
         if (payOrder == null) return;
@@ -261,7 +263,8 @@ public class PayCallbackRecordServiceImpl extends ServiceImpl<PayCallbackRecordM
         record.setPaymentNo(paymentNo);
         record.setOrderNo(payOrder.getOrderNo());
         record.setTransactionId(transactionId);
-        record.setChannel(source.contains("WECHAT") ? "WECHAT" : "POLLING");
+        record.setChannel(payOrder.getPaymentChannel());
+        record.setSource(source);                          // ✅ 加这行
         record.setNotifyStatus(PaymentCallbackStatusEnum.SUCCESS);
         record.setRawData(rawParams != null ? JSON.toJSONString(rawParams) : null);
         record.setLastNotifyTime(paidTime);

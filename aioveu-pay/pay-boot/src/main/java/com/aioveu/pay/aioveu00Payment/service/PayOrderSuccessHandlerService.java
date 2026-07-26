@@ -1,6 +1,7 @@
 package com.aioveu.pay.aioveu00Payment.service;
 
 
+import com.aioveu.common.enums.pay.CallbackTriggerSourceEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 
 import java.time.LocalDateTime;
@@ -32,7 +33,7 @@ public interface PayOrderSuccessHandlerService {
             String transactionId,
             LocalDateTime paidTime,
             Object rawParams,
-            String source
+            CallbackTriggerSourceEnum source
     );
 
     /**
@@ -41,5 +42,5 @@ public interface PayOrderSuccessHandlerService {
     void handlePayFail(
             String paymentNo,
             PaymentStatusEnum targetStatus,
-            String source);
+            CallbackTriggerSourceEnum source);
 }

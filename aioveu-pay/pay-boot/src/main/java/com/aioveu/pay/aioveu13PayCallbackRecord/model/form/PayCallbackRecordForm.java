@@ -1,6 +1,7 @@
 package com.aioveu.pay.aioveu13PayCallbackRecord.model.form;
 
 
+import com.aioveu.common.enums.pay.CallbackTriggerSourceEnum;
 import com.aioveu.common.enums.pay.PaymentCallbackStatusEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -57,6 +58,11 @@ public class PayCallbackRecordForm implements Serializable {
     @NotBlank(message = "支付渠道：WECHAT / ALIPAY / UNION不能为空")
     @Size(max=32, message="支付渠道：WECHAT / ALIPAY / UNION长度不能超过32个字符")
     private String channel;
+
+    /**
+     * 触发来源：WECHAT_CALLBACK / POLLING / MANUAL / JOB_RETRY
+     */
+    private CallbackTriggerSourceEnum source;
 
     @Schema(description = "回调状态：0-接收 1-处理成功 2-处理失败")
     @NotNull(message = "回调状态：0-接收 1-处理成功 2-处理失败不能为空")

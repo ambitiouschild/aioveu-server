@@ -1,6 +1,7 @@
 package com.aioveu.pay.aioveu00Payment.service.impl;
 
 
+import com.aioveu.common.enums.pay.CallbackTriggerSourceEnum;
 import com.aioveu.common.enums.pay.PaymentCallbackStatusEnum;
 import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import com.aioveu.pay.aioveu00Payment.Processor.Impl.BusinessProcessorComposite;
@@ -56,7 +57,7 @@ public class PayOrderSuccessHandlerServiceImpl implements PayOrderSuccessHandler
             String transactionId,
             LocalDateTime paidTime,
             Object rawParams,
-            String source
+            CallbackTriggerSourceEnum source
     ) {
         log.info("【支付成功处理】来源={}, paymentNo={}, transactionId={}",
                 source, paymentNo, transactionId);
@@ -137,7 +138,7 @@ public class PayOrderSuccessHandlerServiceImpl implements PayOrderSuccessHandler
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void handlePayFail(String paymentNo, PaymentStatusEnum targetStatus, String source) {
+    public void handlePayFail(String paymentNo, PaymentStatusEnum targetStatus, CallbackTriggerSourceEnum source) {
         log.info("【支付失败处理】来源={}, paymentNo={}, status={}", source, paymentNo, targetStatus);
 
         PayOrder payOrder = payOrderService.getByPaymentNo(paymentNo);
