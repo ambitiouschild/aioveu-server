@@ -1,6 +1,7 @@
 package com.aioveu.common.rabbitmq.consumer.monitor;
 
 
+import com.aioveu.common.rabbitmq.constant.PayCommonMqConstantWithBizName;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -114,7 +115,7 @@ public class ConsumerMonitor {
      */
     private int getDlqMessageCount() {
         try {
-            Properties queueProperties = rabbitAdmin.getQueueProperties("your.dlq.queue");
+            Properties queueProperties = rabbitAdmin.getQueueProperties(PayCommonMqConstantWithBizName.Queue.DLQ);
             if (queueProperties != null) {
                 return Integer.parseInt(queueProperties.get("QUEUE_MESSAGE_COUNT").toString());
             }
