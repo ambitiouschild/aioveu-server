@@ -41,7 +41,6 @@ public class PayOrderSuccessHandlerServiceImpl implements PayOrderSuccessHandler
     private final PaymentEventPublisher paymentEventPublisher;
     private final BusinessProcessorComposite businessProcessorComposite;
 
-
     /**
      * 统一处理支付成功
      *
@@ -77,6 +76,10 @@ public class PayOrderSuccessHandlerServiceImpl implements PayOrderSuccessHandler
                     paymentNo, payOrder.getPaymentStatus());
             return;
         }
+
+        // ✅ 在这里加：记录回调/触发来源 // ✅ 统一记录（所有来源都记，但用 source 区分）
+        payCallbackRecordService.saveCallbackRecord(paymentNo, transactionId, paidTime, rawParams, source);
+
 
         // 3. 更新 PayOrder
         // 3. 直接在这个对象上改字段（version 已经在里面了，别动它）

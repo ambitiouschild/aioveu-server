@@ -8,6 +8,7 @@ import com.aioveu.pay.aioveu13PayCallbackRecord.model.vo.PayCallbackRecordVo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
@@ -93,4 +94,10 @@ public interface PayCallbackRecordService extends IService<PayCallbackRecord> {
     * */
     PayCallbackRecord getByTransactionId(String transactionId);
 
+
+
+    /*
+    * 保存回调记录
+    * */
+    void saveCallbackRecord(String paymentNo, String transactionId, LocalDateTime paidTime, Object rawParams, String source);
 }

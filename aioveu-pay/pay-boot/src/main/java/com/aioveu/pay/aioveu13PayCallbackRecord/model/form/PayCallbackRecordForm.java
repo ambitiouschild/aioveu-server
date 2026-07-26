@@ -1,6 +1,7 @@
 package com.aioveu.pay.aioveu13PayCallbackRecord.model.form;
 
 
+import com.aioveu.common.enums.pay.PaymentCallbackStatusEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -59,7 +60,7 @@ public class PayCallbackRecordForm implements Serializable {
 
     @Schema(description = "回调状态：0-接收 1-处理成功 2-处理失败")
     @NotNull(message = "回调状态：0-接收 1-处理成功 2-处理失败不能为空")
-    private Integer notifyStatus;
+    private PaymentCallbackStatusEnum notifyStatus;
 
     @Schema(description = "回调次数（防风暴）")
     @NotNull(message = "回调次数（防风暴）不能为空")

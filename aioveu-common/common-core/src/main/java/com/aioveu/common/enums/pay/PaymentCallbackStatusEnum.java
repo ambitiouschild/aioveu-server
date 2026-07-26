@@ -1,6 +1,7 @@
 package com.aioveu.common.enums.pay;
 
 
+import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
@@ -26,8 +27,8 @@ public enum PaymentCallbackStatusEnum {
     /** 已关闭 */
     CLOSED(4, "已关闭");
 
-
-    private final int code;
+    @EnumValue
+    private final int code;   // enum 里定义 code = 1 之类的 int 值
     private final String desc;
 
     PaymentCallbackStatusEnum(int code, String desc) {

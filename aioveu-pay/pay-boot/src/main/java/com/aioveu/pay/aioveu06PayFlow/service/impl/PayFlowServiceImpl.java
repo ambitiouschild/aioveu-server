@@ -149,7 +149,7 @@ public class PayFlowServiceImpl extends ServiceImpl<PayFlowMapper, PayFlow> impl
                 .balanceAfter(null)    // ✅ 不使用
                 .channelCode(callback.getChannel())
                 .thirdFlowNo(callback.getThirdTransactionId())
-                .flowStatus(FlowStatusEnum.SUCCESS)
+                .flowStatus(FlowStatusEnum.SUCCESS)   // ✅ Enum，MP 写 code=1
                 .tradeTime(callback.getPaidTime())
                 .completeTime(now)
 //                .callbackData(callback.getRawData())

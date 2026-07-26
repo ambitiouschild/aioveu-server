@@ -2,7 +2,9 @@ package com.aioveu.pay.aioveu13PayCallbackRecord.model.entity;
 
 
 import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.common.enums.pay.PaymentCallbackStatusEnum;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -47,7 +49,7 @@ public class PayCallbackRecord extends BaseEntityWithTenantId {
     /**
      * 回调状态：0-接收 1-处理成功 2-处理失败
      */
-    private Integer notifyStatus;
+    private PaymentCallbackStatusEnum notifyStatus;
     /**
      * 回调次数（防风暴）
      */

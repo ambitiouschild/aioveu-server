@@ -1,6 +1,7 @@
 package com.aioveu.pay.aioveu06PayFlow.enums;
 
 
+import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.Getter;
 
 /**
@@ -24,7 +25,7 @@ public enum FlowStatusEnum {
         this.value = value;
         this.label = label;
     }
-
+    @EnumValue
     @Getter
     private int value;
 

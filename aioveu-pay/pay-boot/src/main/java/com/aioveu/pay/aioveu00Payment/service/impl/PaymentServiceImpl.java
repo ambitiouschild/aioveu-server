@@ -272,6 +272,7 @@ public class PaymentServiceImpl implements PaymentService {
             }
 
             // 4. ✅【核心】幂等判断（必须用 transaction_id）（✅ 用 pay_callback_record）
+            //这段保留（这是防重复通知的第一道防线，不能删）
             if (payCallbackRecordService.isConsumed(transactionId)) {
 
                 PayCallbackRecord record =
@@ -413,13 +414,6 @@ public class PaymentServiceImpl implements PaymentService {
                     log.error("【微信回调】更新支付失败状态失败: paymentNo={}", paymentNo);
                 }
             }
-
-            payCallbackRecordService.markConsumed(
-                    params.get("transaction_id"),
-                    paymentNo,
-                    payOrder.getOrderNo(),
-                    params
-            );
 
             // 2. 发布支付是失败事件（只发 MQ）
             paymentEventPublisher.publishPaymentFailure(payOrder);
