@@ -30,7 +30,7 @@ public interface PayFeignClient {
      * 来自oms的订单支付请求
      */
     @Operation(summary ="来自oms-pay的订单支付请求")
-    @PostMapping("/aioveu/api/v8/admin/pay/pay-order/createPaymentOmsToPay")
+    @PostMapping("/aioveu/api/v8/app/pay/payment/createPaymentOmsToPay")
     PaymentParamsVO createPaymentOmsToPay(@RequestBody PaymentRequestOmsToPayDTO paymentForm);
 
 
@@ -38,7 +38,7 @@ public interface PayFeignClient {
      * 来自pay-wechat的订单支付请求,创建前端调用第三方支付所需的支付参数
      */
     @Operation(summary ="来自pay-wechat的订单支付请求,创建前端调用第三方支付所需的支付参数")
-    @PostMapping("/aioveu/api/v8/admin/pay/pay-order/createPaymentPayToTPP")
+    @PostMapping("/aioveu/api/v8/app/pay/payment/createPaymentPayToTPP")
     PaymentParamsVO createPaymentPayToTPP(@RequestBody PaymentRequestPayToTPPDTO request);
 
     /**
@@ -50,8 +50,8 @@ public interface PayFeignClient {
     /**
      * 查询支付状态
      */
-    @GetMapping("/query/{orderNo}")
-    Result<PaymentStatusVO> queryPaymentStatus(@PathVariable("orderNo") String orderNo);
+    @GetMapping("/aioveu/api/v8/app/pay/payment/query/{paymentNo}")
+    Result<PaymentStatusVO> queryPaymentStatus(@PathVariable("paymentNo") String paymentNo);
 
     /**
      * 关闭支付
