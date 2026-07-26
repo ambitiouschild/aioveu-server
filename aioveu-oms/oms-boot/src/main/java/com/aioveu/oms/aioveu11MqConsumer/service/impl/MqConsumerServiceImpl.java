@@ -126,7 +126,7 @@ public class MqConsumerServiceImpl implements MqConsumerService {
         String orderSn = message.getOrderNo();
         String consumerGroup = applicationName + "-payment-consumer";
 
-        log.info("【MQ消费者】开始处理支付成功消息: messageId={}, orderNo={}", messageId, orderSn);
+        log.info("【MQ消费者】开始处理支付成功消息: messageId={}, orderSn={}", messageId, orderSn);
 
         try {
 
@@ -299,7 +299,7 @@ public class MqConsumerServiceImpl implements MqConsumerService {
 //            omsOrderPayMapper.insert(pay);
 
 
-            log.info("支付后业务逻辑处理完成: orderNo={}", order.getOrderSn());
+            log.info("支付后业务逻辑处理完成: orderSn={}", order.getOrderSn());
 
         } catch (Exception e) {
             log.error("支付后业务逻辑处理异常", e);

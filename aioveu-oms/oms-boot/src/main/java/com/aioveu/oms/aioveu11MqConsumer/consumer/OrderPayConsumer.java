@@ -36,13 +36,13 @@ Watch Dog 自动续期
 *
 * */
 @Slf4j
-@Component
+//@Component
 @RequiredArgsConstructor
 public class OrderPayConsumer {
 
 
     private final OrderService orderService;
-    @Autowired
+//    @Autowired
     private RedissonClient redisson;
 
     /**
