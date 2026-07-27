@@ -13,8 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -170,15 +172,41 @@ public class WeChatApiClient {
      * 通用 POST 请求方法
      */
     public JsonNode postRequest(String url, Object body) {
-        String response = restTemplate.postForObject(url, body, String.class);
+
         try {
-            JsonNode node = objectMapper.readTree(response);
-            if (node.has("errcode") && node.get("errcode").asInt() != 0) {
-                throw new RuntimeException("微信接口调用失败：" + response);
+
+            String response = restTemplate.postForObject(url, body, String.class); // ← 这里就已经抛异常了
+
+            return parseResponse(response, url);
+
+        } catch (HttpClientErrorException e) {
+
+            // ✅ 关键：从异常里拿 body
+            String errorBody = e.getResponseBodyAsString();
+            log.error("【微信发货】HTTP {} 调用失败, url={}, body={}",
+                    e.getStatusCode(), url, errorBody);
+
+            // 尝试解析微信的错误信息
+            try {
+                JsonNode node = objectMapper.readTree(errorBody);
+                int errcode = node.has("errcode") ? node.get("errcode").asInt() : -1;
+                String errmsg = node.has("errmsg") ? node.get("errmsg").asText() : "unknown";
+
+                // 如果是 access_token 过期，主动清缓存让下次重新获取
+                if (errcode == 40001 || errcode == 42001) {
+                    String tokenParam = url.contains("access_token=")
+                            ? url.split("access_token=")[1].split("&")[0]
+                            : null;
+                    log.warn("【微信发货】access_token 失效(errcode={})，建议清除缓存", errcode);
+                }
+
+                throw new RuntimeException(
+                        String.format("微信接口返回错误 %d: errcode=%d, errmsg=%s",
+                                e.getStatusCode().value(), errcode, errmsg));
+            } catch (Exception parseEx) {
+                throw new RuntimeException(
+                        "微信接口返回 HTTP " + e.getStatusCode() + "，无法解析响应: " + errorBody, e);
             }
-            return node;
-        } catch (Exception e) {
-            throw new RuntimeException("微信接口调用失败: " + response);
         }
     }
 
@@ -194,5 +222,143 @@ public class WeChatApiClient {
     public ArrayNode createArrayNode() {
         return objectMapper.createArrayNode();
     }
+
+
+
+    /*
+    * 解析响应
+    * */
+    private JsonNode parseResponse(String response, String url){
+        try {
+            JsonNode node = objectMapper.readTree(response);
+            if (node.has("errcode") && node.get("errcode").asInt() != 0) {
+                int errcode = node.get("errcode").asInt();
+                String errmsg = node.has("errmsg") ? node.get("errmsg").asText() : "";
+                log.error("【微信发货】微信业务错误, url={}, errcode={}, errmsg={}", url, errcode, errmsg);
+                throw new RuntimeException(
+                        String.format("微信接口业务错误: errcode=%d, errmsg=%s", errcode, errmsg));
+            }
+            return node;
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            throw new RuntimeException("解析微信响应JSON失败: " + response, e);
+        }
+    }
+
+
+
+    /*
+    * 在 WeChatApiClient里封装 Builder 方法
+    * */
+
+
+    /**
+     * 构建微信发货请求体（主流设计）
+     */
+    public ObjectNode buildShippingRequestBody(
+            String transactionId,
+            int logisticsType,
+            List<ShippingItem> shippingItems,
+            List<ItemDesc> itemDescs,
+            String payerOpenid) {
+
+
+        // ========================
+        // Step 4: 组装微信发货请求体
+        // ========================
+        log.info("【微信发货】开始组装微信发货请求参数，transactionId={}", transactionId);
+        ObjectNode body = createObjectNode();
+
+        // 1. order_key
+        ObjectNode orderKey = createObjectNode();
+        orderKey.put("order_number_type", 2); // 2=微信支付单号
+        orderKey.put("transaction_id", transactionId);
+        body.set("order_key", orderKey);  // order_key 订单标识（用微信支付单号）
+
+        // 2. logistics_type
+        body.put("logistics_type", logisticsType); // 1: 实体物流   // 2=无需物流（虚拟商品）
+
+        // 3. delivery_mode（统一发货）
+        body.put("delivery_mode", 1); // 1: 统一发货
+
+        // 4. shipping_list  物流信息
+        ArrayNode shippingList = createArrayNode();
+        if (logisticsType == 1) {
+            for (ShippingItem item : shippingItems) {
+                ObjectNode shipping = createObjectNode();
+                shipping.put("tracking_no", item.getTrackingNo());
+                shipping.put("express_company", item.getExpressCompany());
+
+                // 可选：收件人联系方式
+                if (item.getReceiverContact() != null) {
+                    ObjectNode contact = createObjectNode();
+                    contact.put("receiver_contact", item.getReceiverContact());
+                    shipping.set("contact", contact);
+                }
+                shippingList.add(shipping);
+            }
+        }
+        // logistics_type=2 时传空数组，不能省略
+        body.set("shipping_list", shippingList);
+
+        // 5. item_desc（必须是数组！）
+        ArrayNode itemDescArray = createArrayNode();
+        for (ItemDesc desc : itemDescs) {
+            ObjectNode item = createObjectNode();
+            item.put("item_name", desc.getItemName());
+            item.put("item_count", desc.getItemCount());
+            itemDescArray.add(item);
+        }
+        body.set("item_desc", itemDescArray);
+
+        // 6. 时间戳（秒）
+        long now = System.currentTimeMillis() / 1000;
+        body.put("delivery_time", now);
+        body.put("upload_time", now);
+
+        // 7. 付款人 openid
+        body.put("payer_openid", payerOpenid);
+
+        return body;
+    }
+
+
+    // ============ DTO 内部类 ============
+
+    public static class ShippingItem {
+        private String trackingNo;
+        private String expressCompany;
+        private String receiverContact; // 可选，如 "+86-138****8000"
+
+        public ShippingItem(String trackingNo, String expressCompany) {
+            this.trackingNo = trackingNo;
+            this.expressCompany = expressCompany;
+        }
+
+        public ShippingItem(String trackingNo, String expressCompany, String receiverContact) {
+            this.trackingNo = trackingNo;
+            this.expressCompany = expressCompany;
+            this.receiverContact = receiverContact;
+        }
+
+        // getters
+        public String getTrackingNo() { return trackingNo; }
+        public String getExpressCompany() { return expressCompany; }
+        public String getReceiverContact() { return receiverContact; }
+    }
+
+    public static class ItemDesc {
+        private String itemName;
+        private int itemCount;
+
+        public ItemDesc(String itemName, int itemCount) {
+            this.itemName = itemName;
+            this.itemCount = itemCount;
+        }
+
+        public String getItemName() { return itemName; }
+        public int getItemCount() { return itemCount; }
+    }
+
+
 
 }

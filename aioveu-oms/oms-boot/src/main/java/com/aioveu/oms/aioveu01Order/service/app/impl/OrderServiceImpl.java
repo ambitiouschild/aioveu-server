@@ -14,6 +14,7 @@ import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
 import com.aioveu.oms.aioveu01Order.model.vo.*;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
+import com.aioveu.oms.aioveu01Order.utils.DoUploadShippingUtils;
 import com.aioveu.oms.aioveu01Order.utils.OrderNoGenerator;
 import com.aioveu.oms.aioveu01Order.utils.WeChatApiClient;
 import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
@@ -1812,6 +1813,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         log.info("【微信发货】开始处理订单发货同步，OrderSn={}, deliveryId={}",
                 omsOrder.getOrderSn(), delivery.getId());
 
+
         // ========================
         // Step 1: 查询订单商品信息
         // ========================
@@ -1832,16 +1834,15 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         // Step 2: 生成微信商品概述（item_desc）
         // 示例：iPhone 15 Pro【黑色 256G】 x1；官方硅胶壳【午夜色】 x2
         // ========================
-        String itemDesc = orderItems.stream()
-                .map(i -> i.getSpuName()
-                        + Optional.ofNullable(i.getSkuName())
-                        .map(sku -> "【" + sku + "】")
-                        .orElse("")
-                        + " x" + i.getQuantity())
-                .collect(Collectors.joining("；"));
+        List<WeChatApiClient.ItemDesc>  itemDescs = orderItems.stream()
+                .map(item -> new WeChatApiClient.ItemDesc(
+                        item.getSpuName() + "【" + item.getSkuName() + "】",
+                        item.getQuantity()
+                ))
+                .collect(Collectors.toList());
 
         //iPhone 15 Pro【黑色 256G】 x1；官方硅胶壳【午夜色】 x2
-        log.info("【微信发货】生成 item_desc（微信推荐格式）:{}",itemDesc);
+        log.info("【微信发货】生成 itemDescs（微信推荐格式）:{}",itemDescs);
 
         // ========================
         // Step 3: 获取用户 OpenID
@@ -1893,39 +1894,37 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         }
 
 
-        // ========================
-        // Step 4: 组装微信发货请求体
-        // ========================
-        log.info("【微信发货】开始组装微信发货请求参数，OrderSn={}", omsOrder.getOrderSn());
-        ObjectNode body = weChatApiClient.createObjectNode();
+        // 4. 判断发货方式（从订单/配置读取）
+        Integer logisticsType = DoUploadShippingUtils.determineLogisticsType(omsOrder);
+
+        List<WeChatApiClient.ShippingItem> shippingItems = new ArrayList<>();
 
 
+        if (logisticsType == 1) {
+            // 物流配送：从订单物流表读取真实单号
+            OmsOrderDelivery orderDelivery = orderDeliveryService.selectByOrderId(omsOrder.getId());
+            shippingItems.add(new WeChatApiClient.ShippingItem(
+                    orderDelivery.getDeliverySn(),
+                    orderDelivery.getDeliveryCompany(), // 必须是微信编码，如 "SF"
+                    DoUploadShippingUtils.maskPhone(delivery.getReceiverPhone()) // 可选脱敏
+            ));
+        }
+        // logisticsType=2 时 shippingItems 留空，builder 里会自动处理
 
-        // order_key 订单标识（用微信支付单号）
-        ObjectNode orderKey = body.putObject("order_key");
-        orderKey.put("order_number_type", 2); // 2: 微信支付单号
-        orderKey.put("transaction_id", transactionId);
+        // 5. 构建请求体
+        ObjectNode requestBody = weChatApiClient.buildShippingRequestBody(
+                omsOrder.getTransactionId(), // 或者 transaction_id，取决于你存的是哪个
+                logisticsType,
+                shippingItems,
+                itemDescs,
+                openId
+        );
 
-        // 物流类型 & 发货模式
-        body.put("logistics_type", 1); // 1: 实体物流
-        body.put("delivery_mode", 1);  // 1: 统一发货
-
-        // shipping_list 物流信息
-        ArrayNode shippingList = body.putArray("shipping_list");
-        ObjectNode shippingItem = shippingList.addObject();
-        shippingItem.put("tracking_no", delivery.getDeliverySn());
-        shippingItem.put("express_company", delivery.getDeliveryCompany());
-        shippingItem.put("item_desc", itemDesc); // 商品概述
-
-        //  微信发货参数 time & payer  时间 & 支付人
-        body.put("upload_time", java.time.OffsetDateTime.now().toString());
-        ObjectNode payer = body.putObject("payer");
-        payer.put("openid", openId);
-
-        log.info("【微信发货】微信请求体组装完成，OrderSn={}, transactionId={}, trackingNo={}",
+        log.info("【微信发货】微信请求体组装完成，OrderSn={}, transactionId={}, trackingNo={}，请求体requestBody: {}",
                 omsOrder.getOrderSn(),
                 transactionId,
-                delivery.getDeliverySn());
+                delivery.getDeliverySn(),
+                requestBody);
 
         // ========================
         // Step 5: 调用微信发货接口
@@ -1933,7 +1932,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         log.info("【微信发货】开始调用微信发货接口，orderSn={}", omsOrder.getOrderSn());
         JsonNode result = weChatApiClient.uploadShippingInfo(
                 omsOrder.getClientId(),
-                body
+                requestBody
         );
 
         log.info("【微信发货】微信发货接口返回，orderSn={}, result={}",
