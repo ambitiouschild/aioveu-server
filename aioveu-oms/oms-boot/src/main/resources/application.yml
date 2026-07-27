@@ -2,7 +2,7 @@ spring:
   application:
     name: aioveu-oms  # 订单服务
   profiles:
-    active: dev  #dev prod
+    active: prod  #dev prod
 
 rabbitmq:
   queue:
