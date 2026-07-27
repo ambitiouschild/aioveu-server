@@ -9,6 +9,13 @@ spring:
       matching-strategy: ant_path_matcher # 使用Ant路径匹配策略
   application:
     name: aioveu-tenant-pms     # 商品服务
+
+  config:
+    import: # ✅ 这是 Spring Boot 3 + Nacos 官方写法
+      - optional:nacos:aioveu-common.yaml
+      - optional:nacos:${spring.application.name}.yaml
+
+
   cloud:
     nacos:
       # 配置中心  # 配置中心配置  先获取配置，后执行服务发现”

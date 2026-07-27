@@ -19,12 +19,6 @@
 
     <dependencies>
 
-        <!-- Spring Cloud & Alibaba -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-bootstrap</artifactId>
-        </dependency>
-
         <!-- 注册中心 -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>

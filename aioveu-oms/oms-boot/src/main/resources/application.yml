@@ -2,63 +2,6 @@ spring:
   application:
     name: aioveu-oms  # 订单服务
   profiles:
-    active: prod  #dev prod
+    active: dev  #dev prod
 
-rabbitmq:
-  queue:
-    payment-success: order.payment.success.queue
 
-rocketmq:
-  name-server: ${ROCKETMQ_NAMESRV:127.0.0.1:9876}  # NameServer地址
-  # 订单服务不需要 producer 配置
-#  consumer:
-#    order-service-group:
-#      enabled: true
-#      topic: payment_success_topic
-#      tag: wechat_pay || alipay
-#      consume-thread-min: 5
-#      consume-thread-max: 32
-#      pull-batch-size: 32
-#      pull-interval: 0
-#      consume-message-batch-max-size: 1
-#    point-service-group:
-#      enabled: true
-#      topic: payment_success_topic
-#      tag: '*'
-#      consume-thread-min: 5
-#      consume-thread-max: 20
-
-  monitor:
-    consumer:
-      enabled: true
-      groups:
-        - order_service_group
-      metrics:
-        - consume_success_rate  # 消费成功率
-        - consume_latency_ms    # 消费延迟
-        - dlq_count             # 死信队列数量
-        - retry_count           # 重试次数
-      alerts:
-        - condition: "consume_failure_rate > 5%"
-          message: "消息消费失败率过高"
-        - condition: "dlq_count > 0"
-          message: "存在死信消息"
-# 订单消费端监控配置
-order:
-  consumer:
-    monitor:
-      enabled: true
-      backlog-threshold: 1000
-      delay-threshold: 10000
-      failure-rate-threshold: 5.0
-      # 监控的 Topic
-      topics: payment_success_topic
-      # 监控的消费者组
-      consumer-groups: ${spring.application.name}-payment-consumer
-
-#✅ 方案 1（最推荐）：忽略 mail 健康检查
-#✅ 方案 2：把邮箱配对（如果你真要用）
-management:
-  health:
-    mail:
-      enabled: false

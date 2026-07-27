@@ -10,13 +10,9 @@ spring:
   #WebFlux 的自动配置只认 spring.config.import
   # 关键：import 必须放在最前，且建议带上后缀
   config:
-    import:
-      # ✅ 公共配置（redis / 通用参数）
-      - optional:nacos:aioveu-common.yaml?group=AIOVEU_GROUP&refreshEnabled=true
-      # ✅ Gateway 路由配置（必须在这里）
-#      - optional:nacos:aioveu-tenant-gateway.yaml?group=AIOVEU_GROUP&refreshEnabled=true
-      #Nacos 里 必须 有这个 dataId
-      - optional:nacos:aioveu-tenant-gateway.yaml?group=AIOVEU_GROUP&refreshEnabled=true
+    import: # ✅ 这是 Spring Boot 3 + Nacos 官方写法
+      - optional:nacos:aioveu-common.yaml
+      - optional:nacos:${spring.application.name}.yaml
 
   cloud:
     nacos:

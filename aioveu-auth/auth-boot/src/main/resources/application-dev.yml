@@ -7,6 +7,13 @@ spring:
       matching-strategy: ant_path_matcher
   application:
     name: aioveu-tenant-auth
+
+#     - optional:nacos:${spring.application.name}-${spring.profiles.active}.yaml
+  config:
+    import: # ✅ 这是 Spring Boot 3 + Nacos 官方写法
+      - optional:nacos:aioveu-common.yaml
+      - optional:nacos:${spring.application.name}.yaml
+
   cloud:
     nacos:
       # 配置中心  # 配置中心配置  先获取配置，后执行服务发现”

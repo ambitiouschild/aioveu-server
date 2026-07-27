@@ -30,9 +30,7 @@ import jakarta.mail.internet.MimeMessage;
 public class MailServiceImpl implements MailService{
 
 //    @Autowired(required = false)   //✅ 修改 MailServiceImpl 为可选依赖（长期方案）
-    @Autowired
     private final JavaMailSender mailSender;
-
     private final MailProperties mailProperties;
 
     /**

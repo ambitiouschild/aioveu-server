@@ -2,7 +2,7 @@ spring:
   application:
     name: aioveu-ums   # 会员服务
   profiles:
-    active: prod  #dev prod
+    active: dev  #dev prod
 
 # 临时添加调试
 logging:

@@ -9,11 +9,9 @@ spring:
 
   #  主配置源（Gateway routes 生效）
   config:
-    import:
-      # ✅ 公共配置（redis / 通用参数） 写死redis
-      - optional:nacos:aioveu-common.yaml?group=AIOVEU_GROUP&refreshEnabled=true
-      # ✅ Gateway 路由配置（必须在这里）
-      - optional:nacos:aioveu-tenant-gateway.yaml?group=AIOVEU_GROUP&refreshEnabled=true
+    import: # ✅ 这是 Spring Boot 3 + Nacos 官方写法
+      - optional:nacos:aioveu-common.yaml
+      - optional:nacos:${spring.application.name}.yaml
 
   cloud:
     nacos:

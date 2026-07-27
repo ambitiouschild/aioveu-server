@@ -13,13 +13,10 @@ spring:
       matching-strategy: ant_path_matcher  # 使用Ant路径匹配策略
 
   config:
-    import: # ✅ 正确：config.import才是数组
-      #spring.config.import中的变量引用要在变量被解析后才能使用，但导入过程太早，变量还没被解析，所以直接写死配置文件名是最可靠的解决方案。
-      # 按顺序导入配置
-      # 必须指定group参数
-      - optional:nacos:aioveu-common.yaml?group=AIOVEU_GROUP&namespace=public
-      - optional:nacos:aioveu-tenant.yaml?group=AIOVEU_GROUP&namespace=public # 使用固定名称
-#      - optional:nacos:${spring.application.name}.yaml?group=AIOVEU_GROUP
+    import: # ✅ 这是 Spring Boot 3 + Nacos 官方写法
+      - optional:nacos:aioveu-common.yaml
+      - optional:nacos:${spring.application.name}.yaml
+
   cloud:
     nacos:
       # 配置中心  # 配置中心配置  先获取配置，后执行服务发现”
@@ -58,35 +55,3 @@ logging:
 #    org.apache.ibatis: TRACE
 #    com.baomidou.mybatisplus: DEBUG
     com.aioveu.tenant.aioveu10Log.mapper: debug
-
-# 多租户配置
-tenant:
-  # 租户字段名（默认：tenant_id）
-  column: tenant_id
-  # 忽略多租户过滤的表名列表（系统表、租户表等不需要租户隔离的表）
-  ignore-tables:
-    - sys_tenant # 租户表本身
-    - sys_tenant_plan # 租户套餐表
-    - sys_tenant_plan_menu # 租户套餐菜单关联表
-    - sys_menu # 菜单表（功能入口定义，所有租户共享）
-    - sys_dict # 字典表（通常共享）
-    - sys_dict_item # 字典项表（通常共享）
-    - sys_config # 系统配置表（通常共享）
-    - gen_table # 代码生成表（平台共用）
-    - gen_table_column # 代码生成字段表（平台共用）
-    - sys_user #无租户id登录忽略，有租户id不忽略
-    - sys_oauth_client_wx_app
-    - sys_tenant_wx_app
-# ============================================
-
-#  🎉 恭喜！
-#
-#  你的应用已经：
-#
-#  ✅ 成功连接到Nacos配置中心
-#
-#  ✅ 成功注册到Nacos服务发现
-#
-#  ✅ 成功启动Tomcat服务
-#
-#  ✅ 成功加载数据库和Redis配置
