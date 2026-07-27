@@ -25,7 +25,7 @@ public class DoUploadShippingUtils {
     public static LogisticsTypeEnum determineLogisticsType(OmsOrder order, ShipOrderDTO dto) {
         // 方案A：从订单表字段读（推荐）  // 优先用发货时前端传的
         if (dto.getLogisticsType() != null) {
-            return dto.getLogisticsType();
+            return LogisticsTypeEnum.fromCode(dto.getLogisticsType()) ;
         }
 
         // 其次用订单上存的

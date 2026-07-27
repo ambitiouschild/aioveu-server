@@ -1,6 +1,7 @@
 package com.aioveu.common.enums.oms;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Getter;
 
 /**
@@ -33,7 +34,7 @@ public enum LogisticsTypeEnum {
         this.label = label;
     }
 
-    @EnumValue          // ← 关键！告诉 MP 用这个值存/取 DB
+    @EnumValue
     @Getter
     private int code;
 

@@ -1,7 +1,7 @@
 package com.aioveu.oms.aioveu01Order.utils;
 
 
-import com.aioveu.common.enums.oms.LogisticsCompanyCodeEnum;
+import com.aioveu.common.enums.oms.DeliveryCompanyCodeEnum;
 import com.aioveu.common.enums.oms.LogisticsTypeEnum;
 import com.aioveu.common.result.Result;
 import com.aioveu.tenant.api.TenantFeignClient;
@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -335,15 +336,15 @@ public class WeChatApiClient {
 
     public static class ShippingItem {
         private String trackingNo;
-        private LogisticsCompanyCodeEnum expressCompany;
+        private DeliveryCompanyCodeEnum expressCompany;
         private String receiverContact; // 可选，如 "+86-138****8000"
 
-        public ShippingItem(String trackingNo, LogisticsCompanyCodeEnum expressCompany) {
+        public ShippingItem(String trackingNo, DeliveryCompanyCodeEnum expressCompany) {
             this.trackingNo = trackingNo;
             this.expressCompany = expressCompany;
         }
 
-        public ShippingItem(String trackingNo, LogisticsCompanyCodeEnum expressCompany, String receiverContact) {
+        public ShippingItem(String trackingNo, DeliveryCompanyCodeEnum expressCompany, String receiverContact) {
             this.trackingNo = trackingNo;
             this.expressCompany = expressCompany;
             this.receiverContact = receiverContact;
@@ -351,7 +352,7 @@ public class WeChatApiClient {
 
         // getters
         public String getTrackingNo() { return trackingNo; }
-        public LogisticsCompanyCodeEnum getExpressCompany() { return expressCompany; }
+        public DeliveryCompanyCodeEnum getExpressCompany() { return expressCompany; }
         public String getReceiverContact() { return receiverContact; }
     }
 

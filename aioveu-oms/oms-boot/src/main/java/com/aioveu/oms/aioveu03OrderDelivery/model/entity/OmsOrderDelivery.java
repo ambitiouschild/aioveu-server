@@ -1,9 +1,11 @@
 package com.aioveu.oms.aioveu03OrderDelivery.model.entity;
 
 import com.aioveu.common.base.BaseEntityWithTenantId;
-import com.aioveu.common.enums.oms.LogisticsCompanyCodeEnum;
+import com.aioveu.common.enums.oms.DeliveryCompanyCodeEnum;
+import com.aioveu.common.enums.oms.LogisticsTypeEnum;
 import com.aioveu.common.enums.oms.OrderDeliveryStatusEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
@@ -48,7 +50,7 @@ public class OmsOrderDelivery extends BaseEntityWithTenantId {
 	/**
 	 * 快递公司微信编码，如 SF/ZTO/YTO'
 	 */
-	private LogisticsCompanyCodeEnum deliveryCompanyCode;
+	private DeliveryCompanyCodeEnum deliveryCompanyCode;
 
 	/**
 	 * 物流单号

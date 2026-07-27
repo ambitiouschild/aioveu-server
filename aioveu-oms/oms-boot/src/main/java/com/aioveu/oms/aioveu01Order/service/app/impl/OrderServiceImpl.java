@@ -1800,7 +1800,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         ShipOrderDTO dto = new ShipOrderDTO();
         dto.setTrackingNo(delivery.getDeliverySn());
         dto.setLogisticsCompany(delivery.getDeliveryCompany());
-        dto.setLogisticsType(order.getLogisticsType()); // 从订单上取，可能为 null
+        dto.setLogisticsType(order.getLogisticsType().getCode()); // 从订单上取，可能为 null
 
         // ✅ 微信发货
         // 发货时直接使用 clientId（✅ 正确）   // ✅ 直接调已有的手动发货方法，不用再写一套
