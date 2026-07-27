@@ -86,6 +86,12 @@ public class OmsOrderDetailVO implements Serializable {
     @Schema(description = "支付方式文本")
     private String paymentMethodText;
 
+    @Schema(description = "物流类型")
+    private Integer logisticsType;
+
+    @Schema(description = "物流类型文本")
+    private String logisticsTypeText;
+
     @Schema(description = "商户订单号")
     private String outTradeNo;
 

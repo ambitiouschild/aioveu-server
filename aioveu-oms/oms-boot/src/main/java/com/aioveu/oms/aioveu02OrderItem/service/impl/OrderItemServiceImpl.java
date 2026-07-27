@@ -204,6 +204,10 @@ public class OrderItemServiceImpl extends ServiceImpl<OmsOrderItemMapper, OmsOrd
         orderDetail.setSource(order.getSource().getValue());
         orderDetail.setSourceText(getSourceText(order.getSource()));
 
+        //设置物流类型
+        orderDetail.setLogisticsType(order.getLogisticsType().getCode());
+        orderDetail.setLogisticsTypeText(order.getLogisticsType().getLabel());
+        orderDetail.setTransactionId(order.getTransactionId());
         // 3. 查询订单商品项
         List<OmsOrderItem> orderItems = orderItemMapper.selectList(
                 new LambdaQueryWrapper<OmsOrderItem>()
