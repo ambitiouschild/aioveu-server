@@ -1,8 +1,10 @@
-package com.aioveu.order.model.aioveu05OrderPay.form;
+package com.aioveu.order.model.aioveu01Order.form;
 
+import com.aioveu.common.enums.oms.LogisticsTypeEnum;
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.common.enums.oms.OrderSourceEnum;
 import com.aioveu.common.enums.pay.PaymentMethodEnum;
+import com.baomidou.mybatisplus.annotation.TableField;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -76,6 +78,12 @@ public class OrderSubmitForm {
      */
 
     private PaymentMethodEnum paymentMethod;
+
+    /**
+     * 物流类型：1=物流配送，2=无需物流(虚拟商品)，3=自提，4=同城配送
+     */
+    @TableField("logistics_type")
+    private LogisticsTypeEnum logisticsType;
 
 
     @Schema(description="收获地址")

@@ -1,6 +1,7 @@
 package com.aioveu.oms.aioveu01Order.utils;
 
 
+import com.aioveu.common.enums.oms.LogisticsTypeEnum;
 import com.aioveu.common.result.Result;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
@@ -256,7 +257,7 @@ public class WeChatApiClient {
      */
     public ObjectNode buildShippingRequestBody(
             String transactionId,
-            int logisticsType,
+            LogisticsTypeEnum logisticsType,
             List<ShippingItem> shippingItems,
             List<ItemDesc> itemDescs,
             String payerOpenid) {
@@ -275,14 +276,14 @@ public class WeChatApiClient {
         body.set("order_key", orderKey);  // order_key 订单标识（用微信支付单号）
 
         // 2. logistics_type
-        body.put("logistics_type", logisticsType); // 1: 实体物流   // 2=无需物流（虚拟商品）
+        body.put("logistics_type", logisticsType.getCode()); // 1: 实体物流   // 2=无需物流（虚拟商品）
 
         // 3. delivery_mode（统一发货）
         body.put("delivery_mode", 1); // 1: 统一发货
 
         // 4. shipping_list  物流信息
         ArrayNode shippingList = createArrayNode();
-        if (logisticsType == 1) {
+        if (logisticsType == LogisticsTypeEnum.PHYSICAL) {
             for (ShippingItem item : shippingItems) {
                 ObjectNode shipping = createObjectNode();
                 shipping.put("tracking_no", item.getTrackingNo());

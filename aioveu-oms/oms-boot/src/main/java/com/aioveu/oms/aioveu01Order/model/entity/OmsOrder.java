@@ -1,6 +1,7 @@
 package com.aioveu.oms.aioveu01Order.model.entity;
 
 import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.common.enums.oms.LogisticsTypeEnum;
 import com.aioveu.common.enums.oms.OrderSourceEnum;
 import com.aioveu.common.enums.pay.PaymentChannelEnum;
 import com.aioveu.common.enums.oms.OrderStatusEnum;
@@ -123,6 +124,13 @@ public class OmsOrder extends BaseEntityWithTenantId {
 //			typeHandler = com.aioveu.common.util.PaymentMethodEnumCodeTypeHandlerForPay.class)
 	@TableField("payment_method")
 	private PaymentMethodEnum paymentMethod;  // ← 不加任何 typeHandler 注解，靠全局注册
+
+
+	/**
+	 * 物流类型：1=物流配送，2=无需物流(虚拟商品)，3=自提，4=同城配送
+	 */
+	@TableField("logistics_type")
+	private LogisticsTypeEnum logisticsType;
 
 	/*
 	* @TableField(typeHandler = ...)的优先级 高于 @EnumValue。所以这里会强制用 code（int）来映射，

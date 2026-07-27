@@ -30,7 +30,7 @@ import java.util.List;
  * @Date 2026/6/9 10:26
  * @Version 1.0
  **/
-@Component
+//@Component
 @Slf4j
 @RequiredArgsConstructor
 public class ShippingTaskScheduler {
@@ -84,7 +84,7 @@ public class ShippingTaskScheduler {
 
                 // ✅ 自动发货（不依赖前端）
                 JsonNode result =
-                        orderService.uploadShipping(orderSn);
+                        orderService.autoUploadShipping(orderSn);
 
                 if (result.has("errcode")
                         && result.get("errcode").asInt() == 0) {

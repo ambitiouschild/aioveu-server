@@ -1,6 +1,5 @@
 package com.aioveu.oms.aioveu01Order.service.app;
 
-import com.aioveu.common.result.Result;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderPageWithStatsVO;
@@ -8,22 +7,15 @@ import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderStatisticsVO;
 import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
 import com.aioveu.order.model.aioveu01Order.vo.OrderSubmitVO;
-import com.aioveu.order.model.aioveu05OrderPay.form.OrderPaymentForm;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
-import com.aioveu.pay.model.aioveuPayment.PaymentResultVO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestFEToOmsDTO;
-import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestOmsToPayDTO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.aioveu.order.model.aioveu05OrderPay.form.OrderSubmitForm;
+import com.aioveu.order.model.aioveu01Order.form.OrderSubmitForm;
 import com.aioveu.oms.aioveu01Order.model.query.OrderPageQuery;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderConfirmVO;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderPageVO;
-import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.web.bind.annotation.PostMapping;
-
-import java.util.Map;
 
 /**
  * @Description: TODO 订单业务接口
@@ -142,7 +134,7 @@ public interface OrderService extends IService<OmsOrder> {
     /*
     * （✅ 强烈推荐）：自动发货不用 DTO
     * */
-    JsonNode uploadShipping(String orderSn);
+    JsonNode autoUploadShipping(String orderSn);
 
     /**
      * 2. 提醒用户确认收货（以自有系统为准）

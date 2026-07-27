@@ -1,5 +1,6 @@
 package com.aioveu.oms.aioveu01Order.model.form;
 
+import com.aioveu.common.enums.oms.LogisticsTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,6 +33,8 @@ public class ShipOrderDTO implements Serializable {
 
     @Schema(description = "物流单号")
     private String  trackingNo;
+
+    private LogisticsTypeEnum logisticsType; // ← 加这个
 
     @Schema(description = "发货备注")
     private String  remark;

@@ -6,6 +6,7 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.aioveu.common.enums.oms.LogisticsTypeEnum;
 import com.aioveu.common.enums.pay.*;
 import com.aioveu.common.exception.BusinessException;
 import com.aioveu.common.result.ResultCode;
@@ -27,11 +28,9 @@ import com.aioveu.pay.api.PayFeignClient;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderCreateForm;
 import com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
-import com.aioveu.pay.model.aioveuPayment.PaymentResultVO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestFEToOmsDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestOmsToPayDTO;
 import com.aioveu.tenant.api.TenantFeignClient;
-import com.aioveu.tenant.dto.TenantWxAppInfo;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.alibaba.nacos.shaded.com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -41,7 +40,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.aioveu.common.result.Result;
 import com.aioveu.common.web.exception.BizException;
@@ -52,8 +50,7 @@ import com.aioveu.common.enums.oms.OrderSourceEnum;
 import com.aioveu.oms.aioveu01Order.mapper.OmsOrderMapper;
 import com.aioveu.oms.aioveu02OrderItem.model.vo.OrderItemDTO;
 import com.aioveu.oms.aioveu02OrderItem.model.entity.OmsOrderItem;
-import com.aioveu.order.model.aioveu05OrderPay.form.OrderPaymentForm;
-import com.aioveu.order.model.aioveu05OrderPay.form.OrderSubmitForm;
+import com.aioveu.order.model.aioveu01Order.form.OrderSubmitForm;
 import com.aioveu.oms.aioveu01Order.model.query.OrderPageQuery;
 import com.aioveu.oms.aioveu01Order.service.CartService;
 import com.aioveu.oms.aioveu02OrderItem.service.OmsOrderItemService;
@@ -66,11 +63,8 @@ import feign.FeignException;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -92,7 +86,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.hutool.core.util.NumberUtil.toBigDecimal;
-
+import static com.aioveu.oms.aioveu03OrderDelivery.utils.DeliveryUtils.resolveExpressCode;
 
 
 /**
@@ -917,6 +911,12 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             log.info("【创建订单】16.前端指定 clientId: {}", clientId);
 
 
+            // 17. 物流类型（从提交表单中取，没传则默认物流配送）
+            LogisticsTypeEnum logisticsType = submitForm.getLogisticsType() != null
+                    ? submitForm.getLogisticsType()
+                    : LogisticsTypeEnum.SELF_PICKUP; // 默认物流配送
+            log.info("【创建订单】17.物流类型: {}", logisticsType);
+
             log.info("【创建订单】开始赋值===========");
 
             order.setOrderSn(orderSn);
@@ -934,7 +934,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             order.setPaymentTime(paymentTime);
             order.setPaymentChannel(paymentChannel);
             order.setPaymentMethod(paymentMethod);
-
+            order.setLogisticsType(logisticsType);
             //订单创建时就绑定微信身份
             // 发货时不再依赖 tenant 查 client
             order.setClientId(clientId);
@@ -1726,7 +1726,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             throw new RuntimeException("订单不存在，orderId: " + orderId);
         }
 
-        // ====== Step 2: 取发货信息 查下单时已保存的发货信息======
+        // ====== Step 2: 取发货信息 查下单时已保存的发货信息 "查"是一定有的，"写"是在微信成功之后。======
 
         /*
         *       下单✅ 订单服务
@@ -1757,14 +1757,21 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         omsOrderDeliveryService.updateById(delivery);
 
         // ✅ 微信发货
-        return doUploadShipping(order, delivery);
+        return doUploadShipping(order, delivery,dto);
 
 
     }
 
 
+    /**
+     * 自动发货（定时任务 / 支付回调 / MQ 消费 调用）
+     * 所有参数从 DB 读取，不需要前端 DTO
+     */
+    @Transactional(rollbackFor = Exception.class)
     @Override
-    public JsonNode uploadShipping(String orderSn) {
+    public JsonNode autoUploadShipping(String orderSn) {
+
+        log.info("【自动发货】开始，orderSn={}", orderSn);
 
         OmsOrder order = getByOrderNo(orderSn);
         if (order == null) {
@@ -1789,9 +1796,15 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             return buildSkippedResult();
         }
 
+        // ✅ 直接从 DB 构造 ShipOrderDTO，复用手动发货逻辑
+        ShipOrderDTO dto = new ShipOrderDTO();
+        dto.setTrackingNo(delivery.getDeliverySn());
+        dto.setLogisticsCompany(delivery.getDeliveryCompany());
+        dto.setLogisticsType(order.getLogisticsType()); // 从订单上取，可能为 null
+
         // ✅ 微信发货
-        // 发货时直接使用 clientId（✅ 正确）
-        return doUploadShipping(order, delivery);
+        // 发货时直接使用 clientId（✅ 正确）   // ✅ 直接调已有的手动发货方法，不用再写一套
+        return doUploadShipping(order, delivery,dto);
     }
 
 
@@ -1806,12 +1819,13 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
      * ⚠️ 注意：
      * - 此方法不应包含 Seata 全局事务
      * - 失败直接抛异常，由外层决定是否回滚订单状态
+     * doUploadShipping的参数应该用 ShipOrderDTO（或专门的 UploadShippingDTO），不直接用 OmsOrderDelivery。
      */
-    private JsonNode doUploadShipping(OmsOrder omsOrder, OmsOrderDelivery delivery){
+    private JsonNode doUploadShipping(OmsOrder omsOrder,OmsOrderDelivery delivery, ShipOrderDTO shipOrderDTO){
 
 
-        log.info("【微信发货】开始处理订单发货同步，OrderSn={}, deliveryId={}",
-                omsOrder.getOrderSn(), delivery.getId());
+        log.info("【微信发货】开始处理订单发货同步，OrderSn={}",
+                omsOrder.getOrderSn());
 
 
         // ========================
@@ -1895,12 +1909,12 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
 
         // 4. 判断发货方式（从订单/配置读取）
-        Integer logisticsType = DoUploadShippingUtils.determineLogisticsType(omsOrder);
+        LogisticsTypeEnum logisticsType = DoUploadShippingUtils.determineLogisticsType(omsOrder,shipOrderDTO);
 
         List<WeChatApiClient.ShippingItem> shippingItems = new ArrayList<>();
 
 
-        if (logisticsType == 1) {
+        if (logisticsType == LogisticsTypeEnum.LOCAL_DELIVERY) {
             // 物流配送：从订单物流表读取真实单号
             OmsOrderDelivery orderDelivery = orderDeliveryService.selectByOrderId(omsOrder.getId());
             shippingItems.add(new WeChatApiClient.ShippingItem(

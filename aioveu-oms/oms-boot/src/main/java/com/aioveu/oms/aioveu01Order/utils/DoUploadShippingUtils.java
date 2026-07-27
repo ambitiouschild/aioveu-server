@@ -1,7 +1,10 @@
 package com.aioveu.oms.aioveu01Order.utils;
 
 
+import com.aioveu.common.enums.oms.LogisticsTypeEnum;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
+import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
+import com.alibaba.nacos.common.utils.StringUtils;
 
 /**
  * @ClassName: DoUploadShippingUtils
@@ -19,8 +22,13 @@ public class DoUploadShippingUtils {
      * 根据订单属性判定物流类型
      * 主流做法：订单表里加一个字段 logistics_type，或者根据商品类型判定
      */
-    public static int determineLogisticsType(OmsOrder order) {
-        // 方案A：从订单表字段读（推荐）
+    public static LogisticsTypeEnum determineLogisticsType(OmsOrder order, ShipOrderDTO dto) {
+        // 方案A：从订单表字段读（推荐）  // 优先用发货时前端传的
+        if (dto.getLogisticsType() != null) {
+            return dto.getLogisticsType();
+        }
+
+        // 其次用订单上存的
         if (order.getLogisticsType() != null) {
             return order.getLogisticsType();
         }
@@ -28,8 +36,11 @@ public class DoUploadShippingUtils {
         // 方案B：根据商品是否有实物判定
         // 虚拟商品（卡券、会员等）→ 2
         // 实物商品 → 1
-        boolean hasPhysicalProduct = checkHasPhysicalProduct(order.getId());
-        return hasPhysicalProduct ? 1 : 2;
+//        boolean hasPhysicalProduct = checkHasPhysicalProduct(order.getId());
+//        return hasPhysicalProduct ? 1 : 2;
+
+        // 兜底：有运单号就走物流，没有就无需物流
+        return StringUtils.isNotBlank(dto.getTrackingNo()) ? LogisticsTypeEnum.PHYSICAL : LogisticsTypeEnum.SELF_PICKUP;
     }
 
     /**
