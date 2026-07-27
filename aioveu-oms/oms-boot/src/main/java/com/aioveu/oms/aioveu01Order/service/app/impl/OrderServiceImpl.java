@@ -1911,15 +1911,20 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         // 4. 判断发货方式（从订单/配置读取）
         LogisticsTypeEnum logisticsType = DoUploadShippingUtils.determineLogisticsType(omsOrder,shipOrderDTO);
 
-        List<WeChatApiClient.ShippingItem> shippingItems = new ArrayList<>();
 
+        List<WeChatApiClient.ShippingItem> shippingItems = new ArrayList<>();
+        log.info("【微信发货】logisticsType={}, shippingItems size={}, trackingNo={}, expressCode={}",
+                logisticsType,
+                shippingItems != null ? shippingItems.size() : "null",
+                shipOrderDTO != null ? shipOrderDTO.getTrackingNo() : "N/A",
+                shipOrderDTO != null ? shipOrderDTO.getLogisticsCompanyCode() : "N/A");
 
         if (logisticsType == LogisticsTypeEnum.LOCAL_DELIVERY) {
             // 物流配送：从订单物流表读取真实单号
             OmsOrderDelivery orderDelivery = orderDeliveryService.selectByOrderId(omsOrder.getId());
             shippingItems.add(new WeChatApiClient.ShippingItem(
                     orderDelivery.getDeliverySn(),
-                    orderDelivery.getDeliveryCompany(), // 必须是微信编码，如 "SF"
+                    orderDelivery.getDeliveryCompanyCode(), // 必须是微信编码，如 "SF"
                     DoUploadShippingUtils.maskPhone(delivery.getReceiverPhone()) // 可选脱敏
             ));
         }
@@ -1927,7 +1932,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
         // 5. 构建请求体
         ObjectNode requestBody = weChatApiClient.buildShippingRequestBody(
-                omsOrder.getTransactionId(), // 或者 transaction_id，取决于你存的是哪个
+                omsOrder.getTransactionId(), // 或者 transaction_id，取决于你存的是哪个。 order.getOutTradeNo()（即 PAY20260726000016）——这是个商户订单号！
                 logisticsType,
                 shippingItems,
                 itemDescs,

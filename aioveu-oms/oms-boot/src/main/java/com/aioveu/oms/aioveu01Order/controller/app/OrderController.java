@@ -247,7 +247,8 @@ public class OrderController {
     public Result<JsonNode> ship(@PathVariable String orderSn,
                                  @RequestBody ShipOrderDTO dto) {
 
-        log.info("【发货】手动发货 orderSn={}", orderSn);
+        log.info("【发货】前端入参 orderSn={}, logisticsType={}, expressCompanyCode={}, trackingNo={}",
+                orderSn, dto.getLogisticsType(), dto.getLogisticsCompanyCode(), dto.getTrackingNo());
 
         try {
             JsonNode result = orderService.uploadShipping(orderSn, dto);

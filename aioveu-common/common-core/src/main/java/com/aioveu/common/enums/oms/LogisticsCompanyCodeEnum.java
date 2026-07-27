@@ -17,8 +17,9 @@ import lombok.Getter;
  *
  * @author aioveu
  */
-public enum DeliveryCompanyCodeEnum {
+public enum LogisticsCompanyCodeEnum {
 
+    SELF_PICKUP(0, "SELF_PICKUP", "买家自提"),
     SF(1, "SF", "顺丰速运"),
     ZTO(2, "ZTO", "中通快递"),
     YTO(3, "YTO", "圆通速递"),
@@ -32,7 +33,7 @@ public enum DeliveryCompanyCodeEnum {
 
     ;
 
-    DeliveryCompanyCodeEnum(int code, String value, String label) {
+    LogisticsCompanyCodeEnum(int code, String value, String label) {
         this.code = code;
         this.value = value;
         this.label = label;
@@ -50,11 +51,11 @@ public enum DeliveryCompanyCodeEnum {
     private String label;
 
     // ---------- 反向查找 ----------
-    public static DeliveryCompanyCodeEnum fromCode(Integer code) {
+    public static LogisticsCompanyCodeEnum fromCode(Integer code) {
 
         if (code == null) return null;  // ✅ 改这里，别抛异常
 
-        for (DeliveryCompanyCodeEnum e : values()) {
+        for (LogisticsCompanyCodeEnum e : values()) {
             if (e.code == code) {
                 return e;
             }
@@ -62,9 +63,9 @@ public enum DeliveryCompanyCodeEnum {
         throw new IllegalArgumentException("不支持的快递公司编码DeliveryCompanyCodeEnum：" + code);
     }
 
-    public static DeliveryCompanyCodeEnum fromValue(String value) {
+    public static LogisticsCompanyCodeEnum fromValue(String value) {
         if (value == null || value.isEmpty()) return null;
-        for (DeliveryCompanyCodeEnum e : values()) {
+        for (LogisticsCompanyCodeEnum e : values()) {
             if (e.value.equals(value)) return e;
         }
         return UNKNOWN;

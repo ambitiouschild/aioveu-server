@@ -1,18 +1,23 @@
 package com.aioveu.oms.aioveu01Order.utils;
 
 
+import com.aioveu.common.enums.oms.LogisticsCompanyCodeEnum;
 import com.aioveu.common.enums.oms.LogisticsTypeEnum;
 import com.aioveu.common.result.Result;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
+import org.springframework.http.MediaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -151,17 +156,17 @@ public class WeChatApiClient {
 
     /* ========================= 发货 ========================= */
     // 封装接口地址
-    public JsonNode uploadShippingInfo(String clientId, Object body) {
+    public JsonNode uploadShippingInfo(String clientId, ObjectNode body) {
         String token = getAccessToken(clientId);
         return postRequest(String.format(UPLOAD_SHIPPING_URL, token), body);
     }
 
-    public JsonNode notifyConfirmReceive(String clientId, Object body) {
+    public JsonNode notifyConfirmReceive(String clientId, ObjectNode body) {
         String token = getAccessToken(clientId);
         return postRequest(String.format(NOTIFY_RECEIVE_URL, token), body);
     }
 
-    public JsonNode getOrderStatus(String clientId, Object body) {
+    public JsonNode getOrderStatus(String clientId, ObjectNode body) {
         String token = getAccessToken(clientId);
         return postRequest(String.format(GET_ORDER_URL, token), body);
     }
@@ -172,42 +177,43 @@ public class WeChatApiClient {
     /**
      * 通用 POST 请求方法
      */
-    public JsonNode postRequest(String url, Object body) {
+    public JsonNode postRequest(String url, ObjectNode body) {
+
+        log.info("【微信发货】POST 请求 url={}, body={}", url, body);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<ObjectNode> request = new HttpEntity<>(body, headers);  //天然是 HttpEntity<ObjectNode>，编译器不会再报任何类型错误
+
 
         try {
 
-            String response = restTemplate.postForObject(url, body, String.class); // ← 这里就已经抛异常了
+            ResponseEntity<JsonNode> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    request,  // 现在是 HttpEntity<ObjectNode>，跟泛型对上了
+                    JsonNode.class
+            );
 
-            return parseResponse(response, url);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return response.getBody();
+            } else {
+                // 非 2xx 但 exchange 没抛异常（说明没触发 DefaultResponseErrorHandler）
+                //RestTemplate 默认把 4xx 当成异常抛出，response.getBody()拿不到微信的错误详情
+                //把 412 的 response body 打出来
+                String errMsg = response.getBody() != null ? response.getBody().toString() : "empty";
+                log.error("【微信发货】HTTP {} 调用失败, url={}, body={}",
+                        response.getStatusCode(), url, errMsg);
+                throw new RuntimeException("微信接口返回 HTTP " + response.getStatusCode() + ", body=" + errMsg);
+            }
 
         } catch (HttpClientErrorException e) {
 
-            // ✅ 关键：从异常里拿 body
-            String errorBody = e.getResponseBodyAsString();
-            log.error("【微信发货】HTTP {} 调用失败, url={}, body={}",
-                    e.getStatusCode(), url, errorBody);
-
-            // 尝试解析微信的错误信息
-            try {
-                JsonNode node = objectMapper.readTree(errorBody);
-                int errcode = node.has("errcode") ? node.get("errcode").asInt() : -1;
-                String errmsg = node.has("errmsg") ? node.get("errmsg").asText() : "unknown";
-
-                // 如果是 access_token 过期，主动清缓存让下次重新获取
-                if (errcode == 40001 || errcode == 42001) {
-                    String tokenParam = url.contains("access_token=")
-                            ? url.split("access_token=")[1].split("&")[0]
-                            : null;
-                    log.warn("【微信发货】access_token 失效(errcode={})，建议清除缓存", errcode);
-                }
-
-                throw new RuntimeException(
-                        String.format("微信接口返回错误 %d: errcode=%d, errmsg=%s",
-                                e.getStatusCode().value(), errcode, errmsg));
-            } catch (Exception parseEx) {
-                throw new RuntimeException(
-                        "微信接口返回 HTTP " + e.getStatusCode() + "，无法解析响应: " + errorBody, e);
-            }
+            // ✅ 这里一定能拿到 body
+            String responseBody = e.getResponseBodyAsString();
+            log.error("【微信发货】HTTP {} 调用失败, url={}, responseBody={}",
+                    e.getStatusCode(), url, responseBody);
+            throw new RuntimeException("微信接口返回 HTTP " + e.getStatusCode()
+                    + "，响应体: " + responseBody, e);
         }
     }
 
@@ -256,7 +262,7 @@ public class WeChatApiClient {
      * 构建微信发货请求体（主流设计）
      */
     public ObjectNode buildShippingRequestBody(
-            String transactionId,
+            String transactionId,   // ← 改用微信支付单号   （更可靠）
             LogisticsTypeEnum logisticsType,
             List<ShippingItem> shippingItems,
             List<ItemDesc> itemDescs,
@@ -271,7 +277,9 @@ public class WeChatApiClient {
 
         // 1. order_key
         ObjectNode orderKey = createObjectNode();
-        orderKey.put("order_number_type", 2); // 2=微信支付单号
+        orderKey.put("order_number_type", 1); // 1=微信支付单号（transaction_id）  2  商户订单号（out_trade_no）
+
+
         orderKey.put("transaction_id", transactionId);
         body.set("order_key", orderKey);  // order_key 订单标识（用微信支付单号）
 
@@ -287,7 +295,7 @@ public class WeChatApiClient {
             for (ShippingItem item : shippingItems) {
                 ObjectNode shipping = createObjectNode();
                 shipping.put("tracking_no", item.getTrackingNo());
-                shipping.put("express_company", item.getExpressCompany());
+                shipping.put("express_company", item.getExpressCompany().getValue()); //只要确认传的是 "SF"这种微信编码而不是 "顺丰速运"
 
                 // 可选：收件人联系方式
                 if (item.getReceiverContact() != null) {
@@ -327,15 +335,15 @@ public class WeChatApiClient {
 
     public static class ShippingItem {
         private String trackingNo;
-        private String expressCompany;
+        private LogisticsCompanyCodeEnum expressCompany;
         private String receiverContact; // 可选，如 "+86-138****8000"
 
-        public ShippingItem(String trackingNo, String expressCompany) {
+        public ShippingItem(String trackingNo, LogisticsCompanyCodeEnum expressCompany) {
             this.trackingNo = trackingNo;
             this.expressCompany = expressCompany;
         }
 
-        public ShippingItem(String trackingNo, String expressCompany, String receiverContact) {
+        public ShippingItem(String trackingNo, LogisticsCompanyCodeEnum expressCompany, String receiverContact) {
             this.trackingNo = trackingNo;
             this.expressCompany = expressCompany;
             this.receiverContact = receiverContact;
@@ -343,7 +351,7 @@ public class WeChatApiClient {
 
         // getters
         public String getTrackingNo() { return trackingNo; }
-        public String getExpressCompany() { return expressCompany; }
+        public LogisticsCompanyCodeEnum getExpressCompany() { return expressCompany; }
         public String getReceiverContact() { return receiverContact; }
     }
 

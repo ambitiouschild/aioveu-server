@@ -2,7 +2,7 @@ package com.aioveu.oms.aioveu03OrderDelivery.utils;
 
 
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.enums.oms.DeliveryCompanyCodeEnum;
+import com.aioveu.common.enums.oms.LogisticsCompanyCodeEnum;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,7 +20,7 @@ public class DeliveryUtils {
     /**
      * 从 delivery 里统一解析出快递公司编码（String）
      */
-    public static DeliveryCompanyCodeEnum resolveExpressCode(OmsOrderDelivery delivery) {
+    public static LogisticsCompanyCodeEnum resolveExpressCode(OmsOrderDelivery delivery) {
 
         // 优先取枚举的 value
         if (delivery.getDeliveryCompanyCode() != null) {
@@ -38,40 +38,40 @@ public class DeliveryUtils {
     /**
      * 公司名称 → 微信编码 简单映射
      */
-    public static DeliveryCompanyCodeEnum mapCompanyNameToCode(String companyName) {
+    public static LogisticsCompanyCodeEnum mapCompanyNameToCode(String companyName) {
         if (companyName == null) return null;
 
         // 精确匹配
         switch (companyName.trim()) {
             case "顺丰速运":
             case "顺丰":
-                return DeliveryCompanyCodeEnum.SF;
+                return LogisticsCompanyCodeEnum.SF;
             case "中通快递":
             case "中通":
-                return DeliveryCompanyCodeEnum.ZTO;
+                return LogisticsCompanyCodeEnum.ZTO;
             case "圆通速递":
             case "圆通":
-                return DeliveryCompanyCodeEnum.YTO;
+                return LogisticsCompanyCodeEnum.YTO;
             case "韵达快递":
             case "韵达":
-                return DeliveryCompanyCodeEnum.YD;
+                return LogisticsCompanyCodeEnum.YD;
             case "申通快递":
             case "申通":
-                return DeliveryCompanyCodeEnum.STO;
+                return LogisticsCompanyCodeEnum.STO;
             case "京东物流":
             case "京东":
-                return DeliveryCompanyCodeEnum.JD;
+                return LogisticsCompanyCodeEnum.JD;
             case "EMS":
-                return DeliveryCompanyCodeEnum.EMS;
+                return LogisticsCompanyCodeEnum.EMS;
             case "极兔速递":
             case "极兔":
-                return DeliveryCompanyCodeEnum.JTSD;
+                return LogisticsCompanyCodeEnum.JTSD;
             case "德邦快递":
             case "德邦":
-                return DeliveryCompanyCodeEnum.DBLK;
+                return LogisticsCompanyCodeEnum.DBLK;
             default:
                 log.warn("【发货】未匹配的快递公司名称: {}", companyName);
-                return DeliveryCompanyCodeEnum.UNKNOWN;
+                return LogisticsCompanyCodeEnum.UNKNOWN;
         }
     }
 }
