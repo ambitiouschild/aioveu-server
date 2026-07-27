@@ -538,7 +538,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
 
 
             // ==================== 8. 清理购物车 ====================
-            clearCartItems(orderItems, submitForm.getMemberId());
+            clearCartItems(orderItems, omsOrder.getMemberId());
 
             long duration = System.currentTimeMillis() - startTime;
             log.info("【订单提交】成功，后端返回的是 paymentNo，不是 orderSn,支付订单号paymentNo: {}, 耗时: {}ms", paymentNo, duration);
@@ -1075,25 +1075,16 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             return;
         }
 
+        List<Long> skuIds = orderItems.stream()
+                .map(OrderSubmitForm.OrderItem::getSkuId)
+                .collect(Collectors.toList());
         try {
-            List<Long> skuIds = orderItems.stream()
-                    .map(OrderSubmitForm.OrderItem::getSkuId)
-                    .collect(Collectors.toList());
 
-//            Result<Boolean> result = cartFeignClient.clearCheckedItems(memberId, skuIds);
-
-            //移除购物车中被选中的商品
-            Boolean result = cartService.removeCheckedItem();
-
-            if (result) {
-                log.info("【清理购物车】购物车清理成功");
-            } else {
-                log.warn("【清理购物车】购物车清理失败: {}");
-            }
-
+            cartService.removeCartItemsBySkuIds(skuIds);
+            log.info("【清理购物车】购物车清理成功");
         } catch (Exception e) {
-            log.error("【清理购物车】清理异常: ", e);
-            // 这里不抛出异常，因为购物车清理失败不应该影响订单创建
+            log.error("清理购物车失败，memberId={}, skuIds={}", memberId, skuIds, e);
+            // ⚠️ 不抛异常，避免影响订单创建
         }
     }
 

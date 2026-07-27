@@ -10,6 +10,7 @@ import com.aioveu.oms.aioveu01Order.model.vo.CartItemVo;
 import com.aioveu.oms.aioveu01Order.service.CartService;
 import com.aioveu.pms.api.SkuFeignClient;
 import com.aioveu.pms.model.dto.SkuInfoDTO;
+import com.alibaba.nacos.client.naming.utils.CollectionUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.BoundHashOperations;
@@ -508,6 +509,35 @@ public class CartServiceImpl implements CartService {
         log.debug("设置用户{}购物车全部商品选中状态为:{}", memberId, checked);
         return true;
     }
+
+
+    /**
+     * 订单提交成功后，清理购物车中本次下单的商品
+     *
+     * @param skuIds 本次下单的商品 SKU ID 列表
+     * @return 是否清理成功
+     */
+    @Override
+    public boolean removeCartItemsBySkuIds(List<Long> skuIds) {
+        if (CollectionUtils.isEmpty(skuIds)) {
+            return true;
+        }
+
+        Long memberId = SecurityUtils.getMemberId();
+
+        BoundHashOperations<String, String, String> ops =
+                getCartHashOperations(memberId);
+
+        String[] hKeys = skuIds.stream()
+                .map(String::valueOf)
+                .toArray(String[]::new);
+
+        ops.delete(hKeys);
+
+        log.info("订单提交成功，清理用户{}购物车商品skuIds={}", memberId, skuIds);
+        return true;
+    }
+
 
 
     /**

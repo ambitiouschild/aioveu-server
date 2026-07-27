@@ -56,4 +56,12 @@ public interface CartService {
 
     boolean checkAll(boolean checked);
 
+    /**
+     * 订单提交成功后，清理购物车中本次下单的商品
+     *
+     * @param skuIds 本次下单的商品 SKU ID 列表
+     * @return 是否清理成功
+     */
+    boolean removeCartItemsBySkuIds(List<Long> skuIds);
+
 }
