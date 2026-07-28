@@ -193,17 +193,18 @@ public class SysUserDetails implements UserDetails, CredentialsContainer {
     @Override
     public boolean isAccountNonExpired() {
 
-        return StatusEnum.ENABLE.getValue().equals(this.enabled);
+        return Boolean.TRUE.equals(this.enabled);
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return StatusEnum.ENABLE.getValue().equals(this.enabled);
+        // 默认不锁，只有明确锁定机制时才改
+        return Boolean.TRUE.equals(this.enabled);
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return StatusEnum.ENABLE.getValue().equals(this.enabled);
+        return Boolean.TRUE.equals(this.enabled);
     }
 
     @Override
@@ -215,6 +216,8 @@ public class SysUserDetails implements UserDetails, CredentialsContainer {
     @Override
     public void eraseCredentials() {
         this.password = null;
+        // perms 可以清
         this.perms = null;
+        // authorities 不建议清
     }
 }
