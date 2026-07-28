@@ -146,8 +146,8 @@ public class SysUserDetailsService implements UserDetailsService {
 
         SysUserDetails userDetails = new SysUserDetails(credentials);
 
-        log.info("成功构建用户详情，用户名: {}, 租户ID: {}, 来源: {}",
-                trimmedUsername, tenantId, credentials.getSource());
+        log.info("成功构建用户详情，用户名: {}, 租户ID: {}, 来源: {},credentials:{}",
+                trimmedUsername, tenantId, credentials.getSource(),credentials);
 
         return userDetails;
 
