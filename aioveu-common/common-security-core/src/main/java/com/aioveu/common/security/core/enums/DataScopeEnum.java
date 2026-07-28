@@ -1,10 +1,10 @@
-package com.aioveu.common.mybatis.enums;
+package com.aioveu.common.security.core.enums;
 
 import com.aioveu.common.core.base.IBaseEnum;
 import lombok.Getter;
 
 /**
- * @Description: TODO 数据权限枚举
+ * @Description: TODO 数据权限枚举 DataScopeEnum放 common-security-core，不放 common-core。
  * @Author: 雒世松
  * @Date: 2025/6/5 15:49
  * @param

@@ -1,5 +1,7 @@
 package com.aioveu.common.mybatis.config;
 
+import com.aioveu.common.security.resource.handler.MyDataPermissionHandler;
+import com.aioveu.common.security.resource.handler.MyTenantLineHandler;
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.autoconfigure.ConfigurationCustomizer;
 import com.baomidou.mybatisplus.core.config.GlobalConfig;

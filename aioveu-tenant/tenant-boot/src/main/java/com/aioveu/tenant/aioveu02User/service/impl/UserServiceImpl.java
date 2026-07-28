@@ -12,7 +12,7 @@ import com.aioveu.common.core.model.RoleDataScope;
 import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
 
 
-import com.aioveu.common.security.core.service.Impl.PermissionService;
+import com.aioveu.common.security.resource.service.Impl.PermissionService;
 import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.common.sms.enmus.SmsTypeEnum;
 import com.aioveu.common.sms.service.SmsService;

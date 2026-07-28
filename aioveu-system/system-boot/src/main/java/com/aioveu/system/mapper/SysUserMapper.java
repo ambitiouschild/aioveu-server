@@ -1,6 +1,6 @@
 package com.aioveu.system.mapper;
 
-import com.aioveu.common.mybatis.annotation.DataPermission;
+import com.aioveu.common.security.core.annotation.DataPermission;
 import com.aioveu.system.dto.UserAuthInfo;
 import com.aioveu.system.model.bo.UserBO;
 import com.aioveu.system.model.bo.UserFormBO;

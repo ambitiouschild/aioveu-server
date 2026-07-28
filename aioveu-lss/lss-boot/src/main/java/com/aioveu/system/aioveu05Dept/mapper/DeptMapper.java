@@ -1,6 +1,6 @@
 package com.aioveu.system.aioveu05Dept.mapper;
 
-import com.aioveu.common.mybatis.annotation.DataPermission;
+import com.aioveu.common.security.core.annotation.DataPermission;
 import com.aioveu.system.aioveu05Dept.model.entity.Dept;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;

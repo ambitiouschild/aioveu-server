@@ -1,6 +1,7 @@
 package com.aioveu.system.aioveu02User.service;
 
 import com.aioveu.common.core.model.Option;
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
 import com.aioveu.common.security.model.UserAuthCredentials;
 import com.aioveu.system.aioveu02User.model.form.*;
 import com.aioveu.system.aioveu02User.model.query.UserPageQuery;

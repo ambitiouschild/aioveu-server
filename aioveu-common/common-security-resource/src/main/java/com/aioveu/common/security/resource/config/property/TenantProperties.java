@@ -1,4 +1,4 @@
-package com.aioveu.common.mybatis.config.property;
+package com.aioveu.common.security.resource.config.property;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

@@ -21,11 +21,20 @@
     <dependencies>
 
         <!-- ✅ 你的 core -->
+<!--        <dependency>-->
+<!--            <groupId>com.aioveu</groupId>-->
+<!--            <artifactId>common-core</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
+
+        <!-- ✅ 依赖 security-core -->
         <dependency>
             <groupId>com.aioveu</groupId>
-            <artifactId>common-core</artifactId>
+            <artifactId>common-security-core</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+
 
         <!-- ✅ 资源服务器自动配置 -->  <!-- ✅ 这个依赖自带 Jwt 已经包含 Jwt / JwtAuthenticationToken-->
         <dependency>
@@ -51,13 +60,6 @@
             <artifactId>common-feign</artifactId>
         </dependency>
 
-        <!-- ✅ 依赖 security-core -->
-        <dependency>
-            <groupId>com.aioveu</groupId>
-            <artifactId>common-security-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
 
         <dependency>
             <groupId>com.aioveu</groupId>
@@ -65,7 +67,14 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- 不引 starter -->
+        <!-- 不引 mybatis-plus-core -->
+        <!-- 不引 jsqlparser 单独 -->
 
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-extension</artifactId>
+        </dependency>
 
     </dependencies>
 

@@ -1,17 +1,18 @@
 package com.aioveu.common.mybatis.handler;
 
-import com.aioveu.common.mybatis.config.property.TenantProperties;
+
 import com.aioveu.common.core.tenant.TenantContextHolder;
+import com.aioveu.common.security.resource.config.property.TenantProperties;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import lombok.RequiredArgsConstructor;
 import org.apache.ibatis.reflection.MetaObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
 /**
  * @Description: TODO mybatis-plus 字段自动填充
+ *                      MyMetaObjectHandler= MyBatis‑Plus 的 ORM 基础设施
  * https://mp.baomidou.com/guide/auto-fill-metainfo.html
  * @Author: 雒世松
  * @Date: 2025/6/5 15:52
@@ -23,7 +24,6 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class MyMetaObjectHandler implements MetaObjectHandler {
 
-    @Autowired(required = false)
     private TenantProperties tenantProperties;
 
 

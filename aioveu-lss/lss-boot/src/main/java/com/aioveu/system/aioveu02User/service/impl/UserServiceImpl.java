@@ -7,10 +7,11 @@ import com.aioveu.common.core.constant.RedisConstants;
 import com.aioveu.common.core.constant.SystemConstants;
 import com.aioveu.common.core.exception.BusinessException;
 import com.aioveu.common.core.model.Option;
-import com.aioveu.common.security.model.UserAuthCredentials;
-import com.aioveu.common.security.service.Impl.PermissionService;
-import com.aioveu.common.security.service.Impl.TokenService;
-import com.aioveu.common.security.util.SecurityUtils;
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
+import com.aioveu.common.security.core.service.Impl.TokenService;
+import com.aioveu.common.security.resource.helper.JwtSecurityHelper;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
+import com.aioveu.common.security.resource.service.Impl.PermissionService;
 import com.aioveu.common.sms.enmus.SmsTypeEnum;
 import com.aioveu.common.sms.service.SmsService;
 import com.aioveu.system.aioveu02User.converter.UserConverter;
@@ -94,7 +95,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         int pageSize = queryParams.getPageSize();
         Page<UserBO> page = new Page<>(pageNum, pageSize);
 
-        boolean isRoot = SecurityUtils.isRoot();
+        boolean isRoot = JwtSecurityUtils.isRoot();
         queryParams.setIsRoot(isRoot);
 
         // 查询数据
@@ -135,7 +136,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 设置默认加密密码
         String defaultEncryptPwd = passwordEncoder.encode(SystemConstants.DEFAULT_PASSWORD);
         entity.setPassword(defaultEncryptPwd);
-        entity.setCreateBy(SecurityUtils.getUserId());
+        entity.setCreateBy(JwtSecurityUtils.getUserId());
 
         // 新增用户
         boolean result = this.save(entity);
@@ -168,7 +169,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         // form -> entity
         User entity = userConverter.toEntity(userForm);
-        entity.setUpdateBy(SecurityUtils.getUserId());
+        entity.setUpdateBy(JwtSecurityUtils.getUserId());
 
         // 修改用户
         boolean result = this.updateById(entity);
@@ -289,7 +290,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         newUser.setUsername(openId);      // TODO 后续替换为手机号
         newUser.setOpenid(openId);
         newUser.setGender(0); // 保密
-        newUser.setUpdateBy(SecurityUtils.getUserId());
+        newUser.setUpdateBy(JwtSecurityUtils.getUserId());
         newUser.setPassword(SystemConstants.DEFAULT_PASSWORD);
         newUser.setCreateTime(LocalDateTime.now());
         newUser.setUpdateTime(LocalDateTime.now());
@@ -399,7 +400,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public List<UserExportDTO> listExportUsers(UserPageQuery queryParams) {
 
-        boolean isRoot = SecurityUtils.isRoot();
+        boolean isRoot = JwtSecurityUtils.isRoot();
         queryParams.setIsRoot(isRoot);
 
         List<UserExportDTO> exportUsers = this.baseMapper.listExportUsers(queryParams);
@@ -439,7 +440,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         log.info("（获取\"我\"的用户信息）");
 
-        String username = SecurityUtils.getUsername();
+        String username = JwtSecurityUtils.getUsername();
         log.info("获取我的用户信息username:{}",username);
 
         // 获取登录用户基础信息
@@ -456,7 +457,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         CurrentUserDTO userInfoVO = userConverter.toCurrentUserDto(user);
 
         // 用户角色集合
-        Set<String> roles = SecurityUtils.getRoles();
+        Set<String> roles = JwtSecurityUtils.getRoles();
         userInfoVO.setRoles(roles);
 
         // 用户权限集合
@@ -487,7 +488,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public boolean updateUserProfile(UserProfileForm formData) {
-        Long userId = SecurityUtils.getUserId();
+        Long userId = JwtSecurityUtils.getUserId();
         User entity = userConverter.toEntity(formData);
         entity.setId(userId);
         return this.updateById(entity);
@@ -532,7 +533,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         if (result) {
             // 加入黑名单，重新登录
-            String accessToken = SecurityUtils.getTokenFromAuthentication();
+            String accessToken = JwtSecurityHelper.getToken();
             tokenService.invalidateToken(accessToken);
         }
         return result;
@@ -586,7 +587,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public boolean bindOrChangeMobile(MobileUpdateForm form) {
 
-        Long currentUserId = SecurityUtils.getUserId();
+        Long currentUserId = JwtSecurityUtils.getUserId();
         User currentUser = this.getById(currentUserId);
 
         if (currentUser == null) {
@@ -645,7 +646,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public boolean bindOrChangeEmail(EmailUpdateForm form) {
 
-        Long currentUserId = SecurityUtils.getUserId();
+        Long currentUserId = JwtSecurityUtils.getUserId();
 
         User currentUser = this.getById(currentUserId);
         if (currentUser == null) {
@@ -698,8 +699,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public boolean logout() {
-        String jti = SecurityUtils.getJti();
-        Optional<Long> expireTimeOpt = Optional.ofNullable(SecurityUtils.getExp()); // 使用Optional处理可能的null值
+        String jti = JwtSecurityHelper.getJti();
+        Optional<Long> expireTimeOpt = Optional.ofNullable(JwtSecurityHelper.getExp()); // 使用Optional处理可能的null值
 
         long currentTimeInSeconds = System.currentTimeMillis() / 1000; // 当前时间（单位：秒）
 
