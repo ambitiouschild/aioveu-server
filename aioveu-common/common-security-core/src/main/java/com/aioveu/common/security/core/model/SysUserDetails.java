@@ -117,8 +117,8 @@ public class SysUserDetails implements UserDetails, CredentialsContainer {
 
         this.userId = user.getUserId();
         this.username = user.getUsername();
-        //        this.setPassword("{bcrypt}" + user.getPassword());
-        this.password = user.getPassword();  // ✅ 原样
+        this.setPassword("{bcrypt}" + user.getPassword());
+//        this.password = user.getPassword();  // ✅ 原样
 
         this.enabled = StatusEnum.ENABLE.getValue().equals(user.getStatus());
 
