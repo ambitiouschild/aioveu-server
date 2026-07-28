@@ -33,6 +33,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.aioveu.common.core.enums.oms.OrderStatusEnum.*;
+
 /*
  * @Author 可我不敌可爱
  * @Author 雒世松

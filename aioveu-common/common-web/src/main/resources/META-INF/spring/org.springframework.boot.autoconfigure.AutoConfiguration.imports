@@ -1,4 +1,3 @@
   com.aioveu.common.web.config.WebMvcConfig
   com.aioveu.common.web.config.FeignConfig
   com.aioveu.common.web.exception.GlobalExceptionHandler
-  com.aioveu.common.web.aspect.DuplicateSubmitAspect

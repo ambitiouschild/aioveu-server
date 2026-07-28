@@ -1,6 +1,7 @@
 package com.aioveu.ums.aioveu01Member.controller.app;
 
-import com.aioveu.common.security.util.SecurityUtils;
+
+import com.aioveu.common.security.core.util.SecurityUtils;
 import com.aioveu.ums.dto.MemberRegisterForm;
 import com.aioveu.ums.dto.MemberRegisterDTO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;

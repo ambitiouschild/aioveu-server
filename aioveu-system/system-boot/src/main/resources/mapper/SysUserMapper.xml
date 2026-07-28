@@ -79,7 +79,7 @@
     </select>
 
     <!-- 用户认证信息映射 -->
-    <resultMap id="UserAuthMap" type="com.aioveu.system.dto.UserAuthInfo">
+    <resultMap id="UserAuthMap" type="com.aioveu.common.security.core.model.dto.UserAuthInfo">
         <id property="userId" column="id" jdbcType="BIGINT"/>
         <result property="username" column="username"/>
         <result property="password" column="PASSWORD"/>

@@ -1,8 +1,8 @@
 package com.aioveu.tenant.aioveu02User.service;
 
 import com.aioveu.common.core.model.Option;
-import com.aioveu.common.security.model.UserAuthCredentials;
-import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
+
 import com.aioveu.tenant.aioveu02User.model.dto.CurrentUserDTO;
 import com.aioveu.tenant.aioveu02User.model.dto.UserExportDTO;
 import com.aioveu.tenant.aioveu02User.model.entity.User;
@@ -89,18 +89,18 @@ public interface UserService extends IService<User> {
      * 获取用户认证信息
      *
      * @param username 用户名
-     * @return {@link UserAuthInfoWithTenantId}
+     * @return {@link UserAuthCredentials}
      */
-    UserAuthInfoWithTenantId getAuthInfoByUsernameAndTenantId(String username, Long tenantId);
+    UserAuthCredentials getAuthInfoByUsernameAndTenantId(String username, Long tenantId);
 
     /**
      * 根据用户名和租户ID获取认证信息（用于多租户登录）
      *
      * @param username 用户名
      * @param tenantId 租户ID
-     * @return {@link UserAuthInfoWithTenantId}
+     * @return {@link UserAuthCredentials}
      */
-    UserAuthInfoWithTenantId getAuthInfoByUsernameInTenant(String username, Long tenantId);
+    UserAuthCredentials getAuthInfoByUsernameInTenant(String username, Long tenantId);
 
     /**
      * 跨租户查询用户账户列表
@@ -209,10 +209,10 @@ public interface UserService extends IService<User> {
      * 根据 openid 获取用户认证信息
      *
      * @param openId 用户名
-     * @return {@link UserAuthInfoWithTenantId}
+     * @return {@link UserAuthCredentials}
      */
 
-    UserAuthInfoWithTenantId getAuthInfoByOpenId(String openId);
+    UserAuthCredentials getAuthInfoByOpenId(String openId);
 
     /**
      * 根据微信 OpenID 注册或绑定用户
@@ -225,9 +225,9 @@ public interface UserService extends IService<User> {
      * 根据手机号获取用户认证信息
      *
      * @param mobile 手机号
-     * @return {@link UserAuthInfoWithTenantId}
+     * @return {@link UserAuthCredentials}
      */
-    UserAuthInfoWithTenantId getAuthInfoByMobile(String mobile);
+    UserAuthCredentials getAuthInfoByMobile(String mobile);
 
     /**
      * 根据手机号和OpenID注册用户

@@ -122,11 +122,11 @@
             <artifactId>common-apidoc</artifactId>
         </dependency>
 
-        <!--        不能依赖security，会自动加载公钥解析-->
-        <!--        <dependency>-->
-        <!--            <groupId>com.aioveu</groupId>-->
-        <!--            <artifactId>common-security</artifactId>-->
-        <!--        </dependency>-->
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-security-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!--        <dependency>-->
         <!--            <groupId>com.aioveu</groupId>-->

@@ -26,7 +26,8 @@
 
         <dependency>
             <groupId>com.aioveu</groupId>
-            <artifactId>common-security</artifactId>
+            <artifactId>common-security-core</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>

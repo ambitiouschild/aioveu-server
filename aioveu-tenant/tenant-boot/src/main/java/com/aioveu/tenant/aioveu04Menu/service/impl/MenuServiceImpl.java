@@ -9,8 +9,9 @@ import com.aioveu.common.core.constant.SystemConstants;
 import com.aioveu.common.core.enums.StatusEnum;
 import com.aioveu.common.core.model.KeyValue;
 import com.aioveu.common.core.model.Option;
-import com.aioveu.common.security.util.SecurityUtils;
+
 import com.aioveu.common.core.tenant.TenantContextHolder;
+import com.aioveu.common.security.core.util.SecurityUtils;
 import com.aioveu.tenant.aioveu01Tenant.model.entity.Tenant;
 import com.aioveu.tenant.aioveu01Tenant.service.TenantMenuService;
 import com.aioveu.tenant.aioveu01Tenant.service.TenantPlanMenuService;

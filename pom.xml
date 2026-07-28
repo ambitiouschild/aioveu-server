@@ -6,7 +6,7 @@
 
     <groupId>com.aioveu</groupId>
     <artifactId>aioveu-server</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0-SNAPSHOT</version>  <!-- ✅ 全项目版本唯一入口 -->
     <packaging>pom</packaging>
 
     <modules>
@@ -223,7 +223,13 @@
 
         <dependency>
             <groupId>com.aioveu</groupId>
-            <artifactId>common-security</artifactId>
+            <artifactId>common-security-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-security-resource</artifactId>
             <version>${project.version}</version>
         </dependency>
 

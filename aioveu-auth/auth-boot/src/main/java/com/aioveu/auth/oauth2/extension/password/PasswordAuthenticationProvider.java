@@ -1,6 +1,6 @@
 package com.aioveu.auth.oauth2.extension.password;
 
-import com.aioveu.auth.model.SysUserDetails;
+import com.aioveu.common.security.core.model.SysUserDetails;
 import com.aioveu.auth.service.SysUserDetailsService;
 import com.aioveu.auth.util.OAuth2AuthenticationProviderUtils;
 import com.aioveu.common.core.constant.JwtClaimConstants;

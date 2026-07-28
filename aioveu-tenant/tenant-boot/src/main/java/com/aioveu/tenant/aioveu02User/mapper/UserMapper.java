@@ -1,7 +1,8 @@
 package com.aioveu.tenant.aioveu02User.mapper;
 
 import com.aioveu.common.core.annotation.DataPermission;
-import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
+
 import com.aioveu.tenant.aioveu02User.model.bo.UserBO;
 import com.aioveu.tenant.aioveu02User.model.dto.UserExportDTO;
 import com.aioveu.tenant.aioveu02User.model.entity.User;
@@ -49,7 +50,7 @@ public interface UserMapper  extends BaseMapper<User> {
      * @param username 用户名
      * @return 认证信息
      */
-    UserAuthInfoWithTenantId getAuthInfoByUsernameAndTenantId(String username, Long tenantId);
+    UserAuthCredentials getAuthInfoByUsernameAndTenantId(String username, Long tenantId);
 
     /**
      * 根据微信openid获取用户认证信息
@@ -57,7 +58,7 @@ public interface UserMapper  extends BaseMapper<User> {
      * @param openid 微信openid
      * @return 认证信息
      */
-    UserAuthInfoWithTenantId getAuthInfoByOpenId(String openid);
+    UserAuthCredentials getAuthInfoByOpenId(String openid);
 
     /**
      * 根据手机号获取用户认证信息
@@ -65,7 +66,7 @@ public interface UserMapper  extends BaseMapper<User> {
      * @param mobile 手机号
      * @return 认证信息
      */
-    UserAuthInfoWithTenantId getAuthInfoByMobile(String mobile);
+    UserAuthCredentials getAuthInfoByMobile(String mobile);
 
     /**
      * 获取导出用户列表

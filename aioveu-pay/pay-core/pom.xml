@@ -111,7 +111,7 @@
 
         <dependency>
             <groupId>com.aioveu</groupId>
-            <artifactId>common-security</artifactId>
+            <artifactId>common-security-resource</artifactId>
         </dependency>
 
         <dependency>

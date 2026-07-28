@@ -24,6 +24,15 @@
             <artifactId>common-core</artifactId>
         </dependency>
 
+<!--        对你现在这套架构，直接用 ${project.version}就够了，别引入 ${revision}复杂度-->
+        <!-- 这是企业级标准写法 版本只存在于根 POM 全项目统一-->
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-security-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+
 <!--        common-web里一定直接或间接带了spring-boot-starter-web-->
 <!--        <dependency>-->
 <!--            <groupId>com.aioveu</groupId>-->

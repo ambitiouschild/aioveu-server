@@ -3,7 +3,8 @@ package com.aioveu.oms.aioveu12OrderExportTask.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.security.util.SecurityUtils;
+
+import com.aioveu.common.security.core.util.SecurityUtils;
 import com.aioveu.oms.aioveu01Order.model.query.OrderExportQuery;
 import com.aioveu.oms.aioveu12OrderExportTask.converter.OmsOrderExportTaskConverter;
 import com.aioveu.common.core.enums.oms.OrderExportTaskStatusEnum;

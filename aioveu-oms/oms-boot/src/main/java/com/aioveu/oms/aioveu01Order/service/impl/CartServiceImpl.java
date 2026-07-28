@@ -1,7 +1,7 @@
 package com.aioveu.oms.aioveu01Order.service.impl;
 
 import com.aioveu.common.core.result.ResultCode;
-import com.aioveu.common.security.util.SecurityUtils;
+import com.aioveu.common.security.core.util.SecurityUtils;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.oms.aioveu01Order.constant.OrderConstants;
 import com.aioveu.oms.aioveu01Order.converter.CartConverter;

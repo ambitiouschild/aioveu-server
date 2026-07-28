@@ -1,7 +1,8 @@
 package com.aioveu.common.mybatis.handler;
 
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.security.util.SecurityUtils;
+
+import com.aioveu.common.security.core.util.SecurityUtils;
 import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.extension.plugins.handler.DataPermissionHandler;

@@ -1,7 +1,9 @@
 package com.aioveu.system.api.fallback;
 
+import com.aioveu.common.core.result.Result;
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
 import com.aioveu.system.api.SystemFeignClient;  // 确保导入正确的接口
-import com.aioveu.system.dto.UserAuthInfo;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -19,9 +21,9 @@ public class SystemFeignFallbackClient implements SystemFeignClient { // 必须�
 
 
     @Override
-    public UserAuthInfo getUserAuthInfo(String username) {
+    public Result<UserAuthCredentials>  getUserAuthInfo(String username) {
         log.error("feign远程调用系统用户服务异常后的降级方法- getUserAuthInfo, username: {}", username);
-        return new UserAuthInfo();  // 返回默认值
+        return Result.failed("根据用户名获取认证信息失败");
     }
 
 

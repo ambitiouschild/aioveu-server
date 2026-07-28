@@ -22,8 +22,8 @@ import java.util.List;
 public interface SmsCouponConverter {
 
     @Mappings({
-            @Mapping(target = "platformLabel", expression = "java(com.aioveu.common.base.IBaseEnum.getLabelByValue(entity.getPlatform(), com.aioveu.sms.aioveu02Coupon.enums.PlatformEnum.class))"),
-            @Mapping(target = "typeLabel", expression = "java(com.aioveu.common.base.IBaseEnum.getLabelByValue(entity.getType(), com.aioveu.sms.aioveu02Coupon.enums.CouponTypeEnum.class))"),
+            @Mapping(target = "platformLabel", expression = "java(com.aioveu.common.core.base.IBaseEnum.getLabelByValue(entity.getPlatform(), com.aioveu.sms.aioveu02Coupon.enums.PlatformEnum.class))"),
+            @Mapping(target = "typeLabel", expression = "java(com.aioveu.common.core.base.IBaseEnum.getLabelByValue(entity.getType(), com.aioveu.sms.aioveu02Coupon.enums.CouponTypeEnum.class))"),
             @Mapping(target = "faceValueLabel", expression = "java(com.aioveu.sms.aioveu02Coupon.util.CouponUtils.getFaceValue(entity.getType(),entity.getFaceValue(),entity.getDiscount()))"),
             @Mapping(
                     target = "validityPeriodLabel",

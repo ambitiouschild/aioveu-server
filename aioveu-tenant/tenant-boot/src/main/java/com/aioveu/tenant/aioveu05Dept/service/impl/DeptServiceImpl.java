@@ -6,7 +6,8 @@ import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.core.constant.SystemConstants;
 import com.aioveu.common.core.enums.StatusEnum;
 import com.aioveu.common.core.model.Option;
-import com.aioveu.common.security.util.SecurityUtils;
+
+import com.aioveu.common.security.core.util.SecurityUtils;
 import com.aioveu.tenant.aioveu05Dept.converter.DeptConverter;
 import com.aioveu.tenant.aioveu05Dept.mapper.DeptMapper;
 import com.aioveu.tenant.aioveu05Dept.model.entity.Dept;

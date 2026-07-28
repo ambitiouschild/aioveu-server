@@ -3,7 +3,8 @@ package com.aioveu.ums.aioveu01Member.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.security.util.SecurityUtils;
+
+import com.aioveu.common.security.core.util.SecurityUtils;
 import com.aioveu.ums.aioveu01Member.converter.UmsMemberConverter;
 import com.aioveu.ums.aioveu01Member.model.form.UmsMemberForm;
 import com.aioveu.ums.aioveu01Member.model.query.UmsMemberQuery;

@@ -3,6 +3,7 @@ package com.aioveu.tenant.api;
 import com.aioveu.common.core.annotation.Log;
 import com.aioveu.common.core.enums.LogModuleEnum;
 import com.aioveu.common.core.result.Result;
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
 import com.aioveu.feign.config.FeignDecoderConfig;
 import com.aioveu.tenant.api.fallback.TenantFeignFallbackClient;
 import com.aioveu.tenant.dto.*;
@@ -41,12 +42,12 @@ public interface TenantFeignClient {
      *
      * @param username 用户名
      * @param tenantId 租户ID
-     * @return {@link UserAuthInfoWithTenantId}
+     * @return {@link UserAuthCredentials}
      */
     @Operation(summary = "根据用户名和租户ID获取认证信息（用于多租户登录）", hidden = true)
     @GetMapping("/aioveu/api/v8/admin/tenant/users/{username}/{tenantId}/authInfo")
     @Log(value = "根据用户名和租户ID获取认证信息（用于多租户登录）", module = LogModuleEnum.TENANT)
-    Result<UserAuthInfoWithTenantId> getUserAuthInfoWithTenantId(@PathVariable String username,@PathVariable Long tenantId);
+    Result<UserAuthCredentials> getUserAuthInfoWithTenantId(@PathVariable String username, @PathVariable Long tenantId);
 
 
     /**

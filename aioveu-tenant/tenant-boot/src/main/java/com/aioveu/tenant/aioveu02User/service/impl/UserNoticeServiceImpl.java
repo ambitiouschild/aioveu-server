@@ -1,6 +1,7 @@
 package com.aioveu.tenant.aioveu02User.service.impl;
 
-import com.aioveu.common.security.util.SecurityUtils;
+
+import com.aioveu.common.security.core.util.SecurityUtils;
 import com.aioveu.tenant.aioveu02User.mapper.UserNoticeMapper;
 import com.aioveu.tenant.aioveu02User.model.entity.UserNotice;
 import com.aioveu.tenant.aioveu02User.model.vo.UserNoticePageVO;

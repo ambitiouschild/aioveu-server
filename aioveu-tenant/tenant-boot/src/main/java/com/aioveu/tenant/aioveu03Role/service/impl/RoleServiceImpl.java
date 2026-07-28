@@ -9,7 +9,8 @@ import com.aioveu.common.core.enums.DataScopeEnum;
 import com.aioveu.common.core.exception.BusinessException;
 import com.aioveu.common.core.model.Option;
 import com.aioveu.common.core.model.RoleDataScope;
-import com.aioveu.common.security.util.SecurityUtils;
+
+import com.aioveu.common.security.core.util.SecurityUtils;
 import com.aioveu.tenant.aioveu02User.service.UserRoleService;
 import com.aioveu.tenant.aioveu03Role.converter.RoleConverter;
 import com.aioveu.tenant.aioveu03Role.mapper.RoleMapper;

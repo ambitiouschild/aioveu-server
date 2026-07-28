@@ -9,9 +9,11 @@ import com.aioveu.common.core.constant.SystemConstants;
 import com.aioveu.common.core.exception.BusinessException;
 import com.aioveu.common.core.model.Option;
 import com.aioveu.common.core.model.RoleDataScope;
-import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
-import com.aioveu.common.security.service.Impl.PermissionService;
-import com.aioveu.common.security.util.SecurityUtils;
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
+
+
+import com.aioveu.common.security.core.service.Impl.PermissionService;
+import com.aioveu.common.security.core.util.SecurityUtils;
 import com.aioveu.common.sms.enmus.SmsTypeEnum;
 import com.aioveu.common.sms.service.SmsService;
 import com.aioveu.common.core.tenant.TenantContextHolder;
@@ -315,25 +317,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * 根据用户名和租户ID获取认证凭证信息  修改为返回单个用户（推荐）
      *
      * @param username 用户名
-     * @return 用户认证凭证信息 {@link UserAuthInfoWithTenantId}
+     * @return 用户认证凭证信息 {@link UserAuthCredentials}
      */
     @Override
-    public UserAuthInfoWithTenantId getAuthInfoByUsernameAndTenantId(String username, Long tenantId) {
+    public UserAuthCredentials getAuthInfoByUsernameAndTenantId(String username, Long tenantId) {
 
         log.info("【getAuthInfoByUsernameAndTenantId】根据用户名和租户ID获取认证凭证信息: username={}, tenantId={}", username, tenantId);
-        UserAuthInfoWithTenantId userAuthInfoWithTenantId =
+        UserAuthCredentials userAuthCredentials =
                 this.baseMapper.getAuthInfoByUsernameAndTenantId(username,tenantId);
 
-        if (userAuthInfoWithTenantId == null) {
+        if (userAuthCredentials == null) {
             log.warn("【getAuthInfoByUsernameAndTenantId】用户不存在: username={}, tenantId={}", username, tenantId);
             return null;
         }
 
-        //这里的userAuthInfoWithTenantId是唯一的
-        log.info("【getAuthInfoByUsernameAndTenantId】这里的userAuthInfoWithTenantId是唯一的");
+        //这里的userAuthCredentials是唯一的
+        log.info("【getAuthInfoByUsernameAndTenantId】这里的userAuthCredentials是唯一的");
 
-        if (userAuthInfoWithTenantId != null) {
-            Set<String> roles = userAuthInfoWithTenantId.getRoles();
+        if (userAuthCredentials != null) {
+            Set<String> roles = userAuthCredentials.getRoles();
             // 获取角色的数据权限列表（支持多角色并集）
             List<RoleDataScope> dataScopes = roleService.getRoleDataScopes(roles);
 
@@ -342,24 +344,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 // 获取dataScope属性值
                 // 这里假设RoleDataScope有getDataScope()方法
                 Integer dataScopeValue = dataScopes.get(0).getDataScope();
-                userAuthInfoWithTenantId.setDataScope(dataScopeValue);
+                userAuthCredentials.setDataScope(dataScopeValue);
             }
 
 
-            userAuthInfoWithTenantId.setDataScopes(dataScopes);
+            userAuthCredentials.setDataScopes(dataScopes);
             log.info("【getAuthInfoByUsernameAndTenantId】获取到的数据权限明细dataScopes：{}",dataScopes);
 
             // ✅✅✅ 补上这一句：按钮权限
-            Set<String> permissions = roleMenuService.getRolePermsByRoleCodes(roles);
-            userAuthInfoWithTenantId.setPermissions(permissions);
-            log.info("【getAuthInfoByUsernameAndTenantId】获取到的接口权限标识集合（按钮权限）permissions：{}",permissions);
+            Set<String> perms = roleMenuService.getRolePermsByRoleCodes(roles);
+            userAuthCredentials.setPerms(perms);
+            log.info("【getAuthInfoByUsernameAndTenantId】获取到的接口权限标识集合（按钮权限）permissions：{}",perms);
 
-            userAuthInfoWithTenantId.setCanSwitchTenant(resolveCanSwitchTenant(roles));
+            userAuthCredentials.setCanSwitchTenant(resolveCanSwitchTenant(roles));
             log.info("【getAuthInfoByUsernameAndTenantId】设置是否可以切换租户canSwitchTenant:{}",resolveCanSwitchTenant(roles));
         }
 
-        log.info("【getAuthInfoByUsernameAndTenantId】构建的租户认证信息userAuthInfoWithTenantId：{}",userAuthInfoWithTenantId);
-        return userAuthInfoWithTenantId;
+        log.info("【getAuthInfoByUsernameAndTenantId】构建的租户认证信息userAuthCredentials：{}",userAuthCredentials);
+        return userAuthCredentials;
     }
 
     /**
@@ -367,10 +369,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      *
      * @param username 用户名
      * @param tenantId 租户ID
-     * @return {@link UserAuthInfoWithTenantId}
+     * @return {@link UserAuthCredentials}
      */
     @Override
-    public UserAuthInfoWithTenantId getAuthInfoByUsernameInTenant(String username, Long tenantId) {
+    public UserAuthCredentials getAuthInfoByUsernameInTenant(String username, Long tenantId) {
         log.info("查询用户认证信息: username={}, tenantId={}", username, tenantId);
 
         Long oldTenantId2 = TenantContextHolder.getTenantId();
@@ -441,19 +443,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @return 用户认证信息
      */
     @Override
-    public UserAuthInfoWithTenantId getAuthInfoByOpenId(String openId) {
+    public UserAuthCredentials getAuthInfoByOpenId(String openId) {
         if (StrUtil.isBlank(openId)) {
             return null;
         }
-        UserAuthInfoWithTenantId userAuthInfoWithTenantId = this.baseMapper.getAuthInfoByOpenId(openId);
-        if (userAuthInfoWithTenantId != null) {
-            Set<String> roles = userAuthInfoWithTenantId.getRoles();
+        UserAuthCredentials userAuthCredentials = this.baseMapper.getAuthInfoByOpenId(openId);
+        if (userAuthCredentials != null) {
+            Set<String> roles = userAuthCredentials.getRoles();
             // 获取最大范围的数据权限
             Integer dataScope = roleService.getMaximumDataScope(roles);
-            userAuthInfoWithTenantId.setDataScope(dataScope);
-            userAuthInfoWithTenantId.setCanSwitchTenant(resolveCanSwitchTenant(roles));
+            userAuthCredentials.setDataScope(dataScope);
+            userAuthCredentials.setCanSwitchTenant(resolveCanSwitchTenant(roles));
         }
-        return userAuthInfoWithTenantId;
+        return userAuthCredentials;
     }
 
     /**
@@ -463,19 +465,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @return 用户认证信息
      */
     @Override
-    public UserAuthInfoWithTenantId getAuthInfoByMobile(String mobile) {
+    public UserAuthCredentials getAuthInfoByMobile(String mobile) {
         if (StrUtil.isBlank(mobile)) {
             return null;
         }
-        UserAuthInfoWithTenantId userAuthInfoWithTenantId = this.baseMapper.getAuthInfoByMobile(mobile);
-        if (userAuthInfoWithTenantId != null) {
-            Set<String> roles = userAuthInfoWithTenantId.getRoles();
+        UserAuthCredentials userAuthCredentials = this.baseMapper.getAuthInfoByMobile(mobile);
+        if (userAuthCredentials != null) {
+            Set<String> roles = userAuthCredentials.getRoles();
             // 获取最大范围的数据权限
             Integer dataScope = roleService.getMaximumDataScope(roles);
-            userAuthInfoWithTenantId.setDataScope(dataScope);
-            userAuthInfoWithTenantId.setCanSwitchTenant(resolveCanSwitchTenant(roles));
+            userAuthCredentials.setDataScope(dataScope);
+            userAuthCredentials.setCanSwitchTenant(resolveCanSwitchTenant(roles));
         }
-        return userAuthInfoWithTenantId;
+        return userAuthCredentials;
     }
 
     /**

@@ -18,6 +18,8 @@
     <file url="file://$PROJECT_DIR$/aioveu-common/common-redis/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-common/common-rocketmq/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-common/common-seata/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/aioveu-common/common-security-core/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/aioveu-common/common-security-resource/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-common/common-security/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-common/common-sms/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-common/common-web/src/main/java" charset="UTF-8" />
@@ -69,5 +71,7 @@
     <file url="file://$PROJECT_DIR$/aioveu-ums/ums-boot/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+    <file url="file://$USER_HOME$/src/main/java" charset="UTF-8" />
+    <file url="file://$USER_HOME$/src/main/resources" charset="UTF-8" />
   </component>
 </project>

@@ -2,7 +2,8 @@ package com.aioveu.tenant.aioveu08Config.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import com.aioveu.common.core.constant.RedisConstants;
-import com.aioveu.common.security.util.SecurityUtils;
+
+import com.aioveu.common.security.core.util.SecurityUtils;
 import com.aioveu.tenant.aioveu08Config.converter.ConfigConverter;
 import com.aioveu.tenant.aioveu08Config.mapper.ConfigMapper;
 import com.aioveu.tenant.aioveu08Config.model.entity.Config;

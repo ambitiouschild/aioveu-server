@@ -1,6 +1,7 @@
 package com.aioveu.tenant.api.fallback;
 
 import com.aioveu.common.core.result.Result;
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.*;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +50,7 @@ public class TenantFeignFallbackClient implements FallbackFactory<TenantFeignCli
             }
 
             @Override
-            public Result<UserAuthInfoWithTenantId> getUserAuthInfoWithTenantId(String username, Long tenantId) {
+            public Result<UserAuthCredentials> getUserAuthInfoWithTenantId(String username, Long tenantId) {
                 log.error("Feign fallback: getUserAuthInfoWithTenantId", cause);
                 log.error("feign远程调用多租户服务异常后的降级方法");
                 return Result.failed("根据用户名和租户ID获取认证信息（用于多租户登录）失败");

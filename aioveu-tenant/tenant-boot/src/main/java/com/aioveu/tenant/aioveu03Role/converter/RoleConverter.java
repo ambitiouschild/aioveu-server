@@ -24,7 +24,7 @@ import java.util.List;
 public interface RoleConverter {
 
     @Mapping(target = "dataScope", source = "dataScope")
-    @Mapping(target = "dataScopeLabel", expression = "java(com.aioveu.common.enums.DataScopeEnum.getLabelByValue(role.getDataScope()))")
+    @Mapping(target = "dataScopeLabel", expression = "java(com.aioveu.common.core.enums.DataScopeEnum.getLabelByValue(role.getDataScope()))")
     RolePageVO toPageVo(Role role);
 
     Page<RolePageVO> toPageVo(Page<Role> page);

@@ -1,6 +1,7 @@
 package com.aioveu.tenant.aioveu02User.converter;
 
 import com.aioveu.common.core.model.Option;
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
 import com.aioveu.tenant.aioveu02User.model.bo.UserBO;
 import com.aioveu.tenant.aioveu02User.model.dto.CurrentUserDTO;
 import com.aioveu.tenant.aioveu02User.model.dto.UserImportDTO;
@@ -61,5 +62,5 @@ public interface UserConverter {
     List<Option<String>> toOptions(List<User> list);
 
 
-    UserAuthInfoWithTenantId toUserAuthInfoWithTenantId(User user);
+    UserAuthCredentials toUserAuthInfoWithTenantId(User user);
 }

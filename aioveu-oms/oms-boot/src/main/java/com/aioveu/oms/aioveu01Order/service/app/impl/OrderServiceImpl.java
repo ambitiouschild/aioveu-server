@@ -10,7 +10,7 @@ import com.aioveu.common.core.enums.oms.LogisticsTypeEnum;
 import com.aioveu.common.core.enums.pay.*;
 import com.aioveu.common.core.exception.BusinessException;
 import com.aioveu.common.core.result.ResultCode;
-import com.aioveu.common.security.util.SecurityUtils;
+import com.aioveu.common.security.core.util.SecurityUtils;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
 import com.aioveu.oms.aioveu01Order.model.vo.*;

@@ -1,8 +1,9 @@
 package com.aioveu.common.mybatis.handler;
 
 import com.aioveu.common.mybatis.config.property.TenantProperties;
-import com.aioveu.common.security.util.SecurityUtils;
+
 import com.aioveu.common.core.tenant.TenantContextHolder;
+import com.aioveu.common.security.core.util.SecurityUtils;
 import com.baomidou.mybatisplus.extension.plugins.handler.TenantLineHandler;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;

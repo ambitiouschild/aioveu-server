@@ -198,7 +198,7 @@
     </select>
 
     <!-- 用户认证信息映射 -->
-    <resultMap id="AuthCredentialsMap" type="com.aioveu.tenant.dto.UserAuthInfoWithTenantId">
+    <resultMap id="AuthCredentialsMap" type="com.aioveu.common.security.core.model.dto.UserAuthCredentials">
         <id property="userId" column="userId" jdbcType="BIGINT"/>
         <result property="username" column="username" jdbcType="VARCHAR"/>
         <result property="password" column="password" jdbcType="VARCHAR"/>

@@ -1,5 +1,6 @@
 package com.aioveu.auth.oauth2.oidc;
 
+import com.aioveu.auth.service.CustomOidcUserInfoService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

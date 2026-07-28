@@ -5,7 +5,8 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.security.util.SecurityUtils;
+
+import com.aioveu.common.security.core.util.SecurityUtils;
 import com.aioveu.pms.aioveu06Spu.model.vo.*;
 import com.aioveu.pms.aioveu06Spu.model.vo.SeckillingSpuVO;
 import com.aioveu.pms.aioveu06Spu.model.vo.SpuDetailVO;

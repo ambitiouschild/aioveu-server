@@ -1,5 +1,0 @@
-com.aioveu.common.security.service.Impl.PermissionService
-com.aioveu.common.security.config.ResourceServerConfig
-com.aioveu.common.security.exception.MyAccessDeniedHandler
-com.aioveu.common.security.exception.MyAuthenticationEntryPoint
-com.aioveu.common.security.config.CommonTenantFeignAutoConfiguration

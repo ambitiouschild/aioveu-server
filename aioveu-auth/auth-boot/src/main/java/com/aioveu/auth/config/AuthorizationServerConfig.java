@@ -18,7 +18,6 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import com.aioveu.auth.model.SysUserDetails;
 import com.aioveu.auth.oauth2.extension.captcha.CaptchaAuthenticationConverter;
 import com.aioveu.auth.oauth2.extension.captcha.CaptchaAuthenticationProvider;
 import com.aioveu.auth.oauth2.extension.password.PasswordAuthenticationConverter;
@@ -29,10 +28,9 @@ import com.aioveu.auth.oauth2.extension.wechat.WechatAuthenticationConverter;
 import com.aioveu.auth.oauth2.extension.wechat.WechatAuthenticationProvider;
 import com.aioveu.auth.oauth2.handler.MyAuthenticationFailureHandler;
 import com.aioveu.auth.oauth2.handler.MyAuthenticationSuccessHandler;
-import com.aioveu.auth.oauth2.jackson.SysUserMixin;
 import com.aioveu.auth.oauth2.oidc.CustomOidcAuthenticationConverter;
 import com.aioveu.auth.oauth2.oidc.CustomOidcAuthenticationProvider;
-import com.aioveu.auth.oauth2.oidc.CustomOidcUserInfoService;
+import com.aioveu.auth.service.CustomOidcUserInfoService;
 import com.aioveu.auth.service.MemberDetailsService;
 import com.aioveu.common.core.constant.RedisConstants;
 import lombok.RequiredArgsConstructor;
@@ -558,11 +556,6 @@ public class AuthorizationServerConfig {
         );
 
 
-        // 添加自定义Mixin，用于序列化/反序列化特定的类。
-        // Mixin类需要自行实现，以便Jackson可以处理这些类的序列化。
-        // 注册自定义Mixin，解决特定类的序列化问题
-        objectMapper.addMixIn(SysUserDetails.class, SysUserMixin.class);  // 用户详情Mixin
-        objectMapper.addMixIn(Long.class, Object.class);  // Long类型Mixin
 
         // 将配置好的ObjectMapper设置到行映射器中。
         rowMapper.setObjectMapper(objectMapper);

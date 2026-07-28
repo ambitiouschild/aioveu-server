@@ -8,7 +8,7 @@ import cn.hutool.json.JSONUtil;
 import com.aioveu.auth.TokenManager.service.AuthTokenManagerService;
 import com.aioveu.auth.config.property.CaptchaProperties;
 import com.aioveu.auth.model.CaptchaResult;
-import com.aioveu.auth.model.SysUserDetails;
+import com.aioveu.common.security.core.model.SysUserDetails;
 import com.aioveu.auth.oauth2.extension.password.PasswordAuthenticationConverter;
 import com.aioveu.auth.oauth2.extension.password.PasswordAuthenticationProvider;
 import com.aioveu.auth.service.SysUserDetailsService;
@@ -16,10 +16,10 @@ import com.aioveu.common.core.constant.RedisConstants;
 import com.aioveu.auth.model.AuthenticationToken;
 import com.aioveu.common.core.result.Result;
 import com.aioveu.common.core.result.ResultCode;
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
 import com.aioveu.common.sms.property.AliyunSmsProperties;
 import com.aioveu.common.sms.service.SmsService;
 import com.aioveu.tenant.api.TenantFeignClient;
-import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import lombok.RequiredArgsConstructor;
@@ -233,12 +233,12 @@ public class AuthServiceImpl implements AuthService {
             }
 
             // 获取用户在新租户下的权限信息（可选，如果需要更新权限） 创建包含新租户ID的用户详情
-            Result<UserAuthInfoWithTenantId> result= tenantFeignClient.getUserAuthInfoWithTenantId
+            Result<UserAuthCredentials> result= tenantFeignClient.getUserAuthInfoWithTenantId
                     (details.getUsername(), tenantId);
 
-            UserAuthInfoWithTenantId userAuthInfoWithTenantId = result.getData();
+            UserAuthCredentials userAuthCredentials = result.getData();
 
-            SysUserDetails newDetails = new SysUserDetails(userAuthInfoWithTenantId);
+            SysUserDetails newDetails = new SysUserDetails(userAuthCredentials);
             newDetails.setUserId(details.getUserId());
             newDetails.setUsername(details.getUsername());
             newDetails.setDeptId(details.getDeptId());
@@ -312,9 +312,9 @@ public class AuthServiceImpl implements AuthService {
             log.info("【Auth】校验用户是否能访问该租户");
 
             // 获取用户在新租户下的权限信息（可选，如果需要更新权限） 创建包含新租户ID的用户详情
-            Result<UserAuthInfoWithTenantId> result = tenantFeignClient.getUserAuthInfoWithTenantId
+            Result<UserAuthCredentials> result = tenantFeignClient.getUserAuthInfoWithTenantId
                     (SecurityUtils.getUsername(), tenantId);
-            UserAuthInfoWithTenantId userAuthInfoWithTenantId = result.getData();
+            UserAuthCredentials userAuthCredentials = result.getData();
 
             // 6. 模拟登录请求
             HttpServletRequest request = buildLoginRequest(details);

@@ -1,7 +1,7 @@
 package com.aioveu.tenant.aioveu14OauthClientWxApp.config;
 
 
-import com.aioveu.common.security.service.TenantLoader;
+import com.aioveu.common.security.core.service.TenantLoader;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.service.OauthClientWxAppService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;

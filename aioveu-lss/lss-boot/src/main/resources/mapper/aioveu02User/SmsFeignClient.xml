@@ -52,11 +52,11 @@
             </if>
             <if test="queryParams.createTime != null and queryParams.createTime.size > 0">
                 <if test="queryParams.createTime[0] != null and queryParams.createTime[0] != ''">
-                    <bind name="startDate" value="queryParams.createTime[0].length() == 10 ? queryParams.createTime[0] + ' 00:00:00' : queryParams.createTime[0]"/>
+                    <bind name="startDate" value="queryParams.createTime[0].length == 10 ? queryParams.createTime[0] + ' 00:00:00' : queryParams.createTime[0]"/>
                     AND u.create_time &gt;= #{startDate}
                 </if>
                 <if test="queryParams.createTime[1] != null and queryParams.createTime[1] != ''">
-                    <bind name="endDate" value="queryParams.createTime[1].length() == 10 ? queryParams.createTime[1] + ' 23:59:59' : queryParams.createTime[1]"/>
+                    <bind name="endDate" value="queryParams.createTime[1].length == 10 ? queryParams.createTime[1] + ' 23:59:59' : queryParams.createTime[1]"/>
                     AND u.create_time &lt;= #{endDate}
                 </if>
             </if>
@@ -119,7 +119,7 @@
     </select>
 
     <!-- 用户认证信息映射 -->
-    <resultMap id="AuthCredentialsMap" type="com.aioveu.system.dto.UserAuthCredentials">
+    <resultMap id="AuthCredentialsMap" type="com.aioveu.common.security.core.model.dto.UserAuthCredentials">
         <id property="userId" column="userId" jdbcType="BIGINT"/>
         <result property="username" column="username" jdbcType="VARCHAR"/>
         <result property="password" column="password" jdbcType="VARCHAR"/>

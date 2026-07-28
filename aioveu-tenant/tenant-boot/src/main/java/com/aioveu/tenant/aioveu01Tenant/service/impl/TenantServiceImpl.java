@@ -7,8 +7,9 @@ import com.aioveu.auth.api.AuthFeignClient;
 import com.aioveu.auth.model.TenantClientInitDTO;
 import com.aioveu.common.core.constant.SystemConstants;
 import com.aioveu.common.core.exception.BusinessException;
-import com.aioveu.common.security.util.SecurityUtils;
+
 import com.aioveu.common.core.tenant.TenantContextHolder;
+import com.aioveu.common.security.core.util.SecurityUtils;
 import com.aioveu.tenant.aioveu01Tenant.converter.TenantConverter;
 import com.aioveu.tenant.aioveu01Tenant.mapper.TenantMapper;
 import com.aioveu.tenant.aioveu01Tenant.model.entity.Tenant;

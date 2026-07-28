@@ -1,7 +1,8 @@
 package com.aioveu.lss.api.fallback;
 
+import com.aioveu.common.core.result.Result;
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
 import com.aioveu.lss.api.LssFeignClient;
-import com.aioveu.lss.api.dto.UserAuthCredentials;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -25,9 +26,9 @@ public class LssFeignFallbackClient implements LssFeignClient {
      * @return {@link UserAuthCredentials}
      */
     @Override
-    public UserAuthCredentials getAuthCredentialsByUsername(String username) {
+    public Result<UserAuthCredentials> getAuthCredentialsByUsername(String username) {
         log.error("feign远程调用系统用户服务异常后的降级方法");
-        return new UserAuthCredentials();
+        return Result.failed("根据用户名获取认证信息失败");
     }
 
 }

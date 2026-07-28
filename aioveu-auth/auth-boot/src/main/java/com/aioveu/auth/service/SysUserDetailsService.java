@@ -1,15 +1,15 @@
 package com.aioveu.auth.service;
 
+import com.aioveu.common.core.enums.StatusEnum;
 import com.aioveu.common.core.result.Result;
 import com.aioveu.common.core.tenant.TenantContextHolder;
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
 import com.aioveu.lss.api.LssFeignClient;
 import com.aioveu.auth.model.LoginUserInfo;
-import com.aioveu.auth.model.SysUserDetails;
-import com.aioveu.lss.api.dto.UserAuthCredentials;
+import com.aioveu.common.security.core.model.SysUserDetails;
 import com.aioveu.system.api.SystemFeignClient;
-import com.aioveu.system.dto.UserAuthInfo;
 import com.aioveu.tenant.api.TenantFeignClient;
-import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.DisabledException;
@@ -124,115 +124,79 @@ public class SysUserDetailsService implements UserDetailsService {
 
         // 确保用户名有效
         String trimmedUsername = username.trim();
-        log.info("正在查询用户认证信息trimmedUsername: {}", trimmedUsername);
+        Long tenantId = TenantContextHolder.getTenantId();
 
-        Long currentTenantId = TenantContextHolder.getTenantId();
-        log.info("加载用户，用户名: {}, 租户ID: {}", username, currentTenantId);
+        log.info("加载用户，用户名: {}, 租户ID: {}", trimmedUsername, tenantId);
 
-        // 直接声明 SysUserDetails 变量
-        SysUserDetails sysUserDetails = null;
-        UserAuthInfo userAuthInfo = null;
-        String source = "";
-
-        //SysUserDetails已经有三个构造函数
-        log.info("SysUserDetails已经有三个构造函数");
-
-        // 方案1：按优先级依次尝试
-        try {
-            // 1. 优先使用tenant微服务（多租户模式）
-            // 查询逻辑（根据tenantId是否为空决定查询方式） currentTenantId != null
-            //请求参数已经去掉tenant_id，所以根据 currentTenantId == null ，请求参数不能去掉
-            if (currentTenantId != null) {
-                log.info("尝试使用租户ID从tenant微服务查询用户: {},租户currentTenantId：{}", trimmedUsername,currentTenantId);
-                //调用方
-                Result<UserAuthInfoWithTenantId> result = tenantFeignClient.getUserAuthInfoWithTenantId(trimmedUsername, currentTenantId);
-                UserAuthInfoWithTenantId userAuthInfoWithTenantId = result.getData();
-                log.info("从tenant微服务找到用户,打印认证信息userAuthInfoWithTenantId:{}",userAuthInfoWithTenantId);
-                if (userAuthInfoWithTenantId != null) {
-                    // 构建Spring Security所需的UserDetails实现对象
-                    source = "tenant";
-                    sysUserDetails = new SysUserDetails(userAuthInfoWithTenantId);
-                    //        sysUserDetails.setSource(source); // 可选：记录用户来源
-                }
-            }
+        UserAuthCredentials credentials = fetchUserCredentials(trimmedUsername, tenantId);
 
 
-            // 2. 如果tenant没找到，尝试lss微服务（系统管理员等）
-            if (sysUserDetails == null) {
-                log.info("尝试从lss微服务查询用户: {}", trimmedUsername);
-                try {
-                    UserAuthCredentials lssAuthInfo = lssFeignClient.getAuthCredentialsByUsername(trimmedUsername);
-                    if (lssAuthInfo != null) {
-                        source = "lss";
-                        sysUserDetails = new SysUserDetails(lssAuthInfo);
-                        //        sysUserDetails.setSource(source); // 可选：记录用户来源
+        if (credentials == null) {
 
-                        log.info("从lss微服务找到用户,打印认证信息:{}",sysUserDetails);
-                    }
-                } catch (Exception e) {
-                    log.warn("lss微服务查询失败: {}", e.getMessage());
-                }
-            }
-
-            // 3. 如果前两者都没找到，尝试system微服务（业务用户）
-            if (sysUserDetails == null) {
-                log.info("尝试从system微服务查询用户: {}", trimmedUsername);
-                try {
-                    UserAuthInfo systemAuthInfo = systemFeignClient.getUserAuthInfo(trimmedUsername);
-                    if (systemAuthInfo != null) {
-                        source = "system";
-                        sysUserDetails = new SysUserDetails(systemAuthInfo);
-                        //        sysUserDetails.setSource(source); // 可选：记录用户来源
-
-                        log.info("从system微服务找到用户,打印认证信息:{}",sysUserDetails);
-                    }
-                } catch (Exception e) {
-                    log.warn("system微服务查询失败: {}", e.getMessage());
-                }
-            }
-
-        } catch (Exception e) {
-            log.error("查询用户认证信息时发生异常", e);
-            throw new UsernameNotFoundException("用户认证服务异常: " + e.getMessage());
-        }
-
-        // 检查用户是否存在
-        if (sysUserDetails == null) {
-            log.error("用户不存在，用户名: {}, 租户ID: {}, 尝试来源: {}", trimmedUsername, currentTenantId, source);
+            log.error("用户不存在，用户名: {}, 租户ID: {}", trimmedUsername, tenantId);
             throw new UsernameNotFoundException("用户不存在: " + trimmedUsername);
         }
 
-        // 检查用户状态
-//        if (!StatusEnum.ENABLE.getValue().equals(SysUserDetails.getStatus())) {
-//            throw new DisabledException("该账户已被禁用!");
-//        }
 
-        log.info("【SysUserDetailsService】trimmedUsername:{},租户currentTenantId：{},从source:{}微服务,成功构建用户详情sysUserDetails：{}",
-                trimmedUsername,currentTenantId,source,sysUserDetails);
+        // ✅ 状态校验（必须）
+        if (!StatusEnum.ENABLE.getValue().equals(credentials.getStatus())) {
+            log.error("账户已禁用，用户名: {}", trimmedUsername);
+            throw new DisabledException("该账户已被禁用");
+        }
 
-        return sysUserDetails;
+        SysUserDetails userDetails = new SysUserDetails(credentials);
+
+        log.info("成功构建用户详情，用户名: {}, 租户ID: {}, 来源: {}",
+                trimmedUsername, tenantId, credentials.getSource());
+
+        return userDetails;
 
     }
-
-
 
     /**
-     * 获取当前登录用户的基本信息（演示方法）
-     * 注意：此方法目前是硬编码实现，实际项目中应该从安全上下文中获取当前用户信息
-     *
-     * @return LoginUserInfo 登录用户基本信息
-     *
-     * TODO: 实际实现应该从SecurityContextHolder中获取当前认证用户
-     * 示例：
-     * Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-     * if (authentication != null && authentication.getPrincipal() instanceof SysUserDetails) {
-     *     SysUserDetails userDetails = (SysUserDetails) authentication.getPrincipal();
-     *     // 构建LoginUserInfo
-     * }
+     * 统一获取用户认证信息
+     * tenantId 决定路由，而不是在 auth 层兜底
      */
-    public LoginUserInfo getLoginUserInfo() {
-        LoginUserInfo loginUserInfo = new LoginUserInfo();
-        loginUserInfo.setId(123L);
-        return loginUserInfo;
+    private UserAuthCredentials fetchUserCredentials(String username, Long tenantId) {
+        try {
+            if (tenantId != null) {
+                // ✅ 多租户场景：只查 tenant-service
+                return extractData(
+                        tenantFeignClient.getUserAuthInfoWithTenantId(username, tenantId)
+                );
+            }
+
+            // ✅ 非租户场景：按业务优先级
+            UserAuthCredentials credentials = extractData(
+                    lssFeignClient.getAuthCredentialsByUsername(username)
+            );
+            if (credentials != null) {
+                return credentials;
+            }
+
+            return extractData(
+                    systemFeignClient.getUserAuthInfo(username)
+            );
+
+        } catch (FeignException.NotFound e) {
+            log.warn("用户不存在，用户名: {}", username);
+            return null;
+        } catch (FeignException e) {
+            log.error("调用用户服务异常，用户名: {}", username, e);
+            throw new UsernameNotFoundException("用户认证服务异常");
+        }
     }
+
+    /**
+     * 安全地从 Result<T> 中提取数据
+     */
+    private <T> T extractData(Result<T> result) {
+        if (result == null || !result.isSuccess(result) || result.getData() == null) {
+            return null;
+        }
+        return result.getData();
+    }
+
+
+
 }

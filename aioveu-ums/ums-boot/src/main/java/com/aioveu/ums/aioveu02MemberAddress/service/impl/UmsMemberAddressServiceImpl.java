@@ -3,7 +3,8 @@ package com.aioveu.ums.aioveu02MemberAddress.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.security.util.SecurityUtils;
+
+import com.aioveu.common.security.core.util.SecurityUtils;
 import com.aioveu.ums.aioveu02MemberAddress.converter.UmsMemberAddressConverter;
 import com.aioveu.ums.aioveu02MemberAddress.model.entity.UmsMemberAddress;
 import com.aioveu.ums.aioveu02MemberAddress.model.query.UmsMemberAddressQuery;

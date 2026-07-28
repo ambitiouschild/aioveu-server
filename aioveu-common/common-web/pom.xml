@@ -65,18 +65,6 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.aioveu</groupId>
-            <artifactId>common-security</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-
-        <dependency>
-            <groupId>com.aioveu</groupId>
-            <artifactId>common-core</artifactId>
-        </dependency>
-
         <!--        添加 ip2region 依赖，这是一个高效的IP地址定位库-->
         <dependency>
             <groupId>org.lionsoul</groupId>
@@ -84,6 +72,11 @@
             <version>2.7.0</version>
         </dependency>
 
+        <!-- MVC API（无 Tomcat） -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+        </dependency>
 
     </dependencies>
 

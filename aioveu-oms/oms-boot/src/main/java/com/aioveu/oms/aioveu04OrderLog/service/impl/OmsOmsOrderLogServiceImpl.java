@@ -2,7 +2,7 @@ package com.aioveu.oms.aioveu04OrderLog.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.security.util.SecurityUtils;
+import com.aioveu.common.security.core.util.SecurityUtils;
 import com.aioveu.oms.aioveu04OrderLog.converter.OmsOrderLogConverter;
 import com.aioveu.oms.aioveu04OrderLog.model.form.OmsOrderLogForm;
 import com.aioveu.oms.aioveu04OrderLog.model.query.OmsOrderLogQuery;

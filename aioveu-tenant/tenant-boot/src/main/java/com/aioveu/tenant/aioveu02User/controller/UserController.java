@@ -8,9 +8,11 @@ import com.aioveu.common.core.model.Option;
 import com.aioveu.common.core.result.ExcelResult;
 import com.aioveu.common.core.result.PageResult;
 import com.aioveu.common.core.result.Result;
-import com.aioveu.common.security.model.UserAuthCredentials;
-import com.aioveu.common.security.util.SecurityUtils;
+
+
 import com.aioveu.common.core.util.ExcelUtils;
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
+import com.aioveu.common.security.core.util.SecurityUtils;
 import com.aioveu.tenant.aioveu01Tenant.model.vo.TenantVO;
 import com.aioveu.tenant.aioveu01Tenant.service.TenantService;
 import com.aioveu.tenant.aioveu02User.listener.UserImportListener;
@@ -150,11 +152,11 @@ public class UserController {
     @Operation(summary = "根据用户名和租户ID获取认证信息（用于多租户登录）", hidden = true)
     @GetMapping("/{username}/{tenantId}/authInfo")
     @Log(value = "根据用户名和租户ID获取认证信息（用于多租户登录）", module = LogModuleEnum.USER)
-    public Result<UserAuthInfoWithTenantId> getUserAuthInfoWithTenantId(
+    public Result<UserAuthCredentials> getUserAuthInfoWithTenantId(
             @Parameter(description = "用户名") @PathVariable String username,
             @Parameter(description = "租户ID") @PathVariable Long tenantId) {
 
-        UserAuthInfoWithTenantId userAuthInfoWithTenantId = userService.getAuthInfoByUsernameInTenant(username,tenantId);
+        UserAuthCredentials userAuthInfoWithTenantId = userService.getAuthInfoByUsernameInTenant(username,tenantId);
         return Result.success(userAuthInfoWithTenantId);
 
     }

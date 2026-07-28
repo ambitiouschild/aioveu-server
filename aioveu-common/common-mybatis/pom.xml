@@ -58,7 +58,7 @@
 
         <dependency>
             <groupId>com.aioveu</groupId>
-            <artifactId>common-security</artifactId>
+            <artifactId>common-security-core</artifactId>
             <optional>true</optional>
         </dependency>
         <dependency>

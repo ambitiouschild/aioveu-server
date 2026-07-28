@@ -6,7 +6,8 @@ import com.aioveu.common.core.enums.pay.*;
 import com.aioveu.common.core.exception.BusinessException;
 import com.aioveu.common.core.result.Result;
 import com.aioveu.common.core.result.ResultCode;
-import com.aioveu.common.security.util.SecurityUtils;
+
+import com.aioveu.common.security.core.util.SecurityUtils;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.pay.aioveu00Payment.service.PayOrderSuccessHandlerService;
 import com.aioveu.pay.aioveu00Payment.service.PaymentService;

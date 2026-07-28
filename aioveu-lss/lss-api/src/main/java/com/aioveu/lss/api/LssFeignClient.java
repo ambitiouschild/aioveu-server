@@ -1,8 +1,9 @@
 package com.aioveu.lss.api;
 
+import com.aioveu.common.core.result.Result;
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
 import com.aioveu.feign.config.FeignDecoderConfig;
 import com.aioveu.lss.api.fallback.LssFeignFallbackClient;
-import com.aioveu.lss.api.dto.UserAuthCredentials;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,5 +29,5 @@ public interface LssFeignClient {
      * @return {@link UserAuthCredentials}
      */
     @GetMapping("/api/v1/users/{username}/UserAuthCredentials")
-    UserAuthCredentials getAuthCredentialsByUsername(@PathVariable  String username);
+    Result<UserAuthCredentials> getAuthCredentialsByUsername(@PathVariable  String username);
 }

@@ -10,7 +10,7 @@ import cn.hutool.jwt.JWTPayload;
 import cn.hutool.jwt.JWTUtil;
 import com.aioveu.auth.config.property.AuthSecurityProperties;
 import com.aioveu.auth.TokenManager.service.AuthTokenManagerService;
-import com.aioveu.auth.model.SysUserDetails;
+import com.aioveu.common.security.core.model.SysUserDetails;
 import com.aioveu.common.core.constant.JwtClaimConstants;
 import com.aioveu.common.core.constant.RedisConstants;
 import com.aioveu.common.core.constant.SecurityConstants;
