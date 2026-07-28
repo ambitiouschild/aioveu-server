@@ -157,7 +157,7 @@ public class SysUserDetails implements UserDetails, CredentialsContainer {
             @JsonProperty("openId") String openId,
             @JsonProperty("memberId") Long memberId,
             @JsonProperty("authorities") Collection<? extends GrantedAuthority> authorities,
-            @JsonProperty("perms") Set<String> perms
+            @JsonProperty("perms") Set<String> perms  //这是“序列化声明”
     ) {
         this.userId = userId;
         this.username = username;

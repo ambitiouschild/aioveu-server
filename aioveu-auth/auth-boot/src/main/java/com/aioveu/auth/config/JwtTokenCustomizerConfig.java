@@ -200,6 +200,7 @@ public class JwtTokenCustomizerConfig {
                                 authorities
                         );
 
+                        claims.claim(JwtClaimConstants.User.PERMS, userDetails.getPerms());
 
                     }
 
