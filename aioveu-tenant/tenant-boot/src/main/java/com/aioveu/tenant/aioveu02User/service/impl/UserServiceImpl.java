@@ -220,8 +220,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .eq(User::getTenantId, tenantId));
         Assert.isTrue(count == 0, "该租户下用户名已存在");
 
-        // 设置默认加密密码
-        String defaultEncryptPwd = passwordEncoder.encode(SystemConstants.DEFAULT_PASSWORD);
+        // 设置默认加密密码  增加前缀
+        String defaultEncryptPwd = encodePasswordWithPrefix(SystemConstants.DEFAULT_PASSWORD);
         entity.setPassword(defaultEncryptPwd);
         entity.setCreateBy(SecurityUtils.getUserId());
 
@@ -511,7 +511,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         newUser.setOpenId(openId);
         newUser.setGender(0); // 保密
         newUser.setUpdateBy(SecurityUtils.getUserId());
-        newUser.setPassword(SystemConstants.DEFAULT_PASSWORD);
+        newUser.setPassword(encodePasswordWithPrefix(SystemConstants.DEFAULT_PASSWORD));
         newUser.setCreateTime(LocalDateTime.now());
         newUser.setUpdateTime(LocalDateTime.now());
         this.save(newUser);
@@ -562,7 +562,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         newUser.setOpenId(openId);
         newUser.setUsername(mobile); // 使用手机号作为用户名
         newUser.setNickname("微信用户_" + mobile.substring(mobile.length() - 4)); // 使用手机号后4位作为昵称
-        newUser.setPassword(SystemConstants.DEFAULT_PASSWORD); // 使用加密的openId作为初始密码
+        newUser.setPassword(encodePasswordWithPrefix(SystemConstants.DEFAULT_PASSWORD)); // 使用加密的openId作为初始密码
         newUser.setGender(0); // 保密
         newUser.setCreateTime(LocalDateTime.now());
         newUser.setUpdateTime(LocalDateTime.now());
@@ -797,7 +797,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String newPassword = data.getNewPassword();
         boolean result = this.update(new LambdaUpdateWrapper<User>()
                 .eq(User::getId, userId)
-                .set(User::getPassword, passwordEncoder.encode(newPassword))
+                .set(User::getPassword, encodePasswordWithPrefix(newPassword))
         );
 
         if (result) {
@@ -818,7 +818,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public boolean resetUserPassword(Long userId, String password) {
         boolean result = this.update(new LambdaUpdateWrapper<User>()
                 .eq(User::getId, userId)
-                .set(User::getPassword, passwordEncoder.encode(password))
+                .set(User::getPassword, encodePasswordWithPrefix(password))
         );
         if (result) {
             // 管理员重置用户密码后，使该用户的所有会话失效
@@ -1054,4 +1054,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         );
         return userConverter.toOptions(list);
     }
+
+
+    private String encodePasswordWithPrefix(String rawPassword) {
+        return "{bcrypt}" + passwordEncoder.encode(rawPassword);
+    }
+
+
+
 }
