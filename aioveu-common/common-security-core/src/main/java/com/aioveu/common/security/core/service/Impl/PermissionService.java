@@ -3,7 +3,7 @@ package com.aioveu.common.security.core.service.Impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.core.constant.RedisConstants;
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.core.util.JwtSecurityUtils;
 import com.aioveu.common.core.tenant.TenantContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,13 +52,13 @@ public class PermissionService {
 
 
         // 超级管理员放行
-        if (SecurityUtils.isRoot()) {
+        if (JwtSecurityUtils.isRoot()) {
             log.info("【权限校验】超级管理员，跳过权限检查：{}", requiredPerm);
             return true;
         }
 
         // 获取当前登录用户的角色编码集合
-        Set<String> roleCodes = SecurityUtils.getRoles();
+        Set<String> roleCodes = JwtSecurityUtils.getRoles();
         if (CollectionUtil.isEmpty(roleCodes)) {
             log.info("【权限校验】用户没有分配角色，权限检查失败：{}", requiredPerm);
             return false;

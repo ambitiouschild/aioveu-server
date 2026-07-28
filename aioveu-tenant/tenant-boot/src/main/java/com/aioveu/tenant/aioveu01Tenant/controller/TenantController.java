@@ -6,7 +6,7 @@ import com.aioveu.common.core.result.PageResult;
 import com.aioveu.common.core.result.Result;
 
 import com.aioveu.common.core.tenant.TenantContextHolder;
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.tenant.aioveu01Tenant.model.form.TenantCreateForm;
 import com.aioveu.tenant.aioveu01Tenant.model.form.TenantForm;
 import com.aioveu.tenant.aioveu01Tenant.model.query.TenantQuery;
@@ -59,7 +59,7 @@ public class TenantController {
     @GetMapping("/options")
     @Log(value = "根据用户名获取可登录的租户列表）", module = LogModuleEnum.USER)
     public Result<List<TenantVO>> getAccessibleTenants() {
-        Long userId = SecurityUtils.getUserId();
+        Long userId = JwtSecurityUtils.getUserId();
         List<TenantVO> tenantList = tenantService.getAccessibleTenants(userId);
         log.debug("用户 {} 可访问 {} 个租户", userId, tenantList.size());
         return Result.success(tenantList);
@@ -175,8 +175,8 @@ public class TenantController {
             @Parameter(description = "租户ID") @PathVariable Long tenantId,
             HttpServletRequest request
     ) {
-        Long userId = SecurityUtils.getUserId();
-        Long fromTenantId = SecurityUtils.getTenantId();
+        Long userId = JwtSecurityUtils.getUserId();
+        Long fromTenantId = JwtSecurityUtils.getTenantId();
 
         log.info("用户 {} 请求切换租户：{} -> {}", userId, fromTenantId, tenantId);
 

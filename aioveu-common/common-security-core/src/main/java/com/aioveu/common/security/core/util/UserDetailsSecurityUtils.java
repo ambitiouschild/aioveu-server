@@ -1,9 +1,7 @@
 package com.aioveu.common.security.core.util;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.core.constant.JwtClaimConstants;
 import com.aioveu.common.core.constant.SecurityConstants;
 import com.aioveu.common.core.constant.SystemConstants;
 import com.aioveu.common.core.model.RoleDataScope;
@@ -18,10 +16,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static cn.hutool.core.convert.Convert.toInt;
-
 /**
- * @Description: TODO Spring Security 工具类  瘦身后的 SecurityUtils（core 版）
+ * @Description: TODO Spring Security 工具类
+ *                          瘦身后的 SecurityUtils（core 版）
+ *                          ✅ Auth / 内部服务（有 UserDetails）
+ *                          依赖 UserDetails
  * @Author: 雒世松
  * @Date: 2025/7/28 15:13
  * @param
@@ -29,7 +28,7 @@ import static cn.hutool.core.convert.Convert.toInt;
  **/
 
 @Slf4j
-public class SecurityUtils {
+public class UserDetailsSecurityUtils {
 
 
     /**

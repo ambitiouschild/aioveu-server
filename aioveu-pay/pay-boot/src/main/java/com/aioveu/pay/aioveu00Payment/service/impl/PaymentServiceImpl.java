@@ -7,7 +7,7 @@ import com.aioveu.common.core.exception.BusinessException;
 import com.aioveu.common.core.result.Result;
 import com.aioveu.common.core.result.ResultCode;
 
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.pay.aioveu00Payment.service.PayOrderSuccessHandlerService;
 import com.aioveu.pay.aioveu00Payment.service.PaymentService;
@@ -898,7 +898,7 @@ public class PaymentServiceImpl implements PaymentService {
 
 //            String appId=paymentForm.getAppId();
         String orderNo =   payOrder.getOrderNo();
-        Long memberId = SecurityUtils.getMemberId();
+        Long memberId = JwtSecurityUtils.getMemberId();
         //OpenID 理论上应该 OMS 传进来
         String openId = paymentForm.getOpenId();
         log.info("【createPaymentOmsToPay】用户OpenID获取成功: {}", openId);

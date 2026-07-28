@@ -6,7 +6,7 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.pms.aioveu06Spu.model.vo.*;
 import com.aioveu.pms.aioveu06Spu.model.vo.SeckillingSpuVO;
 import com.aioveu.pms.aioveu06Spu.model.vo.SpuDetailVO;
@@ -34,7 +34,6 @@ import com.aioveu.pms.aioveu06Spu.service.PmsSpuService;
 import com.aioveu.ums.api.MemberFeignClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -271,7 +270,7 @@ public class PmsSpuServiceImpl extends ServiceImpl<PmsSpuMapper, PmsSpu> impleme
 
         // 添加用户浏览历史记录
         log.info("6. 记录用户浏览历史（仅当用户已登录时）");
-        Long memberId = SecurityUtils.getMemberId();
+        Long memberId = JwtSecurityUtils.getMemberId();
         if (memberId != null) {
             ProductHistoryVO vo = new ProductHistoryVO();
             vo.setId(goodsInfo.getId());

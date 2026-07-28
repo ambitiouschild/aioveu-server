@@ -13,7 +13,7 @@ import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
 
 
 import com.aioveu.common.security.core.service.Impl.PermissionService;
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.common.sms.enmus.SmsTypeEnum;
 import com.aioveu.common.sms.service.SmsService;
 import com.aioveu.common.core.tenant.TenantContextHolder;
@@ -125,7 +125,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         int pageSize = queryParams.getPageSize();
         Page<UserBO> page = new Page<>(pageNum, pageSize);
 
-        boolean isRoot = SecurityUtils.isRoot();
+        boolean isRoot = JwtSecurityUtils.isRoot();
         queryParams.setIsRoot(isRoot);
 
         // 查询数据
@@ -223,7 +223,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 设置默认加密密码  增加前缀
         String defaultEncryptPwd = encodePasswordWithPrefix(SystemConstants.DEFAULT_PASSWORD);
         entity.setPassword(defaultEncryptPwd);
-        entity.setCreateBy(SecurityUtils.getUserId());
+        entity.setCreateBy(JwtSecurityUtils.getUserId());
 
         // 注意：租户ID由 MyMetaObjectHandler.insertFill() 自动填充，无需手动设置
 
@@ -276,7 +276,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         // form -> entity
         User entity = userConverter.toEntity(userForm);
-        entity.setUpdateBy(SecurityUtils.getUserId());
+        entity.setUpdateBy(JwtSecurityUtils.getUserId());
 
         // 保持租户ID不变（不允许跨租户修改用户）
         entity.setTenantId(oldTenantId);
@@ -510,7 +510,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         newUser.setUsername(openId);      // TODO 后续替换为手机号
         newUser.setOpenId(openId);
         newUser.setGender(0); // 保密
-        newUser.setUpdateBy(SecurityUtils.getUserId());
+        newUser.setUpdateBy(JwtSecurityUtils.getUserId());
         newUser.setPassword(encodePasswordWithPrefix(SystemConstants.DEFAULT_PASSWORD));
         newUser.setCreateTime(LocalDateTime.now());
         newUser.setUpdateTime(LocalDateTime.now());
@@ -620,7 +620,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public List<UserExportDTO> listExportUsers(UserQuery queryParams) {
 
-        boolean isRoot = SecurityUtils.isRoot();
+        boolean isRoot = JwtSecurityUtils.isRoot();
         queryParams.setIsRoot(isRoot);
 
         List<UserExportDTO> exportUsers = this.baseMapper.listExportUsers(queryParams);
@@ -658,17 +658,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public CurrentUserDTO getCurrentUserInfo() {
 
-        String username = SecurityUtils.getUsername();
+        String username = JwtSecurityUtils.getUsername();
         log.info("获取登录用户名：{}",username);
 
-        boolean canSwitchTenant = SecurityUtils.canSwitchTenant();
+        boolean canSwitchTenant = JwtSecurityUtils.canSwitchTenant();
 
         log.info("是否可切换租户：{}",canSwitchTenant);
 
         Long oldTenantId = TenantContextHolder.getTenantId();
         log.info("TenantContextHolder获取当前租户id：{}",oldTenantId);
 
-        Long tenantId = SecurityUtils.getTenantId();
+        Long tenantId = JwtSecurityUtils.getTenantId();
         log.info("SecurityUtils 获取当前租户id：{}",tenantId);
         boolean oldIgnoreTenant = TenantContextHolder.isIgnoreTenant();
         log.info("是否忽略租户：{}",oldIgnoreTenant);
@@ -702,7 +702,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userInfoVO.setCanSwitchTenant(canSwitchTenant);
 
         // 用户角色集合
-        Set<String> roles = SecurityUtils.getRoles();
+        Set<String> roles = JwtSecurityUtils.getRoles();
         userInfoVO.setRoles(roles);
 
         // 用户权限集合
@@ -749,7 +749,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public boolean updateUserProfile(UserProfileForm formData) {
-        Long userId = SecurityUtils.getUserId();
+        Long userId = JwtSecurityUtils.getUserId();
 
         if (formData.getNickname() == null && formData.getAvatar() == null && formData.getGender() == null) {
             throw new BusinessException("请修改至少一个字段");
@@ -836,7 +836,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public boolean sendMobileCode(String mobile) {
 
-        Long currentUserId = SecurityUtils.getUserId();
+        Long currentUserId = JwtSecurityUtils.getUserId();
         long mobileCount = this.count(new LambdaQueryWrapper<User>()
                 .eq(User::getMobile, mobile)
                 .ne(User::getId, currentUserId)
@@ -869,7 +869,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public boolean bindOrChangeMobile(MobileUpdateForm form) {
 
-        Long currentUserId = SecurityUtils.getUserId();
+        Long currentUserId = JwtSecurityUtils.getUserId();
         User currentUser = this.getById(currentUserId);
 
         if (currentUser == null) {
@@ -921,7 +921,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public void sendEmailCode(String email) {
 
-        Long currentUserId = SecurityUtils.getUserId();
+        Long currentUserId = JwtSecurityUtils.getUserId();
         long emailCount = this.count(new LambdaQueryWrapper<User>()
                 .eq(User::getEmail, email)
                 .ne(User::getId, currentUserId)
@@ -949,7 +949,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public boolean bindOrChangeEmail(EmailUpdateForm form) {
 
-        Long currentUserId = SecurityUtils.getUserId();
+        Long currentUserId = JwtSecurityUtils.getUserId();
 
         User currentUser = this.getById(currentUserId);
         if (currentUser == null) {
@@ -997,7 +997,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public boolean unbindMobile(PasswordVerifyForm form) {
 
-        Long currentUserId = SecurityUtils.getUserId();
+        Long currentUserId = JwtSecurityUtils.getUserId();
         User currentUser = this.getById(currentUserId);
 
         if (currentUser == null) {
@@ -1021,7 +1021,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public boolean unbindEmail(PasswordVerifyForm form) {
 
-        Long currentUserId = SecurityUtils.getUserId();
+        Long currentUserId = JwtSecurityUtils.getUserId();
         User currentUser = this.getById(currentUserId);
 
         if (currentUser == null) {

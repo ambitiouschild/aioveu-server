@@ -4,7 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.ums.aioveu01Member.converter.UmsMemberConverter;
 import com.aioveu.ums.aioveu01Member.model.form.UmsMemberForm;
 import com.aioveu.ums.aioveu01Member.model.query.UmsMemberQuery;
@@ -269,8 +269,8 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
     public UmsMemberVO getCurrMemberInfoByOpenIdAndTenantId() {
 
 
-        String openId = SecurityUtils.getOpenId();  //之前是这里的问题
-        Long tenantId = SecurityUtils.getTenantId();
+        String openId = JwtSecurityUtils.getOpenId();  //之前是这里的问题
+        Long tenantId = JwtSecurityUtils.getTenantId();
 
         log.info("【Ums】构建查询条件：按openId 和 tenantId精确匹配，只查询必要字段openId:{},tenantId:{}",openId,tenantId);
         UmsMember umsMember = this.getOne(new LambdaQueryWrapper<UmsMember>()
@@ -299,7 +299,7 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
     public UmsMemberVO getCurrMemberInfoByMemberId() {
 
         log.info("从安全工具类获取当前登录会员ID");
-        Long memberId = SecurityUtils.getMemberId();
+        Long memberId = JwtSecurityUtils.getMemberId();
 
 
         log.info("构建查询条件：按会员ID查询，只选择需要的字段");

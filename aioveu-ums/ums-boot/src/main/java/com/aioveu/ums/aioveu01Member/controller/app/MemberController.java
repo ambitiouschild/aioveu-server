@@ -1,7 +1,7 @@
 package com.aioveu.ums.aioveu01Member.controller.app;
 
 
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.ums.dto.MemberRegisterForm;
 import com.aioveu.ums.dto.MemberRegisterDTO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -66,7 +66,7 @@ public class MemberController {
     @Operation(summary= "添加浏览历史")
     @PostMapping("/view/history")
     public <T> Result<T> addProductViewHistory(@RequestBody ProductHistoryVO product) {
-        Long memberId = SecurityUtils.getMemberId();
+        Long memberId = JwtSecurityUtils.getMemberId();
         memberService.addProductViewHistory(product, memberId);
         return Result.success();
     }
@@ -74,7 +74,7 @@ public class MemberController {
     @Operation(summary= "获取浏览历史")
     @GetMapping("/view/history")
     public Result<Set<ProductHistoryVO>> getProductViewHistory() {
-        Long memberId = SecurityUtils.getMemberId();
+        Long memberId = JwtSecurityUtils.getMemberId();
         Set<ProductHistoryVO> historyList = memberService.getProductViewHistory(memberId);
         return Result.success(historyList);
 

@@ -90,6 +90,12 @@ public class JwtTokenCustomizerConfig {
             SysUserDetails userDetails,
             UsernamePasswordAuthenticationToken authToken
     ) {
+
+        log.info("【JWT】username value = {}, class = {}",
+                userDetails.getUsername(),
+                userDetails.getUsername() == null ? "null" : userDetails.getUsername().getClass().getName()
+        );
+
         addClaim(claims, JwtClaimConstants.User.ID, userDetails.getUserId());
         addClaim(claims, JwtClaimConstants.User.USERNAME, userDetails.getUsername());
         addClaim(claims, JwtClaimConstants.User.DEPT_ID, userDetails.getDeptId());

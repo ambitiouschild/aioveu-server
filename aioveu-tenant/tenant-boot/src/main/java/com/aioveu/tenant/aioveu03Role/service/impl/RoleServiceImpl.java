@@ -10,7 +10,7 @@ import com.aioveu.common.core.exception.BusinessException;
 import com.aioveu.common.core.model.Option;
 import com.aioveu.common.core.model.RoleDataScope;
 
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.tenant.aioveu02User.service.UserRoleService;
 import com.aioveu.tenant.aioveu03Role.converter.RoleConverter;
 import com.aioveu.tenant.aioveu03Role.mapper.RoleMapper;
@@ -74,7 +74,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
                                                 .or()
                                                 .like(Role::getCode, keywords)
                         )
-                        .ne(!SecurityUtils.isRoot(), Role::getCode, SystemConstants.ROOT_ROLE_CODE) // 非超级管理员不显示超级管理员角色
+                        .ne(!JwtSecurityUtils.isRoot(), Role::getCode, SystemConstants.ROOT_ROLE_CODE) // 非超级管理员不显示超级管理员角色
                         .orderByAsc(Role::getSort).orderByDesc(Role::getCreateTime).orderByDesc(Role::getUpdateTime)
         );
 
@@ -91,7 +91,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     public List<Option<Long>> listRoleOptions() {
         // 查询数据
         List<Role> roleList = this.list(new LambdaQueryWrapper<Role>()
-                .ne(!SecurityUtils.isRoot(), Role::getCode, SystemConstants.ROOT_ROLE_CODE)
+                .ne(!JwtSecurityUtils.isRoot(), Role::getCode, SystemConstants.ROOT_ROLE_CODE)
                 .select(Role::getId, Role::getName)
                 .orderByAsc(Role::getSort)
         );

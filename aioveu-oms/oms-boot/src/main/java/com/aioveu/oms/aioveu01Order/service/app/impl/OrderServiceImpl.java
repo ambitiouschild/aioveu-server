@@ -10,7 +10,7 @@ import com.aioveu.common.core.enums.oms.LogisticsTypeEnum;
 import com.aioveu.common.core.enums.pay.*;
 import com.aioveu.common.core.exception.BusinessException;
 import com.aioveu.common.core.result.ResultCode;
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
 import com.aioveu.oms.aioveu01Order.model.vo.*;
@@ -322,7 +322,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     public OrderConfirmVO confirmOrder(Long skuId) {
 
 
-        Long memberId = SecurityUtils.getMemberId();
+        Long memberId = JwtSecurityUtils.getMemberId();
         log.info("【订单确认】开始处理，用户ID: {}, SKU ID: {}", memberId, skuId);
 
 
@@ -849,7 +849,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
             // 构建订单实体
             OmsOrder order = new OmsOrder();
 
-            Long memberId =  SecurityUtils.getMemberId();
+            Long memberId =  JwtSecurityUtils.getMemberId();
             log.info("【创建订单】8.上下文获取会员ID: {}", memberId);
 
             // 生成订单号
@@ -2045,7 +2045,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
         }
 
         // 7. 获取用户的微信OpenID
-        Long memberId = SecurityUtils.getMemberId();
+        Long memberId = JwtSecurityUtils.getMemberId();
         Result<String> openIdResult = memberFeignClient.getOpenIdByMemberId(memberId);
         String openId = openIdResult.getData();
         log.info("【payOrder】获取用户OpenID，会员ID: {},openId:{}", memberId,openId);
@@ -2157,7 +2157,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     public void cancelOrder(String orderSn) {
 
         // 1. 获取租户 ID
-        Long tenantId = SecurityUtils.getTenantId();
+        Long tenantId = JwtSecurityUtils.getTenantId();
         if (tenantId == null) {
             throw new BusinessException("租户信息不存在");
         }
@@ -2191,7 +2191,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     @Transactional(rollbackFor = Exception.class)
     public void confirmReceipt(String orderSn) {
         // 1. 获取租户
-        Long tenantId = SecurityUtils.getTenantId();
+        Long tenantId = JwtSecurityUtils.getTenantId();
         if (tenantId == null) {
             throw new BusinessException("租户信息不存在");
         }
@@ -2251,7 +2251,7 @@ public class OrderServiceImpl extends ServiceImpl<OmsOrderMapper, OmsOrder> impl
     public void deleteOrders(String orderSns) {
         Assert.isTrue(StrUtil.isNotBlank(orderSns), "删除的订单详情数据为空");
 
-        Long tenantId = SecurityUtils.getTenantId();
+        Long tenantId = JwtSecurityUtils.getTenantId();
         if (tenantId == null) {
             throw new BusinessException("租户信息不存在");
         }

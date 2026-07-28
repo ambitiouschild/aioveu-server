@@ -27,13 +27,18 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- ✅ 资源服务器自动配置 -->  <!-- ✅ 这个依赖自带 Jwt -->
+        <!-- ✅ 资源服务器自动配置 -->  <!-- ✅ 这个依赖自带 Jwt 已经包含 Jwt / JwtAuthenticationToken-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
 
 
+<!--        显式声明这个包-->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-jose</artifactId>
+        </dependency>
 
         <!-- ✅ Web（必须） -->
         <dependency>

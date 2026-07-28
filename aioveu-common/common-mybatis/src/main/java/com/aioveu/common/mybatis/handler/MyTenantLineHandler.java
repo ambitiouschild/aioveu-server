@@ -3,7 +3,7 @@ package com.aioveu.common.mybatis.handler;
 import com.aioveu.common.mybatis.config.property.TenantProperties;
 
 import com.aioveu.common.core.tenant.TenantContextHolder;
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.core.util.JwtSecurityUtils;
 import com.baomidou.mybatisplus.extension.plugins.handler.TenantLineHandler;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -59,7 +59,7 @@ public class MyTenantLineHandler implements TenantLineHandler {
         // ✅ 1. 登录期接口：直接返回 null（由 ignoreTable 控制）
 
         // ✅ 2. 用户态：从 JWT 拿（唯一真理源）
-        Long tenantId = SecurityUtils.getTenantId();
+        Long tenantId = JwtSecurityUtils.getTenantId();
 //        Long tenantId =  TenantContextHolder.getTenantId();
         log.info("【MyTenantLineHandler】如果JWT有租户id就赋值到租户上下文工具类: {}", tenantId);
         log.info("【MyTenantLineHandler】过滤器 → 解析Token → 设置租户上下文 → 后续所有组件都从上下文获取");
@@ -119,7 +119,7 @@ public class MyTenantLineHandler implements TenantLineHandler {
 
         // 1. 获取当前租户ID
         // 通过token获取当前租户ID
-        Long tenantId = SecurityUtils.getTenantId();
+        Long tenantId = JwtSecurityUtils.getTenantId();
         log.info("【MyTenantLineHandler】判断表是否忽略多租户过滤,从SecurityUtils的token获取租户ID: {}", tenantId);
 
         // 2. 关键逻辑：如果租户ID为null或0，忽略表

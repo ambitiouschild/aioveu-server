@@ -7,7 +7,7 @@ import com.aioveu.common.core.constant.SystemConstants;
 import com.aioveu.common.core.enums.StatusEnum;
 import com.aioveu.common.core.model.Option;
 
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.tenant.aioveu05Dept.converter.DeptConverter;
 import com.aioveu.tenant.aioveu05Dept.mapper.DeptMapper;
 import com.aioveu.tenant.aioveu05Dept.model.entity.Dept;
@@ -151,7 +151,7 @@ public class DeptServiceImpl extends ServiceImpl<DeptMapper, Dept> implements De
         String treePath = generateDeptTreePath(formData.getParentId());
         entity.setTreePath(treePath);
 
-        entity.setCreateBy(SecurityUtils.getUserId());
+        entity.setCreateBy(JwtSecurityUtils.getUserId());
         // 保存部门并返回部门ID
         boolean result = this.save(entity);
         Assert.isTrue(result, "部门保存失败");
@@ -246,7 +246,7 @@ public class DeptServiceImpl extends ServiceImpl<DeptMapper, Dept> implements De
                         .or()
                         .apply("CONCAT (',',tree_path,',') LIKE {0}", patten)
                         .set(Dept::getIsDeleted, 1)
-                        .set(Dept::getUpdateBy, SecurityUtils.getUserId())
+                        .set(Dept::getUpdateBy, JwtSecurityUtils.getUserId())
                 );
             }
         }

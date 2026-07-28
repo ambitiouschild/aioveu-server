@@ -12,7 +12,7 @@ import com.aioveu.common.core.result.Result;
 
 import com.aioveu.common.core.util.ExcelUtils;
 import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.tenant.aioveu01Tenant.model.vo.TenantVO;
 import com.aioveu.tenant.aioveu01Tenant.service.TenantService;
 import com.aioveu.tenant.aioveu02User.listener.UserImportListener;
@@ -289,7 +289,7 @@ public class UserController {
     @GetMapping("/profile")
     @Log(value = "获取个人中心用户信息", module = LogModuleEnum.USER)
     public Result<UserProfileVO> getUserProfile() {
-        Long userId = SecurityUtils.getUserId();
+        Long userId = JwtSecurityUtils.getUserId();
         UserProfileVO userProfile = userService.getUserProfile(userId);
         return Result.success(userProfile);
     }
@@ -318,7 +318,7 @@ public class UserController {
     public Result<?> changeCurrentUserPassword(
             @RequestBody PasswordUpdateForm data
     ) {
-        Long currUserId = SecurityUtils.getUserId();
+        Long currUserId = JwtSecurityUtils.getUserId();
         boolean result = userService.changeUserPassword(currUserId, data);
         return Result.judge(result);
     }

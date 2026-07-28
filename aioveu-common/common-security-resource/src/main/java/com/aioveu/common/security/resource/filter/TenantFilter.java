@@ -1,7 +1,7 @@
 package com.aioveu.common.security.resource.filter;
 
 import com.aioveu.common.security.core.model.SecurityFilterOrders;
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.common.core.tenant.TenantContextHolder;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -87,7 +87,7 @@ public class TenantFilter extends OncePerRequestFilter implements Ordered {
         try {
             // 直接从SecurityUtils获取当前用户的租户ID
             // 调试1：直接调用   // 1. 从JWT解析租户ID
-            Long tenantId = SecurityUtils.getTenantId();
+            Long tenantId = JwtSecurityUtils.getTenantId();
             log.info("【TenantFilter】SecurityUtils.getTenantId() 结果: " + tenantId);
 
 

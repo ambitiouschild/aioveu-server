@@ -9,7 +9,7 @@ import com.aioveu.common.core.constant.SystemConstants;
 import com.aioveu.common.core.exception.BusinessException;
 
 import com.aioveu.common.core.tenant.TenantContextHolder;
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.tenant.aioveu01Tenant.converter.TenantConverter;
 import com.aioveu.tenant.aioveu01Tenant.mapper.TenantMapper;
 import com.aioveu.tenant.aioveu01Tenant.model.entity.Tenant;
@@ -82,7 +82,7 @@ public class TenantServiceImpl extends ServiceImpl<TenantMapper, Tenant> impleme
      */
     @Override
     public boolean hasTenantSwitchPermission() {
-        return SecurityUtils.canSwitchTenant();
+        return JwtSecurityUtils.canSwitchTenant();
     }
 
     /**
@@ -504,7 +504,7 @@ public class TenantServiceImpl extends ServiceImpl<TenantMapper, Tenant> impleme
         }
 
 //        Long currentTenantId = TenantContextHolder.getTenantId();
-        Long currentTenantId = SecurityUtils.getTenantId();
+        Long currentTenantId = JwtSecurityUtils.getTenantId();
         log.info("从SecurityUtils校验currentTenantId:{}",currentTenantId);
         if (currentTenantId == null) {
             return false;

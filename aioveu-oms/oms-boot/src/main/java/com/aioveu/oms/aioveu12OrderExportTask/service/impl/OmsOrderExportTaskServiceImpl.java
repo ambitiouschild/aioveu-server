@@ -4,7 +4,7 @@ package com.aioveu.oms.aioveu12OrderExportTask.service.impl;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.oms.aioveu01Order.model.query.OrderExportQuery;
 import com.aioveu.oms.aioveu12OrderExportTask.converter.OmsOrderExportTaskConverter;
 import com.aioveu.common.core.enums.oms.OrderExportTaskStatusEnum;
@@ -126,8 +126,8 @@ public class OmsOrderExportTaskServiceImpl extends ServiceImpl<OmsOrderExportTas
 //        Jwt jwt = jwtDecoder.decode(token.replace("Bearer ", ""));
 //        Long operatorId = jwt.getClaim("userId", Long.class);
 //        Long tenantId = jwt.getClaim("tenantId", Long.class);
-        Long operatorId = SecurityUtils.getMemberId();
-        Long tenantId = SecurityUtils.getTenantId();
+        Long operatorId = JwtSecurityUtils.getMemberId();
+        Long tenantId = JwtSecurityUtils.getTenantId();
 
         // 2️权限校验
 //        checkExportPermission(operatorId, tenantId);
@@ -153,8 +153,8 @@ public class OmsOrderExportTaskServiceImpl extends ServiceImpl<OmsOrderExportTas
     public boolean download(String exportNo,
              HttpServletResponse response) throws IOException {
 
-        Long operatorId = SecurityUtils.getMemberId();
-        Long tenantId = SecurityUtils.getTenantId();
+        Long operatorId = JwtSecurityUtils.getMemberId();
+        Long tenantId = JwtSecurityUtils.getTenantId();
 
         // 2️查询任务
         OmsOrderExportTask task =

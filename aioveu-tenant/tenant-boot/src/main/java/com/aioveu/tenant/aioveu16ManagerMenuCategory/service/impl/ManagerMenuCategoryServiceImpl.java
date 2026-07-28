@@ -4,7 +4,7 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 
 import com.aioveu.common.core.tenant.TenantContextHolder;
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.tenant.aioveu16ManagerMenuCategory.converter.ManagerMenuCategoryConverter;
 import com.aioveu.tenant.aioveu16ManagerMenuCategory.mapper.ManagerMenuCategoryMapper;
 import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.entity.ManagerMenuCategory;
@@ -122,7 +122,7 @@ public class ManagerMenuCategoryServiceImpl extends ServiceImpl<ManagerMenuCateg
     public List<ManagerMenuCategoryWithItemsVO>  getManagerMenuCategoriesWithItems() {
 
 //        Long tenantId = TenantContextHolder.getTenantId();
-        Long tenantId = SecurityUtils.getTenantId();
+        Long tenantId = JwtSecurityUtils.getTenantId();
         Assert.notNull(tenantId, "租户ID不能为空");
 
 

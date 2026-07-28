@@ -2,7 +2,7 @@ package com.aioveu.oms.aioveu04OrderLog.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.oms.aioveu04OrderLog.converter.OmsOrderLogConverter;
 import com.aioveu.oms.aioveu04OrderLog.model.form.OmsOrderLogForm;
 import com.aioveu.oms.aioveu04OrderLog.model.query.OmsOrderLogQuery;
@@ -131,7 +131,7 @@ public class OmsOmsOrderLogServiceImpl extends ServiceImpl<OmsOrderLogMapper, Om
      */
     @Override
     public void addOrderLogs(Long orderId, Integer orderStatus, String detail) {
-        Long memberId = SecurityUtils.getMemberId();
+        Long memberId = JwtSecurityUtils.getMemberId();
         addOrderLogs(orderId, orderStatus, memberId.toString(), detail);
     }
 

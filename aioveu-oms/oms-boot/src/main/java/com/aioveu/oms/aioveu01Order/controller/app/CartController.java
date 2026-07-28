@@ -1,7 +1,7 @@
 package com.aioveu.oms.aioveu01Order.controller.app;
 
 import com.aioveu.common.core.result.Result;
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.oms.aioveu01Order.model.vo.CartItemDto;
 import com.aioveu.oms.aioveu01Order.model.vo.CartItemVo;
 import com.aioveu.oms.aioveu01Order.service.CartService;
@@ -33,7 +33,7 @@ public class CartController {
     @Operation(summary = "查询购物车")
     @GetMapping
     public <T> Result<T> getCart() {
-        List<CartItemVo> result = cartService.listCartItemsVo(SecurityUtils.getMemberId());
+        List<CartItemVo> result = cartService.listCartItemsVo(JwtSecurityUtils.getMemberId());
         return Result.success((T) result);
     }
 

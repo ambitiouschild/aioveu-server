@@ -1,7 +1,7 @@
 package com.aioveu.oms.aioveu01Order.service.impl;
 
 import com.aioveu.common.core.result.ResultCode;
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.oms.aioveu01Order.constant.OrderConstants;
 import com.aioveu.oms.aioveu01Order.converter.CartConverter;
@@ -225,7 +225,7 @@ public class CartServiceImpl implements CartService {
     public boolean deleteCart() {
 
         log.info("构建购物车在Redis中的Key：cart:member:{memberId}");
-        String key = OrderConstants.MEMBER_CART_PREFIX + SecurityUtils.getMemberId();
+        String key = OrderConstants.MEMBER_CART_PREFIX + JwtSecurityUtils.getMemberId();
 
         log.info("直接删除整个购物车Key");
         redisTemplate.delete(key);
@@ -258,7 +258,7 @@ public class CartServiceImpl implements CartService {
         }
         //2. 获取当前登录用户ID
         log.info("从安全工具类获取当前登录用户ID");
-        Long memberId = SecurityUtils.getMemberId();
+        Long memberId = JwtSecurityUtils.getMemberId();
 
         if (memberId == null) {
             log.error("用户未登录，无法添加购物车");
@@ -412,7 +412,7 @@ public class CartServiceImpl implements CartService {
         try {
 
             log.info("获取当前登录用户ID，可能抛出认证异常");
-            memberId = SecurityUtils.getMemberId();
+            memberId = JwtSecurityUtils.getMemberId();
         } catch (Exception e) {
 
             log.info("用户未登录或token无效，抛出业务异常");
@@ -462,7 +462,7 @@ public class CartServiceImpl implements CartService {
     public boolean removeCartItem(Long skuId) {
         Long memberId;
         try {
-            memberId = SecurityUtils.getMemberId();
+            memberId = JwtSecurityUtils.getMemberId();
         } catch (Exception e) {
             throw new BizException(ResultCode.TOKEN_INVALID);
         }
@@ -488,7 +488,7 @@ public class CartServiceImpl implements CartService {
     public boolean checkAll(boolean checked) {
         Long memberId;
         try {
-            memberId = SecurityUtils.getMemberId();
+            memberId = JwtSecurityUtils.getMemberId();
         } catch (Exception e) {
             throw new BizException(ResultCode.TOKEN_INVALID);
         }
@@ -523,7 +523,7 @@ public class CartServiceImpl implements CartService {
             return true;
         }
 
-        Long memberId = SecurityUtils.getMemberId();
+        Long memberId = JwtSecurityUtils.getMemberId();
 
         BoundHashOperations<String, String, String> ops =
                 getCartHashOperations(memberId);
@@ -549,7 +549,7 @@ public class CartServiceImpl implements CartService {
      */
     @Override
     public boolean removeCheckedItem() {
-        Long memberId = SecurityUtils.getMemberId();
+        Long memberId = JwtSecurityUtils.getMemberId();
         if (memberId == null) {
             throw new BizException(ResultCode.TOKEN_INVALID);
         }

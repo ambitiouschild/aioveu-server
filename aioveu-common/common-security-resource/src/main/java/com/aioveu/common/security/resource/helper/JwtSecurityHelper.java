@@ -5,11 +5,11 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.core.constant.JwtClaimConstants;
 import com.aioveu.common.core.constant.SecurityConstants;
-import com.aioveu.common.security.core.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -47,7 +47,7 @@ public class JwtSecurityHelper {
      *   - 访问原始认证细节
      */
     public static Map<String, Object> getTokenAttributes() {
-        Authentication authentication = SecurityUtils.getAuthentication();
+        Authentication authentication = JwtSecurityUtils.getAuthentication();
         if (authentication instanceof JwtAuthenticationToken jwtAuth) {
             return jwtAuth.getToken().getClaims();
         }

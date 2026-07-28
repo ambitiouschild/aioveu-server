@@ -4,7 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.ums.aioveu02MemberAddress.converter.UmsMemberAddressConverter;
 import com.aioveu.ums.aioveu02MemberAddress.model.entity.UmsMemberAddress;
 import com.aioveu.ums.aioveu02MemberAddress.model.query.UmsMemberAddressQuery;
@@ -153,7 +153,7 @@ public class UmsMemberAddressServiceImpl extends ServiceImpl<UmsMemberAddressMap
     public boolean addAddress(UmsMemberAddressForm umsMemberAddressForm) {
 
         log.info("从安全上下文中获取当前登录会员的ID");
-        Long memberId = SecurityUtils.getMemberId();
+        Long memberId = JwtSecurityUtils.getMemberId();
 
         log.info("创建地址实体对象");
         UmsMemberAddress umsMemberAddress = new UmsMemberAddress();
@@ -206,7 +206,7 @@ public class UmsMemberAddressServiceImpl extends ServiceImpl<UmsMemberAddressMap
     public boolean updateAddress(UmsMemberAddressForm umsMemberAddressForm) {
 
         log.info("从安全上下文中获取当前登录会员的ID");
-        Long memberId = SecurityUtils.getMemberId();
+        Long memberId = JwtSecurityUtils.getMemberId();
 
 
         log.info("创建地址实体对象");
@@ -249,7 +249,7 @@ public class UmsMemberAddressServiceImpl extends ServiceImpl<UmsMemberAddressMap
     public List<MemberAddressDTO> listCurrentMemberAddresses() {
 
         log.info("从安全上下文中获取当前登录会员的ID");
-        Long memberId = SecurityUtils.getMemberId();
+        Long memberId = JwtSecurityUtils.getMemberId();
 
         log.info("构建查询条件：查询该会员的所有地址，按默认地址降序排列（默认地址排在前面）");
         List<UmsMemberAddress> umsMemberAddressList = this.list(new LambdaQueryWrapper<UmsMemberAddress>()

@@ -11,7 +11,7 @@ import com.aioveu.common.core.model.KeyValue;
 import com.aioveu.common.core.model.Option;
 
 import com.aioveu.common.core.tenant.TenantContextHolder;
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.tenant.aioveu01Tenant.model.entity.Tenant;
 import com.aioveu.tenant.aioveu01Tenant.service.TenantMenuService;
 import com.aioveu.tenant.aioveu01Tenant.service.TenantPlanMenuService;
@@ -178,7 +178,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
         log.info("【Tenant-Menu】获取当前用户的菜单路由列表=====================");
 
 
-        Set<String> roleCodes = SecurityUtils.getRoles();
+        Set<String> roleCodes = JwtSecurityUtils.getRoles();
         log.info("【Tenant-Menu】获取角色,roleCodes：{}",roleCodes);
 
 
@@ -189,7 +189,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
         Long originalTenantId2 = TenantContextHolder.getTenantId();
         log.info("【Tenant-Menu】测试===TenantContextHolder获取租户ID：{}",originalTenantId2);
 
-        Long originalTenantId = SecurityUtils.getTenantId();
+        Long originalTenantId = JwtSecurityUtils.getTenantId();
         log.info("【Tenant-Menu】SecurityUtils 获取当前租户id：{}",originalTenantId);
 
         TenantContextHolder.setTenantId(originalTenantId);
@@ -201,7 +201,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
         boolean originalIgnoreTenant = TenantContextHolder.isIgnoreTenant();
         log.info("【Tenant-Menu】是否忽略租户：{}",originalIgnoreTenant);
 
-        boolean canSwitchTenant = SecurityUtils.canSwitchTenant();
+        boolean canSwitchTenant = JwtSecurityUtils.canSwitchTenant();
         log.info("【Tenant-Menu】是否可切换租户：{}",canSwitchTenant);
 
         if (originalTenantId == null) {
@@ -228,7 +228,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
                 }
             }
 
-            if (SecurityUtils.isRoot()) {
+            if (JwtSecurityUtils.isRoot()) {
                 if (SystemConstants.PLATFORM_TENANT_ID.equals(targetTenantId)) {
                     menuList = this.list(new LambdaQueryWrapper<Menu>()
                             .ne(Menu::getType, MenuTypeEnum.BUTTON.getValue())

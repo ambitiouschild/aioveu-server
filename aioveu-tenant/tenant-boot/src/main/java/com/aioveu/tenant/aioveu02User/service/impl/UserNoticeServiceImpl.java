@@ -1,7 +1,7 @@
 package com.aioveu.tenant.aioveu02User.service.impl;
 
 
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.tenant.aioveu02User.mapper.UserNoticeMapper;
 import com.aioveu.tenant.aioveu02User.model.entity.UserNotice;
 import com.aioveu.tenant.aioveu02User.model.vo.UserNoticePageVO;
@@ -36,7 +36,7 @@ public class UserNoticeServiceImpl extends ServiceImpl<UserNoticeMapper, UserNot
      */
     @Override
     public boolean readAll() {
-        Long userId = SecurityUtils.getUserId();
+        Long userId = JwtSecurityUtils.getUserId();
         return this.update(new LambdaUpdateWrapper<UserNotice>()
                 .eq(UserNotice::getUserId, userId)
                 .eq(UserNotice::getIsRead, 0)

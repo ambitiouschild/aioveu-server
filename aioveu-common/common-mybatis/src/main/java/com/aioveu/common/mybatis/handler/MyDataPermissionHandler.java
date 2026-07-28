@@ -2,7 +2,7 @@ package com.aioveu.common.mybatis.handler;
 
 import cn.hutool.core.util.StrUtil;
 
-import com.aioveu.common.security.core.util.SecurityUtils;
+import com.aioveu.common.security.core.util.JwtSecurityUtils;
 import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.extension.plugins.handler.DataPermissionHandler;
@@ -42,7 +42,7 @@ public class MyDataPermissionHandler implements DataPermissionHandler {
                 return where;
             }
             // 超级管理员不受数据权限控制
-            if (SecurityUtils.isRoot()) {
+            if (JwtSecurityUtils.isRoot()) {
                 return where;
             }
             if (ObjectUtils.isNotEmpty(annotation)
@@ -67,7 +67,7 @@ public class MyDataPermissionHandler implements DataPermissionHandler {
         String userColumnName = StrUtil.isNotBlank(userAlias) ? (userAlias + StringPool.DOT + userIdColumnName) : userIdColumnName;
 
         // 获取当前用户的数据权限
-        Integer dataScope = SecurityUtils.getDataScope();
+        Integer dataScope = JwtSecurityUtils.getDataScope();
 
         DataScopeEnum dataScopeEnum = IBaseEnum.getEnumByValue(dataScope, DataScopeEnum.class);
 
@@ -78,16 +78,16 @@ public class MyDataPermissionHandler implements DataPermissionHandler {
                 return where;
             }
             case DEPT -> {
-                deptId = SecurityUtils.getDeptId();
+                deptId = JwtSecurityUtils.getDeptId();
                 appendSqlStr = deptColumnName + StringPool.EQUALS + deptId;
             }
             case SELF -> {
-                userId = SecurityUtils.getUserId();
+                userId = JwtSecurityUtils.getUserId();
                 appendSqlStr = userColumnName + StringPool.EQUALS + userId;
             }
             // 默认部门及子部门数据权限
             default -> {
-                deptId = SecurityUtils.getDeptId();
+                deptId = JwtSecurityUtils.getDeptId();
                 appendSqlStr = deptColumnName + " IN ( SELECT id FROM sys_dept WHERE id = " + deptId + " or find_in_set( " + deptId + " , tree_path ) )";
             }
         }
