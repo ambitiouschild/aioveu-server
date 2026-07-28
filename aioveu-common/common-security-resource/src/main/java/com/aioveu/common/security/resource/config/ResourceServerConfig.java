@@ -388,10 +388,12 @@ public class ResourceServerConfig {
      *   - 加密: passwordEncoder.encode("rawPassword")
      *   - 验证: passwordEncoder.matches("rawPassword", "encodedPassword")
      */
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+
+    //不能与auth冲突
+//    @Bean
+//    public PasswordEncoder passwordEncoder() {
+//        return new BCryptPasswordEncoder();
+//    }
 
     //------------------------验证JWT时检查黑名单！----集成到 Spring Security------------------------------------
 
