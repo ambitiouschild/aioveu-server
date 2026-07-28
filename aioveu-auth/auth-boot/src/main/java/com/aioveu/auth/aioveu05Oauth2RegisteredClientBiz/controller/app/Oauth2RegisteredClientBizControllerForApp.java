@@ -2,20 +2,12 @@
 package com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.controller.app;
 
 
-import com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.model.form.Oauth2RegisteredClientBizForm;
-import com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.model.query.Oauth2RegisteredClientBizQuery;
-import com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.model.vo.Oauth2RegisteredClientBizVo;
 import com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.service.Oauth2RegisteredClientBizService;
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
-import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.aioveu.common.core.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**

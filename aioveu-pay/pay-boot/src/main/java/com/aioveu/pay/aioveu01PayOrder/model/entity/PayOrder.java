@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu01PayOrder.model.entity;
 
-import com.aioveu.common.base.BaseEntityWithTenantId;
-import com.aioveu.common.enums.pay.*;
+import com.aioveu.common.core.base.BaseEntityWithTenantId;
+import com.aioveu.common.core.enums.pay.*;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.math.BigDecimal;  // 必须是java.math.BigDecimal
 

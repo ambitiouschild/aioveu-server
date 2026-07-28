@@ -2,7 +2,7 @@ package com.aioveu.auth.service;
 
 import com.aioveu.auth.model.*;
 import com.aioveu.auth.model.AuthenticationToken;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import org.springframework.security.core.Authentication;
 
 /**

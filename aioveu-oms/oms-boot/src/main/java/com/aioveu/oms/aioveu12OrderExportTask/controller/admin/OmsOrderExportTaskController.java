@@ -1,11 +1,8 @@
 package com.aioveu.oms.aioveu12OrderExportTask.controller.admin;
 
 
-import com.aioveu.common.annotation.Log;
-import com.aioveu.common.enums.LogModuleEnum;
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
-import com.aioveu.oms.aioveu01Order.model.query.OrderExportQuery;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.oms.aioveu12OrderExportTask.model.form.OmsOrderExportTaskForm;
 import com.aioveu.oms.aioveu12OrderExportTask.model.query.OmsOrderExportTaskQuery;
 import com.aioveu.oms.aioveu12OrderExportTask.model.vo.OmsOrderExportTaskVo;

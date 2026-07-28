@@ -2,9 +2,7 @@ package com.aioveu.tenant.aioveu14OauthClientWxApp.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.enums.StatusEnum;
-import com.aioveu.common.exception.BusinessException;
-import com.aioveu.common.result.ResultCode;
+import com.aioveu.common.core.enums.StatusEnum;
 import com.aioveu.tenant.aioveu01Tenant.model.vo.TenantVO;
 import com.aioveu.tenant.aioveu01Tenant.service.TenantService;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.converter.OauthClientWxAppConverter;

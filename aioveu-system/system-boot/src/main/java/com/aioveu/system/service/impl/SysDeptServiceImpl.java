@@ -2,8 +2,8 @@ package com.aioveu.system.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.constant.SystemConstants;
-import com.aioveu.common.enums.StatusEnum;
+import com.aioveu.common.core.constant.SystemConstants;
+import com.aioveu.common.core.enums.StatusEnum;
 import com.aioveu.common.web.model.Option;
 import com.aioveu.system.converter.DeptConverter;
 import com.aioveu.system.mapper.SysDeptMapper;

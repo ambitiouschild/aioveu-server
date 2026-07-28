@@ -1,7 +1,7 @@
 package com.aioveu.system.handler;
 
-import com.aioveu.common.result.Result;
-import com.aioveu.common.result.ResultCode;
+import com.aioveu.common.core.result.Result;
+import com.aioveu.common.core.result.ResultCode;
 import com.alibaba.csp.sentinel.adapter.spring.webmvc.callback.BlockExceptionHandler;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;

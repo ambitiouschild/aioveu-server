@@ -1,18 +1,17 @@
 package com.aioveu.oms.aioveu01Order.model.entity;
 
-import com.aioveu.common.base.BaseEntityWithTenantId;
-import com.aioveu.common.enums.oms.LogisticsTypeEnum;
-import com.aioveu.common.enums.oms.OrderSourceEnum;
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
-import com.aioveu.common.enums.oms.OrderStatusEnum;
-import com.aioveu.common.enums.pay.PaymentMethodEnum;
+import com.aioveu.common.core.base.BaseEntityWithTenantId;
+import com.aioveu.common.core.enums.oms.LogisticsTypeEnum;
+import com.aioveu.common.core.enums.oms.OrderSourceEnum;
+import com.aioveu.common.core.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.core.enums.oms.OrderStatusEnum;
+import com.aioveu.common.core.enums.pay.PaymentMethodEnum;
 import com.aioveu.oms.aioveu02OrderItem.model.entity.OmsOrderItem;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 /**

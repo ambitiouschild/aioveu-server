@@ -1,7 +1,7 @@
 package com.aioveu.registry.aioveu06RegistryCertificationContact.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.registry.aioveu06RegistryCertificationContact.model.form.RegistryCertificationContactForm;
 import com.aioveu.registry.aioveu06RegistryCertificationContact.model.query.RegistryCertificationContactQuery;
 import com.aioveu.registry.aioveu06RegistryCertificationContact.model.vo.RegistryCertificationContactVo;

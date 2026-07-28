@@ -4,7 +4,7 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.auth.service.MemberDetailsService;
 import com.aioveu.auth.util.OAuth2AuthenticationProviderUtils;
-import com.aioveu.common.constant.RedisConstants;
+import com.aioveu.common.core.constant.RedisConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationProvider;

@@ -26,7 +26,7 @@
     </select>
 
     <!-- 获取角色的数据权限列表 -->
-    <select id="getRoleDataScopes" resultType="com.aioveu.common.security.model.RoleDataScope">
+    <select id="getRoleDataScopes" resultType="com.aioveu.common.core.model.RoleDataScope">
         SELECT
             code AS roleCode,
             data_scope AS dataScope

@@ -1,7 +1,7 @@
 package com.aioveu.pms.aioveu05Sku.controller.admin;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pms.aioveu05Sku.model.entity.PmsSku;
 import com.aioveu.pms.aioveu05Sku.model.form.PmsSkuForm;
 import com.aioveu.pms.aioveu05Sku.model.query.PmsSkuQuery;

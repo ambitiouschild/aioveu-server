@@ -2,7 +2,6 @@ package com.aioveu.pay.aioveu08PayAccount.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.result.Result;
 import com.aioveu.pay.aioveu08PayAccount.converter.PayAccountConverter;
 import com.aioveu.pay.aioveu08PayAccount.mapper.PayAccountMapper;
 import com.aioveu.pay.aioveu08PayAccount.model.entity.PayAccount;
@@ -15,7 +14,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;

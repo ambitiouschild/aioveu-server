@@ -1,6 +1,6 @@
 package com.aioveu.pms.api;
 
-import com.aioveu.common.result.PageResult;
+import com.aioveu.common.core.result.PageResult;
 import com.aioveu.pms.model.query.PmsSpuQuery;
 import com.aioveu.pms.model.vo.SpuPageVO;
 import io.swagger.v3.oas.annotations.Operation;

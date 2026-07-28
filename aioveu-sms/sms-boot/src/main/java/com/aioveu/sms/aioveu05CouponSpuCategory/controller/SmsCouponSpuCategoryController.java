@@ -1,7 +1,7 @@
 package com.aioveu.sms.aioveu05CouponSpuCategory.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.sms.aioveu05CouponSpuCategory.model.form.SmsCouponSpuCategoryForm;
 import com.aioveu.sms.aioveu05CouponSpuCategory.model.query.SmsCouponSpuCategoryQuery;
 import com.aioveu.sms.aioveu05CouponSpuCategory.model.vo.SmsCouponSpuCategoryVO;

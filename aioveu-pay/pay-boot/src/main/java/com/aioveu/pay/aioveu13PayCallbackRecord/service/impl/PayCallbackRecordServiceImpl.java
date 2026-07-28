@@ -3,9 +3,9 @@ package com.aioveu.pay.aioveu13PayCallbackRecord.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.enums.pay.CallbackTriggerSourceEnum;
-import com.aioveu.common.enums.pay.PaymentCallbackStatusEnum;
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.core.enums.pay.CallbackTriggerSourceEnum;
+import com.aioveu.common.core.enums.pay.PaymentCallbackStatusEnum;
+import com.aioveu.common.core.enums.pay.PaymentChannelEnum;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
 import com.aioveu.pay.aioveu13PayCallbackRecord.converter.PayCallbackRecordConverter;

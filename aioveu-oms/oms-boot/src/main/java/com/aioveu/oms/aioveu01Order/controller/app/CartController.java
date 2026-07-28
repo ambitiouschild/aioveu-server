@@ -1,6 +1,6 @@
 package com.aioveu.oms.aioveu01Order.controller.app;
 
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.oms.aioveu01Order.model.vo.CartItemDto;
 import com.aioveu.oms.aioveu01Order.model.vo.CartItemVo;

@@ -1,12 +1,11 @@
 package com.aioveu.pay.aioveu00Payment.Processor.Impl;
 
 
-import com.aioveu.common.enums.pay.PaymentSceneEnum;
+import com.aioveu.common.core.enums.pay.PaymentSceneEnum;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu00Payment.Processor.BusinessProcessor;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
 import jakarta.annotation.Resource;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

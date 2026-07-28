@@ -1,6 +1,6 @@
 package com.aioveu.ums.api;
 
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pms.model.vo.ProductHistoryVO;
 import com.aioveu.ums.dto.MemberAddressDTO;
 import com.aioveu.ums.dto.MemberAuthDTO;

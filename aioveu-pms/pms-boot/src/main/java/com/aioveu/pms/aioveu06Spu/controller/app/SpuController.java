@@ -1,14 +1,13 @@
 package com.aioveu.pms.aioveu06Spu.controller.app;
 
-import com.aioveu.common.annotation.PublicApi;
+import com.aioveu.common.core.annotation.PublicApi;
 import com.aioveu.pms.aioveu05Sku.service.PmsSkuService;
 import com.aioveu.pms.aioveu06Spu.mapper.PmsSpuMapper;
 import com.aioveu.pms.aioveu06Spu.model.entity.PmsSpu;
-import com.aioveu.pms.aioveu06Spu.model.form.PmsSpuForm;
 import com.aioveu.pms.aioveu06Spu.model.vo.*;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pms.aioveu06Spu.model.query.PmsSpuQuery;
 import com.aioveu.pms.aioveu06Spu.service.PmsSpuService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,12 +16,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j

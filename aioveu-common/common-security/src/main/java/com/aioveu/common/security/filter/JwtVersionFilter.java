@@ -1,7 +1,7 @@
 package com.aioveu.common.security.filter;
 
 
-import com.aioveu.common.constant.JwtClaimConstants;
+import com.aioveu.common.core.constant.JwtClaimConstants;
 import com.aioveu.common.security.config.property.SecurityProperties;
 import com.aioveu.common.security.model.SecurityFilterOrders;
 import com.aioveu.common.security.util.ClaimUtils;
@@ -20,7 +20,6 @@ import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
-import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;

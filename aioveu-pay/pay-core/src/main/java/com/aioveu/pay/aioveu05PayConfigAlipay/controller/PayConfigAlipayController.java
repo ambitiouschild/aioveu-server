@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu05PayConfigAlipay.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pay.aioveu05PayConfigAlipay.model.form.PayConfigAlipayForm;
 import com.aioveu.pay.aioveu05PayConfigAlipay.model.query.PayConfigAlipayQuery;
 import com.aioveu.pay.aioveu05PayConfigAlipay.model.vo.PayConfigAlipayVo;

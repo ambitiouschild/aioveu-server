@@ -1,11 +1,9 @@
 package com.aioveu.oms.aioveu03OrderDelivery.model.entity;
 
-import com.aioveu.common.base.BaseEntityWithTenantId;
-import com.aioveu.common.enums.oms.DeliveryCompanyCodeEnum;
-import com.aioveu.common.enums.oms.LogisticsTypeEnum;
-import com.aioveu.common.enums.oms.OrderDeliveryStatusEnum;
+import com.aioveu.common.core.base.BaseEntityWithTenantId;
+import com.aioveu.common.core.enums.oms.DeliveryCompanyCodeEnum;
+import com.aioveu.common.core.enums.oms.OrderDeliveryStatusEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;

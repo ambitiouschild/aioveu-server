@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu05PayReconciliationDetail.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pay.aioveu05PayReconciliationDetail.model.form.PayReconciliationDetailForm;
 import com.aioveu.pay.aioveu05PayReconciliationDetail.model.query.PayReconciliationDetailQuery;
 import com.aioveu.pay.aioveu05PayReconciliationDetail.model.vo.PayReconciliationDetailVO;

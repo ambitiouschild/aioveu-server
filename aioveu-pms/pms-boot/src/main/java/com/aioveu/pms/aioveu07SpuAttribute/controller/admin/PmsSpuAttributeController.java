@@ -1,13 +1,13 @@
 package com.aioveu.pms.aioveu07SpuAttribute.controller.admin;
 
-import com.aioveu.common.result.PageResult;
+import com.aioveu.common.core.result.PageResult;
 import com.aioveu.pms.aioveu03CategoryAttribute.service.PmsCategoryAttributeService;
 import com.aioveu.pms.aioveu07SpuAttribute.model.form.PmsSpuAttributeForm;
 import com.aioveu.pms.aioveu07SpuAttribute.model.query.PmsSpuAttributeQuery;
 import com.aioveu.pms.aioveu07SpuAttribute.model.vo.PmsSpuAttributeVO;
 import com.aioveu.pms.aioveu07SpuAttribute.service.PmsSpuAttributeService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pms.aioveu03CategoryAttribute.model.entity.PmsCategoryAttribute;
 import com.aioveu.pms.aioveu03CategoryAttribute.model.form.PmsCategoryAttributeForm;
 import com.baomidou.mybatisplus.core.metadata.IPage;

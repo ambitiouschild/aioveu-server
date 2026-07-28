@@ -1,6 +1,6 @@
 package com.aioveu.system.aioveu04Menu.service;
 
-import com.aioveu.common.model.Option;
+import com.aioveu.common.core.model.Option;
 import com.aioveu.system.aioveu04Menu.model.entity.Menu;
 import com.aioveu.system.aioveu04Menu.model.form.MenuForm;
 import com.aioveu.system.aioveu04Menu.model.query.MenuQuery;

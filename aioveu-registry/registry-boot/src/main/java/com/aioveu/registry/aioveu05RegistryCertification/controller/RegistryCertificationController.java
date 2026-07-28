@@ -1,7 +1,7 @@
 package com.aioveu.registry.aioveu05RegistryCertification.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.registry.aioveu05RegistryCertification.model.form.RegistryCertificationForm;
 import com.aioveu.registry.aioveu05RegistryCertification.model.query.RegistryCertificationQuery;
 import com.aioveu.registry.aioveu05RegistryCertification.model.vo.RegistryCertificationVo;

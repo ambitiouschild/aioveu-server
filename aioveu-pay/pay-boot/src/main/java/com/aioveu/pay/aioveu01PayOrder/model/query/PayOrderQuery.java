@@ -1,12 +1,12 @@
 package com.aioveu.pay.aioveu01PayOrder.model.query;
 
-import com.aioveu.common.base.BasePageQuery;
+import com.aioveu.common.core.base.BasePageQuery;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
-import java.time.LocalDateTime;
+
 import java.util.List;
-import java.math.BigDecimal;
+
 /**
  * @ClassName: PayOrderQuery
  * @Description TODO 支付订单分页查询对象

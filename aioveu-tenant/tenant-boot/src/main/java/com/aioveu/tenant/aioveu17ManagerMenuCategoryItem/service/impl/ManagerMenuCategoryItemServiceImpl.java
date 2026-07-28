@@ -2,8 +2,7 @@ package com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.tenant.TenantContextHolder;
-import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.entity.ManagerMenuCategory;
+import com.aioveu.common.core.tenant.TenantContextHolder;
 import com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.converter.ManagerMenuCategoryItemConverter;
 import com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.mapper.ManagerMenuCategoryItemMapper;
 import com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.model.entity.ManagerMenuCategoryItem;

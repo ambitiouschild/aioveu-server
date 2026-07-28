@@ -1,9 +1,9 @@
 package com.aioveu.pay.aioveu01.controller;
 
+import com.aioveu.common.core.enums.pay.PaymentChannelEnum;
 import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategy;
 import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategyFactory;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
-import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;
 import com.aioveu.pay.model.aioveuPayment.RefundRequestDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,7 @@ public class PaymentController2 {
     private PaymentStrategyFactory strategyFactory;
 
     @PostMapping("/pay/{channel}")
-    public PaymentParamsVO pay(@PathVariable com.aioveu.common.enums.pay.PaymentChannelEnum channel,
+    public PaymentParamsVO pay(@PathVariable PaymentChannelEnum channel,
                                @RequestBody PaymentRequestPayToTPPDTO request) {
         String paymentNo = generatePaymentNo();
 
@@ -43,7 +43,7 @@ public class PaymentController2 {
 //    }
 
     @PostMapping("/refund/{channel}")
-    public com.aioveu.pay.model.aioveuPayment.RefundResultVO refund(@PathVariable com.aioveu.common.enums.pay.PaymentChannelEnum channel,
+    public com.aioveu.pay.model.aioveuPayment.RefundResultVO refund(@PathVariable PaymentChannelEnum channel,
                                                                     @RequestBody RefundRequestDTO request) {
         String refundNo = generateRefundNo();
         PaymentStrategy strategy = strategyFactory.getStrategy(channel);

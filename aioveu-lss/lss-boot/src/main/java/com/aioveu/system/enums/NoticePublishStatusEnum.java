@@ -1,6 +1,6 @@
 package com.aioveu.system.enums;
 
-import com.aioveu.common.base.IBaseEnum;
+import com.aioveu.common.core.base.IBaseEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 

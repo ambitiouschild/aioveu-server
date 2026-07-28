@@ -1,9 +1,9 @@
 package com.aioveu.system.aioveu11Codegen.controller;
 
-import com.aioveu.common.annotation.Log;
-import com.aioveu.common.enums.LogModuleEnum;
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.annotation.Log;
+import com.aioveu.common.core.enums.LogModuleEnum;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.system.aioveu11Codegen.config.property.CodegenProperties;
 import com.aioveu.system.aioveu11Codegen.model.form.GenConfigForm;
 import com.aioveu.system.aioveu11Codegen.model.query.TablePageQuery;

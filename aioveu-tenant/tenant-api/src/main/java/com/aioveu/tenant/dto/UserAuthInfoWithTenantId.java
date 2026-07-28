@@ -1,5 +1,6 @@
 package com.aioveu.tenant.dto;
 
+import com.aioveu.common.core.model.RoleDataScope;
 import lombok.Data;
 
 import java.util.List;
@@ -22,6 +23,11 @@ public class UserAuthInfoWithTenantId {
     private Long userId;
 
     /**
+     * 租户ID
+     */
+    private Long tenantId;
+
+    /**
      * 用户名
      */
     private String username;
@@ -32,14 +38,14 @@ public class UserAuthInfoWithTenantId {
     private String nickname;
 
     /**
-     * 部门ID
-     */
-    private Long deptId;
-
-    /**
      * 密码（加密后）
      */
     private String password;
+
+    /**
+     * 部门ID
+     */
+    private Long deptId;
 
     /**
      * 状态（1:启用 其它:禁用）
@@ -52,20 +58,21 @@ public class UserAuthInfoWithTenantId {
     private Set<String> roles;
 
     /**
-     * 状态（1:启用 其它:禁用）
+     * 状态（1:启用 其它:禁用）   // ✅ 数据权限（范围）
      */
     private Integer dataScope;
 
 
     /**
-     * 数据权限列表
+     * 数据权限列表  // ✅ 数据权限明细
      */
     private List<RoleDataScope> dataScopes;
 
+
     /**
-     * 租户ID
+     * 接口权限标识集合（按钮权限）
      */
-    private Long tenantId;
+    private Set<String> permissions;
 
     /**
      * 租户切换权限（true 可切换租户）

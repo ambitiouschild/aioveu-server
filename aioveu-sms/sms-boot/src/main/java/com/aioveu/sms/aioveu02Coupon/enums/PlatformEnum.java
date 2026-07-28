@@ -2,7 +2,7 @@ package com.aioveu.sms.aioveu02Coupon.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.aioveu.common.base.IBaseEnum;
+import com.aioveu.common.core.base.IBaseEnum;
 import lombok.Getter;
 
 @Getter

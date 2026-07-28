@@ -1,7 +1,7 @@
 package com.aioveu.registry.aioveu02RegistryAppAccount.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.registry.aioveu02RegistryAppAccount.model.form.RegistryAppAccountForm;
 import com.aioveu.registry.aioveu02RegistryAppAccount.model.query.RegistryAppAccountQuery;
 import com.aioveu.registry.aioveu02RegistryAppAccount.model.vo.RegistryAppAccountVo;

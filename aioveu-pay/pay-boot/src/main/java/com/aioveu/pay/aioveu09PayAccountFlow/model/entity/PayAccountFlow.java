@@ -1,7 +1,6 @@
 package com.aioveu.pay.aioveu09PayAccountFlow.model.entity;
 
-import com.aioveu.common.base.BaseEntity;
-import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.common.core.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;

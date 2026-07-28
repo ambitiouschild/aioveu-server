@@ -1,7 +1,7 @@
 package com.aioveu.refund.aioveu05RefundProof.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.refund.aioveu05RefundProof.model.form.RefundProofForm;
 import com.aioveu.refund.aioveu05RefundProof.model.query.RefundProofQuery;
 import com.aioveu.refund.aioveu05RefundProof.model.vo.RefundProofVO;

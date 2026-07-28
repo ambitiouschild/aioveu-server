@@ -1,7 +1,7 @@
 package com.aioveu.common.rabbitmq.producer.model.payment;
 
 
-import com.aioveu.common.enums.pay.PaymentSceneEnum;
+import com.aioveu.common.core.enums.pay.PaymentSceneEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

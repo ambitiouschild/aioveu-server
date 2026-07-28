@@ -1,6 +1,6 @@
 package com.aioveu.auth.aioveu02Oauth2Authorization.model.entity;
 
-import com.aioveu.common.base.BaseEntity;
+import com.aioveu.common.core.base.BaseEntity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;

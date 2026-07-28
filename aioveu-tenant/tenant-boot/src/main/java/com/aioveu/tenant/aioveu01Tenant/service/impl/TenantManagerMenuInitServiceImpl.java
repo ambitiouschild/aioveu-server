@@ -1,10 +1,8 @@
 package com.aioveu.tenant.aioveu01Tenant.service.impl;
 
 
-import com.aioveu.common.tenant.TenantContextHolder;
+import com.aioveu.common.core.tenant.TenantContextHolder;
 import com.aioveu.tenant.aioveu01Tenant.service.TenantManagerMenuInitService;
-import com.aioveu.tenant.aioveu01Tenant.service.TenantMenuService;
-import com.aioveu.tenant.aioveu01Tenant.service.TenantPlanMenuService;
 import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.entity.ManagerMenuCategory;
 import com.aioveu.tenant.aioveu16ManagerMenuCategory.service.ManagerMenuCategoryService;
 import com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.model.entity.ManagerMenuCategoryItem;

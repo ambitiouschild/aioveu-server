@@ -3,15 +3,11 @@ package com.aioveu.auth.oauth2.extension.password;
 import com.aioveu.auth.model.SysUserDetails;
 import com.aioveu.auth.service.SysUserDetailsService;
 import com.aioveu.auth.util.OAuth2AuthenticationProviderUtils;
-import com.aioveu.common.constant.JwtClaimConstants;
-import com.aioveu.common.constant.RedisConstants;
-import com.aioveu.common.tenant.TenantContextHolder;
-import com.aioveu.tenant.api.TenantFeignClient;
-import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
+import com.aioveu.common.core.constant.JwtClaimConstants;
+import com.aioveu.common.core.constant.RedisConstants;
+import com.aioveu.common.core.tenant.TenantContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -36,7 +32,6 @@ import org.springframework.security.oauth2.server.authorization.context.Authoriz
 import org.springframework.security.oauth2.server.authorization.token.DefaultOAuth2TokenContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
-import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.security.Principal;

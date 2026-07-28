@@ -1,7 +1,7 @@
 package com.aioveu.oms.aioveu07UndoLog.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.oms.aioveu07UndoLog.model.form.UndoLogForm;
 import com.aioveu.oms.aioveu07UndoLog.model.query.UndoLogQuery;
 import com.aioveu.oms.aioveu07UndoLog.model.vo.UndoLogVO;

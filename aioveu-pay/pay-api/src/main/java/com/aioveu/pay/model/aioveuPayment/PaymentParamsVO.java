@@ -1,14 +1,13 @@
 package com.aioveu.pay.model.aioveuPayment;
 
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
-import com.aioveu.common.enums.pay.PaymentMethodEnum;
+import com.aioveu.common.core.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.core.enums.pay.PaymentMethodEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 

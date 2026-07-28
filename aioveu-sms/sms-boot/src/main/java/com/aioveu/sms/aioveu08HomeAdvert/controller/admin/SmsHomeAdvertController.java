@@ -1,7 +1,7 @@
 package com.aioveu.sms.aioveu08HomeAdvert.controller.admin;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.sms.aioveu08HomeAdvert.model.form.SmsHomeAdvertForm;
 import com.aioveu.sms.aioveu08HomeAdvert.model.query.SmsHomeAdvertQuery;
 import com.aioveu.sms.aioveu08HomeAdvert.model.vo.SmsHomeAdvertVO;

@@ -1,6 +1,6 @@
 package com.aioveu.tenant.aioveu04Menu.model.entity;
 
-import com.aioveu.common.base.BaseEntity;
+import com.aioveu.common.core.base.BaseEntity;
 import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;

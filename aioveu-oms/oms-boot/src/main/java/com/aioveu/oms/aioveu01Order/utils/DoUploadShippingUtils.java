@@ -1,7 +1,7 @@
 package com.aioveu.oms.aioveu01Order.utils;
 
 
-import com.aioveu.common.enums.oms.LogisticsTypeEnum;
+import com.aioveu.common.core.enums.oms.LogisticsTypeEnum;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
 import com.alibaba.nacos.common.utils.StringUtils;

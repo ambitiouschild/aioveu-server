@@ -1,6 +1,6 @@
 package com.aioveu.tenant.aioveu04Menu.model.form;
 
-import com.aioveu.common.model.KeyValue;
+import com.aioveu.common.core.model.KeyValue;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;

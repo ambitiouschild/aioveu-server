@@ -1,13 +1,11 @@
 package com.aioveu.pms.aioveu01Brand.controller.admin;
 
-import cn.hutool.core.util.StrUtil;
 import com.aioveu.pms.aioveu01Brand.model.form.PmsBrandForm;
 import com.aioveu.pms.aioveu01Brand.model.vo.PmsBrandVO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pms.aioveu01Brand.model.entity.PmsBrand;
 import com.aioveu.pms.aioveu01Brand.model.query.PmsBrandQuery;
 import com.aioveu.pms.aioveu01Brand.service.PmsBrandService;
@@ -20,7 +18,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**

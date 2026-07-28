@@ -1,8 +1,7 @@
 package com.aioveu.tenant.aioveu15TenantWxApp.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
-import com.aioveu.tenant.aioveu15TenantWxApp.model.entity.TenantWxApp;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.tenant.aioveu15TenantWxApp.model.form.TenantWxAppForm;
 import com.aioveu.tenant.aioveu15TenantWxApp.model.query.TenantWxAppQuery;
 import com.aioveu.tenant.aioveu15TenantWxApp.model.vo.TenantWxAppVo;

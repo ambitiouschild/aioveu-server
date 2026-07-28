@@ -1,7 +1,6 @@
 package com.aioveu.tenant.aioveu02User.converter;
 
-import com.aioveu.common.model.Option;
-import com.aioveu.common.security.model.UserAuthInfoWithTenantId;
+import com.aioveu.common.core.model.Option;
 import com.aioveu.tenant.aioveu02User.model.bo.UserBO;
 import com.aioveu.tenant.aioveu02User.model.dto.CurrentUserDTO;
 import com.aioveu.tenant.aioveu02User.model.dto.UserImportDTO;

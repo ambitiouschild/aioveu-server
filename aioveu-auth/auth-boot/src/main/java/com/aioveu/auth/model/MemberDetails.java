@@ -1,6 +1,6 @@
 package com.aioveu.auth.model;
 
-import com.aioveu.common.constant.GlobalConstants;
+import com.aioveu.common.core.constant.GlobalConstants;
 import com.aioveu.ums.dto.MemberAuthDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;

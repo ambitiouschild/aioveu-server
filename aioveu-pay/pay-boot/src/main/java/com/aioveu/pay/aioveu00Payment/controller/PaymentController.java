@@ -1,11 +1,10 @@
 package com.aioveu.pay.aioveu00Payment.controller;
 
-import com.aioveu.common.annotation.Log;
-import com.aioveu.common.enums.LogModuleEnum;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.annotation.Log;
+import com.aioveu.common.core.enums.LogModuleEnum;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pay.aioveu00Payment.service.PaymentService;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
-import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestFEToOmsDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestOmsToPayDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
 import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;

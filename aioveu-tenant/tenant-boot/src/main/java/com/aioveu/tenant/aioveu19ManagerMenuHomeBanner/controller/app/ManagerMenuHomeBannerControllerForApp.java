@@ -1,12 +1,9 @@
 package com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.controller.app;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.model.form.ManagerMenuHomeBannerForm;
-import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.model.query.ManagerMenuHomeBannerQuery;
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.model.vo.ManagerMenuHomeBannerVo;
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.service.ManagerMenuHomeBannerService;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,7 +14,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: ManagerMenuHomeBannerController

@@ -2,9 +2,9 @@ package com.aioveu.common.security.service.Impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.constant.RedisConstants;
+import com.aioveu.common.core.constant.RedisConstants;
 import com.aioveu.common.security.util.SecurityUtils;
-import com.aioveu.common.tenant.TenantContextHolder;
+import com.aioveu.common.core.tenant.TenantContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;

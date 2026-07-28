@@ -1,8 +1,8 @@
 package com.aioveu.pay.aioveu11MqCompensationTask.controller;
 
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pay.aioveu11MqCompensationTask.model.form.MqCompensationTaskForm;
 import com.aioveu.pay.aioveu11MqCompensationTask.model.query.MqCompensationTaskQuery;
 import com.aioveu.pay.aioveu11MqCompensationTask.model.vo.MqCompensationTaskVo;

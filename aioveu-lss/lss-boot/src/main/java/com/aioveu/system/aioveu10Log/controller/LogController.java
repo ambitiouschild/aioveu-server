@@ -1,7 +1,7 @@
 package com.aioveu.system.aioveu10Log.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.system.aioveu10Log.model.query.LogPageQuery;
 import com.aioveu.system.aioveu10Log.model.vo.LogPageVO;
 import com.aioveu.system.aioveu10Log.model.vo.VisitStatsVO;

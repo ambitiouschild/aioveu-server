@@ -1,7 +1,7 @@
 package com.aioveu.common.security.interceptor;
 
 
-import com.aioveu.common.tenant.TenantContextHolder;
+import com.aioveu.common.core.tenant.TenantContextHolder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;

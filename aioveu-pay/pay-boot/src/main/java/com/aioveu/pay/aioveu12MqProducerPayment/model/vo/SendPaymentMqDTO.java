@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.model.vo;
 
 
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.core.enums.pay.PaymentChannelEnum;
 import com.aioveu.pay.aioveu12MqProducerPayment.enums.PaymentMqBizType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;

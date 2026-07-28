@@ -1,7 +1,7 @@
 package com.aioveu.oms.aioveu05OrderPay.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.oms.aioveu05OrderPay.model.form.OmsOrderPayForm;
 import com.aioveu.oms.aioveu05OrderPay.model.query.OmsOrderPayQuery;
 import com.aioveu.oms.aioveu05OrderPay.model.vo.OmsOrderPayVO;

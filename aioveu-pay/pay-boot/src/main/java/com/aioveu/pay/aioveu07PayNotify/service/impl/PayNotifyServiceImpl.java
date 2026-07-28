@@ -2,7 +2,7 @@ package com.aioveu.pay.aioveu07PayNotify.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu07PayNotify.converter.PayNotifyConverter;
 import com.aioveu.pay.aioveu07PayNotify.mapper.PayNotifyMapper;

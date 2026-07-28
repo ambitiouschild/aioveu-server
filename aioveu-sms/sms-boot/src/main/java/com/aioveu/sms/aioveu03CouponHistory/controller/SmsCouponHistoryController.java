@@ -1,7 +1,7 @@
 package com.aioveu.sms.aioveu03CouponHistory.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.sms.aioveu03CouponHistory.model.form.SmsCouponHistoryForm;
 import com.aioveu.sms.aioveu03CouponHistory.model.query.SmsCouponHistoryQuery;
 import com.aioveu.sms.aioveu03CouponHistory.model.vo.SmsCouponHistoryVO;

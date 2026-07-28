@@ -1,6 +1,6 @@
 package com.aioveu.tenant.aioveu10Log.controller;
 
-import com.aioveu.common.result.PageResult;
+import com.aioveu.common.core.result.PageResult;
 import com.aioveu.tenant.aioveu10Log.model.form.LogQuery;
 import com.aioveu.tenant.aioveu10Log.model.vo.LogPageVO;
 import com.aioveu.tenant.aioveu10Log.service.LogService;

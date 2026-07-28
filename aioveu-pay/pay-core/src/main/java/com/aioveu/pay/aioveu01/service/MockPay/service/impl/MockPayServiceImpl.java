@@ -1,9 +1,9 @@
 package com.aioveu.pay.aioveu01.service.MockPay.service.impl;
 
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
-import com.aioveu.common.enums.pay.PaymentMethodEnum;
-import com.aioveu.common.enums.pay.PaymentStatusEnum;
-import com.aioveu.common.enums.pay.RefundStatusEnum;
+import com.aioveu.common.core.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.core.enums.pay.PaymentMethodEnum;
+import com.aioveu.common.core.enums.pay.PaymentStatusEnum;
+import com.aioveu.common.core.enums.pay.RefundStatusEnum;
 import com.aioveu.pay.aioveu01.service.MockPay.MockRequestFactory.MockRequestFactory;
 import com.aioveu.pay.aioveu01.service.MockPay.config.MockPayConfig;
 import com.aioveu.pay.aioveu01.service.MockPay.service.MockPayService;

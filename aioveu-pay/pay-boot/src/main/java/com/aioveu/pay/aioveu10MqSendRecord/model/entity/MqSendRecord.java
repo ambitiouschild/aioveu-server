@@ -1,9 +1,8 @@
 package com.aioveu.pay.aioveu10MqSendRecord.model.entity;
 
 
-import com.aioveu.common.base.BaseEntityWithTenantId;
-import com.aioveu.common.enums.pay.PaymentSceneEnum;
-import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
+import com.aioveu.common.core.base.BaseEntityWithTenantId;
+import com.aioveu.common.core.enums.pay.PaymentSceneEnum;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;

@@ -1,6 +1,6 @@
 package com.aioveu.tenant.aioveu10Log.controller;
 
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.tenant.aioveu10Log.model.vo.VisitStatsVO;
 import com.aioveu.tenant.aioveu10Log.model.vo.VisitTrendVO;
 import com.aioveu.tenant.aioveu10Log.service.LogService;

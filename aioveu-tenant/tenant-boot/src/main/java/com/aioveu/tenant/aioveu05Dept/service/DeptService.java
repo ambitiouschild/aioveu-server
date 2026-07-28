@@ -1,6 +1,6 @@
 package com.aioveu.tenant.aioveu05Dept.service;
 
-import com.aioveu.common.model.Option;
+import com.aioveu.common.core.model.Option;
 import com.aioveu.tenant.aioveu05Dept.model.entity.Dept;
 import com.aioveu.tenant.aioveu05Dept.model.form.DeptForm;
 import com.aioveu.tenant.aioveu05Dept.model.query.DeptQuery;

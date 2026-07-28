@@ -1,6 +1,6 @@
 package com.aioveu.tenant.aioveu03Role.converter;
 
-import com.aioveu.common.model.Option;
+import com.aioveu.common.core.model.Option;
 import com.aioveu.tenant.aioveu03Role.model.entity.Role;
 import com.aioveu.tenant.aioveu03Role.model.form.RoleForm;
 import com.aioveu.tenant.aioveu03Role.model.vo.RolePageVO;

@@ -1,7 +1,7 @@
 package com.aioveu.tenant.aioveu14OauthClientWxApp.controller.admin;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.model.form.OauthClientWxAppForm;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.model.query.OauthClientWxAppQuery;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.model.vo.OauthClientWxAppVo;

@@ -2,7 +2,7 @@ package com.aioveu.auth.oauth2.extension.password;
 
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.auth.util.OAuth2EndpointUtils;
-import com.aioveu.common.tenant.TenantContextHolder;
+import com.aioveu.common.core.tenant.TenantContextHolder;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -11,7 +11,6 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.web.authentication.AuthenticationConverter;
-import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 

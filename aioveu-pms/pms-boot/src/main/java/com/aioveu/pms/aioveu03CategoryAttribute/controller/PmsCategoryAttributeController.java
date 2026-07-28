@@ -1,7 +1,7 @@
 package com.aioveu.pms.aioveu03CategoryAttribute.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pms.aioveu03CategoryAttribute.model.entity.PmsCategoryAttribute;
 import com.aioveu.pms.aioveu03CategoryAttribute.model.form.PmsCategoryAttributeForm;
 import com.aioveu.pms.aioveu03CategoryAttribute.model.query.PmsCategoryAttributeQuery;

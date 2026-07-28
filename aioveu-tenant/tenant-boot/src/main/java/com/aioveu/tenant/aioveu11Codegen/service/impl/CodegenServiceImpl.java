@@ -9,7 +9,7 @@ import cn.hutool.extra.template.Template;
 import cn.hutool.extra.template.TemplateConfig;
 import cn.hutool.extra.template.TemplateEngine;
 import cn.hutool.extra.template.TemplateUtil;
-import com.aioveu.common.exception.BusinessException;
+import com.aioveu.common.core.exception.BusinessException;
 import com.aioveu.tenant.aioveu11Codegen.config.property.CodegenProperties;
 import com.aioveu.tenant.aioveu11Codegen.enums.JavaTypeEnum;
 import com.aioveu.tenant.aioveu11Codegen.mapper.DatabaseMapper;

@@ -1,13 +1,13 @@
 package com.aioveu.pay.aioveu01.service.WechatPay.service.impl;
 
 import cn.hutool.core.date.DateUtil;
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
-import com.aioveu.common.enums.pay.PaymentMethodEnum;
-import com.aioveu.common.enums.pay.PaymentStatusEnum;
+import com.aioveu.common.core.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.core.enums.pay.PaymentMethodEnum;
+import com.aioveu.common.core.enums.pay.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01.service.WechatPay.config.WeChatPayConfig;
 import com.aioveu.pay.aioveu01.service.WechatPay.requestFactory.WeChatPayRequestFactory;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;
-import com.aioveu.common.enums.pay.RefundStatusEnum;
+import com.aioveu.common.core.enums.pay.RefundStatusEnum;
 import com.aioveu.pay.aioveu01.service.WechatPay.utils.weChatPay.aioveuWeChatPayGeneratePayParamsUtil;
 
 //在同一个类中，当不同支付方式的实体类名相同但包路径不同时，确实会产生冲突。

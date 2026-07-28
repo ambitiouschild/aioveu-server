@@ -1,9 +1,8 @@
 package com.aioveu.pms.aioveu07SpuAttribute.model.entity;
 
-import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.common.core.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.aioveu.common.base.BaseEntity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 

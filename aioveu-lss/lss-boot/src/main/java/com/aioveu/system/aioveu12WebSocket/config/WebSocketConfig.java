@@ -1,7 +1,6 @@
 package com.aioveu.system.aioveu12WebSocket.config;
 
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.security.model.SysUserDetails;
 import com.aioveu.common.security.service.Impl.TokenService;
 import com.aioveu.system.aioveu12WebSocket.service.WebSocketService;
 import lombok.extern.slf4j.Slf4j;

@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu03PayChannelConfig.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pay.aioveu03PayChannelConfig.model.form.PayChannelConfigForm;
 import com.aioveu.pay.aioveu03PayChannelConfig.model.query.PayChannelConfigQuery;
 import com.aioveu.pay.aioveu03PayChannelConfig.model.vo.PayChannelConfigVO;

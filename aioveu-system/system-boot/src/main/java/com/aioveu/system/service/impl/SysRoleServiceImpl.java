@@ -4,7 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.constant.SystemConstants;
+import com.aioveu.common.core.constant.SystemConstants;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.common.web.model.Option;
 import com.aioveu.system.converter.RoleConverter;

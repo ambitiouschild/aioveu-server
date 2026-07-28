@@ -1,8 +1,8 @@
 package com.aioveu.pms.aioveu06Spu.controller.admin;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pms.aioveu06Spu.model.form.PmsSpuForm;
 import com.aioveu.pms.aioveu06Spu.model.query.PmsSpuQuery;
 import com.aioveu.pms.aioveu06Spu.model.vo.PmsSpuDetailVO;
@@ -11,7 +11,6 @@ import com.aioveu.pms.aioveu06Spu.service.PmsSpuService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;

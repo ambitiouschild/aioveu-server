@@ -1,6 +1,6 @@
 package com.aioveu.tenant.aioveu03Role.mapper;
 
-import com.aioveu.common.security.model.RoleDataScope;
+import com.aioveu.common.core.model.RoleDataScope;
 import com.aioveu.tenant.aioveu03Role.model.entity.Role;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;

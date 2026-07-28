@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu07PayNotify.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pay.aioveu07PayNotify.model.form.PayNotifyForm;
 import com.aioveu.pay.aioveu07PayNotify.model.query.PayNotifyQuery;
 import com.aioveu.pay.aioveu07PayNotify.model.vo.PayNotifyVO;

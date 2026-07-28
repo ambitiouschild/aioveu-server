@@ -1,6 +1,6 @@
 package com.aioveu.system.aioveu10Log.service;
 
-import com.aioveu.common.annotation.Log;
+import com.aioveu.common.core.annotation.Log;
 import com.aioveu.system.aioveu10Log.model.query.LogPageQuery;
 import com.aioveu.system.aioveu10Log.model.vo.LogPageVO;
 import com.aioveu.system.aioveu10Log.model.vo.VisitStatsVO;

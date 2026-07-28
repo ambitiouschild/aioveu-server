@@ -1,8 +1,8 @@
 package com.aioveu.oms.aioveu08MqConsumeRecord.controller;
 
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.oms.aioveu08MqConsumeRecord.model.form.MqConsumeRecordForm;
 import com.aioveu.oms.aioveu08MqConsumeRecord.model.query.MqConsumeRecordQuery;
 import com.aioveu.oms.aioveu08MqConsumeRecord.model.vo.MqConsumeRecordVo;

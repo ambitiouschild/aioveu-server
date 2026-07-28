@@ -1,7 +1,7 @@
 package com.aioveu.tenant.aioveu09Notice.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.tenant.aioveu02User.model.vo.UserNoticePageVO;
 import com.aioveu.tenant.aioveu02User.service.UserNoticeService;
 import com.aioveu.tenant.aioveu09Notice.model.form.NoticeForm;

@@ -2,18 +2,17 @@ package com.aioveu.oms.aioveu01Order.utils;
 
 
 import cn.hutool.core.collection.CollUtil;
-import com.aioveu.common.enums.oms.OrderStatusEnum;
+import com.aioveu.common.core.enums.oms.OrderStatusEnum;
 import com.aioveu.oms.aioveu01Order.mapper.OmsOrderMapper;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
-import com.aioveu.common.enums.oms.OrderDeliveryStatusEnum;
+import com.aioveu.common.core.enums.oms.OrderDeliveryStatusEnum;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;

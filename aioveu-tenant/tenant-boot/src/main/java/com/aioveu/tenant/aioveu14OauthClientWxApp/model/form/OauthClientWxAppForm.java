@@ -1,6 +1,6 @@
 package com.aioveu.tenant.aioveu14OauthClientWxApp.model.form;
 
-import com.aioveu.common.enums.StatusEnum;
+import com.aioveu.common.core.enums.StatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

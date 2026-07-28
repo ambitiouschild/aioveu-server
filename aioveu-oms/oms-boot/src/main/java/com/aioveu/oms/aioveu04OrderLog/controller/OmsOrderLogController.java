@@ -1,7 +1,7 @@
 package com.aioveu.oms.aioveu04OrderLog.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.oms.aioveu04OrderLog.model.form.OmsOrderLogForm;
 import com.aioveu.oms.aioveu04OrderLog.model.query.OmsOrderLogQuery;
 import com.aioveu.oms.aioveu04OrderLog.model.vo.OmsOrderLogVO;

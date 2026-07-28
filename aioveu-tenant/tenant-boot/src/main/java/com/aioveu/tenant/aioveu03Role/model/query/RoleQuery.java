@@ -1,6 +1,6 @@
 package com.aioveu.tenant.aioveu03Role.model.query;
 
-import com.aioveu.common.base.BasePageQuery;
+import com.aioveu.common.core.base.BasePageQuery;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

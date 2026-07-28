@@ -1,9 +1,9 @@
 package com.aioveu.oms.aioveu01Order.controller.app;
 
-import com.aioveu.common.annotation.Log;
-import com.aioveu.common.enums.LogModuleEnum;
-import com.aioveu.common.exception.BusinessException;
-import com.aioveu.common.result.ResultCode;
+import com.aioveu.common.core.annotation.Log;
+import com.aioveu.common.core.enums.LogModuleEnum;
+import com.aioveu.common.core.exception.BusinessException;
+import com.aioveu.common.core.result.ResultCode;
 import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderStatisticsVO;
 import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
@@ -12,8 +12,8 @@ import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestFEToOmsDTO;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.order.model.aioveu01Order.form.OrderSubmitForm;
 import com.aioveu.oms.aioveu01Order.model.query.OrderPageQuery;
 import com.aioveu.oms.aioveu01Order.model.vo.OrderConfirmVO;

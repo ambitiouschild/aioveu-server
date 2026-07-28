@@ -1,7 +1,6 @@
 package com.aioveu.pay.aioveu06PayFlow.model.entity;
 
-import com.aioveu.common.base.BaseEntity;
-import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.common.core.base.BaseEntityWithTenantId;
 import com.aioveu.pay.aioveu06PayFlow.enums.FlowDirectionEnum;
 import com.aioveu.pay.aioveu06PayFlow.enums.FlowStatusEnum;
 import com.aioveu.pay.aioveu06PayFlow.enums.FlowTypeEnum;

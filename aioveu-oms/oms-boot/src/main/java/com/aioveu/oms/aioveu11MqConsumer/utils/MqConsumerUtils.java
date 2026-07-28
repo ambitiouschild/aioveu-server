@@ -1,11 +1,9 @@
 package com.aioveu.oms.aioveu11MqConsumer.utils;
 
 
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.core.enums.pay.PaymentChannelEnum;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
-import com.aioveu.oms.aioveu08MqConsumeRecord.enums.ConsumeStatusEnum;
 import com.aioveu.oms.aioveu08MqConsumeRecord.mapper.MqConsumeRecordMapper;
-import com.aioveu.oms.aioveu08MqConsumeRecord.model.entity.MqConsumeRecord;
 import com.aioveu.oms.aioveu08MqConsumeRecord.service.MqConsumeRecordService;
 import com.aioveu.oms.aioveu11MqConsumer.model.vo.OrderPaySuccessDTO;
 import com.aioveu.common.rabbitmq.producer.model.payment.PaymentSuccessMessage;

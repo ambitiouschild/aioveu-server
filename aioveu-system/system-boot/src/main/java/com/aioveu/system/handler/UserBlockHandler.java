@@ -1,6 +1,6 @@
 package com.aioveu.system.handler;
 
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.system.model.vo.UserInfoVO;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import lombok.extern.slf4j.Slf4j;

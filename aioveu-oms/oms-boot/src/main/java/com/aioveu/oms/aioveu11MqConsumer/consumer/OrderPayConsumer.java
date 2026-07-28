@@ -1,7 +1,7 @@
 package com.aioveu.oms.aioveu11MqConsumer.consumer;
 
 
-import com.aioveu.common.exception.BusinessException;
+import com.aioveu.common.core.exception.BusinessException;
 import com.aioveu.common.rabbitmq.constant.PayCommonMqConstantWithBizName;
 import com.aioveu.common.rabbitmq.producer.model.payment.PaymentMessage;
 import com.aioveu.oms.aioveu01Order.service.app.OrderService;
@@ -10,12 +10,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;

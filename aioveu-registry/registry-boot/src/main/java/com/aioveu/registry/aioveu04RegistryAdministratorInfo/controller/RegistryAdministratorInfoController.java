@@ -1,7 +1,7 @@
 package com.aioveu.registry.aioveu04RegistryAdministratorInfo.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.registry.aioveu04RegistryAdministratorInfo.model.form.RegistryAdministratorInfoForm;
 import com.aioveu.registry.aioveu04RegistryAdministratorInfo.model.query.RegistryAdministratorInfoQuery;
 import com.aioveu.registry.aioveu04RegistryAdministratorInfo.model.vo.RegistryAdministratorInfoVo;

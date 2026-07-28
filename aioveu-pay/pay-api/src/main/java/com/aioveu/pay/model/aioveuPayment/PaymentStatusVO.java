@@ -1,13 +1,11 @@
 package com.aioveu.pay.model.aioveuPayment;
 
-import com.aioveu.common.enums.pay.PaymentStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 /**
  * @ClassName: PaymentStatusVO

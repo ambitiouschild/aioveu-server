@@ -1,9 +1,9 @@
 package com.aioveu.oms.aioveu01Order.model.vo;
 
-import com.aioveu.common.base.BaseEntity;
-import com.aioveu.common.enums.oms.OrderSourceEnum;
-import com.aioveu.common.enums.oms.OrderStatusEnum;
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.core.base.BaseEntity;
+import com.aioveu.common.core.enums.oms.OrderSourceEnum;
+import com.aioveu.common.core.enums.oms.OrderStatusEnum;
+import com.aioveu.common.core.enums.pay.PaymentChannelEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;

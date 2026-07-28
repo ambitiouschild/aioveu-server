@@ -1,6 +1,6 @@
 package com.aioveu.system.aioveu03Role.service;
 
-import com.aioveu.common.model.Option;
+import com.aioveu.common.core.model.Option;
 import com.aioveu.system.aioveu03Role.model.entity.Role;
 import com.aioveu.system.aioveu03Role.model.form.RoleForm;
 import com.aioveu.system.aioveu03Role.model.query.RolePageQuery;

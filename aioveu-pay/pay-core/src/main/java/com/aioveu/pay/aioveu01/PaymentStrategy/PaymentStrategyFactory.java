@@ -1,6 +1,6 @@
 package com.aioveu.pay.aioveu01.PaymentStrategy;
 
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.core.enums.pay.PaymentChannelEnum;
 import com.aioveu.pay.aioveu01.PaymentStrategy.impl.AlipayStrategyAdapter;
 import com.aioveu.pay.aioveu01.PaymentStrategy.impl.MockStrategyAdapter;
 import com.aioveu.pay.aioveu01.PaymentStrategy.impl.WeChatPayStrategyAdapter;

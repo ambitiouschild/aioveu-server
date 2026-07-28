@@ -1,11 +1,10 @@
 package com.aioveu.pms.aioveu02Category.model.entity;
 
-import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.common.core.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.aioveu.common.base.BaseEntity;
 import lombok.Data;
 
 /*

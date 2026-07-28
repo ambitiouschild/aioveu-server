@@ -1,8 +1,7 @@
 package com.aioveu.oms.aioveu01Order.model.query;
 
-import com.aioveu.common.base.BasePageQuery;
-import com.aioveu.common.enums.oms.OrderStatusEnum;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.aioveu.common.core.base.BasePageQuery;
+import com.aioveu.common.core.enums.oms.OrderStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -11,8 +10,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Date;
 
 /**
  * @Description: TODO 订单分页查询对象

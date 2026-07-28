@@ -1,6 +1,6 @@
 package com.aioveu.system.aioveu02User.converter;
 
-import com.aioveu.common.model.Option;
+import com.aioveu.common.core.model.Option;
 import com.aioveu.system.aioveu02User.model.entity.User;
 import com.aioveu.system.aioveu02User.model.form.UserForm;
 import com.aioveu.system.aioveu02User.model.form.UserProfileForm;

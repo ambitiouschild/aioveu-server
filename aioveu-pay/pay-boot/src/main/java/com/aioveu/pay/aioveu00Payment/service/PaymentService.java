@@ -1,9 +1,8 @@
 package com.aioveu.pay.aioveu00Payment.service;
 
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
-import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestFEToOmsDTO;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestOmsToPayDTO;
 import com.aioveu.pay.model.aioveuPayment.PaymentCallbackDTO;
 import com.aioveu.pay.model.aioveuPayment.PaymentStatusVO;

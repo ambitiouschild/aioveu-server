@@ -1,8 +1,8 @@
 package com.aioveu.common.rabbitmq.producer.model.payment;
 
 
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
-import com.aioveu.common.enums.pay.PaymentStatusEnum;
+import com.aioveu.common.core.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.core.enums.pay.PaymentStatusEnum;
 import lombok.Builder;
 import lombok.Data;
 

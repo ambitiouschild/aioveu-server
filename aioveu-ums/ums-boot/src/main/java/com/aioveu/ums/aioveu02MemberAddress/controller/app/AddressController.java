@@ -1,6 +1,6 @@
 package com.aioveu.ums.aioveu02MemberAddress.controller.app;
 
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.ums.aioveu02MemberAddress.model.entity.UmsMemberAddress;
 import com.aioveu.ums.dto.MemberAddressDTO;
 import com.aioveu.ums.aioveu02MemberAddress.model.form.UmsMemberAddressForm;

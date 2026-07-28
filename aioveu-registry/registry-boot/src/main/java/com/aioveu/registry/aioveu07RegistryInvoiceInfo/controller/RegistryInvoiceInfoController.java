@@ -1,7 +1,7 @@
 package com.aioveu.registry.aioveu07RegistryInvoiceInfo.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.registry.aioveu07RegistryInvoiceInfo.model.form.RegistryInvoiceInfoForm;
 import com.aioveu.registry.aioveu07RegistryInvoiceInfo.model.query.RegistryInvoiceInfoQuery;
 import com.aioveu.registry.aioveu07RegistryInvoiceInfo.model.vo.RegistryInvoiceInfoVo;

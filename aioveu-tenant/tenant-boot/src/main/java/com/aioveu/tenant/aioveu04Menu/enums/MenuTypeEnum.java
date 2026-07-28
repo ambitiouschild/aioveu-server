@@ -1,6 +1,6 @@
 package com.aioveu.tenant.aioveu04Menu.enums;
 
-import com.aioveu.common.base.IBaseEnum;
+import com.aioveu.common.core.base.IBaseEnum;
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.Getter;
 

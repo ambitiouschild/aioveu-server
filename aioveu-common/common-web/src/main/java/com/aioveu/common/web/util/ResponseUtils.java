@@ -1,8 +1,8 @@
 package com.aioveu.common.web.util;
 
 import cn.hutool.json.JSONUtil;
-import com.aioveu.common.result.Result;
-import com.aioveu.common.result.ResultCode;
+import com.aioveu.common.core.result.Result;
+import com.aioveu.common.core.result.ResultCode;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

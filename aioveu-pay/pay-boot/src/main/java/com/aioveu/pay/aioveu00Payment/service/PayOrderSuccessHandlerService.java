@@ -1,8 +1,8 @@
 package com.aioveu.pay.aioveu00Payment.service;
 
 
-import com.aioveu.common.enums.pay.CallbackTriggerSourceEnum;
-import com.aioveu.common.enums.pay.PaymentStatusEnum;
+import com.aioveu.common.core.enums.pay.CallbackTriggerSourceEnum;
+import com.aioveu.common.core.enums.pay.PaymentStatusEnum;
 
 import java.time.LocalDateTime;
 

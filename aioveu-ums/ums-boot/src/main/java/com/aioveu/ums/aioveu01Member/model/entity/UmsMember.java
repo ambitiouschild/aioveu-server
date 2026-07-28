@@ -1,9 +1,8 @@
 package com.aioveu.ums.aioveu01Member.model.entity;
 
-import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.common.core.base.BaseEntityWithTenantId;
 import com.aioveu.ums.aioveu02MemberAddress.model.entity.UmsMemberAddress;
 import com.baomidou.mybatisplus.annotation.*;
-import com.aioveu.common.base.BaseEntity;
 import lombok.Data;
 
 import java.time.LocalDate;

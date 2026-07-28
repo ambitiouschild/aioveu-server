@@ -1,6 +1,6 @@
 package com.aioveu.registry.aioveu04RegistryAdministratorInfo.model.query;
 
-import com.aioveu.common.base.BasePageQuery;
+import com.aioveu.common.core.base.BasePageQuery;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;

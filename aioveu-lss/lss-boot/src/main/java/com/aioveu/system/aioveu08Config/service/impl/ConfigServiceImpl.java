@@ -1,6 +1,6 @@
 package com.aioveu.system.aioveu08Config.service.impl;
 
-import com.aioveu.common.constant.RedisConstants;
+import com.aioveu.common.core.constant.RedisConstants;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.system.aioveu08Config.converter.ConfigConverter;
 import com.aioveu.system.aioveu08Config.mapper.ConfigMapper;

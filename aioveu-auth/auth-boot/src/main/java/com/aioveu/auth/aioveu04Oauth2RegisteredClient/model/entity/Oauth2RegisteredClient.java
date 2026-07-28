@@ -1,6 +1,5 @@
 package com.aioveu.auth.aioveu04Oauth2RegisteredClient.model.entity;
 
-import com.aioveu.common.base.BaseEntity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;

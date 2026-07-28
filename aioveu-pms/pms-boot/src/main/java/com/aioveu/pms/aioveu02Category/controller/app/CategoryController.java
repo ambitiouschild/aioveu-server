@@ -1,6 +1,6 @@
 package com.aioveu.pms.aioveu02Category.controller.app;
 
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pms.model.vo.CategoryVO;
 import com.aioveu.pms.aioveu02Category.service.PmsCategoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @Description: TODO 商品分类控制器

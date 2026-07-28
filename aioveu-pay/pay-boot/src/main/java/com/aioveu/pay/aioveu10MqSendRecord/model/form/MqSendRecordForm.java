@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu10MqSendRecord.model.form;
 
 
-import com.aioveu.common.enums.pay.PaymentSceneEnum;
+import com.aioveu.common.core.enums.pay.PaymentSceneEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

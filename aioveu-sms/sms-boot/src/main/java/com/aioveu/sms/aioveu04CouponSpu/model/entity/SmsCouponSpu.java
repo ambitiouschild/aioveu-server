@@ -1,15 +1,10 @@
 package com.aioveu.sms.aioveu04CouponSpu.model.entity;
 
-import com.aioveu.common.base.BaseEntity;
-import com.aioveu.common.base.BaseEntityWithTenantId;
-import com.baomidou.mybatisplus.annotation.IdType;
+import com.aioveu.common.core.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.experimental.Accessors;
-
-import java.io.Serializable;
 
 /**
  * @Description: TODO 优惠券适用的具体商品实体对象

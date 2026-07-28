@@ -1,10 +1,10 @@
 package com.aioveu.tenant.aioveu04Menu.controller;
 
-import com.aioveu.common.annotation.Log;
-import com.aioveu.common.annotation.RepeatSubmit;
-import com.aioveu.common.enums.LogModuleEnum;
-import com.aioveu.common.model.Option;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.annotation.Log;
+import com.aioveu.common.core.annotation.RepeatSubmit;
+import com.aioveu.common.core.enums.LogModuleEnum;
+import com.aioveu.common.core.model.Option;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.tenant.aioveu04Menu.model.form.MenuForm;
 import com.aioveu.tenant.aioveu04Menu.model.query.MenuQuery;
 import com.aioveu.tenant.aioveu04Menu.model.vo.MenuVO;

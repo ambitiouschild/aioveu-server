@@ -1,7 +1,7 @@
 package com.aioveu.tenant.aioveu03Role.service;
 
-import com.aioveu.common.model.Option;
-import com.aioveu.common.security.model.RoleDataScope;
+import com.aioveu.common.core.model.Option;
+import com.aioveu.common.core.model.RoleDataScope;
 import com.aioveu.tenant.aioveu03Role.model.entity.Role;
 import com.aioveu.tenant.aioveu03Role.model.form.RoleForm;
 import com.aioveu.tenant.aioveu03Role.model.query.RoleQuery;

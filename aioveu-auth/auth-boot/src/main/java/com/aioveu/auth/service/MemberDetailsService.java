@@ -1,10 +1,8 @@
 package com.aioveu.auth.service;
 
 import com.aioveu.auth.model.MemberDetails;
-import com.aioveu.common.result.Result;
-import com.aioveu.common.result.ResultCode;
-import com.aioveu.tenant.api.TenantFeignClient;
-import com.aioveu.tenant.dto.TenantWxAppInfo;
+import com.aioveu.common.core.result.Result;
+import com.aioveu.common.core.result.ResultCode;
 import com.aioveu.ums.api.MemberFeignClient;
 import com.aioveu.ums.dto.MemberAuthDTO;
 import com.aioveu.ums.dto.MemberRegisterForm;

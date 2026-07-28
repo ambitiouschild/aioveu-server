@@ -1,6 +1,6 @@
 package com.aioveu.sms.api.app;
 
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.feign.config.FeignDecoderConfig;
 import com.aioveu.sms.dto.BannerVO;
 import com.aioveu.sms.dto.SmsHomeAdvertVO;

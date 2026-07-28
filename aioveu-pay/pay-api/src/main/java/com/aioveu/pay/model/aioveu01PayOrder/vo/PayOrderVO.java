@@ -3,10 +3,10 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
-import com.aioveu.common.enums.pay.PaymentMethodEnum;
-import com.aioveu.common.enums.pay.PaymentStatusEnum;
+import com.aioveu.common.core.enums.pay.PaymentBizTypeEnum;
+import com.aioveu.common.core.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.core.enums.pay.PaymentMethodEnum;
+import com.aioveu.common.core.enums.pay.PaymentStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;

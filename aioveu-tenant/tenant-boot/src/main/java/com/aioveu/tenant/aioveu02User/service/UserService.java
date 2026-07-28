@@ -1,8 +1,8 @@
 package com.aioveu.tenant.aioveu02User.service;
 
-import com.aioveu.common.model.Option;
+import com.aioveu.common.core.model.Option;
 import com.aioveu.common.security.model.UserAuthCredentials;
-import com.aioveu.common.security.model.UserAuthInfoWithTenantId;
+import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
 import com.aioveu.tenant.aioveu02User.model.dto.CurrentUserDTO;
 import com.aioveu.tenant.aioveu02User.model.dto.UserExportDTO;
 import com.aioveu.tenant.aioveu02User.model.entity.User;

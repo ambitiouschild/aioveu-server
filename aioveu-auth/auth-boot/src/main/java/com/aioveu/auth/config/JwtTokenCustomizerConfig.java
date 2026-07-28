@@ -1,9 +1,8 @@
 package com.aioveu.auth.config;
 
 import com.aioveu.auth.model.MemberDetails;
-import com.aioveu.common.constant.JwtClaimConstants;
+import com.aioveu.common.core.constant.JwtClaimConstants;
 import com.aioveu.auth.model.SysUserDetails;
-import com.aioveu.common.constant.RedisConstants;
 import com.alibaba.nacos.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;

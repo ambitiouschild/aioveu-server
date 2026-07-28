@@ -1,7 +1,7 @@
 package com.aioveu.oms.aioveu12OrderExportTask.model.vo;
 
 
-import com.aioveu.common.enums.oms.OrderExportTaskStatusEnum;
+import com.aioveu.common.core.enums.oms.OrderExportTaskStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;

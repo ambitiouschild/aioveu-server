@@ -1,10 +1,9 @@
 package com.aioveu.auth.aioveu04Oauth2RegisteredClient.controller;
 
 
-import com.aioveu.auth.aioveu04Oauth2RegisteredClient.model.form.Oauth2RegisteredClientForm;
 import com.aioveu.auth.aioveu04Oauth2RegisteredClient.service.Oauth2RegisteredClientService;
 import com.aioveu.auth.model.TenantClientInitDTO;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,8 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.UUID;
 
 /**
  * @ClassName: InnerOauth2RegisteredClientController

@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu10MqSendRecord.Job;
 
 
-import com.aioveu.common.enums.pay.PaymentSceneEnum;
+import com.aioveu.common.core.enums.pay.PaymentSceneEnum;
 import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
 import com.aioveu.common.rabbitmq.producer.model.payment.PaymentMessage;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;

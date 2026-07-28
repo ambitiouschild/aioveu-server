@@ -2,7 +2,7 @@ package com.aioveu.common.security.filter;
 
 import com.aioveu.common.security.model.SecurityFilterOrders;
 import com.aioveu.common.security.util.SecurityUtils;
-import com.aioveu.common.tenant.TenantContextHolder;
+import com.aioveu.common.core.tenant.TenantContextHolder;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -10,8 +10,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;

@@ -1,6 +1,6 @@
 package com.aioveu.common.web.exception;
 
-import com.aioveu.common.result.IResultCode;
+import com.aioveu.common.core.result.IResultCode;
 import lombok.Getter;
 
 /**

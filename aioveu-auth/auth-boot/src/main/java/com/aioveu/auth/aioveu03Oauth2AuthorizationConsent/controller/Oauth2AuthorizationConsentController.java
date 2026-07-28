@@ -4,8 +4,8 @@ import com.aioveu.auth.aioveu03Oauth2AuthorizationConsent.model.form.Oauth2Autho
 import com.aioveu.auth.aioveu03Oauth2AuthorizationConsent.model.query.Oauth2AuthorizationConsentQuery;
 import com.aioveu.auth.aioveu03Oauth2AuthorizationConsent.model.vo.Oauth2AuthorizationConsentVo;
 import com.aioveu.auth.aioveu03Oauth2AuthorizationConsent.service.Oauth2AuthorizationConsentService;
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

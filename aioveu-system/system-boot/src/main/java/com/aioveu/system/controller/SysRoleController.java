@@ -1,7 +1,7 @@
 package com.aioveu.system.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.common.web.annotation.PreventDuplicateResubmit;
 import com.aioveu.common.web.model.Option;
 import com.aioveu.system.model.form.RoleForm;

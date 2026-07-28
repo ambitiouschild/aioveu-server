@@ -1,19 +1,14 @@
 package com.aioveu.tenant.aioveu16ManagerMenuCategory.controller.app;
 
-import com.aioveu.common.result.Result;
-import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.form.ManagerMenuCategoryForm;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.tenant.aioveu16ManagerMenuCategory.model.vo.ManagerMenuCategoryWithItemsVO;
 import com.aioveu.tenant.aioveu16ManagerMenuCategory.service.ManagerMenuCategoryService;
-import com.aioveu.tenant.dto.TenantWxAppInfo;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: ManagerMenuCategoryControllerForApp

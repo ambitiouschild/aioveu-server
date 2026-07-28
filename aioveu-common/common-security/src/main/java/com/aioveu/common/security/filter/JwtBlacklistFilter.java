@@ -1,9 +1,8 @@
 package com.aioveu.common.security.filter;
 
-import com.aioveu.common.TokenManager.service.TokenManagerService;
+import com.aioveu.common.core.TokenManager.service.TokenManagerService;
 import com.aioveu.common.security.config.property.SecurityProperties;
 import com.aioveu.common.security.model.SecurityFilterOrders;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,7 +21,6 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * @ClassName: JwtBlacklistFilter

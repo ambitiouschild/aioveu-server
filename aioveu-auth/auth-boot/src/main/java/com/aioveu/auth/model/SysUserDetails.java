@@ -2,11 +2,11 @@ package com.aioveu.auth.model;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.aioveu.common.constant.SecurityConstants;
-import com.aioveu.common.enums.StatusEnum;
+import com.aioveu.common.core.constant.SecurityConstants;
+import com.aioveu.common.core.enums.StatusEnum;
+import com.aioveu.common.core.model.RoleDataScope;
 import com.aioveu.lss.api.dto.UserAuthCredentials;
 import com.aioveu.system.dto.UserAuthInfo;
-import com.aioveu.tenant.dto.RoleDataScope;
 import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;

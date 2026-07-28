@@ -1,9 +1,7 @@
 package com.aioveu.tenant.aioveu17ManagerMenuCategoryItem.model.entity;
 
-import com.aioveu.common.base.BaseEntity;
-import com.baomidou.mybatisplus.annotation.TableField;
+import com.aioveu.common.core.base.BaseEntity;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
 

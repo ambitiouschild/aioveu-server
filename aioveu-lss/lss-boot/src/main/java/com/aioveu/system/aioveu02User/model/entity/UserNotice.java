@@ -1,6 +1,6 @@
 package com.aioveu.system.aioveu02User.model.entity;
 
-import com.aioveu.common.base.BaseEntity;
+import com.aioveu.common.core.base.BaseEntity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;

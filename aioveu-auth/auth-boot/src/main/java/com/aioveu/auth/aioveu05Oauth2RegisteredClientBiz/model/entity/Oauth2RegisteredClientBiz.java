@@ -2,8 +2,7 @@ package com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.model.entity;
 
 
 import com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.enums.RegisteredClientBizStatusEnum;
-import com.aioveu.common.base.BaseEntity;
-import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.common.core.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;

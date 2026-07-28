@@ -1,8 +1,8 @@
 package com.aioveu.oms.aioveu09MqDeadLetter.controller;
 
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.oms.aioveu09MqDeadLetter.model.form.MqDeadLetterForm;
 import com.aioveu.oms.aioveu09MqDeadLetter.model.query.MqDeadLetterQuery;
 import com.aioveu.oms.aioveu09MqDeadLetter.model.vo.MqDeadLetterVo;

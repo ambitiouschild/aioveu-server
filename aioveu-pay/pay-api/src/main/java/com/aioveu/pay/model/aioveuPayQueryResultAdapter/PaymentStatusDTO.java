@@ -1,6 +1,6 @@
 package com.aioveu.pay.model.aioveuPayQueryResultAdapter;
 
-import com.aioveu.common.enums.pay.PaymentStatusEnum;
+import com.aioveu.common.core.enums.pay.PaymentStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 

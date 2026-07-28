@@ -1,7 +1,7 @@
 package com.aioveu.tenant.aioveu10Log.model.entity;
 
-import com.aioveu.common.base.BaseEntity;
-import com.aioveu.common.enums.LogModuleEnum;
+import com.aioveu.common.core.base.BaseEntity;
+import com.aioveu.common.core.enums.LogModuleEnum;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;

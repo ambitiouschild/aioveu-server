@@ -1,6 +1,6 @@
 package com.aioveu.tenant.aioveu11Codegen.model.entity;
 
-import com.aioveu.common.base.BaseEntity;
+import com.aioveu.common.core.base.BaseEntity;
 import com.aioveu.tenant.aioveu11Codegen.enums.FormTypeEnum;
 import com.aioveu.tenant.aioveu11Codegen.enums.QueryTypeEnum;
 import com.baomidou.mybatisplus.annotation.TableField;

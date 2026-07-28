@@ -1,6 +1,6 @@
 package com.aioveu.pay.aioveu00Payment.Processor.Impl;
 
-import com.aioveu.common.enums.pay.PaymentSceneEnum;
+import com.aioveu.common.core.enums.pay.PaymentSceneEnum;
 import com.aioveu.pay.aioveu00Payment.Processor.BusinessProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;

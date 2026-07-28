@@ -1,8 +1,8 @@
 package com.aioveu.common.security.exception;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.aioveu.common.result.Result;
-import com.aioveu.common.result.ResultCode;
+import com.aioveu.common.core.result.Result;
+import com.aioveu.common.core.result.ResultCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.AuthenticationException;

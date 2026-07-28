@@ -1,7 +1,7 @@
 package com.aioveu.refund.aioveu06RefundPayment.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.refund.aioveu01RefundOrder.enums.RefundStatusEnum;
 import com.aioveu.refund.aioveu01RefundOrder.model.entity.RefundOrder;
 import com.aioveu.refund.aioveu01RefundOrder.service.RefundOrderService;

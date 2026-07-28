@@ -6,10 +6,10 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
-import com.aioveu.common.enums.oms.LogisticsTypeEnum;
-import com.aioveu.common.enums.pay.*;
-import com.aioveu.common.exception.BusinessException;
-import com.aioveu.common.result.ResultCode;
+import com.aioveu.common.core.enums.oms.LogisticsTypeEnum;
+import com.aioveu.common.core.enums.pay.*;
+import com.aioveu.common.core.exception.BusinessException;
+import com.aioveu.common.core.result.ResultCode;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.oms.aioveu01Order.model.entity.OmsOrder;
 import com.aioveu.oms.aioveu01Order.model.form.ShipOrderDTO;
@@ -19,7 +19,7 @@ import com.aioveu.oms.aioveu01Order.utils.DoUploadShippingUtils;
 import com.aioveu.oms.aioveu01Order.utils.OrderNoGenerator;
 import com.aioveu.oms.aioveu01Order.utils.WeChatApiClient;
 import com.aioveu.oms.aioveu02OrderItem.converter.OmsOrderItemConverter;
-import com.aioveu.common.enums.oms.OrderDeliveryStatusEnum;
+import com.aioveu.common.core.enums.oms.OrderDeliveryStatusEnum;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import com.aioveu.oms.aioveu03OrderDelivery.service.OmsOrderDeliveryService;
 import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
@@ -41,12 +41,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.common.web.exception.BizException;
 import com.aioveu.oms.aioveu01Order.constant.OrderConstants;
 import com.aioveu.oms.aioveu01Order.converter.OmsOrderConverter;
-import com.aioveu.common.enums.oms.OrderStatusEnum;
-import com.aioveu.common.enums.oms.OrderSourceEnum;
+import com.aioveu.common.core.enums.oms.OrderStatusEnum;
+import com.aioveu.common.core.enums.oms.OrderSourceEnum;
 import com.aioveu.oms.aioveu01Order.mapper.OmsOrderMapper;
 import com.aioveu.oms.aioveu02OrderItem.model.vo.OrderItemDTO;
 import com.aioveu.oms.aioveu02OrderItem.model.entity.OmsOrderItem;
@@ -86,7 +86,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.hutool.core.util.NumberUtil.toBigDecimal;
-import static com.aioveu.oms.aioveu03OrderDelivery.utils.DeliveryUtils.resolveExpressCode;
 
 
 /**

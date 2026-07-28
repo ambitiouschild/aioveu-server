@@ -1,7 +1,6 @@
 package com.aioveu.refund.aioveu06RefundPayment.model.entity;
 
-import com.aioveu.common.base.BaseEntity;
-import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.common.core.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.ibm.icu.math.BigDecimal;
 import lombok.Getter;

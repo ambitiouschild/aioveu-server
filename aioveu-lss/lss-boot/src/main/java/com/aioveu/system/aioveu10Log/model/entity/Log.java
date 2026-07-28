@@ -1,6 +1,6 @@
 package com.aioveu.system.aioveu10Log.model.entity;
 
-import com.aioveu.common.enums.LogModuleEnum;
+import com.aioveu.common.core.enums.LogModuleEnum;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 

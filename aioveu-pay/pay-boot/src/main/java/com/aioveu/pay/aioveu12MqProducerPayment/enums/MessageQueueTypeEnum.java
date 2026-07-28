@@ -1,6 +1,6 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.enums;
 
-import com.aioveu.common.base.IBaseEnum;
+import com.aioveu.common.core.base.IBaseEnum;
 import lombok.Getter;
 
 /**

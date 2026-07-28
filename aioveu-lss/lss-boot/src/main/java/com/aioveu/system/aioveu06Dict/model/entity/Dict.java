@@ -1,6 +1,6 @@
 package com.aioveu.system.aioveu06Dict.model.entity;
 
-import com.aioveu.common.base.BaseEntity;
+import com.aioveu.common.core.base.BaseEntity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

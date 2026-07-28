@@ -1,7 +1,7 @@
 package com.aioveu.refund.aioveu04RefundOperationLog.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.refund.aioveu04RefundOperationLog.model.form.RefundOperationLogForm;
 import com.aioveu.refund.aioveu04RefundOperationLog.model.query.RefundOperationLogQuery;
 import com.aioveu.refund.aioveu04RefundOperationLog.model.vo.RefundOperationLogVO;

@@ -1,6 +1,6 @@
 package com.aioveu.pay.aioveu07PayNotify.service;
 
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu07PayNotify.model.entity.PayNotify;
 import com.aioveu.pay.aioveu07PayNotify.model.form.PayNotifyForm;

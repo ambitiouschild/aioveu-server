@@ -1,6 +1,6 @@
 package com.aioveu.system.aioveu07File.controller;
 
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.system.aioveu07File.model.vo.FileInfo;
 import com.aioveu.system.aioveu07File.service.FileService;
 import com.aioveu.system.aioveu07File.utils.ModuleResolver;

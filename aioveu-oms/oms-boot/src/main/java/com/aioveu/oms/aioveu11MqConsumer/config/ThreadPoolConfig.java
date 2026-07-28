@@ -1,6 +1,6 @@
 package com.aioveu.oms.aioveu11MqConsumer.config;
 
-import com.aioveu.common.factory.NamedThreadFactory;
+import com.aioveu.common.core.factory.NamedThreadFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

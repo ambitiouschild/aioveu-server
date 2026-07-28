@@ -2,16 +2,13 @@ package com.aioveu.auth.api;
 
 import com.aioveu.auth.api.fallback.AuthFeignFallbackClient;
 import com.aioveu.auth.model.TenantClientInitDTO;
-import com.aioveu.common.annotation.Log;
-import com.aioveu.common.enums.LogModuleEnum;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.annotation.Log;
+import com.aioveu.common.core.enums.LogModuleEnum;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.feign.config.FeignDecoderConfig;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * @ClassName: TenantFeignClient

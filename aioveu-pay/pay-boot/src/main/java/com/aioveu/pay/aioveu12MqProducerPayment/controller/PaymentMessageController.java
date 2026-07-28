@@ -1,9 +1,9 @@
 package com.aioveu.pay.aioveu12MqProducerPayment.controller;
 
 
-import com.aioveu.common.annotation.Log;
-import com.aioveu.common.enums.LogModuleEnum;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.annotation.Log;
+import com.aioveu.common.core.enums.LogModuleEnum;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pay.aioveu12MqProducerPayment.model.vo.SendPaymentMqDTO;
 import com.aioveu.pay.aioveu12MqProducerPayment.mqProducer.MQProducerService;
 import io.swagger.v3.oas.annotations.Operation;

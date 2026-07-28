@@ -1,13 +1,9 @@
 package com.aioveu.sms.aioveu07HomeCategory.controller.app;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
-import com.aioveu.sms.aioveu01Advert.model.vo.BannerVO;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.sms.aioveu07HomeCategory.model.form.SmsHomeCategoryForm;
-import com.aioveu.sms.aioveu07HomeCategory.model.query.SmsHomeCategoryQuery;
 import com.aioveu.sms.aioveu07HomeCategory.model.vo.SmsHomeCategoryVO;
 import com.aioveu.sms.aioveu07HomeCategory.service.SmsHomeCategoryService;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,7 +14,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: SmsHomeCategoryController

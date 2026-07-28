@@ -1,11 +1,11 @@
 package com.aioveu.pms.aioveu02Category.controller.admin;
 
-import com.aioveu.common.result.PageResult;
+import com.aioveu.common.core.result.PageResult;
 import com.aioveu.pms.aioveu02Category.model.form.PmsCategoryForm;
 import com.aioveu.pms.aioveu02Category.model.query.PmsCategoryQuery;
 import com.aioveu.pms.aioveu02Category.model.vo.PmsCategoryVO;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.common.web.model.Option;
 import com.aioveu.pms.aioveu02Category.model.entity.PmsCategory;
 import com.aioveu.pms.model.vo.CategoryVO;

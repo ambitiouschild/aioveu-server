@@ -1,7 +1,7 @@
 package com.aioveu.tenant.aioveu02User.mapper;
 
-import com.aioveu.common.annotation.DataPermission;
-import com.aioveu.common.security.model.UserAuthInfoWithTenantId;
+import com.aioveu.common.core.annotation.DataPermission;
+import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
 import com.aioveu.tenant.aioveu02User.model.bo.UserBO;
 import com.aioveu.tenant.aioveu02User.model.dto.UserExportDTO;
 import com.aioveu.tenant.aioveu02User.model.entity.User;

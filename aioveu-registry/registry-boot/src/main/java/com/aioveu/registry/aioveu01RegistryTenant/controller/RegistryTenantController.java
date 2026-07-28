@@ -1,7 +1,7 @@
 package com.aioveu.registry.aioveu01RegistryTenant.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.registry.aioveu01RegistryTenant.model.form.RegistryTenantForm;
 import com.aioveu.registry.aioveu01RegistryTenant.model.query.RegistryTenantQuery;
 import com.aioveu.registry.aioveu01RegistryTenant.model.vo.RegistryTenantVo;

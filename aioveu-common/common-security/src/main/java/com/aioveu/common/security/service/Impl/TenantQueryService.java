@@ -1,7 +1,7 @@
 package com.aioveu.common.security.service.Impl;
 
 
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.tenant.api.TenantFeignClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

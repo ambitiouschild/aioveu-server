@@ -1,7 +1,7 @@
 package com.aioveu.pms.aioveu04CategoryBrand.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pms.aioveu04CategoryBrand.model.form.PmsCategoryBrandForm;
 import com.aioveu.pms.aioveu04CategoryBrand.model.query.PmsCategoryBrandQuery;
 import com.aioveu.pms.aioveu04CategoryBrand.model.vo.PmsCategoryBrandVO;

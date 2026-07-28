@@ -1,9 +1,9 @@
 package com.aioveu.oms.aioveu03OrderDelivery.controller;
 
-import com.aioveu.common.annotation.Log;
-import com.aioveu.common.enums.LogModuleEnum;
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.annotation.Log;
+import com.aioveu.common.core.enums.LogModuleEnum;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.oms.aioveu03OrderDelivery.model.form.OmsOrderDeliveryForm;
 import com.aioveu.oms.aioveu03OrderDelivery.model.query.OmsOrderDeliveryQuery;
 import com.aioveu.oms.aioveu03OrderDelivery.model.vo.OmsOrderDeliveryVO;

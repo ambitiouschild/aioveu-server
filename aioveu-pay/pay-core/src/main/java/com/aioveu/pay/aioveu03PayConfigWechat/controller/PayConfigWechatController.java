@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu03PayConfigWechat.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pay.aioveu03PayConfigWechat.model.form.PayConfigWechatForm;
 import com.aioveu.pay.aioveu03PayConfigWechat.model.query.PayConfigWechatQuery;
 import com.aioveu.pay.aioveu03PayConfigWechat.model.vo.PayConfigWechatVo;

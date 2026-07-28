@@ -1,10 +1,10 @@
 package com.aioveu.pay.model.aioveu01PayOrder.form;
 
 
-import com.aioveu.common.enums.pay.PaymentBizTypeEnum;
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
-import com.aioveu.common.enums.pay.PaymentMethodEnum;
-import com.aioveu.common.enums.pay.PaymentSceneEnum;
+import com.aioveu.common.core.enums.pay.PaymentBizTypeEnum;
+import com.aioveu.common.core.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.core.enums.pay.PaymentMethodEnum;
+import com.aioveu.common.core.enums.pay.PaymentSceneEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

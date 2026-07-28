@@ -1,7 +1,7 @@
 package com.aioveu.gateway.config;
 
 import com.alibaba.csp.sentinel.adapter.gateway.sc.callback.GatewayCallbackManager;
-import com.aioveu.common.result.ResultCode;
+import com.aioveu.common.core.result.ResultCode;
 import jakarta.annotation.PostConstruct;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;

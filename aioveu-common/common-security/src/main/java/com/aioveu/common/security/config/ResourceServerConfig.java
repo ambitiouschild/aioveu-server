@@ -2,7 +2,7 @@ package com.aioveu.common.security.config;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
-import com.aioveu.common.constant.JwtClaimConstants;
+import com.aioveu.common.core.constant.JwtClaimConstants;
 import com.aioveu.common.security.config.property.SecurityProperties;
 import com.aioveu.common.security.filter.JwtBlacklistFilter;
 import com.aioveu.common.security.filter.JwtVersionFilter;

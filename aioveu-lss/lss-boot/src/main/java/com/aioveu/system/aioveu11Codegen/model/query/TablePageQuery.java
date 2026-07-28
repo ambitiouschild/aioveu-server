@@ -1,6 +1,6 @@
 package com.aioveu.system.aioveu11Codegen.model.query;
 
-import com.aioveu.common.base.BasePageQuery;
+import com.aioveu.common.core.base.BasePageQuery;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;

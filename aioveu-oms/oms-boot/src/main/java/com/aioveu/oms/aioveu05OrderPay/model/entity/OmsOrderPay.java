@@ -1,10 +1,9 @@
 package com.aioveu.oms.aioveu05OrderPay.model.entity;
 
-import com.aioveu.common.base.BaseEntityWithTenantId;
-import com.aioveu.common.enums.pay.PaymentStatusEnum;
+import com.aioveu.common.core.base.BaseEntityWithTenantId;
+import com.aioveu.common.core.enums.pay.PaymentStatusEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.aioveu.common.base.BaseEntity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Builder;
 import lombok.Data;

@@ -1,6 +1,6 @@
 package com.aioveu.pay.aioveu01.PaymentStrategy.impl;
 
-import com.aioveu.common.enums.pay.PaymentMethodEnum;
+import com.aioveu.common.core.enums.pay.PaymentMethodEnum;
 import com.aioveu.pay.aioveu01.PaymentStrategy.PaymentStrategy;
 import com.aioveu.pay.aioveu01.converter.PayQueryResultConverter;
 import com.aioveu.pay.aioveu01.service.WechatPay.service.WeChatPayService;

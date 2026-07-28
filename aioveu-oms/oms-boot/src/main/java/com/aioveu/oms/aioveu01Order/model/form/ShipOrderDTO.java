@@ -1,7 +1,5 @@
 package com.aioveu.oms.aioveu01Order.model.form;
 
-import com.aioveu.common.enums.oms.DeliveryCompanyCodeEnum;
-import com.aioveu.common.enums.oms.LogisticsTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;

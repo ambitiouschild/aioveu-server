@@ -1,7 +1,7 @@
 package com.aioveu.sms.aioveu07HomeCategory.controller.admin;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.sms.aioveu07HomeCategory.model.form.SmsHomeCategoryForm;
 import com.aioveu.sms.aioveu07HomeCategory.model.query.SmsHomeCategoryQuery;
 import com.aioveu.sms.aioveu07HomeCategory.model.vo.SmsHomeCategoryVO;

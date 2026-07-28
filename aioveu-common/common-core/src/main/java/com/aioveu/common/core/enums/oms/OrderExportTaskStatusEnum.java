@@ -1,0 +1,33 @@
+package com.aioveu.common.core.enums.oms;
+
+import lombok.Getter;
+
+/**
+ * @Description: TODO 订单导出任务状态枚举
+ * @Author: 雒世松
+ * @Date: 2026/6/12 17:38
+ * @param
+ * @return:
+ **/
+
+
+public enum OrderExportTaskStatusEnum {
+
+    PENDING("PENDING", "待执行"),
+    RUNNING("RUNNING", "执行中"),
+    SUCCESS("SUCCESS", "成功"),
+    FAILED("FAILED", "失败"),
+    ;
+
+    OrderExportTaskStatusEnum(String value, String label) {
+        this.value = value;
+        this.label = label;
+    }
+
+
+    @Getter
+    private String value;
+
+    @Getter
+    private String label;
+}

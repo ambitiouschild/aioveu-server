@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu01PayOrder.mapper;
 
 
-import com.aioveu.common.enums.pay.PaymentStatusEnum;
+import com.aioveu.common.core.enums.pay.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu01PayOrder.model.query.PayOrderQuery;
 import com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO;

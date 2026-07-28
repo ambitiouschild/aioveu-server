@@ -1,7 +1,7 @@
 package com.aioveu.oms.aioveu12OrderExportTask.model.form;
 
 
-import com.aioveu.common.enums.oms.OrderExportTaskStatusEnum;
+import com.aioveu.common.core.enums.oms.OrderExportTaskStatusEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

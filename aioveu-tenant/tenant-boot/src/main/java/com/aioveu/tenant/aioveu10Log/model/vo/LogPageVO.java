@@ -1,6 +1,6 @@
 package com.aioveu.tenant.aioveu10Log.model.vo;
 
-import com.aioveu.common.enums.LogModuleEnum;
+import com.aioveu.common.core.enums.LogModuleEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

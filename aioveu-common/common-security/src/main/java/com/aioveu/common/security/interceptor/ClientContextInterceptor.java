@@ -10,7 +10,7 @@ package com.aioveu.common.security.interceptor;
  * @Version 1.0
  **/
 
-import com.aioveu.common.tenant.ClientContextHolder;
+import com.aioveu.common.core.tenant.ClientContextHolder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.HandlerInterceptor;

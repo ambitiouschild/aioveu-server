@@ -4,24 +4,14 @@ import com.aioveu.auth.TokenManager.service.AuthTokenManagerService;
 import com.aioveu.auth.model.CaptchaResult;
 import com.aioveu.auth.service.AuthService;
 import com.aioveu.auth.service.ClientWhitelistService;
-import com.aioveu.common.annotation.Log;
-import com.aioveu.common.annotation.PublicApi;
-import com.aioveu.common.enums.LogModuleEnum;
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.annotation.Log;
+import com.aioveu.common.core.annotation.PublicApi;
+import com.aioveu.common.core.enums.LogModuleEnum;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pms.api.PmsFeignClient;
 import com.aioveu.pms.api.PmsFeignClientWithoutConfig;
-import com.aioveu.pms.model.query.PmsSpuQuery;
-import com.aioveu.pms.model.vo.CategoryVO;
-import com.aioveu.pms.model.vo.SeckillingSpuVO;
-import com.aioveu.pms.model.vo.SpuDetailVO;
-import com.aioveu.pms.model.vo.SpuPageVO;
 import com.aioveu.sms.api.app.SmsFeignClient;
-import com.aioveu.sms.dto.BannerVO;
-import com.aioveu.sms.dto.SmsHomeAdvertVO;
-import com.aioveu.sms.dto.SmsHomeCategoryVO;
 import com.aioveu.tenant.api.TenantFeignClient;
-import com.aioveu.tenant.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,9 +19,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @Description: TODO 认证控制器 获取验证码、退出登录等接口

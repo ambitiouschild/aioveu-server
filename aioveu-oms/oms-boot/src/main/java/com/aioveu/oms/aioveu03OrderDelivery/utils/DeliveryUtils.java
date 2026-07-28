@@ -2,7 +2,7 @@ package com.aioveu.oms.aioveu03OrderDelivery.utils;
 
 
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.enums.oms.DeliveryCompanyCodeEnum;
+import com.aioveu.common.core.enums.oms.DeliveryCompanyCodeEnum;
 import com.aioveu.oms.aioveu03OrderDelivery.model.entity.OmsOrderDelivery;
 import lombok.extern.slf4j.Slf4j;
 

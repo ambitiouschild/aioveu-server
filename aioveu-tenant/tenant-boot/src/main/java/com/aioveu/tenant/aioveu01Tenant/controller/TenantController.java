@@ -1,11 +1,11 @@
 package com.aioveu.tenant.aioveu01Tenant.controller;
 
-import com.aioveu.common.annotation.Log;
-import com.aioveu.common.enums.LogModuleEnum;
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.annotation.Log;
+import com.aioveu.common.core.enums.LogModuleEnum;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.common.security.util.SecurityUtils;
-import com.aioveu.common.tenant.TenantContextHolder;
+import com.aioveu.common.core.tenant.TenantContextHolder;
 import com.aioveu.tenant.aioveu01Tenant.model.form.TenantCreateForm;
 import com.aioveu.tenant.aioveu01Tenant.model.form.TenantForm;
 import com.aioveu.tenant.aioveu01Tenant.model.query.TenantQuery;

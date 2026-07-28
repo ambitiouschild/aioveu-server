@@ -1,6 +1,6 @@
 package com.aioveu.pms.model.vo;
 
-import com.aioveu.common.base.BaseVO;
+import com.aioveu.common.core.base.BaseVO;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

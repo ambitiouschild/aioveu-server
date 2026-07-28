@@ -1,6 +1,6 @@
 package com.aioveu.pay.api;
 
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.feign.config.FeignDecoderConfig;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderCreateForm;
 import com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO;

@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu02PayConfig.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pay.aioveu02PayConfig.model.form.PayConfigForm;
 import com.aioveu.pay.aioveu02PayConfig.model.query.PayConfigQuery;
 import com.aioveu.pay.aioveu02PayConfig.model.vo.PayConfigVo;

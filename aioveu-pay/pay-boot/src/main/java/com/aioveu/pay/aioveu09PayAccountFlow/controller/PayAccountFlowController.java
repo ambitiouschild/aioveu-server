@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu09PayAccountFlow.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pay.aioveu09PayAccountFlow.model.form.PayAccountFlowForm;
 import com.aioveu.pay.aioveu09PayAccountFlow.model.query.PayAccountFlowQuery;
 import com.aioveu.pay.aioveu09PayAccountFlow.model.vo.PayAccountFlowVO;

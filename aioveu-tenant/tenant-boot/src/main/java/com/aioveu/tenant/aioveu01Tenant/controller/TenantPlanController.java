@@ -1,8 +1,8 @@
 package com.aioveu.tenant.aioveu01Tenant.controller;
 
-import com.aioveu.common.model.Option;
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.model.Option;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.tenant.aioveu01Tenant.model.form.TenantPlanForm;
 import com.aioveu.tenant.aioveu01Tenant.model.query.TenantPlanQuery;
 import com.aioveu.tenant.aioveu01Tenant.model.vo.TenantPlanPageVO;

@@ -1,7 +1,7 @@
 package com.aioveu.registry.aioveu09RegistryOperationLog.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.registry.aioveu09RegistryOperationLog.model.form.RegistryOperationLogForm;
 import com.aioveu.registry.aioveu09RegistryOperationLog.model.query.RegistryOperationLogQuery;
 import com.aioveu.registry.aioveu09RegistryOperationLog.model.vo.RegistryOperationLogVo;

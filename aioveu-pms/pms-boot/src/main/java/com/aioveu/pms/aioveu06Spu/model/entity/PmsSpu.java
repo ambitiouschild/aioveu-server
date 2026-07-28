@@ -1,9 +1,8 @@
 package com.aioveu.pms.aioveu06Spu.model.entity;
 
-import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.common.core.base.BaseEntityWithTenantId;
 import com.aioveu.pms.aioveu05Sku.model.entity.PmsSku;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.aioveu.common.base.BaseEntity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.experimental.Accessors;

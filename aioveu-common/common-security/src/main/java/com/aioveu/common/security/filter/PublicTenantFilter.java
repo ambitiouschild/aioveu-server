@@ -5,7 +5,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.aioveu.common.security.config.property.SecurityProperties;
 import com.aioveu.common.security.model.SecurityFilterOrders;
 import com.aioveu.common.security.service.Impl.PublicTenantResolver;
-import com.aioveu.common.tenant.TenantContextHolder;
+import com.aioveu.common.core.tenant.TenantContextHolder;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

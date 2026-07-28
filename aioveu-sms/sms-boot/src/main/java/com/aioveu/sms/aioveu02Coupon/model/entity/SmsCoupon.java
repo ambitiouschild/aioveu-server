@@ -1,11 +1,10 @@
 package com.aioveu.sms.aioveu02Coupon.model.entity;
 
-import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.common.core.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.aioveu.common.base.BaseEntity;
 import lombok.Data;
 
 import java.math.BigDecimal;

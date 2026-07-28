@@ -1,7 +1,7 @@
 package com.aioveu.registry.aioveu03RegistryEnterpriseQualification.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.registry.aioveu03RegistryEnterpriseQualification.model.form.RegistryEnterpriseQualificationForm;
 import com.aioveu.registry.aioveu03RegistryEnterpriseQualification.model.query.RegistryEnterpriseQualificationQuery;
 import com.aioveu.registry.aioveu03RegistryEnterpriseQualification.model.vo.RegistryEnterpriseQualificationVo;

@@ -1,6 +1,6 @@
 package com.aioveu.sms.aioveu01Advert.model.query;
 
-import com.aioveu.common.base.BasePageQuery;
+import com.aioveu.common.core.base.BasePageQuery;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

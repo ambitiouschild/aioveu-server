@@ -1,7 +1,7 @@
 package com.aioveu.gateway.filter;
 
 
-import com.aioveu.common.constant.JwtClaimConstants;
+import com.aioveu.common.core.constant.JwtClaimConstants;
 import com.aioveu.gateway.service.ClientWhitelistWithRedisService;
 import com.aioveu.gateway.service.TenantQueryService;
 import com.aioveu.gateway.util.ClaimUtils;
@@ -18,7 +18,6 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 // ✅ 正确：来自 oauth2-core
 
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 

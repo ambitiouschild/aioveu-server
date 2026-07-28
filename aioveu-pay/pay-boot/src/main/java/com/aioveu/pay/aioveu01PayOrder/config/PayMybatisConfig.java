@@ -1,11 +1,11 @@
 package com.aioveu.pay.aioveu01PayOrder.config;
 
 
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
-import com.aioveu.common.enums.pay.PaymentMethodEnum;
+import com.aioveu.common.core.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.core.enums.pay.PaymentMethodEnum;
 
-import com.aioveu.common.util.PaymentChannelEnumPayTypeHandler;
-import com.aioveu.common.util.PaymentMethodEnumPayTypeHandler;
+import com.aioveu.common.core.util.PaymentChannelEnumPayTypeHandler;
+import com.aioveu.common.core.util.PaymentMethodEnumPayTypeHandler;
 import com.baomidou.mybatisplus.autoconfigure.ConfigurationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -9,6 +9,7 @@ import com.aioveu.auth.filter.CaptchaValidationFilter;
 import com.aioveu.auth.oauth2.extension.customRefreshToken.CustomRefreshTokenAuthenticationConverter;
 import com.aioveu.auth.oauth2.extension.customRefreshToken.CustomRefreshTokenAuthenticationProvider;
 import com.aioveu.auth.service.SysUserDetailsService;
+import com.aioveu.auth.model.MemberDetails;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,10 +25,8 @@ import com.aioveu.auth.oauth2.extension.password.PasswordAuthenticationConverter
 import com.aioveu.auth.oauth2.extension.password.PasswordAuthenticationProvider;
 import com.aioveu.auth.oauth2.extension.smscode.SmsCodeAuthenticationConverter;
 import com.aioveu.auth.oauth2.extension.smscode.SmsCodeAuthenticationProvider;
-import com.aioveu.auth.oauth2.extension.smscode.SmsCodeAuthenticationToken;
 import com.aioveu.auth.oauth2.extension.wechat.WechatAuthenticationConverter;
 import com.aioveu.auth.oauth2.extension.wechat.WechatAuthenticationProvider;
-import com.aioveu.auth.oauth2.extension.wechat.WechatAuthenticationToken;
 import com.aioveu.auth.oauth2.handler.MyAuthenticationFailureHandler;
 import com.aioveu.auth.oauth2.handler.MyAuthenticationSuccessHandler;
 import com.aioveu.auth.oauth2.jackson.SysUserMixin;
@@ -35,7 +34,7 @@ import com.aioveu.auth.oauth2.oidc.CustomOidcAuthenticationConverter;
 import com.aioveu.auth.oauth2.oidc.CustomOidcAuthenticationProvider;
 import com.aioveu.auth.oauth2.oidc.CustomOidcUserInfoService;
 import com.aioveu.auth.service.MemberDetailsService;
-import com.aioveu.common.constant.RedisConstants;
+import com.aioveu.common.core.constant.RedisConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +46,6 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -57,41 +55,28 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
-import org.springframework.security.oauth2.server.authorization.authentication.OAuth2RefreshTokenAuthenticationProvider;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
-import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
-import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.*;
-import org.springframework.security.oauth2.server.authorization.web.OAuth2TokenEndpointFilter;
-import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2RefreshTokenAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.stereotype.Component;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -561,14 +546,14 @@ public class AuthorizationServerConfig {
 
         // ✅ 关键：添加 MemberDetails 的 Mixin
         objectMapper.addMixIn(
-                com.aioveu.auth.model.MemberDetails.class,  // 你的 MemberDetails 类
+                MemberDetails.class,  // 你的 MemberDetails 类
                 com.aioveu.auth.oauth2.jackson.MemberDetailsMixin.class  // Mixin 类
         );
 
 
         // ✅ 关键：添加 RoleDataScope 的 Mixin
         objectMapper.addMixIn(
-                com.aioveu.tenant.dto.RoleDataScope.class,  // 你的 MemberDetails 类
+                com.aioveu.common.core.model.RoleDataScope.class,  // 你的 MemberDetails 类
                 com.aioveu.auth.oauth2.jackson.RoleDataScopeMixin.class  // Mixin 类
         );
 

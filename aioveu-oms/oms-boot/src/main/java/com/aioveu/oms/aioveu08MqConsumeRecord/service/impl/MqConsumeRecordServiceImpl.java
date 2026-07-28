@@ -3,7 +3,7 @@ package com.aioveu.oms.aioveu08MqConsumeRecord.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.exception.BusinessException;
+import com.aioveu.common.core.exception.BusinessException;
 import com.aioveu.oms.aioveu08MqConsumeRecord.converter.MqConsumeRecordConverter;
 import com.aioveu.oms.aioveu08MqConsumeRecord.enums.ConsumeStatusEnum;
 import com.aioveu.oms.aioveu08MqConsumeRecord.mapper.MqConsumeRecordMapper;
@@ -26,7 +26,6 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @ClassName: MqConsumeRecordServiceImpl

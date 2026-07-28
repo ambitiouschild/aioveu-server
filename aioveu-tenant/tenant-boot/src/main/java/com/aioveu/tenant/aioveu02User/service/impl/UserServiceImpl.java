@@ -3,18 +3,18 @@ package com.aioveu.tenant.aioveu02User.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.TokenManager.service.TokenManagerService;
-import com.aioveu.common.constant.RedisConstants;
-import com.aioveu.common.constant.SystemConstants;
-import com.aioveu.common.exception.BusinessException;
-import com.aioveu.common.model.Option;
-import com.aioveu.common.security.model.RoleDataScope;
-import com.aioveu.common.security.model.UserAuthInfoWithTenantId;
+import com.aioveu.common.core.TokenManager.service.TokenManagerService;
+import com.aioveu.common.core.constant.RedisConstants;
+import com.aioveu.common.core.constant.SystemConstants;
+import com.aioveu.common.core.exception.BusinessException;
+import com.aioveu.common.core.model.Option;
+import com.aioveu.common.core.model.RoleDataScope;
+import com.aioveu.tenant.dto.UserAuthInfoWithTenantId;
 import com.aioveu.common.security.service.Impl.PermissionService;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.common.sms.enmus.SmsTypeEnum;
 import com.aioveu.common.sms.service.SmsService;
-import com.aioveu.common.tenant.TenantContextHolder;
+import com.aioveu.common.core.tenant.TenantContextHolder;
 import com.aioveu.tenant.aioveu02User.converter.UserConverter;
 import com.aioveu.tenant.aioveu02User.mapper.UserMapper;
 import com.aioveu.tenant.aioveu02User.model.bo.UserBO;
@@ -320,17 +320,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public UserAuthInfoWithTenantId getAuthInfoByUsernameAndTenantId(String username, Long tenantId) {
 
-        log.info("根据用户名和租户ID获取认证凭证信息: username={}, tenantId={}", username, tenantId);
+        log.info("【getAuthInfoByUsernameAndTenantId】根据用户名和租户ID获取认证凭证信息: username={}, tenantId={}", username, tenantId);
         UserAuthInfoWithTenantId userAuthInfoWithTenantId =
                 this.baseMapper.getAuthInfoByUsernameAndTenantId(username,tenantId);
 
         if (userAuthInfoWithTenantId == null) {
-            log.warn("用户不存在: username={}, tenantId={}", username, tenantId);
+            log.warn("【getAuthInfoByUsernameAndTenantId】用户不存在: username={}, tenantId={}", username, tenantId);
             return null;
         }
 
         //这里的userAuthInfoWithTenantId是唯一的
-        log.info("这里的userAuthInfoWithTenantId是唯一的");
+        log.info("【getAuthInfoByUsernameAndTenantId】这里的userAuthInfoWithTenantId是唯一的");
 
         if (userAuthInfoWithTenantId != null) {
             Set<String> roles = userAuthInfoWithTenantId.getRoles();
@@ -345,15 +345,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 userAuthInfoWithTenantId.setDataScope(dataScopeValue);
             }
 
-            log.info("获取到的角色：{}",roles);
-            userAuthInfoWithTenantId.setDataScopes(dataScopes);
 
+            userAuthInfoWithTenantId.setDataScopes(dataScopes);
+            log.info("【getAuthInfoByUsernameAndTenantId】获取到的数据权限明细dataScopes：{}",dataScopes);
+
+            // ✅✅✅ 补上这一句：按钮权限
+            Set<String> permissions = roleMenuService.getRolePermsByRoleCodes(roles);
+            userAuthInfoWithTenantId.setPermissions(permissions);
+            log.info("【getAuthInfoByUsernameAndTenantId】获取到的接口权限标识集合（按钮权限）permissions：{}",permissions);
 
             userAuthInfoWithTenantId.setCanSwitchTenant(resolveCanSwitchTenant(roles));
-            log.info("设置是否可以切换租户:{}",resolveCanSwitchTenant(roles));
+            log.info("【getAuthInfoByUsernameAndTenantId】设置是否可以切换租户canSwitchTenant:{}",resolveCanSwitchTenant(roles));
         }
 
-        log.info("构建的租户认证信息：{}",userAuthInfoWithTenantId);
+        log.info("【getAuthInfoByUsernameAndTenantId】构建的租户认证信息userAuthInfoWithTenantId：{}",userAuthInfoWithTenantId);
         return userAuthInfoWithTenantId;
     }
 

@@ -1,6 +1,6 @@
 package com.aioveu.system.aioveu06Dict.service;
 
-import com.aioveu.common.model.Option;
+import com.aioveu.common.core.model.Option;
 import com.aioveu.system.aioveu06Dict.model.entity.Dict;
 import com.aioveu.system.aioveu06Dict.model.form.DictForm;
 import com.aioveu.system.aioveu06Dict.model.query.DictPageQuery;

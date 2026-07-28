@@ -1,7 +1,7 @@
 package com.aioveu.common.web.aspect;
 
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.result.ResultCode;
+import com.aioveu.common.core.result.ResultCode;
 //import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.common.web.annotation.PreventDuplicateResubmit;

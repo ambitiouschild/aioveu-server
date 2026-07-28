@@ -1,6 +1,6 @@
 package com.aioveu.tenant.dto;
 
-import com.aioveu.common.enums.StatusEnum;
+import com.aioveu.common.core.enums.StatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

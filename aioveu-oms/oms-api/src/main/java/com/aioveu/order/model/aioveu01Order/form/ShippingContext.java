@@ -1,8 +1,6 @@
 package com.aioveu.order.model.aioveu01Order.form;
 
-import com.aioveu.common.enums.oms.LogisticsTypeEnum;
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
-import com.aioveu.common.enums.pay.PaymentMethodEnum;
+import com.aioveu.common.core.enums.oms.LogisticsTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

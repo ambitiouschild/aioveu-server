@@ -4,7 +4,7 @@ package com.aioveu.auth.oauth2.extension.captcha;
 import cn.hutool.captcha.generator.CodeGenerator;
 import cn.hutool.core.lang.Assert;
 import com.aioveu.auth.util.OAuth2AuthenticationProviderUtils;
-import com.aioveu.common.constant.RedisConstants;
+import com.aioveu.common.core.constant.RedisConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;

@@ -11,11 +11,11 @@ import cn.hutool.jwt.JWTUtil;
 import com.aioveu.auth.config.property.AuthSecurityProperties;
 import com.aioveu.auth.TokenManager.service.AuthTokenManagerService;
 import com.aioveu.auth.model.SysUserDetails;
-import com.aioveu.common.constant.JwtClaimConstants;
-import com.aioveu.common.constant.RedisConstants;
-import com.aioveu.common.constant.SecurityConstants;
+import com.aioveu.common.core.constant.JwtClaimConstants;
+import com.aioveu.common.core.constant.RedisConstants;
+import com.aioveu.common.core.constant.SecurityConstants;
 import com.aioveu.auth.model.AuthenticationToken;
-import com.aioveu.tenant.dto.RoleDataScope;
+import com.aioveu.common.core.model.RoleDataScope;
 import lombok.RequiredArgsConstructor;import lombok.extern.slf4j.Slf4j;
 // ✅ 使用 Spring Framework 自带的
 import org.springframework.beans.factory.annotation.Value;

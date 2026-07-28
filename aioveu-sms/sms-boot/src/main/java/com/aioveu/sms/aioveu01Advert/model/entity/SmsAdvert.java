@@ -1,9 +1,8 @@
 package com.aioveu.sms.aioveu01Advert.model.entity;
 
-import com.aioveu.common.base.BaseEntityWithTenantId;
+import com.aioveu.common.core.base.BaseEntityWithTenantId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.aioveu.common.base.BaseEntity;
 import lombok.Data;
 
 import java.util.Date;

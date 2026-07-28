@@ -1,6 +1,6 @@
 package com.aioveu.oms.aioveu03OrderDelivery.model.form;
 
-import com.aioveu.common.enums.oms.OrderDeliveryStatusEnum;
+import com.aioveu.common.core.enums.oms.OrderDeliveryStatusEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

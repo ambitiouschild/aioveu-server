@@ -1,6 +1,6 @@
 package com.aioveu.pms.aioveu05Sku.controller.app;
 
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pms.model.dto.LockSkuDTO;
 import com.aioveu.pms.model.dto.SkuInfoDTO;
 import com.aioveu.pms.aioveu05Sku.service.PmsSkuService;

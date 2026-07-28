@@ -1,12 +1,10 @@
 package com.aioveu.auth.service;
 
-import cn.hutool.core.lang.Assert;
-import com.aioveu.common.result.Result;
-import com.aioveu.common.tenant.TenantContextHolder;
+import com.aioveu.common.core.result.Result;
+import com.aioveu.common.core.tenant.TenantContextHolder;
 import com.aioveu.lss.api.LssFeignClient;
 import com.aioveu.auth.model.LoginUserInfo;
 import com.aioveu.auth.model.SysUserDetails;
-import com.aioveu.common.enums.StatusEnum;
 import com.aioveu.lss.api.dto.UserAuthCredentials;
 import com.aioveu.system.api.SystemFeignClient;
 import com.aioveu.system.dto.UserAuthInfo;
@@ -149,14 +147,12 @@ public class SysUserDetailsService implements UserDetailsService {
                 //调用方
                 Result<UserAuthInfoWithTenantId> result = tenantFeignClient.getUserAuthInfoWithTenantId(trimmedUsername, currentTenantId);
                 UserAuthInfoWithTenantId userAuthInfoWithTenantId = result.getData();
-
+                log.info("从tenant微服务找到用户,打印认证信息userAuthInfoWithTenantId:{}",userAuthInfoWithTenantId);
                 if (userAuthInfoWithTenantId != null) {
                     // 构建Spring Security所需的UserDetails实现对象
                     source = "tenant";
                     sysUserDetails = new SysUserDetails(userAuthInfoWithTenantId);
                     //        sysUserDetails.setSource(source); // 可选：记录用户来源
-
-                    log.info("从tenant微服务找到用户,打印认证信息:{}",sysUserDetails);
                 }
             }
 
@@ -211,7 +207,8 @@ public class SysUserDetailsService implements UserDetailsService {
 //            throw new DisabledException("该账户已被禁用!");
 //        }
 
-        log.info("从{}微服务成功构建用户详情", source);
+        log.info("【SysUserDetailsService】trimmedUsername:{},租户currentTenantId：{},从source:{}微服务,成功构建用户详情sysUserDetails：{}",
+                trimmedUsername,currentTenantId,source,sysUserDetails);
 
         return sysUserDetails;
 

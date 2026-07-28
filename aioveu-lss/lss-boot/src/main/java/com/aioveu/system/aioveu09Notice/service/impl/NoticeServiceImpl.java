@@ -2,7 +2,7 @@ package com.aioveu.system.aioveu09Notice.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.exception.BusinessException;
+import com.aioveu.common.core.exception.BusinessException;
 import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.system.aioveu02User.model.entity.User;
 import com.aioveu.system.aioveu02User.model.entity.UserNotice;

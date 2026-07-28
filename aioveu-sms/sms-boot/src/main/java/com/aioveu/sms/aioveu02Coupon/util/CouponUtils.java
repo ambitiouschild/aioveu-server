@@ -2,7 +2,7 @@ package com.aioveu.sms.aioveu02Coupon.util;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
-import com.aioveu.common.base.IBaseEnum;
+import com.aioveu.common.core.base.IBaseEnum;
 import com.aioveu.sms.aioveu02Coupon.enums.CouponFaceValueTypeEnum;
 import com.aioveu.sms.aioveu02Coupon.enums.ValidityPeriodTypeEnum;
 

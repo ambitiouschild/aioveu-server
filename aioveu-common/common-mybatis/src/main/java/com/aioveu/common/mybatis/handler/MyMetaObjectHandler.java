@@ -1,7 +1,7 @@
 package com.aioveu.common.mybatis.handler;
 
 import com.aioveu.common.mybatis.config.property.TenantProperties;
-import com.aioveu.common.tenant.TenantContextHolder;
+import com.aioveu.common.core.tenant.TenantContextHolder;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import lombok.RequiredArgsConstructor;
 import org.apache.ibatis.reflection.MetaObject;

@@ -1,8 +1,7 @@
 package com.aioveu.auth.service.impl;
 
-import com.aioveu.auth.service.AuthService;
 import com.aioveu.auth.service.WxConfigService;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
 import lombok.RequiredArgsConstructor;

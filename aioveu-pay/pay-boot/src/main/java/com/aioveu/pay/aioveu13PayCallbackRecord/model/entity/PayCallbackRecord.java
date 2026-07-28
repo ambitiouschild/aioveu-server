@@ -1,12 +1,11 @@
 package com.aioveu.pay.aioveu13PayCallbackRecord.model.entity;
 
 
-import com.aioveu.common.base.BaseEntityWithTenantId;
-import com.aioveu.common.enums.pay.CallbackTriggerSourceEnum;
-import com.aioveu.common.enums.pay.PaymentCallbackStatusEnum;
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.core.base.BaseEntityWithTenantId;
+import com.aioveu.common.core.enums.pay.CallbackTriggerSourceEnum;
+import com.aioveu.common.core.enums.pay.PaymentCallbackStatusEnum;
+import com.aioveu.common.core.enums.pay.PaymentChannelEnum;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 

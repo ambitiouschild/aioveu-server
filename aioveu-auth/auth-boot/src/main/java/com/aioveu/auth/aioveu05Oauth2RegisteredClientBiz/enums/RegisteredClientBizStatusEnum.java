@@ -1,6 +1,5 @@
 package com.aioveu.auth.aioveu05Oauth2RegisteredClientBiz.enums;
 
-import com.aioveu.common.base.IBaseEnum;
 import com.baomidou.mybatisplus.annotation.IEnum;
 import lombok.Getter;
 

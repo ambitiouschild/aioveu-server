@@ -2,9 +2,8 @@ package com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.enums.StatusEnum;
-import com.aioveu.common.tenant.TenantContextHolder;
-import com.aioveu.tenant.aioveu18ManagerMenuHomeCategory.model.entity.ManagerMenuHomeCategory;
+import com.aioveu.common.core.enums.StatusEnum;
+import com.aioveu.common.core.tenant.TenantContextHolder;
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.converter.ManagerMenuHomeBannerConverter;
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.mapper.ManagerMenuHomeBannerMapper;
 import com.aioveu.tenant.aioveu19ManagerMenuHomeBanner.model.entity.ManagerMenuHomeBanner;

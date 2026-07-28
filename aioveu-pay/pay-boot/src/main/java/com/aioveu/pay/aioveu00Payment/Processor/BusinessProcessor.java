@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu00Payment.Processor;
 
 
-import com.aioveu.common.enums.pay.PaymentSceneEnum;
+import com.aioveu.common.core.enums.pay.PaymentSceneEnum;
 
 /**
  * @ClassName: OrderBusinessProcessor

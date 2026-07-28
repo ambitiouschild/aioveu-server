@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.aioveu.common.enums.StatusEnum;
+import com.aioveu.common.core.enums.StatusEnum;
 import com.aioveu.sms.aioveu01Advert.mapper.SmsAdvertMapper;
 import com.aioveu.sms.aioveu01Advert.model.entity.SmsAdvert;
 import com.aioveu.sms.aioveu01Advert.model.query.SmsAdvertQuery;

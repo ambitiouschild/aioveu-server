@@ -1,9 +1,9 @@
 package com.aioveu.oms.aioveu01Order.utils;
 
 
-import com.aioveu.common.enums.oms.DeliveryCompanyCodeEnum;
-import com.aioveu.common.enums.oms.LogisticsTypeEnum;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.enums.oms.DeliveryCompanyCodeEnum;
+import com.aioveu.common.core.enums.oms.LogisticsTypeEnum;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.tenant.api.TenantFeignClient;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
 import org.springframework.http.MediaType;
@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

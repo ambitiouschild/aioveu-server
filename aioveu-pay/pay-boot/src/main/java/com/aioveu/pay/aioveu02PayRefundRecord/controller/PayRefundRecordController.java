@@ -1,9 +1,9 @@
 package com.aioveu.pay.aioveu02PayRefundRecord.controller;
 
-import com.aioveu.common.annotation.Log;
-import com.aioveu.common.enums.LogModuleEnum;
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.annotation.Log;
+import com.aioveu.common.core.enums.LogModuleEnum;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pay.aioveu02PayRefundRecord.model.form.PayRefundRecordForm;
 import com.aioveu.pay.aioveu02PayRefundRecord.model.query.PayRefundRecordQuery;
 import com.aioveu.pay.aioveu02PayRefundRecord.model.vo.PayRefundRecordVO;

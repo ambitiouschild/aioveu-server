@@ -1,7 +1,7 @@
 package com.aioveu.pay.aioveu04PayConfigDummy.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pay.aioveu04PayConfigDummy.model.form.PayConfigDummyForm;
 import com.aioveu.pay.aioveu04PayConfigDummy.model.query.PayConfigDummyQuery;
 import com.aioveu.pay.aioveu04PayConfigDummy.model.vo.PayConfigDummyVo;

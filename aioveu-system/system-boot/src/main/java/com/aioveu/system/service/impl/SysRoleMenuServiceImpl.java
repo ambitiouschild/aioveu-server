@@ -1,7 +1,7 @@
 package com.aioveu.system.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.aioveu.common.constant.RedisConstants;
+import com.aioveu.common.core.constant.RedisConstants;
 import com.aioveu.system.mapper.SysRoleMenuMapper;
 import com.aioveu.system.model.bo.RolePermsBO;
 import com.aioveu.system.model.entity.SysRoleMenu;

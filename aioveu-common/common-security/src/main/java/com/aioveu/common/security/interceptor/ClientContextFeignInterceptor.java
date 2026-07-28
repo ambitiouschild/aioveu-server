@@ -1,6 +1,5 @@
 package com.aioveu.common.security.interceptor;
 
-import com.aioveu.common.tenant.ClientContextHolder;
 import feign.RequestInterceptor;
 /**
  * @ClassName: ClientContextFeignInterceptor

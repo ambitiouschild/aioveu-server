@@ -1,7 +1,7 @@
 package com.aioveu.ums.aioveu02MemberAddress.controller.admin;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.ums.aioveu02MemberAddress.model.form.UmsMemberAddressForm;
 import com.aioveu.ums.aioveu02MemberAddress.model.query.UmsMemberAddressQuery;
 import com.aioveu.ums.aioveu02MemberAddress.model.vo.UmsMemberAddressVO;

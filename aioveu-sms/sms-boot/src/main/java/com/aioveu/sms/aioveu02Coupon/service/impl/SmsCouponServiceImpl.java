@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.aioveu.common.base.IBaseEnum;
+import com.aioveu.common.core.base.IBaseEnum;
 import com.aioveu.sms.aioveu02Coupon.converter.SmsCouponConverter;
 import com.aioveu.sms.aioveu02Coupon.enums.CouponApplicationScopeEnum;
 import com.aioveu.sms.aioveu02Coupon.mapper.SmsCouponMapper;

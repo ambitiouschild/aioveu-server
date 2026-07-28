@@ -1,9 +1,9 @@
 package com.aioveu.tenant.aioveu08Config.controller;
 
-import com.aioveu.common.annotation.Log;
-import com.aioveu.common.enums.LogModuleEnum;
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.annotation.Log;
+import com.aioveu.common.core.enums.LogModuleEnum;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.tenant.aioveu08Config.model.form.ConfigForm;
 import com.aioveu.tenant.aioveu08Config.model.query.ConfigQuery;
 import com.aioveu.tenant.aioveu08Config.model.vo.ConfigVO;

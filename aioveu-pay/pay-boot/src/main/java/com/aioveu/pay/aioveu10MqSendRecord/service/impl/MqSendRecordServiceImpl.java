@@ -3,7 +3,7 @@ package com.aioveu.pay.aioveu10MqSendRecord.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.enums.pay.PaymentSceneEnum;
+import com.aioveu.common.core.enums.pay.PaymentSceneEnum;
 import com.aioveu.common.rabbitmq.enums.SendStatusEnum;
 import com.aioveu.common.rabbitmq.producer.model.vo.*;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;

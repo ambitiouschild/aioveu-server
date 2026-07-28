@@ -1,11 +1,11 @@
 package com.aioveu.tenant.aioveu03Role.controller;
 
-import com.aioveu.common.annotation.Log;
-import com.aioveu.common.annotation.RepeatSubmit;
-import com.aioveu.common.enums.LogModuleEnum;
-import com.aioveu.common.model.Option;
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.annotation.Log;
+import com.aioveu.common.core.annotation.RepeatSubmit;
+import com.aioveu.common.core.enums.LogModuleEnum;
+import com.aioveu.common.core.model.Option;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.tenant.aioveu03Role.model.form.RoleForm;
 import com.aioveu.tenant.aioveu03Role.model.query.RoleQuery;
 import com.aioveu.tenant.aioveu03Role.model.vo.RolePageVO;

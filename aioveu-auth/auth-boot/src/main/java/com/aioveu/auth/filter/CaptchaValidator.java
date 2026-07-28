@@ -3,8 +3,8 @@ package com.aioveu.auth.filter;
 
 import cn.hutool.captcha.generator.CodeGenerator;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.constant.RedisConstants;
-import com.aioveu.common.result.ResultCode;
+import com.aioveu.common.core.constant.RedisConstants;
+import com.aioveu.common.core.result.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;

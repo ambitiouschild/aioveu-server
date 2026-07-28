@@ -1,8 +1,8 @@
 package com.aioveu.pay.aioveu13PayCallbackRecord.controller;
 
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.pay.aioveu13PayCallbackRecord.model.form.PayCallbackRecordForm;
 import com.aioveu.pay.aioveu13PayCallbackRecord.model.query.PayCallbackRecordQuery;
 import com.aioveu.pay.aioveu13PayCallbackRecord.model.vo.PayCallbackRecordVo;

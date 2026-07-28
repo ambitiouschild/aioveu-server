@@ -13,7 +13,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.aioveu.common.constant.GlobalConstants;
+import com.aioveu.common.core.constant.GlobalConstants;
 import com.aioveu.ums.dto.MemberAddressDTO;
 import com.aioveu.ums.aioveu02MemberAddress.mapper.UmsMemberAddressMapper;
 import com.aioveu.ums.aioveu02MemberAddress.model.form.UmsMemberAddressForm;

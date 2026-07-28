@@ -1,7 +1,7 @@
 package com.aioveu.refund.aioveu07RefundReason.controller;
 
-import com.aioveu.common.result.PageResult;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.PageResult;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.refund.aioveu07RefundReason.model.form.RefundReasonForm;
 import com.aioveu.refund.aioveu07RefundReason.model.query.RefundReasonQuery;
 import com.aioveu.refund.aioveu07RefundReason.model.vo.RefundReasonVO;

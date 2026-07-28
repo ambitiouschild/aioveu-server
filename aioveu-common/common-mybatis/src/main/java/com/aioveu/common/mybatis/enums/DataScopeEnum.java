@@ -1,6 +1,6 @@
 package com.aioveu.common.mybatis.enums;
 
-import com.aioveu.common.base.IBaseEnum;
+import com.aioveu.common.core.base.IBaseEnum;
 import lombok.Getter;
 
 /**

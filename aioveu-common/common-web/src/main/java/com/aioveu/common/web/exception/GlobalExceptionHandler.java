@@ -1,10 +1,10 @@
 package com.aioveu.common.web.exception;
 
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.exception.BusinessException;
+import com.aioveu.common.core.exception.BusinessException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.aioveu.common.result.Result;
-import com.aioveu.common.result.ResultCode;
+import com.aioveu.common.core.result.Result;
+import com.aioveu.common.core.result.ResultCode;
 import feign.FeignException;
 import jakarta.servlet.ServletException;
 import jakarta.validation.ConstraintViolation;
@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-import java.nio.file.AccessDeniedException;
 import java.sql.SQLSyntaxErrorException;
 import java.util.concurrent.CompletionException;
 import java.util.regex.Matcher;

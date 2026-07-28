@@ -1,10 +1,10 @@
 package com.aioveu.system.aioveu05Dept.controller;
 
-import com.aioveu.common.annotation.Log;
-import com.aioveu.common.annotation.RepeatSubmit;
-import com.aioveu.common.enums.LogModuleEnum;
-import com.aioveu.common.model.Option;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.annotation.Log;
+import com.aioveu.common.core.annotation.RepeatSubmit;
+import com.aioveu.common.core.enums.LogModuleEnum;
+import com.aioveu.common.core.model.Option;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.system.aioveu05Dept.model.form.DeptForm;
 import com.aioveu.system.aioveu05Dept.model.query.DeptQuery;
 import com.aioveu.system.aioveu05Dept.model.vo.DeptVO;

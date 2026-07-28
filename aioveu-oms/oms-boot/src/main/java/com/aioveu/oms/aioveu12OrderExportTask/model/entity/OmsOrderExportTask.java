@@ -1,8 +1,8 @@
 package com.aioveu.oms.aioveu12OrderExportTask.model.entity;
 
 
-import com.aioveu.common.base.BaseEntityWithTenantId;
-import com.aioveu.common.enums.oms.OrderExportTaskStatusEnum;
+import com.aioveu.common.core.base.BaseEntityWithTenantId;
+import com.aioveu.common.core.enums.oms.OrderExportTaskStatusEnum;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;

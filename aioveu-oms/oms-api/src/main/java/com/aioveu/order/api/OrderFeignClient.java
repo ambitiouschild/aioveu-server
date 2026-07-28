@@ -1,6 +1,6 @@
 package com.aioveu.order.api;
 
-import com.aioveu.common.enums.pay.PaymentStatusEnum;
+import com.aioveu.common.core.enums.pay.PaymentStatusEnum;
 import com.aioveu.order.model.aioveu01Order.form.OmsOrderForm;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.cloud.openfeign.FeignClient;

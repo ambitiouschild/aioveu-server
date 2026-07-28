@@ -1,8 +1,8 @@
 package com.aioveu.system.aioveu06Dict.service.impl;
 
 import cn.hutool.core.lang.Assert;
-import com.aioveu.common.exception.BusinessException;
-import com.aioveu.common.model.Option;
+import com.aioveu.common.core.exception.BusinessException;
+import com.aioveu.common.core.model.Option;
 import com.aioveu.system.aioveu06Dict.converter.DictConverter;
 import com.aioveu.system.aioveu06Dict.mapper.DictMapper;
 import com.aioveu.system.aioveu06Dict.model.entity.Dict;

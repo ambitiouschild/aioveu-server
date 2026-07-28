@@ -1,6 +1,6 @@
 package com.aioveu.tenant.aioveu06Dict.converter;
 
-import com.aioveu.common.model.Option;
+import com.aioveu.common.core.model.Option;
 import com.aioveu.tenant.aioveu06Dict.model.entity.DictItem;
 import com.aioveu.tenant.aioveu06Dict.model.form.DictItemForm;
 import com.aioveu.tenant.aioveu06Dict.model.vo.DictPageVO;

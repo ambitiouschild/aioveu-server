@@ -3,7 +3,7 @@ package com.aioveu.auth.aioveu02Oauth2Authorization.model.query;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
-import com.aioveu.common.base.BasePageQuery;
+import com.aioveu.common.core.base.BasePageQuery;
 /**
  * @ClassName: Oauth2AuthorizationQuery
  * @Description TODO OAuth2授权信息，存储所有的授权记录、令牌和状态信息分页查询对象

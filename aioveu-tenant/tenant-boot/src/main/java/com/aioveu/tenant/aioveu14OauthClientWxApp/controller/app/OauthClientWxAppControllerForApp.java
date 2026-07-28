@@ -1,12 +1,11 @@
 package com.aioveu.tenant.aioveu14OauthClientWxApp.controller.app;
 
-import com.aioveu.common.annotation.Log;
-import com.aioveu.common.annotation.PublicApi;
-import com.aioveu.common.enums.LogModuleEnum;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.annotation.Log;
+import com.aioveu.common.core.annotation.PublicApi;
+import com.aioveu.common.core.enums.LogModuleEnum;
+import com.aioveu.common.core.result.Result;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.service.OauthClientWxAppService;
 import com.aioveu.tenant.dto.TenantWxAppInfo;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

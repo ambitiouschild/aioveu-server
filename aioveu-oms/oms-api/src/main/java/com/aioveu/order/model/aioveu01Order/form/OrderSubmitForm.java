@@ -1,9 +1,9 @@
 package com.aioveu.order.model.aioveu01Order.form;
 
-import com.aioveu.common.enums.oms.LogisticsTypeEnum;
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
-import com.aioveu.common.enums.oms.OrderSourceEnum;
-import com.aioveu.common.enums.pay.PaymentMethodEnum;
+import com.aioveu.common.core.enums.oms.LogisticsTypeEnum;
+import com.aioveu.common.core.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.core.enums.oms.OrderSourceEnum;
+import com.aioveu.common.core.enums.pay.PaymentMethodEnum;
 import com.baomidou.mybatisplus.annotation.TableField;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

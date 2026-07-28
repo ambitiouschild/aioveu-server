@@ -1,6 +1,6 @@
 package com.aioveu.auth.oauth2.handler;
 
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

@@ -1,7 +1,7 @@
 package com.aioveu.feign.decoder;
 
 import cn.hutool.http.HttpStatus;
-import com.aioveu.common.result.Result;
+import com.aioveu.common.core.result.Result;
 import feign.FeignException;
 import feign.Response;
 import feign.codec.DecodeException;

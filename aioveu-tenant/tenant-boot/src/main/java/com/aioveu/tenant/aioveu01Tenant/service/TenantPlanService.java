@@ -1,6 +1,6 @@
 package com.aioveu.tenant.aioveu01Tenant.service;
 
-import com.aioveu.common.model.Option;
+import com.aioveu.common.core.model.Option;
 import com.aioveu.tenant.aioveu01Tenant.model.entity.TenantPlan;
 import com.aioveu.tenant.aioveu01Tenant.model.form.TenantPlanForm;
 import com.aioveu.tenant.aioveu01Tenant.model.query.TenantPlanQuery;

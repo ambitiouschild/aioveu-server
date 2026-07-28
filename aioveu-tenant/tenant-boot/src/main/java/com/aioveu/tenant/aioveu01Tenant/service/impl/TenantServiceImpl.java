@@ -5,10 +5,10 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.auth.api.AuthFeignClient;
 import com.aioveu.auth.model.TenantClientInitDTO;
-import com.aioveu.common.constant.SystemConstants;
-import com.aioveu.common.exception.BusinessException;
+import com.aioveu.common.core.constant.SystemConstants;
+import com.aioveu.common.core.exception.BusinessException;
 import com.aioveu.common.security.util.SecurityUtils;
-import com.aioveu.common.tenant.TenantContextHolder;
+import com.aioveu.common.core.tenant.TenantContextHolder;
 import com.aioveu.tenant.aioveu01Tenant.converter.TenantConverter;
 import com.aioveu.tenant.aioveu01Tenant.mapper.TenantMapper;
 import com.aioveu.tenant.aioveu01Tenant.model.entity.Tenant;
@@ -27,14 +27,12 @@ import com.aioveu.tenant.aioveu03Role.model.form.RoleForm;
 import com.aioveu.tenant.aioveu03Role.service.RoleService;
 import com.aioveu.tenant.aioveu05Dept.model.form.DeptForm;
 import com.aioveu.tenant.aioveu05Dept.service.DeptService;
-import com.aioveu.tenant.aioveu16ManagerMenuCategory.service.ManagerMenuCategoryService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -365,6 +363,12 @@ public class TenantServiceImpl extends ServiceImpl<TenantMapper, Tenant> impleme
             tenantMenuService.saveTenantMenus(newTenantId, menuIds);
             roleService.assignMenusToRole(role.getId(), menuIds);
 
+
+            // ✅ 5) 补充租户管理员按钮级权限（F）  创建租户时，单独给管理员角色补按钮权限（最快）
+//            List<Long> buttonMenuIds = tenantPlanMenuService.listButtonMenuIdsByPlan(planId);
+//            if (CollectionUtil.isNotEmpty(buttonMenuIds)) {
+//                roleService.assignMenusToRole(role.getId(), buttonMenuIds);
+//            }
 
             // ✅ 4) 复制平台菜单分类 + 菜单项（新增）
             tenantManagerMenuInitService.initTenantManagerMenu(newTenantId);

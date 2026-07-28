@@ -3,8 +3,8 @@ package com.aioveu.gateway.filter;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.jwt.JWTPayload;
 import com.nimbusds.jose.JWSObject;
-import com.aioveu.common.constant.RedisConstants;
-import com.aioveu.common.result.ResultCode;
+import com.aioveu.common.core.constant.RedisConstants;
+import com.aioveu.common.core.result.ResultCode;
 import com.aioveu.gateway.util.WebFluxUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 

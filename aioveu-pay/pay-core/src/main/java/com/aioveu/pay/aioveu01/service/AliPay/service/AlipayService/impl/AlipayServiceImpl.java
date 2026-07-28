@@ -1,8 +1,8 @@
 package com.aioveu.pay.aioveu01.service.AliPay.service.AlipayService.impl;
 
-import com.aioveu.common.enums.pay.PaymentChannelEnum;
-import com.aioveu.common.enums.pay.PaymentMethodEnum;
-import com.aioveu.common.enums.pay.PaymentStatusEnum;
+import com.aioveu.common.core.enums.pay.PaymentChannelEnum;
+import com.aioveu.common.core.enums.pay.PaymentMethodEnum;
+import com.aioveu.common.core.enums.pay.PaymentStatusEnum;
 import com.aioveu.pay.aioveu01.service.WechatPay.utils.aliPay.aioveuAlipayGeneratePayParamsUtil;
 import com.aioveu.pay.model.aioveuPayQueryResultAdapter.AliPayQueryResult;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
@@ -12,7 +12,7 @@ import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.request.*;
 import com.alipay.api.response.*;
-import com.aioveu.common.enums.pay.RefundStatusEnum;
+import com.aioveu.common.core.enums.pay.RefundStatusEnum;
 import com.aioveu.pay.aioveu01.service.AliPay.AlipayRequestFactory.AlipayRequestFactory;
 import com.aioveu.pay.aioveu01.service.AliPay.config.AlipayConfig;
 import com.aioveu.pay.aioveu01.service.AliPay.service.AlipayService.AlipayService;
