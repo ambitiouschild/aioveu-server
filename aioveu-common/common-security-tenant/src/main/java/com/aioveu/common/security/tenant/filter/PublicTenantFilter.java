@@ -1,11 +1,11 @@
-package com.aioveu.common.security.resource.filter;
+package com.aioveu.common.security.tenant.filter;
 
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.aioveu.common.security.resource.config.property.SecurityProperties;
-import com.aioveu.common.security.core.model.SecurityFilterOrders;
-import com.aioveu.common.security.core.service.Impl.PublicTenantResolver;
 import com.aioveu.common.core.tenant.TenantContextHolder;
+import com.aioveu.common.security.tenant.config.TenantFilterOrders;
+import com.aioveu.common.security.tenant.config.property.TenantResolveProperties;
+import com.aioveu.common.security.tenant.service.Impl.PublicTenantResolver;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,15 +18,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.servlet.HandlerMapping;
 
 import java.io.IOException;
 import java.util.List;
 
 /**
  * @ClassName: PublicTenantFilter
- * @Description TODO  Filter 里只允许“计算”，不允许“通信”
+ * @Description TODO  Filter 里只允许“计算”，不允许“通信”  👉 它是“租户解析引擎”，不是“commons-util”
  * @Author aioveu
  * @Author 雒世松
  * @Date 2026/7/10 10:20
@@ -35,43 +33,19 @@ import java.util.List;
 /**
  * 公共接口租户解析过滤器
  *
- * <p><b>核心职责：</b>
- *
- * <p><b>设计原则：</b>
- * <ul>
- *   <li>Filter 中只允许“内存计算”，不允许直接发起远程调用</li>
- *   <li>远程调用（Feign）被 {@link PublicTenantResolver} 中的 Caffeine Cache 封装</li>
- *   <li>Filter 不关心 tenantId 的来源细节，只关心结果</li>
- *   <li>解析失败直接拒绝请求，不兜底、不默认租户</li>
- * </ul>
- *
- * <p><b>执行顺序：</b>
- * <ol>
- *   <li>{@link #shouldNotFilter}：判断是否需要对当前请求生效</li>
- *   <li>{@link #doFilterInternal}：解析租户并设置上下文</li>
- *   <li>{@link TenantContextHolder}：线程级租户上下文，供下游业务使用</li>
- * </ol>
- *
- * <p><b>重要约束：</b>
- * <ul>
- *   <li>本 Filter 仅作用于 Servlet MVC 请求</li>
- *   <li>非 MVC 请求（如 actuator、static）直接跳过</li>
- *   <li>必须与 {@link PublicTenantResolver} 配合使用</li>
- * </ul>
- *
  * @author aioveu
  * @author 雒世松
  * @since 2026-07-10
  */
 @Slf4j
-@Component
+@Component  //@Component就是“登记” 不是通过 @Configuration  //但依然是 Spring 管理的 Bean
 @RequiredArgsConstructor
 public class PublicTenantFilter extends OncePerRequestFilter implements Ordered {
 
 
     private static final String HEADER_CLIENT_ID = "X-Client-Id";
     private static final String HEADER_CLIENT_VERIFIED = "X-Client-Verified";
-    private final SecurityProperties securityProperties;
+    private final TenantResolveProperties tenantResolveProperties;
 
     /**
      * 公共租户解析器
@@ -93,7 +67,7 @@ public class PublicTenantFilter extends OncePerRequestFilter implements Ordered 
 //    }
     @Override
     public int getOrder() {
-        return SecurityFilterOrders.PUBLIC_TENANT_FILTER;
+        return TenantFilterOrders.PUBLIC_TENANT_FILTER;
     }
 
     /**
@@ -123,10 +97,9 @@ public class PublicTenantFilter extends OncePerRequestFilter implements Ordered 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
 
-        log.error("【PublicTenantFilter】shouldNotFilter called, URI={}", request.getRequestURI());
-        HandlerMethod handlerMethod = getHandlerMethod(request);
+        String uri = request.getRequestURI();
 
-        log.error("【PublicTenantFilter】handlerMethod={}", handlerMethod);
+        log.error("【PublicTenantFilter】shouldNotFilter called, URI={}", uri);
 
         // ✅ 1. 有 JWT = 直接跳过（最关键的放行）
         String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
@@ -135,17 +108,12 @@ public class PublicTenantFilter extends OncePerRequestFilter implements Ordered 
             return true; // ✅ 不执行本 Filter
         }
 
-        if (request.getRequestURI().contains("/openIdAndTenantId/")) {
-            log.info("【PublicTenantFilter】openIdAndTenantId接口即跳过, URI={}", request.getRequestURI());
-            return true; // ✅ 不执行本 Filter
-        }
-
         /*
         * shouldNotFilter()的语义是：
                 ✅ true  = 不执行这个 Filter
         * */
-        String uri = request.getRequestURI();
-        List<String> whitelist = securityProperties.getWhitelistPaths();
+
+        List<String> whitelist = tenantResolveProperties.getWhitelistPaths();
         if (CollectionUtil.isEmpty(whitelist)) {
             return true;
         }
@@ -275,24 +243,4 @@ public class PublicTenantFilter extends OncePerRequestFilter implements Ordered 
         }
     }
 
-
-    /**
-     * 从 Spring MVC 上下文中获取当前请求的 HandlerMethod
-     *
-     * <p><b>说明：</b>
-     * <ul>
-     *   <li>该方法仅在 DispatcherServlet 处理完成后有效</li>
-     *   <li>非 MVC 请求（如 actuator、静态资源）返回 null</li>
-     *   <li>返回值可用于判断方法注解、类注解等元数据</li>
-     * </ul>
-     *
-     * @param request 当前 HTTP 请求
-     * @return HandlerMethod 实例，或 null
-     */
-    private HandlerMethod getHandlerMethod(HttpServletRequest request) {
-        Object handler = request.getAttribute(
-                HandlerMapping.BEST_MATCHING_HANDLER_ATTRIBUTE
-        );
-        return handler instanceof HandlerMethod hm ? hm : null;
-    }
 }

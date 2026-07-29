@@ -1,4 +1,4 @@
-package com.aioveu.common.security.core.service;
+package com.aioveu.common.security.tenant.service;
 
 
 /**
@@ -32,6 +32,16 @@ public interface TenantLoader {
      *
      * @param clientId 客户端ID
      * @return 租户ID
+     *
      */
+
+
+    /*
+    * ┌──────────────────────┐
+    │ feignTenantLoader    │  ← PMS / SMS
+    │ dbTenantLoader    │  ← tenant 服务
+
+    *
+    * */
     Long load(String clientId);
 }

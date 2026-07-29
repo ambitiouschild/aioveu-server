@@ -61,11 +61,7 @@
         </dependency>
 
 
-        <dependency>
-            <groupId>com.aioveu</groupId>
-            <artifactId>tenant-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+
 
         <!-- 不引 starter -->
         <!-- 不引 mybatis-plus-core -->

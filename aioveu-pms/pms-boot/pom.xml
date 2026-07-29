@@ -80,10 +80,15 @@
             <artifactId>common-rabbitmq</artifactId>
         </dependency>
 
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-security-tenant</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.aioveu</groupId>
             <artifactId>common-security-resource</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>

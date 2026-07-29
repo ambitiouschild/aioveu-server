@@ -131,6 +131,13 @@
             <version>${common-cache.version}</version>
         </dependency>
 
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
+            <artifactId>common-security-tenant</artifactId>
+        </dependency>
+
+
         <dependency>
             <groupId>com.aioveu</groupId>
             <artifactId>common-security-resource</artifactId>

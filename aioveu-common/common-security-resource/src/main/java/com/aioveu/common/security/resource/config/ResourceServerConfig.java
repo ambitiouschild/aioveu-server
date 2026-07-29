@@ -7,7 +7,6 @@ import com.aioveu.common.security.resource.config.property.SecurityProperties;
 import com.aioveu.common.security.resource.exception.MyAccessDeniedHandler;
 import com.aioveu.common.security.resource.filter.JwtBlacklistFilter;
 import com.aioveu.common.security.resource.filter.JwtVersionFilter;
-import com.aioveu.common.security.resource.filter.PublicTenantFilter;
 import com.aioveu.common.security.resource.filter.TenantFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +21,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
@@ -31,7 +28,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
@@ -91,7 +87,6 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 * */
 
 // 从application.yml中读取security前缀的配置
-//@ConfigurationProperties(prefix = "security")   // ❌ 属性绑定类
 // 翻译：类被标记为@ConstructorBinding，但又被定义为Spring组件
 @Configuration   // 标记为配置类 // ❌ 配置类   类没有被标记为@Configuration，Spring可能没有正确扫描到这个配置。
 @EnableWebSecurity   // 启用Spring Security Web安全支持
@@ -107,7 +102,6 @@ public class ResourceServerConfig {
     // 自定义认证入口点（401 Unauthorized情况）
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
-    private final PublicTenantFilter publicTenantFilter;
 
     /**
      * 创建黑名单检查过滤器  集成到 Spring Security
@@ -213,8 +207,6 @@ public class ResourceServerConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 注册过滤器 - 注意顺序很重要！  //在Security配置类中直接注册（推荐）
                 //方案1：将租户过滤器移到认证之后（推荐）
-                // ✅ 白名单请求：clientId → tenantId
-                .addFilterBefore(publicTenantFilter, BearerTokenAuthenticationFilter.class)
                 // ✅ JWT 相关过滤器
                 .addFilterBefore(jwtVersionFilter, BearerTokenAuthenticationFilter.class)
                 .addFilterBefore(jwtBlacklistFilter, BearerTokenAuthenticationFilter.class)

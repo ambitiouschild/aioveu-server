@@ -260,6 +260,12 @@
 
         <dependency>
             <groupId>com.aioveu</groupId>
+            <artifactId>common-security-tenant</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
             <artifactId>common-seata</artifactId>
             <version>${project.version}</version>
         </dependency>

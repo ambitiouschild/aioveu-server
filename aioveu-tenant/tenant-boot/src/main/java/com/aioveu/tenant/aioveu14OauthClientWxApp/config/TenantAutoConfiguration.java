@@ -1,7 +1,6 @@
 package com.aioveu.tenant.aioveu14OauthClientWxApp.config;
 
-
-import com.aioveu.common.security.core.service.TenantLoader;
+import com.aioveu.common.security.tenant.service.TenantLoader;
 import com.aioveu.tenant.aioveu14OauthClientWxApp.service.OauthClientWxAppService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -59,6 +58,18 @@ import org.springframework.context.annotation.Primary;
 )
 public class TenantAutoConfiguration {
 
+
+
+    /*
+    *       ✅ PublicTenantResolver是“所有服务统一的调用入口”
+            ✅ 它不关心配置是谁写的
+            ✅ **它通过 TenantLoader这个“配置驱动的 SPI”来决定：
+            ‑ 是走 Feign
+            ‑ 还是走本地 DB**
+            ❌ 它自己不应该再读任何 security.tenant.*开关
+    *
+    *
+    * */
     @Bean
     @Primary
     public TenantLoader dbTenantLoader(OauthClientWxAppService oauthClientWxAppService) {

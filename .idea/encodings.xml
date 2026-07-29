@@ -20,6 +20,7 @@
     <file url="file://$PROJECT_DIR$/aioveu-common/common-seata/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-common/common-security-core/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-common/common-security-resource/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/aioveu-common/common-security-tenant/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-common/common-security/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-common/common-sms/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/aioveu-common/common-web/src/main/java" charset="UTF-8" />

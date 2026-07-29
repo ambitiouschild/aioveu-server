@@ -1,11 +1,17 @@
-package com.aioveu.common.security.core.service.Impl;
+package com.aioveu.common.security.tenant.service.Impl;
 
 
-import com.aioveu.common.security.core.service.TenantLoader;
+import com.aioveu.common.security.tenant.config.CommonTenantFeignAutoConfiguration;
+import com.aioveu.common.security.tenant.service.TenantLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -20,13 +26,21 @@ import java.time.Duration;
  * @Version 1.0
  **/
 @Slf4j
-@Component
+@Configuration
+@AutoConfigureAfter(CommonTenantFeignAutoConfiguration.class)   //✅ 在自动装配类里注册
 @RequiredArgsConstructor
 public class PublicTenantResolver {
 
 
 
-//    private final TenantQueryService tenantQueryService;
+    //✅ 谁有 TenantLoader，谁才有 PublicTenantResolver  ✅ 彻底消灭 NPE
+    @Bean
+    @ConditionalOnMissingBean
+    public PublicTenantResolver publicTenantResolver(
+            @Autowired(required = false) TenantLoader tenantLoader
+    ) {
+        return new PublicTenantResolver(tenantLoader);
+    }
 
     /**
      * ✅ 加载函数：由 aioveu-tenant 注入
@@ -59,20 +73,31 @@ public class PublicTenantResolver {
 //        return loadTenantId;
 //    }
 
+    //✅ 改进（防御式，日志友好）
     private Long loadTenantId(String clientId) {
-        log.info("【PublicTenantResolver】Cache Miss, clientId={}", clientId);
+        if (tenantLoader == null) {
+            log.error("No TenantLoader available for clientId={}", clientId);
+            throw new IllegalStateException(
+                    "TenantLoader not configured. Check security.tenant.enabled and tenant-api dependency."
+            );
+        }
+        log.info("Cache Miss, clientId={}", clientId);
         return tenantLoader.load(clientId);
     }
 
     /**
-     * ✅ Filter 唯一入口
+     * ✅ Filter 唯一入口  ✅ 或者：不要让 Caffeine 缓存异常
      */
     public Long resolve(String clientId) {
-
         if (clientId == null) {
             throw new IllegalArgumentException("Missing X-Client-Id");
         }
-        return cache.get(clientId);
+        try {
+            return cache.get(clientId);
+        } catch (RuntimeException e) {
+            log.error("Failed to resolve tenantId for clientId={}", clientId, e);
+            throw e;
+        }
     }
 
 
