@@ -1,4 +1,4 @@
-package com.aioveu.common.security.resource.config.property;
+package com.aioveu.common.mybatis.config.property;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @ClassName: TenantProperties
@@ -17,8 +18,8 @@ import java.util.List;
  **/
 @Data
 @Component
-@ConfigurationProperties(prefix = "tenant")
-public class TenantProperties {
+@ConfigurationProperties(prefix = "mybatis.tenant")
+public class TenantMybatisProperties {
 
     /**
      * 租户字段名
@@ -30,5 +31,5 @@ public class TenantProperties {
      * 忽略多租户过滤的表名列表
      * 系统表、租户表等不需要租户隔离的表
      */
-    private List<String> ignoreTables = new ArrayList<>();
+    private Set<String> ignoreTables;
 }

@@ -56,13 +56,6 @@
         </dependency>
 
 
-<!--        ✅ MyBatis 配置类里注册 MyDataPermissionHandler-->
-<!--        ✅ Handler 本身不依赖 mybatis-->
-        <dependency>
-            <groupId>com.aioveu</groupId>
-            <artifactId>common-security-resource</artifactId>
-        </dependency>
-
     </dependencies>
 
 </project>

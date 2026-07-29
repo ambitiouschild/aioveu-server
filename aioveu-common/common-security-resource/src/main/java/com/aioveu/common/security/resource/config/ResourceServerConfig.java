@@ -8,11 +8,15 @@ import com.aioveu.common.security.resource.exception.MyAccessDeniedHandler;
 import com.aioveu.common.security.resource.filter.JwtBlacklistFilter;
 import com.aioveu.common.security.resource.filter.JwtVersionFilter;
 import com.aioveu.common.security.resource.filter.TenantFilter;
+import com.aioveu.common.security.resource.handler.MyDataPermissionHandler;
+import com.baomidou.mybatisplus.extension.plugins.handler.DataPermissionHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -152,7 +156,15 @@ public class ResourceServerConfig {
 //    }
 
 
-
+    /**
+     * 数据权限处理器（资源服务器提供）
+     */
+    @Bean
+    @Primary
+    @ConditionalOnMissingBean(DataPermissionHandler.class)
+    public DataPermissionHandler dataPermissionHandler() {
+        return new MyDataPermissionHandler();
+    }
 
 
     /**

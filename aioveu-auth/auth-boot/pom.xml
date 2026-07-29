@@ -111,8 +111,6 @@
             <version>4.6.0</version> <!-- 或更高版本 -->
         </dependency>
 
-
-<!--        common-security-resource   ✅（你之前为了注册 Handler 加的）-->
         <dependency>
             <groupId>com.aioveu</groupId>
             <artifactId>common-mybatis</artifactId>
