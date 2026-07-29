@@ -447,13 +447,13 @@ public class AuthorizationServerConfig {
     }
 
     /**
-     * 密码编码器
+     * 密码编码器 ✅ PasswordEncoder 放 security-core：完全正确
      * 使用Spring Security的委托密码编码器，支持多种编码格式
      */
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
+//    @Bean
+//    public PasswordEncoder passwordEncoder() {
+//        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+//    }
 
 
     /*
