@@ -2,6 +2,7 @@ package com.aioveu.gateway.filter;
 
 
 import com.aioveu.common.core.constant.JwtClaimConstants;
+import com.aioveu.gateway.config.JwtConfig;
 import com.aioveu.gateway.service.ClientWhitelistWithRedisService;
 import com.alibaba.nacos.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -14,9 +15,6 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-
-
-import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -52,23 +50,17 @@ public class ClientIdGatewayFilter implements GatewayFilter, Ordered {
     private static final String HEADER_CLIENT_ID = "X-Client-Id";
     private static final String HEADER_TEENANT_ID = "X-Tenant-Id";
     private static final String HEADER_CLIENT_VERIFIED = "X-Client-Verified";
-    private final ReactiveJwtDecoder jwtDecoder;
+
+    private final JwtConfig.GatewayJwtParser gatewayJwtParser;
     private final ClientWhitelistWithRedisService clientWhitelistWithRedisService;
-
-//    private static final Set<String> BYPASS_PATHS = Set.of(
-//            "/oauth2/jwks",
-//            "/oauth2/token",
-//            "/oauth2/authorize"
-//    );
-
-
 
     //构造函数注入
      // ✅ 关键：@Lazy 方案 A（强烈推荐）：把构造函数注入改成 @Lazy
-    public ClientIdGatewayFilter(@Lazy @Qualifier("gatewayJwtDecoder") ReactiveJwtDecoder jwtDecoder,
-                                 ClientWhitelistWithRedisService clientWhitelistWithRedisService
+    public ClientIdGatewayFilter(
+            JwtConfig.GatewayJwtParser gatewayJwtParser,
+            ClientWhitelistWithRedisService clientWhitelistWithRedisService
     ) {
-        this.jwtDecoder = jwtDecoder;
+        this.gatewayJwtParser = gatewayJwtParser;
         this.clientWhitelistWithRedisService = clientWhitelistWithRedisService;
     }
 
@@ -166,14 +158,6 @@ public class ClientIdGatewayFilter implements GatewayFilter, Ordered {
 
                     log.info("【ClientIdGatewayFilter】匿名请求，clientId 校验通过: {}", clientId);
 
-
-                    ServerHttpRequest finalRequest = exchange.getRequest().mutate()
-                            .header(HEADER_CLIENT_ID, clientId)
-                            .header(HEADER_CLIENT_VERIFIED, "true")
-                            .build();
-
-                    log.error("【ClientIdGatewayFilter】FINAL HEADERS: {}", finalRequest.getHeaders());
-
                     return chain.filter(
                             exchange.mutate()
                                     .request(mutateClientVerifiedHeader(exchange, clientId))
@@ -188,20 +172,8 @@ public class ClientIdGatewayFilter implements GatewayFilter, Ordered {
      * ✅ 解析 clientId（JWT > Header）
      * JWT 是权威来源，Header 是传输载体
      */
-//    private Mono<String> resolveTenantFromJwt(String token) {
-//        return jwtDecoder.decode(token)
-//                .map(jwt -> jwt.getClaimAsString(JwtClaimConstants.Tenant.ID))
-//                .filter(StringUtils::isNotBlank);
-//    }
     private Mono<Long> resolveTenantFromJwt(String token) {
-        return jwtDecoder.decode(token)
-                .map(jwt -> {
-                    Object value = jwt.getClaims().get(JwtClaimConstants.Tenant.ID);
-                    if (value instanceof Long l) return l;
-                    if (value instanceof Integer i) return i.longValue();
-                    return null;
-                })
-                .filter(Objects::nonNull);
+        return gatewayJwtParser.parseTenantId(token);
     }
 
     private Mono<String> resolveClientId(ServerWebExchange exchange) {

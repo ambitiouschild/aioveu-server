@@ -2,7 +2,6 @@ package com.aioveu.gateway.service.impl;
 
 
 import com.aioveu.gateway.service.TenantQueryService;
-import com.aioveu.tenant.dto.TenantWxAppInfo;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.RequiredArgsConstructor;
@@ -49,35 +48,6 @@ public class TenantQueryServiceImpl implements TenantQueryService {
             .expireAfterWrite(Duration.ofMinutes(5))
             .build();
 
-
-
-    /**
-     * ✅ 带缓存：根据 clientId 查询租户信息
-     */
-    @Override
-    public Mono<TenantWxAppInfo> getTenantWxAppInfoByClientId(String clientId) {
-
-
-        // 1. 先查缓存（如果有完整信息缓存，可以直接返回）
-        // 这里因为返回的是完整 DTO，缓存意义不大，建议直接用 tenantId 缓存即可
-        return webClientBuilder.build()
-                .get()
-                .uri(uri -> uri
-                        .scheme("lb")
-                        .host("aioveu-tenant")
-                        .path("/aioveu/api/v8/app/tenant/oauth-client-wx-app/getTenantWxAppInfoByClientId")
-                        .queryParam("clientId", clientId)
-                        .build()
-                )
-                .retrieve()
-                .onStatus(
-                        status -> status.is4xxClientError() || status.is5xxServerError(),
-                        resp -> Mono.error(new RuntimeException("租户服务调用失败"))
-                )
-                .bodyToMono(TenantWxAppInfo.class)
-                .doOnError(e -> log.error("获取租户信息异常, clientId={}", clientId, e))
-                .onErrorResume(e -> Mono.empty());
-    }
 
     /**
      * ✅ 带缓存：根据 clientId 获取 tenantId

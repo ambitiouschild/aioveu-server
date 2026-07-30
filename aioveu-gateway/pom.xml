@@ -84,25 +84,12 @@
 <!--        gateway 提供 实现-->
 
 
-        <!-- 1. 核心接口（包含 JwtClaimAccessor 和 getClaimAsLong） -->
+        <!-- JWT 解析（工具级） -->
         <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-oauth2-core</artifactId>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>9.37</version>
         </dependency>
-
-        <!-- 2. 解码器（包含 ReactiveJwtDecoder） -->
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-oauth2-jose</artifactId>
-        </dependency>
-
-        <!-- 或者直接用 starter（推荐，更简单） -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
-        </dependency>
-
-
 
 
         <!-- Redis 限流 -->
@@ -122,11 +109,6 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- OAuth2 Client -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-oauth2-client</artifactId>
-        </dependency>
 
         <!-- Sentinel -->
         <dependency>
@@ -165,13 +147,6 @@
         <dependency>
             <groupId>com.aioveu</groupId>
             <artifactId>common-redis</artifactId>
-        </dependency>
-
-
-        <dependency>
-            <groupId>com.aioveu</groupId>
-            <artifactId>tenant-api</artifactId>
-            <version>1.0-SNAPSHOT</version>
         </dependency>
 
 

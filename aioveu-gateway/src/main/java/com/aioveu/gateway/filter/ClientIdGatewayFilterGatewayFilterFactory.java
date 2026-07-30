@@ -1,13 +1,13 @@
 package com.aioveu.gateway.filter;
 
 
+import com.aioveu.gateway.config.JwtConfig;
 import com.aioveu.gateway.service.ClientWhitelistWithRedisService;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,15 +40,15 @@ import org.springframework.stereotype.Component;
 public class ClientIdGatewayFilterGatewayFilterFactory extends AbstractGatewayFilterFactory<ClientIdGatewayFilterGatewayFilterFactory.Config> {
 
 
-    private final ReactiveJwtDecoder jwtDecoder;
+    private final JwtConfig.GatewayJwtParser gatewayJwtParser;
     private final ClientWhitelistWithRedisService clientWhitelistWithRedisService;
 
     public ClientIdGatewayFilterGatewayFilterFactory(
-            @Qualifier("gatewayJwtDecoder") @Lazy ReactiveJwtDecoder jwtDecoder,
+            @Lazy JwtConfig.GatewayJwtParser gatewayJwtParser,
             ClientWhitelistWithRedisService clientWhitelistWithRedisService
     ) {
         super(Config.class);
-        this.jwtDecoder = jwtDecoder;
+        this.gatewayJwtParser = gatewayJwtParser;
         this.clientWhitelistWithRedisService = clientWhitelistWithRedisService;
     }
 
@@ -61,9 +61,9 @@ public class ClientIdGatewayFilterGatewayFilterFactory extends AbstractGatewayFi
 
     @Override
     public GatewayFilter apply(Config config) {
-// ✅ Config 只在这里使用
+        // ✅ 只传“工具”和“业务服务”，不碰 Security
         return new ClientIdGatewayFilter(
-                jwtDecoder,
+                gatewayJwtParser,
                 clientWhitelistWithRedisService
         );
     }

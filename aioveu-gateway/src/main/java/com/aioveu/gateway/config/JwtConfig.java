@@ -2,12 +2,14 @@ package com.aioveu.gateway.config;
 
 
 import com.aioveu.gateway.config.property.GatewayProperties;
+import com.nimbusds.jwt.JWTParser;
+import com.nimbusds.jwt.SignedJWT;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.oauth2.jwt.JwtValidators;
-import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
-import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import reactor.core.publisher.Mono;
+
+import java.text.ParseException;
 
 /**
  * @ClassName: JwtConfig
@@ -17,6 +19,11 @@ import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
  * @Date 2026/6/16 21:15
  * @Version 1.0
  **/
+
+/**
+ * ✅ Gateway 专用 JWT 解析配置
+ * ❌ 不使用 ReactiveJwtDecoder（避免触发 Security）
+ */
 @Configuration
 @EnableConfigurationProperties(GatewayProperties.class)
 public class JwtConfig {
@@ -29,18 +36,45 @@ public class JwtConfig {
     }
 
 
+    /**
+     * ✅ 纯工具 Bean
+     * ✅ 不实现 Security 接口
+     * ✅ 不触发 ResourceServer 自动配置
+     */
     @Bean("gatewayJwtDecoder")
-    public ReactiveJwtDecoder reactiveJwtDecoder() {
+    public GatewayJwtParser gatewayJwtParser() {
+        return new GatewayJwtParser();
+    }
 
-        String jwksUri = gatewayProperties.getEndpoint() + "/oauth2/jwks";
+    /**
+     * ✅ Gateway 专用 JWT 解析器
+     * 只做一件事：解析 claim
+     */
+    public static class GatewayJwtParser {
 
-        NimbusReactiveJwtDecoder decoder =
-                NimbusReactiveJwtDecoder.withJwkSetUri(jwksUri).build();
+        /**
+         * 解析 JWT，提取 tenantId
+         */
+        public Mono<Long> parseTenantId(String token) {
+            if (token == null || token.isEmpty()) {
+                return Mono.empty();
+            }
 
-        // ✅ 超时保护
-        decoder.setJwtValidator(JwtValidators.createDefault());
-//        decoder.setJwtDecoderClockSkew(Duration.ofSeconds(30));
+            try {
+                SignedJWT jwt = (SignedJWT) JWTParser.parse(token);
+                Object tenantId = jwt.getJWTClaimsSet()
+                        .getClaim("tenant_id");
 
-        return decoder;
+                if (tenantId instanceof Long l) {
+                    return Mono.just(l);
+                }
+                if (tenantId instanceof Integer i) {
+                    return Mono.just(i.longValue());
+                }
+                return Mono.empty();
+            } catch (ParseException e) {
+                return Mono.empty();
+            }
+        }
     }
 }

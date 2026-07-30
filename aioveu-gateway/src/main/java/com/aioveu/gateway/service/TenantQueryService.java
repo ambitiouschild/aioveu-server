@@ -1,7 +1,5 @@
 package com.aioveu.gateway.service;
 
-
-import com.aioveu.tenant.dto.TenantWxAppInfo;
 import reactor.core.publisher.Mono;
 
 /**
@@ -15,7 +13,6 @@ import reactor.core.publisher.Mono;
 
 public interface TenantQueryService {
 
-    Mono<TenantWxAppInfo> getTenantWxAppInfoByClientId(String clientId);
 
     Mono<Long> getTenantIdByClientId(String clientId);
 
