@@ -233,7 +233,7 @@ public class AuthServiceImpl implements AuthService {
             }
 
             // 获取用户在新租户下的权限信息（可选，如果需要更新权限） 创建包含新租户ID的用户详情
-            Result<UserAuthCredentials> result= tenantFeignClient.getUserAuthInfoWithTenantId
+            Result<UserAuthCredentials> result= tenantFeignClient.getUserAuthCredentialsByUsernameAndTenantId
                     (details.getUsername(), tenantId);
 
             UserAuthCredentials userAuthCredentials = result.getData();
@@ -312,7 +312,7 @@ public class AuthServiceImpl implements AuthService {
             log.info("【Auth】校验用户是否能访问该租户");
 
             // 获取用户在新租户下的权限信息（可选，如果需要更新权限） 创建包含新租户ID的用户详情
-            Result<UserAuthCredentials> result = tenantFeignClient.getUserAuthInfoWithTenantId
+            Result<UserAuthCredentials> result = tenantFeignClient.getUserAuthCredentialsByUsernameAndTenantId
                     (SecurityUtils.getUsername(), tenantId);
             UserAuthCredentials userAuthCredentials = result.getData();
 

@@ -45,9 +45,9 @@ public interface TenantFeignClient {
      * @return {@link UserAuthCredentials}
      */
     @Operation(summary = "根据用户名和租户ID获取认证信息（用于多租户登录）", hidden = true)
-    @GetMapping("/aioveu/api/v8/admin/tenant/users/{username}/{tenantId}/authInfo")
+    @GetMapping("/aioveu/api/v8/admin/tenant/users/{username}/{tenantId}/UserAuthCredentials")
     @Log(value = "根据用户名和租户ID获取认证信息（用于多租户登录）", module = LogModuleEnum.TENANT)
-    Result<UserAuthCredentials> getUserAuthInfoWithTenantId(@PathVariable String username, @PathVariable Long tenantId);
+    Result<UserAuthCredentials> getUserAuthCredentialsByUsernameAndTenantId(@PathVariable String username, @PathVariable Long tenantId);
 
 
     /**

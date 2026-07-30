@@ -322,7 +322,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @return 用户认证凭证信息 {@link UserAuthCredentials}
      */
     @Override
-    public UserAuthCredentials getAuthInfoByUsernameAndTenantId(String username, Long tenantId) {
+    public UserAuthCredentials getUserAuthCredentialsByUsernameAndTenantId(String username, Long tenantId) {
 
         log.info("【getAuthInfoByUsernameAndTenantId】根据用户名和租户ID获取认证凭证信息: username={}, tenantId={}", username, tenantId);
         UserAuthCredentials userAuthCredentials =
@@ -366,61 +366,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return userAuthCredentials;
     }
 
-    /**
-     * 根据用户名和租户ID获取认证信息（用于多租户登录）
-     *
-     * @param username 用户名
-     * @param tenantId 租户ID
-     * @return {@link UserAuthCredentials}
-     */
-    @Override
-    public UserAuthCredentials getAuthInfoByUsernameInTenant(String username, Long tenantId) {
-        log.info("查询用户认证信息: username={}, tenantId={}", username, tenantId);
 
-        Long oldTenantId2 = TenantContextHolder.getTenantId();
-        log.info("【Tenant-User】TenantContextHolder查询用户oldTenantId2={}", oldTenantId2);
-
-        TenantContextHolder.setTenantId(tenantId);
-        log.info("【Tenant-User】TenantContextHolder设置请求TenantId={}", tenantId);
-        Long oldTenantId = TenantContextHolder.getTenantId();
-        log.info("【Tenant-User】TenantContextHolder再次查询用户oldTenantId={}", oldTenantId);
-
-        boolean oldIgnoreTenant = TenantContextHolder.isIgnoreTenant();
-        // 临时忽略租户过滤，查询指定租户下的用户
-        TenantContextHolder.setIgnoreTenant(true);
-
-        try {
-
-//            // 先查询用户
-//            User user = this.getOne(
-//                    new LambdaQueryWrapper<User>()
-//                            .eq(User::getUsername, username)
-//                            .eq(User::getTenantId, tenantId)
-//                            .eq(User::getIsDeleted, 0)
-//                            .last("LIMIT 1")
-//            );
-//            if (user == null) {
-//                return null;
-//            }
-//            log.info("已经根据tenantId：{}进行了过滤，这里的唯一用户User：{}", tenantId, user);
-//            // 设置租户上下文，然后查询认证信息（这样会包含该租户下的角色）
-//            TenantContextHolder.setIgnoreTenant(false);
-//            TenantContextHolder.setTenantId(tenantId);
-
-            return getAuthInfoByUsernameAndTenantId(username,tenantId);
-        } finally {
-            if (oldTenantId != null) {
-                TenantContextHolder.setTenantId(oldTenantId);
-                log.info("【Tenant-User】如果上下文租户Id不为空,则确保租户Id为原始租户id");
-            } else {
-                TenantContextHolder.setTenantId(tenantId);
-//                TenantContextHolder.clear();
-//                log.info("【Tenant-User】清除当前线程的租户上下文");
-                log.info("【Tenant-User】如果上下文租户Id为空,则确保将前端租户Id传递TenantContextHolder");
-            }
-            TenantContextHolder.setIgnoreTenant(oldIgnoreTenant);
-        }
-    }
 
     @Override
     public List<User> listUsersByUsernameAcrossAllTenants(String username) {

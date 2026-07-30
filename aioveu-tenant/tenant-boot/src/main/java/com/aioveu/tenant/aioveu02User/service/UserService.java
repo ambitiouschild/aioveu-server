@@ -91,16 +91,8 @@ public interface UserService extends IService<User> {
      * @param username 用户名
      * @return {@link UserAuthCredentials}
      */
-    UserAuthCredentials getAuthInfoByUsernameAndTenantId(String username, Long tenantId);
+    UserAuthCredentials getUserAuthCredentialsByUsernameAndTenantId(String username, Long tenantId);
 
-    /**
-     * 根据用户名和租户ID获取认证信息（用于多租户登录）
-     *
-     * @param username 用户名
-     * @param tenantId 租户ID
-     * @return {@link UserAuthCredentials}
-     */
-    UserAuthCredentials getAuthInfoByUsernameInTenant(String username, Long tenantId);
 
     /**
      * 跨租户查询用户账户列表

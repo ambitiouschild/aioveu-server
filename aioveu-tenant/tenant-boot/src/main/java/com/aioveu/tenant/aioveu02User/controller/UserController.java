@@ -150,13 +150,13 @@ public class UserController {
      * @return {@link UserAuthCredentials}
      */
     @Operation(summary = "根据用户名和租户ID获取认证信息（用于多租户登录）", hidden = true)
-    @GetMapping("/{username}/{tenantId}/authInfo")
+    @GetMapping("/{username}/{tenantId}/UserAuthCredentials")
     @Log(value = "根据用户名和租户ID获取认证信息（用于多租户登录）", module = LogModuleEnum.USER)
-    public Result<UserAuthCredentials> getUserAuthInfoWithTenantId(
+    public Result<UserAuthCredentials> getUserAuthCredentialsByUsernameAndTenantId(
             @Parameter(description = "用户名") @PathVariable String username,
             @Parameter(description = "租户ID") @PathVariable Long tenantId) {
 
-        UserAuthCredentials userAuthInfoWithTenantId = userService.getAuthInfoByUsernameInTenant(username,tenantId);
+        UserAuthCredentials userAuthInfoWithTenantId = userService.getUserAuthCredentialsByUsernameAndTenantId(username,tenantId);
         return Result.success(userAuthInfoWithTenantId);
 
     }

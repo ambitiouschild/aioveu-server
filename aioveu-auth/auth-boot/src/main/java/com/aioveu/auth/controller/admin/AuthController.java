@@ -1,6 +1,5 @@
 package com.aioveu.auth.controller.admin;
 
-import com.aioveu.auth.TokenManager.service.AuthTokenManagerService;
 import com.aioveu.auth.model.CaptchaResult;
 import com.aioveu.auth.service.AuthService;
 import com.aioveu.common.core.annotation.Log;
@@ -13,7 +12,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,15 +30,9 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor   // Lombok注解，为所有final字段生成构造函数，实现依赖注入
 public class AuthController {
 
-
-    private final RedisTemplate<String, Object> redisTemplate;
-
-    private final AuthTokenManagerService authTokenManagerService;// 令牌生成器
-
     // 注入认证服务层实例，用于处理业务逻辑
     private final AuthService authService;
 
-    private final TenantFeignClient tenantFeignClient;
     /**
      * 生成图形验证码接口
      * 用于用户登录或注册时的安全验证，防止机器人恶意请求

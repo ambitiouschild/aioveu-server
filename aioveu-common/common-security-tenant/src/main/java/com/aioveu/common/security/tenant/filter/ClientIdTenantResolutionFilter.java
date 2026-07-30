@@ -31,16 +31,22 @@ import java.util.List;
  * @Version 1.0
  **/
 /**
- * 公共接口租户解析过滤器
+ * 无认证（无 Token）场景下的租户解析过滤器
  *
- * @author aioveu
- * @author 雒世松
- * @since 2026-07-10
+ * ✅ 职责：
+ * - 从 X-Client-Id / clientId 参数解析 tenantId
+ * - 仅用于公共接口、注册、验证码、Feign 内部调用
+ *
+ * ❌ 不用于：
+ * - 已认证请求（JWT 场景）
+ * - Resource Server
+ *
+ * 与 TenantFilter（JWT → ThreadLocal）互斥
  */
 @Slf4j
 @Component  //@Component就是“登记” 不是通过 @Configuration  //但依然是 Spring 管理的 Bean
 @RequiredArgsConstructor
-public class PublicTenantFilter extends OncePerRequestFilter implements Ordered {
+public class ClientIdTenantResolutionFilter extends OncePerRequestFilter implements Ordered {
 
 
     private static final String HEADER_CLIENT_ID = "X-Client-Id";

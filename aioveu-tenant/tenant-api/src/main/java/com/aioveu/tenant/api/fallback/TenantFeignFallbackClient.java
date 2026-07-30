@@ -50,7 +50,7 @@ public class TenantFeignFallbackClient implements FallbackFactory<TenantFeignCli
             }
 
             @Override
-            public Result<UserAuthCredentials> getUserAuthInfoWithTenantId(String username, Long tenantId) {
+            public Result<UserAuthCredentials> getUserAuthCredentialsByUsernameAndTenantId(String username, Long tenantId) {
                 log.error("Feign fallback: getUserAuthInfoWithTenantId", cause);
                 log.error("feign远程调用多租户服务异常后的降级方法");
                 return Result.failed("根据用户名和租户ID获取认证信息（用于多租户登录）失败");

@@ -162,7 +162,7 @@ public class SysUserDetailsService implements UserDetailsService {
             if (tenantId != null) {
                 // ✅ 多租户场景：只查 tenant-service
                 return extractData(
-                        tenantFeignClient.getUserAuthInfoWithTenantId(username, tenantId)
+                        tenantFeignClient.getUserAuthCredentialsByUsernameAndTenantId(username, tenantId)
                 );
             }
 
