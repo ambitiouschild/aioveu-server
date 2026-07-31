@@ -2,6 +2,7 @@ package com.aioveu.tenant.aioveu03Role.mapper;
 
 import com.aioveu.tenant.aioveu03Role.model.bo.RolePermsBO;
 import com.aioveu.tenant.aioveu03Role.model.entity.RoleMenu;
+import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Mapper;
@@ -62,6 +63,12 @@ public interface RoleMenuMapper extends BaseMapper<RoleMenu> {
      * @param params roleCodes / tenantId / buttonType
      * @return key = roleCode, value = 权限集合
      */
+    /**
+     * 认证链路专用
+     * 租户条件由方法参数显式控制
+     * 禁止 MP 自动拼接 tenant_id
+     */
+    @InterceptorIgnore(tenantLine = "true")
     @MapKey("roleCode")
     Map<String, Set<String>> listRolePermsGroupByRoleWithTenantId(
             @Param("params") Map<String, Object> params

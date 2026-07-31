@@ -6,6 +6,7 @@ import com.aioveu.tenant.aioveu03Role.model.entity.Role;
 import com.aioveu.tenant.aioveu03Role.model.form.RoleForm;
 import com.aioveu.tenant.aioveu03Role.model.query.RoleQuery;
 import com.aioveu.tenant.aioveu03Role.model.vo.RolePageVO;
+import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 
