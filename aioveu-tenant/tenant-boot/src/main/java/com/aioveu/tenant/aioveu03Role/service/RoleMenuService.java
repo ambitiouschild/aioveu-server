@@ -58,4 +58,18 @@ public interface RoleMenuService extends IService<RoleMenu> {
      * @return 权限集合
      */
     Set<String> getRolePermsByRoleCodes(Set<String> roles);
+
+    /**
+     * 获取角色权限集合（带缓存）
+     * <p>
+     * 采用 Read-Through 缓存策略：
+     * <ol>
+     *   <li>优先从 Redis Hash 缓存读取</li>
+     *   <li>缓存未命中时回源 DB 并写入缓存</li>
+     * </ol>
+     *
+     * @param roles 角色编码集合
+     * @return 权限集合
+     */
+    Set<String> getRolePermsByRoleCodesWithTenantId(Set<String> roles,Long tenantId);
 }

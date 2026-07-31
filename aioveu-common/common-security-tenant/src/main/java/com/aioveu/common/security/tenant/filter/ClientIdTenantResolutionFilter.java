@@ -111,6 +111,8 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
         String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (StringUtils.hasText(auth) && auth.startsWith("Bearer ")) {
             log.info("【PublicTenantFilter】JWT 存在即跳过, JWT detected, skip filter, URI={}", request.getRequestURI());
+
+            //GET /aioveu/api/v8/admin/tenant/users/xinhuan/3/UserAuthCredentials 这个接口不会获得mp的tenantId
             return true; // ✅ 不执行本 Filter
         }
 

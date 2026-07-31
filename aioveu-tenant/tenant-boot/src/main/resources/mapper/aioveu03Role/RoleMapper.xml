@@ -47,4 +47,33 @@
             AND is_deleted = 0
         </where>
     </select>
+
+    <!-- 获取角色的数据权限列表 -->
+    <select id="getRoleDataScopesWithTenantId" resultType="com.aioveu.common.core.model.RoleDataScope">
+        SELECT
+        code AS roleCode,
+        data_scope AS dataScope
+        FROM
+        sys_role
+        <where>
+
+            <!-- ✅ 租户条件：必须手写 -->
+            AND tenant_id = #{tenantId}
+            AND is_deleted = 0
+
+            <choose>
+                <when test="roleCodes!=null and roleCodes.size>0">
+                    AND code IN
+                    <foreach collection="roleCodes" item="roleCode" separator="," open="(" close=")">
+                        #{roleCode}
+                    </foreach>
+                </when>
+                <otherwise>
+                    id = -1
+                </otherwise>
+            </choose>
+
+        </where>
+    </select>
+
 </mapper>

@@ -3,9 +3,12 @@ package com.aioveu.tenant.aioveu03Role.mapper;
 import com.aioveu.tenant.aioveu03Role.model.bo.RolePermsBO;
 import com.aioveu.tenant.aioveu03Role.model.entity.RoleMenu;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -37,8 +40,32 @@ public interface RoleMenuMapper extends BaseMapper<RoleMenu> {
     /**
      * 获取角色权限集合
      *
-     * @param roles
+     * @param roleCodes
      * @return
      */
-    Set<String> listRolePerms(Set<String> roles);
+    Set<String> listRolePerms(Set<String> roleCodes);
+
+
+    /*
+    *  ✅ 你 Service 里已经在用 Map<String, Object> params
+        ✅ Map 版本更灵活（buttonType、未来扩展）
+        ✅ 认证链路 = 多条件 = Map 更合适
+    * */
+    List<String> listRolePermsWithTenantId(
+            @Param("params") Map<String, Object> params
+    );
+
+
+    /**
+     * 按角色分组查询按钮权限（认证链路专用）
+     *
+     * @param params roleCodes / tenantId / buttonType
+     * @return key = roleCode, value = 权限集合
+     */
+    @MapKey("roleCode")
+    Map<String, Set<String>> listRolePermsGroupByRoleWithTenantId(
+            @Param("params") Map<String, Object> params
+    );
+
+
 }

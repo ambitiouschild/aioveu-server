@@ -36,4 +36,16 @@ public interface RoleMapper extends BaseMapper<Role> {
      * @return 数据权限列表
      */
     List<RoleDataScope> getRoleDataScopes(@Param("roleCodes") Set<String> roleCodes);
+
+
+    /**
+     * 获取角色的数据权限列表
+     *
+     * @param roleCodes 角色编码集合
+     * @return 数据权限列表
+     */
+    List<RoleDataScope> getRoleDataScopesWithTenantId(
+            @Param("roleCodes") Set<String> roleCodes,
+            @Param("tenantId") Long tenantId);
+
 }

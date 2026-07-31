@@ -102,6 +102,23 @@ public interface RoleService extends IService<Role> {
      */
     List<RoleDataScope> getRoleDataScopes(Set<String> roleCodes);
 
+
+    /**
+     *
+     *      * ✅✅✅ 路线 B（推荐）：认证链路“脱离 MP”
+     *      * 认证接口 = 参数驱动
+     *      * 业务接口 = MP 驱动
+     * 获取角色的数据权限列表
+     * <p>
+     * 用于多角色数据权限合并（并集策略），返回每个角色的数据权限范围
+     * @param roleCodes 角色编码集合
+     * @param tenantId tenantId
+     * @return 数据权限列表
+     */
+    List<RoleDataScope> getRoleDataScopesWithTenantId(
+            Set<String> roleCodes,
+            Long tenantId);
+
     /**
      * 获取角色的部门ID列表（自定义数据权限）
      *

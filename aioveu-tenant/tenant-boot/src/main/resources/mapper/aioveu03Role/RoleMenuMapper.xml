@@ -53,8 +53,114 @@
             t2.type = '${@com.aioveu.tenant.aioveu04Menu.enums.MenuTypeEnum@BUTTON.getValue()}'
             AND t2.perm IS NOT NULL
             AND t3.CODE IN
-            <foreach collection="roles" item="role" separator="," open="(" close=")">
+            <foreach collection="roleCodes" item="role" separator="," open="(" close=")">
                 #{role}
             </foreach>
     </select>
+
+    <!--
+认证链路专用 Mapper
+tenantId 来自方法参数，不依赖 ThreadLocal / MP
+禁止使用 ${} 枚举
+禁止在认证接口中依赖租户上下文
+-->
+
+    <!-- 获取角色拥有的权限列表 -->
+    <select id="listRolePermsWithTenantId" resultType="java.lang.String">
+        SELECT
+        DISTINCT t2.perm
+        FROM
+        sys_role_menu t1
+        INNER JOIN sys_menu t2 ON t2.id = t1.menu_id
+        INNER JOIN sys_role t3 ON t3.id = t1.role_id
+
+        <where>
+            <!-- ✅ 按钮权限 -->
+            AND t2.type = #{params.buttonType}
+            AND t2.perm IS NOT NULL
+
+            <!-- ✅ 角色编码  ✅ XML 用最稳妥的写法（IDEA 不报红）-->
+            AND t3.code IN
+            <foreach collection="params"
+                     item="role"
+                     index="key"
+                     separator=","
+                     open="("
+                     close=")">
+                #{role}
+            </foreach>
+
+            <!-- ✅ 租户隔离（核心） -->
+            AND t1.tenant_id = #{params.tenantId}
+            AND t2.tenant_id = #{params.tenantId}
+            AND t3.tenant_id = #{params.tenantId}
+
+            <!-- ✅ 逻辑删除 -->
+            AND t1.is_deleted = 0
+            AND t2.is_deleted = 0
+            AND t3.is_deleted = 0
+        </where>
+
+
+    </select>
+
+    <!--
+    认证链路专用 Mapper
+    tenantId 来自方法参数，不依赖 ThreadLocal / MP
+    禁止使用 ${} 枚举
+    禁止在认证接口中依赖租户上下文
+-->
+
+   <!--  ✅ 明确标注: 认证链路专用 -->
+    <resultMap id="RolePermMap" type="com.aioveu.tenant.aioveu03Role.model.bo.RolePermMapBO">
+        <id property="roleCode" column="roleCode"/>
+        <collection property="perms"
+                    ofType="java.lang.String"
+                    javaType="java.util.HashSet">
+            <result column="perm"/>
+        </collection>
+    </resultMap>
+
+
+
+
+    <select id="listRolePermsGroupByRoleWithTenantId"
+            resultMap="RolePermMap">
+
+        SELECT DISTINCT
+        t3.code AS roleCode,
+        t2.perm AS perm
+        FROM sys_role_menu t1
+        INNER JOIN sys_menu t2 ON t2.id = t1.menu_id
+        INNER JOIN sys_role t3 ON t3.id = t1.role_id
+        <where>
+            <!-- 按钮权限 -->
+            AND t2.type = #{params.buttonType}
+            AND t2.perm IS NOT NULL
+
+            <!-- 角色  params.roleCodes 现在的写法属于“防御性写法”，可以保留-->
+            AND t3.code IN
+            <foreach collection="params"
+                     item="role"
+                     index="key"
+                     separator=","
+                     open="("
+                     close=")">
+                #{role}
+            </foreach>
+
+            <!-- ✅ 租户隔离（认证接口 = 参数驱动） -->
+            AND t1.tenant_id = #{params.tenantId}
+            AND t2.tenant_id = #{params.tenantId}
+            AND t3.tenant_id = #{params.tenantId}
+
+            <!-- 逻辑删除 -->
+            AND t1.is_deleted = 0
+            AND t2.is_deleted = 0
+            AND t3.is_deleted = 0
+        </where>
+    </select>
+
+
+
 </mapper>

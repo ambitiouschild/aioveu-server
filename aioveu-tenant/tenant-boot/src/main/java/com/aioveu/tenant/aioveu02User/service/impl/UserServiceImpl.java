@@ -339,7 +339,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (userAuthCredentials != null) {
             Set<String> roles = userAuthCredentials.getRoles();
             // 获取角色的数据权限列表（支持多角色并集）
-            List<RoleDataScope> dataScopes = roleService.getRoleDataScopes(roles);
+            List<RoleDataScope> dataScopes = roleService.getRoleDataScopesWithTenantId(roles,tenantId);
 
             // 注意：这里假设所有角色的dataScope是一致的，如果不一致需要根据业务逻辑调整
             if (dataScopes != null && !dataScopes.isEmpty()) {
@@ -354,7 +354,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             log.info("【getAuthInfoByUsernameAndTenantId】获取到的数据权限明细dataScopes：{}",dataScopes);
 
             // ✅✅✅ 补上这一句：按钮权限
-            Set<String> perms = roleMenuService.getRolePermsByRoleCodes(roles);
+            Set<String> perms = roleMenuService.getRolePermsByRoleCodesWithTenantId(roles,tenantId);
             userAuthCredentials.setPerms(perms);
             log.info("【getAuthInfoByUsernameAndTenantId】获取到的接口权限标识集合（按钮权限）permissions：{}",perms);
 

@@ -333,6 +333,48 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
         return dataScopes;
     }
 
+    /**
+     *
+     *      * ✅✅✅ 路线 B（推荐）：认证链路“脱离 MP”
+     *      * 认证接口 = 参数驱动
+     *      * 业务接口 = MP 驱动
+     * 获取角色的数据权限列表
+     * <p>
+     * 用于多角色数据权限合并（并集策略），返回每个角色的数据权限范围
+     * @param roleCodes 角色编码集合
+     * @param tenantId tenantId
+     * @return 数据权限列表
+     */
+    @Override
+    public List<RoleDataScope> getRoleDataScopesWithTenantId(Set<String> roleCodes,Long tenantId) {
+        if (CollectionUtil.isEmpty(roleCodes)) {
+            return List.of();
+        }
+
+        // 查询角色的数据权限范围
+        List<RoleDataScope> dataScopes = this.baseMapper.getRoleDataScopesWithTenantId(roleCodes,tenantId);
+
+        // 对于自定义数据权限(CUSTOM)，需要查询关联的部门ID
+        for (RoleDataScope scope : dataScopes) {
+            if (DataScopeEnum.CUSTOM.getValue().equals(scope.getDataScope())) {
+                // 通过角色编码查询角色ID，再查询关联部门
+                Role role = this.getOne(new LambdaQueryWrapper<Role>()
+                        .eq(Role::getCode, scope.getRoleCode())
+                        .select(Role::getId));
+                if (role != null) {
+                    List<Long> deptIds = roleDeptService.getDeptIdsByRoleId(role.getId());
+                    scope.setCustomDeptIds(deptIds);
+                }
+            }
+        }
+
+        return dataScopes;
+    }
+
+
+
+
+
     @Override
     public List<Long> getRoleDeptIds(Long roleId) {
         return roleDeptService.getDeptIdsByRoleId(roleId);
