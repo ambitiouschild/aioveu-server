@@ -161,6 +161,7 @@ public class SysUserDetailsService implements UserDetailsService {
         try {
             if (tenantId != null) {
                 // ✅ 多租户场景：只查 tenant-service
+                log.info("「认证接口参数驱动」不仅是主流，而且是事实上的工业级标准");
                 return extractData(
                         tenantFeignClient.getUserAuthCredentialsByUsernameAndTenantId(username, tenantId)
                 );
