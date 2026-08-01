@@ -17,16 +17,26 @@ package com.aioveu.common.security.tenant.config;
 public interface TenantFilterOrders {
 
     /**
-     * 公共租户解析过滤器
+     * 公共租户解析过滤器（ClientId / 平台引导）
      * 早于：
-     * - SecurityContextPersistenceFilter
-     * - UsernamePasswordAuthenticationFilter
-     * - MyBatis 插件
+     * - SecurityContextPersistenceFilter (-110)
+     * - UsernamePasswordAuthenticationFilter (-50)
+     * - MyBatis / MP 租户插件
      */
-    int PUBLIC_TENANT_FILTER = -200;
+    int PUBLIC_TENANT_FILTER = -210;  // ClientId 解析
 
     /**
-     * 内部租户上下文清理过滤器（如有）
+     * 租户上下文清理过滤器
+     * 必须在：
+     * - MVC 执行完
+     * - MyBatis 执行完
+     * - 事务提交后
+     * 执行
+     *     * 晚于：
+     *      * - DispatcherServlet
+     *      * - HandlerInterceptor
+     *      * - MyBatis Executor
+     *      * - TransactionInterceptor
      */
-    int TENANT_CLEAR_FILTER = Integer.MAX_VALUE - 100;
+    int TENANT_CLEAR_FILTER = Integer.MAX_VALUE - 100;  // 清理上下文
 }
