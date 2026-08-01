@@ -122,8 +122,10 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
         * */
 
         List<String> whitelist = tenantResolveProperties.getWhitelistPaths();
+
+        // 2️白名单为空 → 跳过
         if (CollectionUtil.isEmpty(whitelist)) {
-            return true;
+            return true;  // ❌ 不解析 clientId
         }
 
 
@@ -133,6 +135,17 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
                 * // ✅ 在白名单 → 执行 Filter → false
                 *  // ✅ 不在白名单 → 跳过 Filter → true
         * */
+
+        /*
+         * shouldNotFilter() 语义说明：
+         *
+         * ✅ true  = 跳过当前 Filter（不执行）
+         * ✅ false = 执行当前 Filter
+         *
+         * 白名单逻辑：
+         * - URI 在白名单 → isWhitelist = true → return false → 执行 Filter
+         * - URI 不在白名单 → isWhitelist = false → return true → 跳过 Filter
+         */
         boolean isWhitelist = whitelist.stream()
                 .anyMatch(uri::startsWith);
 
