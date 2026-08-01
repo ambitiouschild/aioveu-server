@@ -318,12 +318,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     /**
      * 根据用户名和租户ID获取认证凭证信息  修改为返回单个用户（推荐）
      *
+     * ✅ sys_user：MP 驱动
+     * ✅ 业务接口：MP 驱动
+     * ✅ 认证接口：MP 驱动（手动 setTenantId）
+     *
      * @param username 用户名
      * @return 用户认证凭证信息 {@link UserAuthCredentials}
      */
     @Override
     public UserAuthCredentials getUserAuthCredentialsByUsernameAndTenantId(String username, Long tenantId) {
-
+        TenantContextHolder.setTenantId(tenantId);
         log.info("【getAuthInfoByUsernameAndTenantId】根据用户名和租户ID获取认证凭证信息: username={}, tenantId={}", username, tenantId);
         UserAuthCredentials userAuthCredentials =
                 this.baseMapper.getAuthInfoByUsernameAndTenantId(username,tenantId);
