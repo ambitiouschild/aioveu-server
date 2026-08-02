@@ -105,12 +105,12 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
 
         String uri = request.getRequestURI();
 
-        log.error("【PublicTenantFilter】shouldNotFilter called, URI={}", uri);
+        log.error("【ClientIdTenantResolutionFilter】shouldNotFilter called, URI={}", uri);
 
         // ✅ 1. 有 JWT = 直接跳过（最关键的放行）
         String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (StringUtils.hasText(auth) && auth.startsWith("Bearer ")) {
-            log.info("【PublicTenantFilter】JWT 存在即跳过, JWT detected, skip filter, URI={}", request.getRequestURI());
+            log.info("【ClientIdTenantResolutionFilter】JWT 存在即跳过, JWT detected, skip filter, URI={}", request.getRequestURI());
 
             //GET /aioveu/api/v8/admin/tenant/users/xinhuan/3/UserAuthCredentials 这个接口不会获得mp的tenantId
             return true; // ✅ 不执行本 Filter
@@ -146,10 +146,11 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
          * - URI 在白名单 → isWhitelist = true → return false → 执行 Filter
          * - URI 不在白名单 → isWhitelist = false → return true → 跳过 Filter
          */
+
         boolean isWhitelist = whitelist.stream()
                 .anyMatch(uri::startsWith);
 
-        log.info("【PublicTenantFilter】URI={}, isWhitelist={}", uri, isWhitelist);
+        log.info("【ClientIdTenantResolutionFilter】URI={}, isWhitelist={}", uri, isWhitelist);
         return !isWhitelist;
     }
 
@@ -202,12 +203,12 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
 
         String clientId;
         String verified = request.getHeader(HEADER_CLIENT_VERIFIED);
-        log.info("【PublicTenantFilter】请求提取解析verified: {}", verified);
+        log.info("【ClientIdTenantResolutionFilter】请求提取解析verified: {}", verified);
 
 // ✅ Gateway 转发请求
         if ("true".equals(verified)) {
             clientId = request.getHeader(HEADER_CLIENT_ID);
-            log.info("【PublicTenantFilter】Gateway request, clientId:{}", clientId);
+            log.info("【ClientIdTenantResolutionFilter】Gateway request, clientId:{}", clientId);
             if (clientId == null) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing X-Client-Id");
                 return;
@@ -217,7 +218,7 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
         else {
             // ❗❗❗ 这里！必须从 param 拿
             clientId = request.getParameter("clientId");
-            log.info("【PublicTenantFilter】Internal Feign request, clientId:{}", clientId);
+            log.info("【ClientIdTenantResolutionFilter】Internal Feign request, clientId:{}", clientId);
             if (clientId == null) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing clientId param");
                 return;
@@ -240,27 +241,27 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
             // ✅ 同步解析（Cache 内部异步刷新，Filter 不关心）
 //            tenantId = publicTenantResolver.resolve(clientId);    // ✅ Feign
             tenantId = resolver.resolve(clientId); // ✅ 不是 Feign
-            log.info("【PublicTenantFilter】同步解析tenantId: {}", tenantId);
+            log.info("【ClientIdTenantResolutionFilter】同步解析tenantId: {}", tenantId);
         } catch (IllegalArgumentException e) {
-            log.warn("【PublicTenantFilter】参数非法: {}", e.getMessage());
+            log.warn("【ClientIdTenantResolutionFilter】参数非法: {}", e.getMessage());
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
             return;
         } catch (Exception e) {
-            log.error("【PublicTenantFilter】解析 tenantId 失败", e);
+            log.error("【ClientIdTenantResolutionFilter】解析 tenantId 失败", e);
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "租户解析失败");
             return;
         }
 
         //✅ TenantContextHolder 里有✅ TenantContextHolder 里有
         TenantContextHolder.setTenantId(tenantId);
-        log.info("【PublicTenantFilter】设置到上下文 tenantId：{}", tenantId);
+        log.info("【ClientIdTenantResolutionFilter】设置到上下文 tenantId：{}", tenantId);
 
         try {
             filterChain.doFilter(request, response);
         } finally {
             // ✅ 必须清理，防止线程复用
 //            TenantContextHolder.clear();
-            log.info("【PublicTenantFilter】tenantId 已设置，由 TenantInterceptor 负责清理");
+            log.info("【ClientIdTenantResolutionFilter】tenantId 已设置，由 TenantInterceptor 负责清理");
         }
     }
 
