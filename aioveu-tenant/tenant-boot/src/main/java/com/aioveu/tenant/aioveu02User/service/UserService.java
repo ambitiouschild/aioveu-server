@@ -10,6 +10,7 @@ import com.aioveu.tenant.aioveu02User.model.form.*;
 import com.aioveu.tenant.aioveu02User.model.query.UserQuery;
 import com.aioveu.tenant.aioveu02User.model.vo.UserPageVO;
 import com.aioveu.tenant.aioveu02User.model.vo.UserProfileVO;
+import com.aioveu.tenant.dto.TenantVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -26,6 +27,13 @@ import java.util.List;
 public interface UserService extends IService<User> {
 
 
+
+
+    /*
+    * 根据用户名查询所有租户✅ 平台 / 跨租户
+    *  Mapper 直接 JOIN
+    * */
+    List<TenantVO> getAccessibleTenantsByUsername(String username);
 
     /**
      * 根据用户名查询所有用户ID✅ 平台 / 跨租户

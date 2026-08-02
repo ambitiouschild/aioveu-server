@@ -8,6 +8,7 @@ import com.aioveu.tenant.aioveu02User.model.dto.UserExportDTO;
 import com.aioveu.tenant.aioveu02User.model.entity.User;
 import com.aioveu.tenant.aioveu02User.model.form.UserForm;
 import com.aioveu.tenant.aioveu02User.model.query.UserQuery;
+import com.aioveu.tenant.dto.TenantVO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Mapper;
@@ -100,4 +101,18 @@ public interface UserMapper  extends BaseMapper<User> {
       AND is_deleted = 0
     """)
     List<Long> getUserIdsByUsernameAcrossTenants(String username);
+
+    @Select("""
+    SELECT
+        t.id,
+        t.username,
+        t.status
+    FROM sys_user u
+    JOIN sys_tenant t ON u.tenant_id = t.id
+    WHERE u.username = #{username}
+      AND u.is_deleted = 0
+      AND t.is_deleted = 0
+      AND t.status = 1
+    """)
+    List<TenantVO> getAccessibleTenantsByUsername(String username);
 }

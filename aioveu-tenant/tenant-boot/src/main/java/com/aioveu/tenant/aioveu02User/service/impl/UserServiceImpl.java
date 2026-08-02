@@ -36,6 +36,7 @@ import com.aioveu.tenant.aioveu06Dict.enums.DictCodeEnum;
 import com.aioveu.tenant.aioveu06Dict.model.entity.DictItem;
 import com.aioveu.tenant.aioveu06Dict.service.DictItemService;
 import com.aioveu.tenant.aioveu13Mail.service.MailService;
+import com.aioveu.tenant.dto.TenantVO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -93,15 +94,34 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
 
     /**
+     * 根据用户名获取可登录的租户列表
+     *
+     * @return {@link List<Long>} 所有租户（跨所有租户）列表
+     */
+    @Override
+    public List<TenantVO> getAccessibleTenantsByUsername(String username){
+
+
+        // 查询所有租户下该用户名的用户ID
+        List<TenantVO> tenantList = this.baseMapper.getAccessibleTenantsByUsername(username);
+        log.info("根据用户名获取可登录的租户列表,tenantList:{}",tenantList);
+        return tenantList;
+    }
+
+
+
+    /**
      * 根据用户名查询所有用户ID（跨所有租户）
      *
      * @return {@link List<Long>} 所有用户ID（跨所有租户）列表
      */
     @Override
     public List<Long> getUserIdsByUsernameAcrossTenants(String username){
+
+
         // 查询所有租户下该用户名的用户ID
         List<Long> userIds = this.baseMapper.getUserIdsByUsernameAcrossTenants(username);
-
+        log.info("根据用户名查询所有用户ID（跨所有租户）userIds:{}",userIds);
         return userIds;
     }
 

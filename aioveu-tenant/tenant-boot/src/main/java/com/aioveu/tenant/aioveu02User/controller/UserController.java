@@ -13,8 +13,6 @@ import com.aioveu.common.core.result.Result;
 import com.aioveu.common.core.util.ExcelUtils;
 import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
 import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
-import com.aioveu.tenant.aioveu01Tenant.model.vo.TenantVO;
-import com.aioveu.tenant.aioveu01Tenant.service.TenantService;
 import com.aioveu.tenant.aioveu02User.listener.UserImportListener;
 import com.aioveu.tenant.aioveu02User.model.dto.CurrentUserDTO;
 import com.aioveu.tenant.aioveu02User.model.dto.UserExportDTO;
@@ -25,6 +23,7 @@ import com.aioveu.tenant.aioveu02User.model.query.UserQuery;
 import com.aioveu.tenant.aioveu02User.model.vo.UserPageVO;
 import com.aioveu.tenant.aioveu02User.model.vo.UserProfileVO;
 import com.aioveu.tenant.aioveu02User.service.UserService;
+import com.aioveu.tenant.dto.TenantVO;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.nacos.client.naming.utils.CollectionUtils;
@@ -67,8 +66,6 @@ public class UserController {
 
     private final UserService userService;
 
-    private final TenantService tenantService;
-
 
     /**
      * 获取当前用户的租户列表
@@ -86,58 +83,10 @@ public class UserController {
             @Parameter(description = "用户名") @PathVariable String username
     ) {
 
-        //方案一；两次查询
-        // 1. 根据用户名查询所有用户ID（跨所有租户）
-        List<Long> userIds = userService.getUserIdsByUsername(username);
-
-        if (CollectionUtils.isEmpty(userIds)) {
-            log.info("用户名 '{}' 不存在任何租户中", username);
-            return Result.success(Collections.emptyList());
-        }
-
-        log.info("根据用户名：{}，获取对应的用户ID列表：{}", username, userIds);
-
-        // 2. 获取所有用户的可访问租户（去重）
-//        Set<TenantVO> allTenants = new HashSet<>();
-//        for (Long userId : userIds) {
-//            TenantVO userTenant = tenantService.getTenantById(userId);
-//            if (userTenant != null) {
-//                allTenants.add(userTenant);
-//            }
-//        }
-
-        // 2. 获取所有用户的可访问租户（去重） 版本3：使用 Stream API 的简洁写法
-        Set<TenantVO> allTenants = userIds.stream()
-                .map(userService::getTenantIdByUserId)  // 获取tenantId
-                .filter(Objects::nonNull)               // 过滤null的tenantId
-                .map(tenantService::getTenantById)  // 或 getTenantsByUserId
-                .filter(Objects::nonNull)  // 过滤null
-//                .flatMap(Collection::stream)  // 如果返回列表，需要扁平化
-                .collect(Collectors.toSet());
-
-        log.info("根据用户ID列表 {} 获取到 {} 个可访问租户（去重后）", userIds, allTenants.size());
-
-        // 3. 转换为列表并排序（按租户名或ID）
-//        List<TenantVO> tenantList = new ArrayList<>(allTenants);
-//        tenantList.sort(Comparator.comparing(TenantVO::getName));
-        List<TenantVO> tenantList = allTenants.stream()
-                .sorted(Comparator.comparing(TenantVO::getName))
-                .collect(Collectors.toList());
+        List<TenantVO> tenantList = userService.getAccessibleTenantsByUsername(username);
 
         log.info("用户 '{}' 可访问 {} 个租户: {}", username, tenantList.size(),
                 tenantList.stream().map(TenantVO::getName).collect(Collectors.toList()));
-
-
-//        //优化版本（一次查询）
-//        // 直接调用优化的Service方法
-//        List<TenantVO> tenantList2 = tenantService.getAccessibleTenantsByUsername(username);
-//
-//        if (CollectionUtils.isEmpty(tenantList2)) {
-//            log.info("用户名 '{}' 不存在任何可用租户中", username);
-//            return Result.success(Collections.emptyList());
-//        }
-//
-//        log.debug("优化版本（一次查询）用户名 '{}' 可访问 {} 个租户", username, tenantList2.size());
 
         return Result.success(tenantList);
     }
