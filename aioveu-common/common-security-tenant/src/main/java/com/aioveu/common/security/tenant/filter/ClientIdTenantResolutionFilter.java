@@ -16,6 +16,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -52,7 +53,7 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
     private static final String HEADER_CLIENT_ID = "X-Client-Id";
     private static final String HEADER_CLIENT_VERIFIED = "X-Client-Verified";
     private final TenantResolveProperties tenantResolveProperties;
-
+    private static final AntPathMatcher antPathMatcher = new AntPathMatcher();
     /**
      * 公共租户解析器
      *
@@ -147,8 +148,17 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
          * - URI 不在白名单 → isWhitelist = false → return true → 跳过 Filter
          */
 
+//        boolean isWhitelist = whitelist.stream()
+//                .anyMatch(uri::startsWith);
+
+
+        /*
+        * 加了 AntPathMatcher，**和 {username}就都能用了。 ✅
+        * ✅ 加了 AntPathMatcher，**一定可以用
+        * ⚠️ {username}虽然“能匹配”，但不推荐、不优雅、不专业
+        * */
         boolean isWhitelist = whitelist.stream()
-                .anyMatch(uri::startsWith);
+                .anyMatch(pattern -> antPathMatcher.match(pattern, uri));
 
         log.info("【ClientIdTenantResolutionFilter】URI={}, isWhitelist={}", uri, isWhitelist);
         return !isWhitelist;
