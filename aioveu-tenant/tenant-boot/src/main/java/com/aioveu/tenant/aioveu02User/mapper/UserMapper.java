@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
@@ -84,4 +85,19 @@ public interface UserMapper  extends BaseMapper<User> {
      * @return 用户个人中心信息
      */
     UserBO getUserProfile(Long userId);
+
+
+
+    /**
+     * 根据用户名查询所有用户ID（跨所有租户）
+     *
+     * @return {@link List<Long>} 所有用户ID（跨所有租户）列表
+     */
+    @Select("""
+    SELECT id
+    FROM sys_user
+    WHERE username = #{username}
+      AND is_deleted = 0
+    """)
+    List<Long> getUserIdsByUsernameAcrossTenants(String username);
 }

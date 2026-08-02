@@ -91,8 +91,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     private final RoleMenuService roleMenuService;
 
+
     /**
      * 根据用户名查询所有用户ID（跨所有租户）
+     *
+     * @return {@link List<Long>} 所有用户ID（跨所有租户）列表
+     */
+    @Override
+    public List<Long> getUserIdsByUsernameAcrossTenants(String username){
+        // 查询所有租户下该用户名的用户ID
+        List<Long> userIds = this.baseMapper.getUserIdsByUsernameAcrossTenants(username);
+
+        return userIds;
+    }
+
+    /**
+     * 根据用户名查询所有用户ID（mp租户过滤）
      *
      * @return {@link List<Long>} 所有用户ID（跨所有租户）列表
      */

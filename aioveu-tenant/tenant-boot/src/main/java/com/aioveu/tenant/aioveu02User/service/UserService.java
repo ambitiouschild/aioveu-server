@@ -26,10 +26,18 @@ import java.util.List;
 public interface UserService extends IService<User> {
 
 
+
     /**
-     * 根据用户名查询所有用户ID（跨所有租户）
+     * 根据用户名查询所有用户ID✅ 平台 / 跨租户
      *
-     * @return {@link List<Long>} 所有用户ID（跨所有租户）列表
+     *
+     */
+    List<Long> getUserIdsByUsernameAcrossTenants(String username);
+
+    /**
+     * 根据用户名查询所有用户ID（mp租户过滤）
+     *
+     * @return {@link List<Long>}
      */
     List<Long> getUserIdsByUsername(String username);
 
