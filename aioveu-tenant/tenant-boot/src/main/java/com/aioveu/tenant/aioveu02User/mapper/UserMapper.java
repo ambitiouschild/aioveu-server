@@ -105,13 +105,13 @@ public interface UserMapper  extends BaseMapper<User> {
     @Select("""
     SELECT
         t.id,
-        t.username,
+        t.name,
+        t.code,
         t.status
     FROM sys_user u
     JOIN sys_tenant t ON u.tenant_id = t.id
     WHERE u.username = #{username}
       AND u.is_deleted = 0
-      AND t.is_deleted = 0
       AND t.status = 1
     """)
     List<TenantVO> getAccessibleTenantsByUsername(String username);

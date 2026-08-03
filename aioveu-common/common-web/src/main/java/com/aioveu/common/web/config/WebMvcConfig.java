@@ -1,10 +1,12 @@
 package com.aioveu.common.web.config;
 
+import com.aioveu.common.web.interceptor.PlatformApiInterceptor;
 import com.aioveu.common.web.interceptor.TenantInterceptor;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -25,7 +27,12 @@ import java.util.List;
 
 @Configuration
 @Slf4j
+@RequiredArgsConstructor
 public class WebMvcConfig implements WebMvcConfigurer {
+
+
+    private final PlatformApiInterceptor platformApiInterceptor;
+
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         MappingJackson2HttpMessageConverter jackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter();
@@ -46,6 +53,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
 
         registry.addInterceptor(new TenantInterceptor());
+
+        registry.addInterceptor(platformApiInterceptor)
+                .addPathPatterns("/**");
     }
 
 }

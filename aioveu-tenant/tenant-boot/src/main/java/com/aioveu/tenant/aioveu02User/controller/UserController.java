@@ -1,6 +1,7 @@
 package com.aioveu.tenant.aioveu02User.controller;
 
 import com.aioveu.common.core.annotation.Log;
+import com.aioveu.common.core.annotation.PlatformApi;
 import com.aioveu.common.core.annotation.PublicApi;
 import com.aioveu.common.core.annotation.RepeatSubmit;
 import com.aioveu.common.core.enums.LogModuleEnum;
@@ -75,7 +76,8 @@ public class UserController {
      *
      * @return 租户列表
      */
-    @PublicApi(description = "根据用户名获取可登录的租户列表")
+
+    @PlatformApi(description = "登录前接口")
     @Operation(summary = "新增:根据用户名获取可登录的租户列表")
     @GetMapping("/tenants/{username}")
     @Log(value = "新增：根据用户名获取可登录的租户列表）", module = LogModuleEnum.USER)

@@ -17,6 +17,16 @@ import com.alibaba.ttl.TransmittableThreadLocal;
  * @Date 2026/2/23 13:16
  * @Version 1.0
  **/
+
+
+/**
+ * 租户上下文工具类（基础设施层）
+ *
+ * 原则：
+ * 1. 只存“事实”，不做判断
+ * 2. 平台接口 / 业务接口通过标记区分
+ * 3. 全链路支持 TTL（线程池 / 异步 / MQ）
+ */
 @Slf4j
 public class TenantContextHolder {
 
@@ -24,12 +34,26 @@ public class TenantContextHolder {
      * 租户ID线程本地变量
      * 使用 TransmittableThreadLocal 支持父子线程和线程池场景的值传递
      */
-    private static final TransmittableThreadLocal<Long> TENANT_ID_HOLDER = new TransmittableThreadLocal<>();
+    private static final TransmittableThreadLocal<Long> TENANT_ID = new TransmittableThreadLocal<>();
 
-    /**
-     * 忽略租户标志（用于某些场景下临时跳过租户过滤）
-     */
-    private static final TransmittableThreadLocal<Boolean> IGNORE_TENANT_HOLDER = new TransmittableThreadLocal<>();
+    /* =========================
+     * 强制忽略租户（MP 专用）
+     * =========================
+     * 用于极少数需要“临时绕过 MP”的场景
+     * ⚠️ 非平台接口慎用
+     * ========================= */
+    private static final TransmittableThreadLocal<Boolean> FORCE_IGNORE = new TransmittableThreadLocal<>();
+
+
+    /* =========================
+     * 平台接口标记
+     * =========================
+     * true  = 当前请求为平台级接口（登录前、公共接口）
+     * false = 业务接口（受租户隔离保护）
+     * ========================= */
+    private static final TransmittableThreadLocal<Boolean> PLATFORM_FLAG =
+            new TransmittableThreadLocal<>();
+
 
     /**
      * 设置当前租户 ID
@@ -38,8 +62,8 @@ public class TenantContextHolder {
      */
     public static void setTenantId(Long tenantId) {
         if (tenantId != null) {
-            TENANT_ID_HOLDER.set(tenantId);
-            log.debug("设置当前租户ID: {}", tenantId);
+            TENANT_ID.set(tenantId);
+            log.debug("【TenantContextHolder】设置当前租户ID: {}", tenantId);
         }
     }
 
@@ -49,17 +73,46 @@ public class TenantContextHolder {
      * @return 租户ID，如果未设置则返回 null
      */
     public static Long getTenantId() {
-        return TENANT_ID_HOLDER.get();
+        return TENANT_ID.get();
     }
 
+
+    /* =======================
+     * 平台接口标记
+     * ======================= */
+
+    /**
+     * 标记当前请求为平台接口
+     * 用于登录前、公共接口等不依赖租户上下文的场景
+     */
+    /**
+     * ⚠️ 使用纪律：
+     * 1. 平台接口：只调用 markPlatform()
+     * 2. 业务接口：不碰 TenantContextHolder
+     * 3. forceIgnore()：仅限 MP 内部，禁止业务代码调用
+     * 4. 每次请求结束必须 clear()
+     */
+    public static void markPlatform() {
+        PLATFORM_FLAG.set(true);
+        log.debug("【TenantContextHolder】 markPlatform=true");
+    }
+
+    public static boolean isPlatform() {
+        return Boolean.TRUE.equals(PLATFORM_FLAG.get());
+    }
+
+
+    /* =======================
+     * 强制忽略租户（MP 用）
+     * ======================= */
     /**
      * 设置忽略租户标志
      *
      * @param ignore 是否忽略
      */
     public static void setIgnoreTenant(boolean ignore) {
-        IGNORE_TENANT_HOLDER.set(ignore);
-        log.debug("设置忽略租户标志: {}", ignore);
+        FORCE_IGNORE.set(ignore);
+        log.debug("【TenantContextHolder】设置忽略租户标志: {}", ignore);
     }
 
     /**
@@ -68,9 +121,14 @@ public class TenantContextHolder {
      * @return true-忽略，false-不忽略
      */
     public static boolean isIgnoreTenant() {
-        Boolean ignore = IGNORE_TENANT_HOLDER.get();
+        Boolean ignore = FORCE_IGNORE.get();
         return ignore != null && ignore;
     }
+
+    /* =======================
+     * 清除上下文
+     * ======================= */
+
 
     /**
      * 清除当前线程的租户上下文
@@ -79,8 +137,14 @@ public class TenantContextHolder {
      * </p>
      */
     public static void clear() {
-        TENANT_ID_HOLDER.remove();
-        IGNORE_TENANT_HOLDER.remove();
-        log.info("清除租户上下文");
+        TENANT_ID.remove();
+        PLATFORM_FLAG.remove();
+        FORCE_IGNORE.remove();
+        log.info("【TenantContextHolder】清除租户上下文");
     }
+
+
+
+
+
 }

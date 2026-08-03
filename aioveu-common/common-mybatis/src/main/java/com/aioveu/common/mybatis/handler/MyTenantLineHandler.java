@@ -68,16 +68,22 @@ public class MyTenantLineHandler implements TenantLineHandler {
         log.info("【MyTenantLineHandler】如果TenantContextHolder有租户id就赋值到租户上下文工具类: {}", tenantId);
         log.info("【MyTenantLineHandler】过滤器 → 解析Token → 设置租户上下文 → 后续所有组件都从上下文获取");
 
-        // ✅ 未登录 / 未设置租户
-        if (tenantId == null) {
+
+        // ✅ 平台接口：不拼 tenant_id
+        if (TenantContextHolder.isPlatform()) {
             return null;
         }
+
 
         // ✅ 平台级（超级管理员）
         // 0：平台级（超管），由 ignoreTable 决定是否过滤
         // 这里直接返回 null，让 ignoreTable 接管
-        if (tenantId == 0L) {
+        if (tenantId != null && tenantId == 0L) {
             return null;
+        }
+
+        if (tenantId == null) {
+            throw new IllegalStateException("租户上下文未初始化");
         }
 
         return new LongValue(tenantId);
@@ -117,6 +123,11 @@ public class MyTenantLineHandler implements TenantLineHandler {
     public boolean ignoreTable(String tableName) {
         if (tableName == null) {
             return false;
+        }
+
+        // ✅ 平台接口：全部忽略
+        if (TenantContextHolder.isPlatform()) {
+            return true;
         }
 
         // 如果设置了忽略租户标志，则本次查询全部表都跳过租户过滤
