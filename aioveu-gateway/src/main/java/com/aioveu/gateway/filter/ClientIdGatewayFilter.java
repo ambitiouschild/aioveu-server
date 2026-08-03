@@ -1,15 +1,12 @@
 package com.aioveu.gateway.filter;
 
 
-import com.aioveu.common.core.constant.JwtClaimConstants;
-import com.aioveu.gateway.config.JwtConfig;
+import com.aioveu.gateway.config.GatewayJwtConfiguration;
 import com.aioveu.gateway.service.ClientWhitelistWithRedisService;
 import com.alibaba.nacos.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
@@ -19,7 +16,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 /**
  * @ClassName: ClientIdGatewayFilter
@@ -51,13 +47,13 @@ public class ClientIdGatewayFilter implements GatewayFilter, Ordered {
     private static final String HEADER_TEENANT_ID = "X-Tenant-Id";
     private static final String HEADER_CLIENT_VERIFIED = "X-Client-Verified";
 
-    private final JwtConfig.GatewayJwtParser gatewayJwtParser;
+    private final GatewayJwtConfiguration.GatewayJwtParser gatewayJwtParser;
     private final ClientWhitelistWithRedisService clientWhitelistWithRedisService;
 
     //构造函数注入
      // ✅ 关键：@Lazy 方案 A（强烈推荐）：把构造函数注入改成 @Lazy
     public ClientIdGatewayFilter(
-            JwtConfig.GatewayJwtParser gatewayJwtParser,
+            GatewayJwtConfiguration.GatewayJwtParser gatewayJwtParser,
             ClientWhitelistWithRedisService clientWhitelistWithRedisService
     ) {
         this.gatewayJwtParser = gatewayJwtParser;

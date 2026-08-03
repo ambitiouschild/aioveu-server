@@ -4,7 +4,7 @@ import com.aioveu.common.core.annotation.Log;
 import com.aioveu.common.core.enums.LogModuleEnum;
 import com.aioveu.common.core.result.Result;
 import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
-import com.aioveu.feign.config.FeignDecoderConfig;
+import com.aioveu.feign.config.FeignDecoderConfiguration;
 import com.aioveu.tenant.api.fallback.TenantFeignFallbackClient;
 import com.aioveu.tenant.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,7 +26,7 @@ import java.util.List;
 
 @FeignClient(value = "aioveu-tenant",
         fallback = TenantFeignFallbackClient.class,
-        configuration = {FeignDecoderConfig.class}
+        configuration = {FeignDecoderConfiguration.class}
         )
 //如果服务提供方返回的是 Result<List<TenantVO>>这类包装对象，
 // 那么客户端的 Feign 接口方法返回值也需要改为 Result<List<TenantVO>>，或者定义一个对应的 ResponseEntity。

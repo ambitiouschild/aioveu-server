@@ -1,7 +1,7 @@
 package com.aioveu.pms.api;
 
 import com.aioveu.common.core.result.Result;
-import com.aioveu.feign.config.FeignDecoderConfig;
+import com.aioveu.feign.config.FeignDecoderConfiguration;
 import com.aioveu.pms.model.dto.LockSkuDTO;
 import com.aioveu.pms.model.dto.SkuInfoDTO;
 import com.aioveu.pms.model.vo.SeckillingSpuVO;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 
-@FeignClient(value = "aioveu-tenant-pms", contextId = "sku", configuration = {FeignDecoderConfig.class})
+@FeignClient(value = "aioveu-tenant-pms", contextId = "sku", configuration = {FeignDecoderConfiguration.class})
 public interface SkuFeignClient {
 
     /**

@@ -1,10 +1,9 @@
 package com.aioveu.gateway.filter;
 
 
-import com.aioveu.gateway.config.JwtConfig;
+import com.aioveu.gateway.config.GatewayJwtConfiguration;
 import com.aioveu.gateway.service.ClientWhitelistWithRedisService;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.context.annotation.Lazy;
@@ -40,11 +39,11 @@ import org.springframework.stereotype.Component;
 public class ClientIdGatewayFilterGatewayFilterFactory extends AbstractGatewayFilterFactory<ClientIdGatewayFilterGatewayFilterFactory.Config> {
 
 
-    private final JwtConfig.GatewayJwtParser gatewayJwtParser;
+    private final GatewayJwtConfiguration.GatewayJwtParser gatewayJwtParser;
     private final ClientWhitelistWithRedisService clientWhitelistWithRedisService;
 
     public ClientIdGatewayFilterGatewayFilterFactory(
-            @Lazy JwtConfig.GatewayJwtParser gatewayJwtParser,
+            @Lazy GatewayJwtConfiguration.GatewayJwtParser gatewayJwtParser,
             ClientWhitelistWithRedisService clientWhitelistWithRedisService
     ) {
         super(Config.class);

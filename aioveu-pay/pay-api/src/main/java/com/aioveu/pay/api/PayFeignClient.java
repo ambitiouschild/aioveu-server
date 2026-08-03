@@ -1,7 +1,7 @@
 package com.aioveu.pay.api;
 
 import com.aioveu.common.core.result.Result;
-import com.aioveu.feign.config.FeignDecoderConfig;
+import com.aioveu.feign.config.FeignDecoderConfiguration;
 import com.aioveu.pay.model.aioveu01PayOrder.form.PayOrderCreateForm;
 import com.aioveu.pay.model.aioveu01PayOrder.vo.PayOrderVO;
 import com.aioveu.pay.model.aioveuPayment.PaymentParamsVO;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
  * @Date 2026/2/11 16:05
  * @Version 1.0
  **/
-@FeignClient(value = "aioveu-tenant-pay", contextId = "pay", configuration = {FeignDecoderConfig.class})
+@FeignClient(value = "aioveu-tenant-pay", contextId = "pay", configuration = {FeignDecoderConfiguration.class})
 public interface PayFeignClient {
 
 

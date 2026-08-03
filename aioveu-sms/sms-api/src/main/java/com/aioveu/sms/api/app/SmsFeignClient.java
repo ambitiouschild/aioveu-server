@@ -1,7 +1,7 @@
 package com.aioveu.sms.api.app;
 
 import com.aioveu.common.core.result.Result;
-import com.aioveu.feign.config.FeignDecoderConfig;
+import com.aioveu.feign.config.FeignDecoderConfiguration;
 import com.aioveu.sms.dto.BannerVO;
 import com.aioveu.sms.dto.SmsHomeAdvertVO;
 import com.aioveu.sms.dto.SmsHomeCategoryVO;
@@ -20,7 +20,7 @@ import java.util.List;
  **/
 
 @FeignClient(value = "aioveu-tenant-sms",
-        configuration = {FeignDecoderConfig.class}
+        configuration = {FeignDecoderConfiguration.class}
 )
 public interface SmsFeignClient {
 

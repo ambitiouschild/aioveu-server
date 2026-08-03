@@ -2,7 +2,7 @@ package com.aioveu.lss.api;
 
 import com.aioveu.common.core.result.Result;
 import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
-import com.aioveu.feign.config.FeignDecoderConfig;
+import com.aioveu.feign.config.FeignDecoderConfiguration;
 import com.aioveu.lss.api.fallback.LssFeignFallbackClient;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(value = "aioveu-lss",
         fallback = LssFeignFallbackClient.class,
-        configuration = {FeignDecoderConfig.class})
+        configuration = {FeignDecoderConfiguration.class})
 public interface LssFeignClient {
 
     /**

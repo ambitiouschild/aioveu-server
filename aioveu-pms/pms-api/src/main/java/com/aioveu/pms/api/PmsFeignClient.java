@@ -1,6 +1,6 @@
 package com.aioveu.pms.api;
 
-import com.aioveu.feign.config.FeignDecoderConfig;
+import com.aioveu.feign.config.FeignDecoderConfiguration;
 import com.aioveu.pms.model.vo.CategoryVO;
 import com.aioveu.pms.model.vo.SeckillingSpuVO;
 import com.aioveu.pms.model.vo.SpuDetailVO;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 
-@FeignClient(value = "aioveu-tenant-pms", contextId = "pms", configuration = {FeignDecoderConfig.class})
+@FeignClient(value = "aioveu-tenant-pms", contextId = "pms", configuration = {FeignDecoderConfiguration.class})
 public interface PmsFeignClient {
 
     @Operation(summary = "获取秒杀商品列表")

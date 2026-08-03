@@ -2,7 +2,7 @@ package com.aioveu.auth.oauth2.extension.wechat;
 
 import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.binarywang.wx.miniapp.bean.WxMaJscode2SessionResult;
-import com.aioveu.auth.config.WxMiniAppConfig;
+import com.aioveu.auth.config.WxMiniAppConfiguration;
 import com.aioveu.auth.model.MemberDetails;
 import com.aioveu.auth.service.MemberDetailsService;
 import com.aioveu.auth.util.OAuth2AuthenticationProviderUtils;
@@ -85,7 +85,7 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
 
     private final WxMaService wxMaService;
     private final StringRedisTemplate stringRedisTemplate;
-    private final WxMiniAppConfig wxMiniAppConfig; // ✅ 不再是 @Autowired
+    private final WxMiniAppConfiguration wxMiniAppConfiguration; // ✅ 不再是 @Autowired
 
     // 微信小程序服务，用于调用微信API
     private final TenantFeignClient tenantFeignClient;
@@ -195,7 +195,7 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
 
             log.info("调用微信API，通过code获取session信息（包含openId和session_key）");
             // 1. 根据客户端ID获取对应的wxMaService
-            WxMaService wxMaService = wxMiniAppConfig.getWxMaServiceByClientId(clientId);
+            WxMaService wxMaService = wxMiniAppConfiguration.getWxMaServiceByClientId(clientId);
             sessionInfo = wxMaService.getUserService().getSessionInfo(code);
         } catch (WxErrorException e) {
             log.info("微信API调用失败，记录日志并抛出认证异常");

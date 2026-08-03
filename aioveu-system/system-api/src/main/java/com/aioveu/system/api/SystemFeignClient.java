@@ -2,7 +2,7 @@ package com.aioveu.system.api;
 
 import com.aioveu.common.core.result.Result;
 import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
-import com.aioveu.feign.config.FeignDecoderConfig;
+import com.aioveu.feign.config.FeignDecoderConfiguration;
 import com.aioveu.system.api.fallback.SystemFeignFallbackClient;
 
 import org.springframework.cloud.openfeign.FeignClient;
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 @FeignClient(value = "aioveu-system",
         fallback = SystemFeignFallbackClient.class,
-        configuration = {FeignDecoderConfig.class})
+        configuration = {FeignDecoderConfiguration.class})
 public interface SystemFeignClient {
 
 

@@ -29,7 +29,7 @@ public class PlatformApiInterceptor implements HandlerInterceptor {
         if (handler instanceof HandlerMethod method) {
 
             if (method.hasMethodAnnotation(PlatformApi.class)) {
-                log.info("[PlatformApi] 平台接口标记: {}",
+                log.info("【PlatformApi】 平台接口标记: {}",
                         method.getMethod().getName());
 
                 // ✅ 标记当前请求为“平台接口”
