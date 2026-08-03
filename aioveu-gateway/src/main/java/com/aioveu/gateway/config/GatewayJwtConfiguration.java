@@ -24,7 +24,35 @@ import java.text.ParseException;
  * ✅ Gateway 专用 JWT 解析配置
  * ❌ 不使用 ReactiveJwtDecoder（避免触发 Security）
  */
-@Configuration
+
+/**
+ * ⚠️ Gateway 只读 JWT Claim
+ * - 不校验签名
+ * - 不用于业务判断
+ * - 仅用于路由 / 限流 / 日志
+ */
+
+/*
+* Spring Cloud Gateway 官方立场是：
+            Gateway 是“边缘代理”，不是“业务安全边界”
+            JWT 的：
+            ✅ 验签
+            ✅ 过期
+            ✅ claim 语义校验
+            全部属于 ResourceServer
+            👉 Gateway 只负责：
+            路由
+            限流
+            日志
+            Header 转发
+*
+✅ 我的强烈建议是：删掉 GatewayJwtConfiguration
+✅ tenantId 只在 ResourceServer 解析
+✅ Gateway 只传 AuthorizationHeader
+✅ 让 JWT 的“信任边界”唯一
+*
+* */
+//@Configuration
 @EnableConfigurationProperties(GatewayProperties.class)
 public class GatewayJwtConfiguration {
 
