@@ -8,6 +8,8 @@ import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu01PayOrder.service.PayOrderService;
 import com.aioveu.pay.aioveu10MqSendRecord.model.entity.MqSendRecord;
 import com.aioveu.pay.aioveu10MqSendRecord.service.MqSendRecordService;
+import com.baomidou.mybatisplus.core.plugins.IgnoreStrategy;
+import com.baomidou.mybatisplus.core.plugins.InterceptorIgnoreHelper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import jakarta.annotation.Resource;
 import lombok.AllArgsConstructor;
@@ -45,6 +47,14 @@ public class MqSendRetryJob {
 
     @Scheduled(cron = "0 */1 * * * ?")
     public void retryUnsentEvents() {
+
+
+        // ✅ 第一件事：关闭租户插件
+        InterceptorIgnoreHelper.handle(
+                IgnoreStrategy.builder()
+                        .tenantLine(true)
+                        .build()
+        );
 
         List<MqSendRecord> list = mqSendRecordService.list(
                 Wrappers.<MqSendRecord>lambdaQuery()
