@@ -1,6 +1,7 @@
 package com.aioveu.common.mybatis.handler;
 
 
+import com.aioveu.common.core.tenant.JobContextHolder;
 import com.aioveu.common.core.tenant.TenantContextHolder;
 import com.aioveu.common.mybatis.config.property.TenantMybatisProperties;
 import com.baomidou.mybatisplus.extension.plugins.handler.TenantLineHandler;
@@ -10,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
 import org.springframework.stereotype.Component;
+
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -71,6 +74,13 @@ public class MyTenantLineHandler implements TenantLineHandler {
 
         // ✅ 平台接口：不拼 tenant_id
         if (TenantContextHolder.isPlatform()) {
+            log.debug("PlatformApi 场景，跳过租户过滤");
+            return null;
+        }
+
+        // ✅ 定时任务
+        if (JobContextHolder.isJob()) {
+            log.debug("Job 场景，跳过租户过滤");
             return null;
         }
 
@@ -78,12 +88,15 @@ public class MyTenantLineHandler implements TenantLineHandler {
         // ✅ 平台级（超级管理员）
         // 0：平台级（超管），由 ignoreTable 决定是否过滤
         // 这里直接返回 null，让 ignoreTable 接管
-        if (tenantId != null && tenantId == 0L) {
+        if (tenantId == 0L) {
             return null;
         }
 
+        // ✅ Web 请求必须带租户
         if (tenantId == null) {
-            throw new IllegalStateException("租户上下文未初始化");
+            throw new IllegalStateException(
+                    "租户上下文未初始化，Web 请求必须通过 Token 设置租户"
+            );
         }
 
         return new LongValue(tenantId);
@@ -138,17 +151,14 @@ public class MyTenantLineHandler implements TenantLineHandler {
 
 
         Set<String> ignoreTables = tenantMybatisProperties.getIgnoreTables();
-        if (ignoreTables == null || ignoreTables.isEmpty()) {
-
-            //👉 如果没有配置，系统表会被误过滤
-            //✅ 正确做法：给“系统表”一个默认兜底
-            //✅ 即使配置忘了写，系统也不会炸
-            ignoreTables = DEFAULT_IGNORE_TABLES;
+        Set<String> allIgnoreTables = new HashSet<>(DEFAULT_IGNORE_TABLES);
+        if (ignoreTables != null) {
+            allIgnoreTables.addAll(ignoreTables);
         }
 
 
         // 忽略表名匹配（不区分大小写）
-        return ignoreTables.stream()
+        return allIgnoreTables.stream()
                 .anyMatch(ignoreTable -> ignoreTable.equalsIgnoreCase(tableName));
     }
 }
