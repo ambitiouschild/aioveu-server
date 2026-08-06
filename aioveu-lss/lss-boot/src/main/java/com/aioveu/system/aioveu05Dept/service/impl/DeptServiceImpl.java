@@ -6,7 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.core.constant.SystemConstants;
 import com.aioveu.common.core.enums.StatusEnum;
 import com.aioveu.common.core.model.Option;
-import com.aioveu.common.security.util.SecurityUtils;
+import com.aioveu.common.security.core.util.UserDetailsSecurityUtils;
 import com.aioveu.system.aioveu05Dept.converter.DeptConverter;
 import com.aioveu.system.aioveu05Dept.mapper.DeptMapper;
 import com.aioveu.system.aioveu05Dept.model.entity.Dept;
@@ -151,7 +151,7 @@ public class DeptServiceImpl extends ServiceImpl<DeptMapper, Dept> implements De
         String treePath = generateDeptTreePath(formData.getParentId());
         entity.setTreePath(treePath);
 
-        entity.setCreateBy(SecurityUtils.getUserId());
+        entity.setCreateBy(UserDetailsSecurityUtils.getUserId());
         // 保存部门并返回部门ID
         boolean result = this.save(entity);
         Assert.isTrue(result, "部门保存失败");
@@ -245,7 +245,7 @@ public class DeptServiceImpl extends ServiceImpl<DeptMapper, Dept> implements De
                         .or()
                         .apply("CONCAT (',',tree_path,',') LIKE CONCAT('%,',{0},',%')", deptId)
                         .set(Dept::getIsDeleted, 1)
-                        .set(Dept::getUpdateBy, SecurityUtils.getUserId())
+                        .set(Dept::getUpdateBy, UserDetailsSecurityUtils.getUserId())
                 );
             }
         }

@@ -1,7 +1,9 @@
 package com.aioveu.system.aioveu02User.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.aioveu.common.security.service.Impl.TokenService;
+import com.aioveu.common.security.core.service.TokenService;
+import com.aioveu.common.security.core.util.UserDetailsSecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityHelper;
 import com.aioveu.system.aioveu02User.mapper.UserRoleMapper;
 import com.aioveu.system.aioveu02User.model.entity.UserRole;
 import com.aioveu.system.aioveu02User.service.UserRoleService;
@@ -15,7 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import com.aioveu.common.security.util.SecurityUtils;
+
 /**
  * @ClassName: UserRoleServiceImpl
  * @Description TODO
@@ -83,7 +85,7 @@ public class UserRoleServiceImpl extends ServiceImpl<UserRoleMapper, UserRole> i
         // 当权限变更时清除登录态
         if (rolesChanged) {
             // 获取用户所有有效token（根据实际token存储实现）
-            String accessToken = SecurityUtils.getTokenFromAuthentication();
+            String accessToken = JwtSecurityHelper.getToken();
 
             log.info("获取用户所有有效token（根据实际token存储实现）", accessToken);
 

@@ -8,12 +8,14 @@ import cn.hutool.json.JSONUtil;
 import com.aioveu.common.core.constant.GlobalConstants;
 import com.aioveu.common.core.constant.RedisConstants;
 import com.aioveu.common.core.constant.SystemConstants;
-import com.aioveu.common.security.service.Impl.PermissionService;
-import com.aioveu.common.security.util.SecurityUtils;
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
+import com.aioveu.common.security.core.util.UserDetailsSecurityUtils;
+import com.aioveu.common.security.resource.helper.JwtSecurityHelper;
+import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
+import com.aioveu.common.security.resource.service.Impl.PermissionService;
 import com.aioveu.common.sms.property.AliyunSmsProperties;
 import com.aioveu.common.sms.service.SmsService;
 import com.aioveu.system.converter.UserConverter;
-import com.aioveu.system.dto.UserAuthInfo;
 import com.aioveu.system.mapper.SysUserMapper;
 import com.aioveu.system.model.bo.UserBO;
 import com.aioveu.system.model.bo.UserFormBO;
@@ -206,11 +208,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
      * 根据用户名获取认证信息
      *
      * @param username 用户名
-     * @return 用户认证信息 {@link UserAuthInfo}
+     * @return 用户认证信息 {@link UserAuthCredentials}
      */
     @Override
-    public UserAuthInfo getUserAuthInfo(String username) {
-        UserAuthInfo userAuthInfo = this.baseMapper.getUserAuthInfo(username);
+    public UserAuthCredentials getUserAuthInfo(String username) {
+        UserAuthCredentials userAuthInfo = this.baseMapper.getUserAuthInfo(username);
         if (userAuthInfo != null) {
             Set<String> roles = userAuthInfo.getRoles();
             if (CollectionUtil.isNotEmpty(roles)) {
@@ -243,7 +245,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     public UserInfoVO getCurrentUserInfo() {
         // 登录用户entity
         SysUser user = this.getOne(new LambdaQueryWrapper<SysUser>()
-                .eq(SysUser::getUsername, SecurityUtils.getUsername())
+                .eq(SysUser::getUsername, UserDetailsSecurityUtils.getUsername())
                 .select(
                         SysUser::getId,
                         SysUser::getNickname,
@@ -254,7 +256,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         UserInfoVO userInfoVO = userConverter.entity2UserInfoVo(user);
 
         // 获取用户角色集合
-        Set<String> roles = SecurityUtils.getRoles();
+        Set<String> roles = UserDetailsSecurityUtils.getRoles();
         userInfoVO.setRoles(roles);
 
         // 获取用户权限集合
@@ -273,8 +275,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
      */
     @Override
     public boolean logout() {
-        String jti = SecurityUtils.getJti();
-        Optional<Long> expireTimeOpt = Optional.ofNullable(SecurityUtils.getExp()); // 使用Optional处理可能的null值
+        String jti = JwtSecurityHelper.getJti();
+        Optional<Long> expireTimeOpt = Optional.ofNullable(JwtSecurityHelper.getExp()); // 使用Optional处理可能的null值
 
         long currentTimeInSeconds = System.currentTimeMillis() / 1000; // 当前时间（单位：秒）
 
@@ -371,7 +373,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
      */
     @Override
     public UserProfileVO getUserProfile() {
-        Long userId = SecurityUtils.getUserId();
+        Long userId = UserDetailsSecurityUtils.getUserId();
         // 获取用户个人中心信息
         UserProfileBO userProfileBO = this.baseMapper.getUserProfile(userId);
         return userConverter.userProfileBo2Vo(userProfileBO);

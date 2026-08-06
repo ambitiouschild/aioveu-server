@@ -7,9 +7,9 @@ import com.aioveu.common.core.model.Option;
 import com.aioveu.common.core.result.ExcelResult;
 import com.aioveu.common.core.result.PageResult;
 import com.aioveu.common.core.result.Result;
-import com.aioveu.common.security.model.UserAuthCredentials;
-import com.aioveu.common.security.util.SecurityUtils;
 import com.aioveu.common.core.util.ExcelUtils;
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
+import com.aioveu.common.security.core.util.UserDetailsSecurityUtils;
 import com.aioveu.system.aioveu02User.listener.UserImportListener;
 import com.aioveu.system.aioveu02User.model.entity.User;
 import com.aioveu.system.aioveu02User.model.form.*;
@@ -195,7 +195,7 @@ public class UserController {
     @GetMapping("/profile")
     @Log(value = "获取个人中心用户信息", module = LogModuleEnum.USER)
     public Result<UserProfileVO> getUserProfile() {
-        Long userId = SecurityUtils.getUserId();
+        Long userId = UserDetailsSecurityUtils.getUserId();
         UserProfileVO userProfile = userService.getUserProfile(userId);
         return Result.success(userProfile);
     }
@@ -224,7 +224,7 @@ public class UserController {
     public Result<?> changePassword(
             @RequestBody PasswordUpdateForm data
     ) {
-        Long currUserId = SecurityUtils.getUserId();
+        Long currUserId = UserDetailsSecurityUtils.getUserId();
         boolean result = userService.changePassword(currUserId, data);
         return Result.judge(result);
     }

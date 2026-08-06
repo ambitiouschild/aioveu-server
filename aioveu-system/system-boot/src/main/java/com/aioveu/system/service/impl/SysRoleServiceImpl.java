@@ -5,7 +5,7 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.core.constant.SystemConstants;
-import com.aioveu.common.security.util.SecurityUtils;
+import com.aioveu.common.security.core.util.UserDetailsSecurityUtils;
 import com.aioveu.common.web.model.Option;
 import com.aioveu.system.converter.RoleConverter;
 import com.aioveu.system.mapper.SysRoleMapper;
@@ -68,7 +68,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
                                                 .or()
                                                 .like(StrUtil.isNotBlank(keywords), SysRole::getCode, keywords)
                         )
-                        .ne(!SecurityUtils.isRoot(), SysRole::getCode, SystemConstants.ROOT_ROLE_CODE) // 非超级管理员不显示超级管理员角色
+                        .ne(!UserDetailsSecurityUtils.isRoot(), SysRole::getCode, SystemConstants.ROOT_ROLE_CODE) // 非超级管理员不显示超级管理员角色
         );
 
         // 实体转换
@@ -85,7 +85,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     public List<Option> listRoleOptions() {
         // 查询数据
         List<SysRole> roleList = this.list(new LambdaQueryWrapper<SysRole>()
-                .ne(!SecurityUtils.isRoot(), SysRole::getCode, SystemConstants.ROOT_ROLE_CODE)
+                .ne(!UserDetailsSecurityUtils.isRoot(), SysRole::getCode, SystemConstants.ROOT_ROLE_CODE)
                 .select(SysRole::getId, SysRole::getName)
                 .orderByAsc(SysRole::getSort)
         );

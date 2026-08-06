@@ -1,7 +1,8 @@
 package com.aioveu.system.service;
 
 
-import com.aioveu.system.dto.UserAuthInfo;
+
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
 import com.aioveu.system.model.entity.SysUser;
 import com.aioveu.system.model.form.UserForm;
 import com.aioveu.system.model.form.UserRegisterForm;
@@ -82,10 +83,10 @@ public interface SysUserService extends IService<SysUser> {
      * 根据用户名获取认证信息
      *
      * @param username 用户名
-     * @return {@link UserAuthInfo}
+     * @return {@link UserAuthCredentials}
      */
 
-    UserAuthInfo getUserAuthInfo(String username);
+    UserAuthCredentials getUserAuthInfo(String username);
 
 
     /**

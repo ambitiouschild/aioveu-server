@@ -2,8 +2,8 @@ package com.aioveu.system.controller;
 
 import com.aioveu.common.core.result.PageResult;
 import com.aioveu.common.core.result.Result;
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
 import com.aioveu.common.web.annotation.PreventDuplicateResubmit;
-import com.aioveu.system.dto.UserAuthInfo;
 import com.aioveu.system.listener.excel.UserImportListener;
 import com.aioveu.system.model.entity.SysUser;
 import com.aioveu.system.model.form.UserForm;
@@ -125,10 +125,10 @@ public class SysUserController {
 
     @Operation(summary = "获取用户认证信息", hidden = true)
     @GetMapping("/{username}/authInfo")
-    public Result<UserAuthInfo> getUserAuthInfo(
+    public Result<UserAuthCredentials> getUserAuthInfo(
             @Parameter(description = "用户名") @PathVariable String username
     ) {
-        UserAuthInfo userAuthInfo = userService.getUserAuthInfo(username);
+        UserAuthCredentials userAuthInfo = userService.getUserAuthInfo(username);
         return Result.success(userAuthInfo);
     }
 

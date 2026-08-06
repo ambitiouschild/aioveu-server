@@ -2,7 +2,7 @@ package com.aioveu.refund.aioveu01RefundOrder.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.security.util.SecurityUtils;
+import com.aioveu.common.security.core.util.UserDetailsSecurityUtils;
 import com.aioveu.refund.aioveu01RefundOrder.converter.RefundOrderConverter;
 import com.aioveu.refund.aioveu01RefundOrder.enums.RefundStatusEnum;
 import com.aioveu.refund.aioveu01RefundOrder.mapper.RefundOrderMapper;
@@ -108,7 +108,7 @@ public class RefundOrderServiceImpl extends ServiceImpl<RefundOrderMapper, Refun
     @Override
     public RefundOrder createRefundOrder(RefundApplyFormDTO formData) {
 
-        Long memberId =  SecurityUtils.getMemberId();
+        Long memberId =  UserDetailsSecurityUtils.getMemberId();
 
         RefundOrder order = new RefundOrder();
         order.setOrderSn(formData.getOrderSn());

@@ -31,11 +31,7 @@ import java.util.List;
 @AutoConfiguration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @Slf4j
-@RequiredArgsConstructor
 public class WebMvcConfiguration implements WebMvcConfigurer {
-
-
-    private final PlatformApiInterceptor platformApiInterceptor;
 
 
     /*
@@ -48,7 +44,14 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
         return new PlatformApiInterceptor();
     }
 
+    @Bean
+    public TenantInterceptor tenantInterceptor() {
+        return new TenantInterceptor();
+    }
 
+    /**
+     * ✅ Long -> String（前端精度问题）
+     */
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         MappingJackson2HttpMessageConverter jackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter();
@@ -65,12 +68,16 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
         converters.add(jackson2HttpMessageConverter);
     }
 
+
+    /**
+     * ✅ 注册拦截器（方法调用，不是字段）
+     */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
 
-        registry.addInterceptor(new TenantInterceptor());
+        registry.addInterceptor(tenantInterceptor());
 
-        registry.addInterceptor(platformApiInterceptor)
+        registry.addInterceptor(platformApiInterceptor())
                 .addPathPatterns("/**");
     }
 

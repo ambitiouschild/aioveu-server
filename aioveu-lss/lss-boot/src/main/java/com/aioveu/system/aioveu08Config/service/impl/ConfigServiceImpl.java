@@ -1,7 +1,7 @@
 package com.aioveu.system.aioveu08Config.service.impl;
 
 import com.aioveu.common.core.constant.RedisConstants;
-import com.aioveu.common.security.util.SecurityUtils;
+import com.aioveu.common.security.core.util.UserDetailsSecurityUtils;
 import com.aioveu.system.aioveu08Config.converter.ConfigConverter;
 import com.aioveu.system.aioveu08Config.mapper.ConfigMapper;
 import com.aioveu.system.aioveu08Config.model.entity.Config;
@@ -82,7 +82,7 @@ public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> impleme
                 super.count(new LambdaQueryWrapper<Config>().eq(Config::getConfigKey, configForm.getConfigKey())) == 0,
                 "配置键已存在");
         Config config = configConverter.toEntity(configForm);
-        config.setCreateBy(SecurityUtils.getUserId());
+        config.setCreateBy(UserDetailsSecurityUtils.getUserId());
         config.setIsDeleted(0);
         return this.save(config);
     }
@@ -112,7 +112,7 @@ public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> impleme
                 super.count(new LambdaQueryWrapper<Config>().eq(Config::getConfigKey, configForm.getConfigKey()).ne(Config::getId, id)) == 0,
                 "配置键已存在");
         Config config = configConverter.toEntity(configForm);
-        config.setUpdateBy(SecurityUtils.getUserId());
+        config.setUpdateBy(UserDetailsSecurityUtils.getUserId());
         return this.updateById(config);
     }
 
@@ -128,7 +128,7 @@ public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> impleme
             return super.update(new LambdaUpdateWrapper<Config>()
                     .eq(Config::getId,id)
                     .set(Config::getIsDeleted, 1)
-                    .set(Config::getUpdateBy, SecurityUtils.getUserId())
+                    .set(Config::getUpdateBy, UserDetailsSecurityUtils.getUserId())
             );
         }
         return false;

@@ -1,7 +1,7 @@
 package com.aioveu.system.mapper;
 
 import com.aioveu.common.security.core.annotation.DataPermission;
-import com.aioveu.system.dto.UserAuthInfo;
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
 import com.aioveu.system.model.bo.UserBO;
 import com.aioveu.system.model.bo.UserFormBO;
 import com.aioveu.system.model.bo.UserProfileBO;
@@ -47,9 +47,9 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
      * 根据用户名获取认证信息
      *
      * @param username 用户名
-     * @return {@link UserAuthInfo}
+     * @return {@link UserAuthCredentials}
      */
-    UserAuthInfo getUserAuthInfo(String username);
+    UserAuthCredentials getUserAuthInfo(String username);
 
     /**
      * 获取导出用户列表

@@ -9,7 +9,7 @@ import com.aioveu.common.core.constant.SystemConstants;
 import com.aioveu.common.core.enums.StatusEnum;
 import com.aioveu.common.core.model.KeyValue;
 import com.aioveu.common.core.model.Option;
-import com.aioveu.common.security.util.SecurityUtils;
+import com.aioveu.common.security.core.util.UserDetailsSecurityUtils;
 import com.aioveu.system.aioveu03Role.service.RoleMenuService;
 import com.aioveu.system.aioveu04Menu.converter.MenuConverter;
 import com.aioveu.system.aioveu04Menu.mapper.MenuMapper;
@@ -240,7 +240,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
 
 
         log.info("从安全上下文中获取当前用户角色");
-        Set<String> roleCodes = SecurityUtils.getRoles();
+        Set<String> roleCodes = UserDetailsSecurityUtils.getRoles();
         log.info("从安全上下文中获取当前用户角色：{}",roleCodes);
 
         log.info("无角色权限返回空列表");
@@ -249,7 +249,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
         }
 
         List<Menu> menuList;
-        if (SecurityUtils.isRoot()) {
+        if (UserDetailsSecurityUtils.isRoot()) {
             // 超级管理员获取所有菜单
             log.info("超级管理员：获取所有非按钮菜单");
             menuList = this.list(new LambdaQueryWrapper<Menu>()

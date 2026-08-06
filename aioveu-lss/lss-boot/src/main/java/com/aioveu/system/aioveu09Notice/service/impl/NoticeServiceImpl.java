@@ -3,7 +3,7 @@ package com.aioveu.system.aioveu09Notice.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.core.exception.BusinessException;
-import com.aioveu.common.security.util.SecurityUtils;
+import com.aioveu.common.security.core.util.UserDetailsSecurityUtils;
 import com.aioveu.system.aioveu02User.model.entity.User;
 import com.aioveu.system.aioveu02User.model.entity.UserNotice;
 import com.aioveu.system.aioveu02User.service.UserService;
@@ -101,7 +101,7 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
             }
         }
         Notice entity = noticeConverter.toEntity(formData);
-        entity.setCreateBy(SecurityUtils.getUserId());
+        entity.setCreateBy(UserDetailsSecurityUtils.getUserId());
         return this.save(entity);
     }
 
@@ -176,7 +176,7 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
         }
 
         notice.setPublishStatus(NoticePublishStatusEnum.PUBLISHED.getValue());
-        notice.setPublisherId(SecurityUtils.getUserId());
+        notice.setPublisherId(UserDetailsSecurityUtils.getUserId());
         notice.setPublishTime(LocalDateTime.now());
         boolean publishResult = this.updateById(notice);
 
@@ -254,7 +254,7 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
 
         notice.setPublishStatus(NoticePublishStatusEnum.REVOKED.getValue());
         notice.setRevokeTime(LocalDateTime.now());
-        notice.setUpdateBy(SecurityUtils.getUserId());
+        notice.setUpdateBy(UserDetailsSecurityUtils.getUserId());
 
         boolean revokeResult = this.updateById(notice);
 
@@ -276,7 +276,7 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
     public NoticeDetailVO getNoticeDetail(Long id) {
         NoticeBO noticeBO = this.baseMapper.getNoticeDetail(id);
         // 更新用户通知公告的阅读状态
-        Long userId = SecurityUtils.getUserId();
+        Long userId = UserDetailsSecurityUtils.getUserId();
         userNoticeService.update(new LambdaUpdateWrapper<UserNotice>()
                 .eq(UserNotice::getNoticeId, id)
                 .eq(UserNotice::getUserId, userId)
@@ -294,7 +294,7 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
      */
     @Override
     public IPage<UserNoticePageVO> getMyNoticePage(NoticePageQuery queryParams) {
-        queryParams.setUserId(SecurityUtils.getUserId());
+        queryParams.setUserId(UserDetailsSecurityUtils.getUserId());
         return userNoticeService.getMyNoticePage(
                 new Page<>(queryParams.getPageNum(), queryParams.getPageSize()),
                 queryParams

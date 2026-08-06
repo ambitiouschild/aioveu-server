@@ -2,7 +2,6 @@ package com.aioveu.system.aioveu02User.mapper;
 
 import com.aioveu.common.security.core.annotation.DataPermission;
 import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
-import com.aioveu.common.security.model.UserAuthCredentials;
 import com.aioveu.system.aioveu02User.model.entity.User;
 import com.aioveu.system.aioveu02User.model.form.UserForm;
 import com.aioveu.system.aioveu02User.model.query.UserPageQuery;

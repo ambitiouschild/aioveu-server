@@ -1,7 +1,8 @@
 package com.aioveu.system.aioveu12WebSocket.config;
 
 import cn.hutool.core.util.StrUtil;
-import com.aioveu.common.security.service.Impl.TokenService;
+import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
+import com.aioveu.common.security.core.service.TokenService;
 import com.aioveu.system.aioveu12WebSocket.service.WebSocketService;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -123,7 +124,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         }
 
                         // 获取用户详细信息
-                        SysUserDetails userDetails = (SysUserDetails) authentication.getPrincipal();
+                        UserAuthCredentials userDetails = (UserAuthCredentials) authentication.getPrincipal();
                         if (userDetails == null || StrUtil.isBlank(userDetails.getUsername())) {
                             log.error("无效的用户凭证：{}", token);
                             throw new BadCredentialsException("Invalid user credentials");
@@ -147,7 +148,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                          */
                         Authentication authentication = (Authentication) accessor.getUser();
                         if (authentication != null && authentication.isAuthenticated()) {
-                            String username = ((SysUserDetails) authentication.getPrincipal()).getUsername();
+                            String username = ((UserAuthCredentials) authentication.getPrincipal()).getUsername();
                             log.info("WebSocket连接关闭：用户[{}]", username);
 
                             // 记录用户下线状态

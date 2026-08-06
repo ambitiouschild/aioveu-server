@@ -7,7 +7,7 @@ import cn.hutool.core.util.StrUtil;
 import com.aioveu.common.core.constant.SystemConstants;
 import com.aioveu.common.core.exception.BusinessException;
 import com.aioveu.common.core.model.Option;
-import com.aioveu.common.security.util.SecurityUtils;
+import com.aioveu.common.security.core.util.UserDetailsSecurityUtils;
 import com.aioveu.system.aioveu02User.service.UserRoleService;
 import com.aioveu.system.aioveu03Role.converter.RoleConverter;
 import com.aioveu.system.aioveu03Role.mapper.RoleMapper;
@@ -69,7 +69,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
                                                 .or()
                                                 .like(Role::getCode, keywords)
                         )
-                        .ne(!SecurityUtils.isRoot(), Role::getCode, SystemConstants.ROOT_ROLE_CODE) // 非超级管理员不显示超级管理员角色
+                        .ne(!UserDetailsSecurityUtils.isRoot(), Role::getCode, SystemConstants.ROOT_ROLE_CODE) // 非超级管理员不显示超级管理员角色
                         .orderByAsc(Role::getSort).orderByDesc(Role::getCreateTime).orderByDesc(Role::getUpdateTime)
         );
 
@@ -86,7 +86,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     public List<Option<Long>> listRoleOptions() {
         // 查询数据
         List<Role> roleList = this.list(new LambdaQueryWrapper<Role>()
-                .ne(!SecurityUtils.isRoot(), Role::getCode, SystemConstants.ROOT_ROLE_CODE)
+                .ne(!UserDetailsSecurityUtils.isRoot(), Role::getCode, SystemConstants.ROOT_ROLE_CODE)
                 .select(Role::getId, Role::getName)
                 .orderByAsc(Role::getSort)
         );

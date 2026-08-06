@@ -8,7 +8,7 @@ import com.aioveu.common.core.constant.SystemConstants;
 import com.aioveu.common.core.exception.BusinessException;
 import com.aioveu.common.core.model.Option;
 import com.aioveu.common.security.core.model.dto.UserAuthCredentials;
-import com.aioveu.common.security.core.service.Impl.TokenService;
+import com.aioveu.common.security.core.service.TokenService;
 import com.aioveu.common.security.resource.helper.JwtSecurityHelper;
 import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.common.security.resource.service.Impl.PermissionService;
