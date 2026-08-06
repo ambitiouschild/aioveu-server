@@ -42,6 +42,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class MyTenantLineHandler implements TenantLineHandler {
 
+    /** 平台 / Job 使用的占位租户ID（不会真正拼 SQL） */
+    private static final long PLATFORM_TENANT_ID = 0L;
 
     private final TenantMybatisProperties tenantMybatisProperties;
 
@@ -71,35 +73,20 @@ public class MyTenantLineHandler implements TenantLineHandler {
         log.info("【MyTenantLineHandler】如果TenantContextHolder有租户id就赋值到租户上下文工具类: {}", tenantId);
         log.info("【MyTenantLineHandler】过滤器 → 解析Token → 设置租户上下文 → 后续所有组件都从上下文获取");
 
-
-        // ✅ 平台接口：不拼 tenant_id
-        if (TenantContextHolder.isPlatform()) {
-            log.debug("PlatformApi 场景，跳过租户过滤");
-            return null;
+        if (tenantId != null) {
+            return new LongValue(tenantId);
         }
 
-        // ✅ 定时任务
-        if (JobContextHolder.isJob()) {
-            log.debug("Job 场景，跳过租户过滤");
-            return null;
+        // ✅ 非 Web 场景（Job / Platform）：返回占位值
+        if (JobContextHolder.isJob() || TenantContextHolder.isPlatform()) {
+            log.debug("Job / Platform 场景，返回占位租户ID");
+            return new LongValue(PLATFORM_TENANT_ID);
         }
 
-
-        // ✅ 平台级（超级管理员）
-        // 0：平台级（超管），由 ignoreTable 决定是否过滤
-        // 这里直接返回 null，让 ignoreTable 接管
-        if (tenantId == 0L) {
-            return null;
-        }
-
-        // ✅ Web 请求必须带租户
-        if (tenantId == null) {
-            throw new IllegalStateException(
-                    "租户上下文未初始化，Web 请求必须通过 Token 设置租户"
-            );
-        }
-
-        return new LongValue(tenantId);
+        // ✅ Web 场景但未设置租户：严格报错
+        throw new IllegalStateException(
+                "租户上下文未初始化，Web 请求必须通过 Token 设置租户"
+        );
     }
 
     /**
@@ -138,8 +125,8 @@ public class MyTenantLineHandler implements TenantLineHandler {
             return false;
         }
 
-        // ✅ 平台接口：全部忽略
-        if (TenantContextHolder.isPlatform()) {
+        // ✅ Job / Platform：全部忽略租户条件
+        if (JobContextHolder.isJob() || TenantContextHolder.isPlatform()) {
             return true;
         }
 

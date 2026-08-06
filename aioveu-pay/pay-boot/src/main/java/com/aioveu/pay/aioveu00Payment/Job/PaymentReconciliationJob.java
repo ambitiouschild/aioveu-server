@@ -7,6 +7,8 @@ import com.aioveu.pay.aioveu01PayOrder.mapper.PayOrderMapper;
 import com.aioveu.pay.aioveu01PayOrder.model.entity.PayOrder;
 import com.aioveu.pay.aioveu00Payment.service.PaymentRecoveryService;
 import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
+import com.baomidou.mybatisplus.core.plugins.IgnoreStrategy;
+import com.baomidou.mybatisplus.core.plugins.InterceptorIgnoreHelper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -58,7 +60,7 @@ OMS Consumer
 *
 *
 * */
-@Component
+//@Component
 @Slf4j
 public class PaymentReconciliationJob {
 
@@ -72,14 +74,18 @@ public class PaymentReconciliationJob {
      */
     //方案 1（最推荐）：Job / 补偿任务 主动忽略多租户
     //支付兜底 Job = 必须无视租户  Job 的语义是“系统级修复”，不是“租户级业务”
-    @InterceptorIgnore(tenantLine = "true")  //✅ 推荐 保留，语义更明确
     @Scheduled(cron = "0 */5 * * * ?")  //把“每分钟”改成“每 2~5 分钟”
     public void reconcile() {
-        log.info("支付兜底Job开始执行");
 
-        JobContextHolder.setJob(); // ✅ 标记 Job 上下文
+        // ✅ 第一件事：关闭租户插件
+        InterceptorIgnoreHelper.handle(
+                IgnoreStrategy.builder()
+                        .tenantLine(true)
+                        .build()
+        );
+
         try {
-
+            log.info("支付兜底Job开始执行");
             LocalDateTime maxCreatedAt = LocalDateTime.now().minusMinutes(30);  //-- ✅ 最早创建时间（now - 30min）
             LocalDateTime lastCreatedAt = LocalDateTime.now();   //- ✅ 最晚创建时间（now）
             Long lastId = Long.MAX_VALUE;    //-- ✅ 游标分页（防重复）
@@ -143,7 +149,8 @@ public class PaymentReconciliationJob {
             log.info("支付兜底Job执行结束");
 
         } finally {
-            JobContextHolder.clear(); // ✅ 必须清
+            // ✅ 必须清理
+            InterceptorIgnoreHelper.clearIgnoreStrategy();
         }
 
 

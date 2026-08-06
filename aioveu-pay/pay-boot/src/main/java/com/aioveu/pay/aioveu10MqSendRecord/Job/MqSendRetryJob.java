@@ -30,7 +30,7 @@ import java.util.List;
  * @return
  **/
 
-@Component
+//@Component
 @Slf4j
 @AllArgsConstructor
 public class MqSendRetryJob {
