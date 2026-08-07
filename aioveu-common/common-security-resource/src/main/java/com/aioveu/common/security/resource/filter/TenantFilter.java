@@ -1,5 +1,6 @@
 package com.aioveu.common.security.resource.filter;
 
+import com.aioveu.common.core.constant.JwtClaimConstants;
 import com.aioveu.common.security.resource.config.property.SecurityFilterOrders;
 import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.common.core.tenant.TenantContextHolder;
@@ -10,6 +11,10 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -92,27 +97,40 @@ public class TenantFilter extends OncePerRequestFilter implements Ordered {
         log.info("【TenantFilter】🌐 Incoming request | {} {} | query={}",
                 method, uri, query != null ? query : "<none>");
 
+        //✅ 正确做法：TenantFilter自己读 JwtAuthenticationToken
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
 
-        try {
-            // 直接从SecurityUtils获取当前用户的租户ID
-            // 调试1：直接调用   // 1. 从JWT解析租户ID
-            Long tenantId = JwtSecurityUtils.getTenantId();
-            log.info("【TenantFilter】SecurityUtils.getTenantId() 结果: " + tenantId);
+        if (authentication instanceof JwtAuthenticationToken jwtAuth) {
 
+            Jwt jwt = jwtAuth.getToken();
+            Object tenantIdObj = jwt.getClaim(JwtClaimConstants.Tenant.ID);
 
-            if (tenantId != null) {
-                // 设置到租户上下文
+            if (tenantIdObj instanceof Number n) {
+                long tenantId = n.longValue();
                 TenantContextHolder.setTenantId(tenantId);
+                log.info("【TenantFilter】从 JWT 设置租户ID: {}", tenantId);
                 log.info("【TenantFilter】TenantContextHolder = 复印件,设置租户ID到设置到租户上下文: " + tenantId);
             } else {
-                // ✅ 没有 tenantId 是异常情况，但不是 Filter 的责任
-                log.info("【TenantFilter】⚠️ 没有租户ID，跳过设置");
+                throw new IllegalStateException(
+                        "JWT 缺失 tenant_id，URI=" + request.getRequestURI()
+                );
             }
+        } else {
+            // 匿名请求不应进入 /me
+            throw new IllegalStateException(
+                    "非 JWT 认证请求，URI=" + request.getRequestURI()
+            );
+        }
+
+
+        try {
+
             filterChain.doFilter(request, response);
         }
         finally {
             // 清理租户上下文
-//            TenantContextHolder.clear();
+            // TenantContextHolder.clear();
             log.info("【TenantFilter】tenantId 已设置，由 TenantInterceptor 负责清理");
         }
     }
