@@ -1,7 +1,6 @@
 package com.aioveu.gateway.filter;
 
 
-import com.aioveu.gateway.config.GatewayJwtConfiguration;
 import com.aioveu.gateway.service.ClientWhitelistWithRedisService;
 import lombok.Data;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -39,15 +38,12 @@ import org.springframework.stereotype.Component;
 public class ClientIdGatewayFilterGatewayFilterFactory extends AbstractGatewayFilterFactory<ClientIdGatewayFilterGatewayFilterFactory.Config> {
 
 
-    private final GatewayJwtConfiguration.GatewayJwtParser gatewayJwtParser;
     private final ClientWhitelistWithRedisService clientWhitelistWithRedisService;
 
     public ClientIdGatewayFilterGatewayFilterFactory(
-            @Lazy GatewayJwtConfiguration.GatewayJwtParser gatewayJwtParser,
             ClientWhitelistWithRedisService clientWhitelistWithRedisService
     ) {
         super(Config.class);
-        this.gatewayJwtParser = gatewayJwtParser;
         this.clientWhitelistWithRedisService = clientWhitelistWithRedisService;
     }
 
@@ -62,7 +58,6 @@ public class ClientIdGatewayFilterGatewayFilterFactory extends AbstractGatewayFi
     public GatewayFilter apply(Config config) {
         // ✅ 只传“工具”和“业务服务”，不碰 Security
         return new ClientIdGatewayFilter(
-                gatewayJwtParser,
                 clientWhitelistWithRedisService
         );
     }

@@ -13,7 +13,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @Version 1.0
  **/
 @Data
-@ConfigurationProperties(prefix = "gateway")
+//@ConfigurationProperties(prefix = "gateway")
 public class GatewayProperties {
 
     /**

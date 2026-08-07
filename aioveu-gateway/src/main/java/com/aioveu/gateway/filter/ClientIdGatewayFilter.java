@@ -1,7 +1,6 @@
 package com.aioveu.gateway.filter;
 
 
-import com.aioveu.gateway.config.GatewayJwtConfiguration;
 import com.aioveu.gateway.service.ClientWhitelistWithRedisService;
 import com.alibaba.nacos.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -47,16 +46,13 @@ public class ClientIdGatewayFilter implements GatewayFilter, Ordered {
     private static final String HEADER_TEENANT_ID = "X-Tenant-Id";
     private static final String HEADER_CLIENT_VERIFIED = "X-Client-Verified";
 
-    private final GatewayJwtConfiguration.GatewayJwtParser gatewayJwtParser;
     private final ClientWhitelistWithRedisService clientWhitelistWithRedisService;
 
     //构造函数注入
      // ✅ 关键：@Lazy 方案 A（强烈推荐）：把构造函数注入改成 @Lazy
     public ClientIdGatewayFilter(
-            GatewayJwtConfiguration.GatewayJwtParser gatewayJwtParser,
             ClientWhitelistWithRedisService clientWhitelistWithRedisService
     ) {
-        this.gatewayJwtParser = gatewayJwtParser;
         this.clientWhitelistWithRedisService = clientWhitelistWithRedisService;
     }
 
@@ -92,15 +88,18 @@ public class ClientIdGatewayFilter implements GatewayFilter, Ordered {
         String path = exchange.getRequest().getURI().getPath();
         log.info("【ClientIdGatewayFilter】进入 filter, path={}", path);
 
-        String auth = exchange.getRequest()
-                .getHeaders()
-                .getFirst(HttpHeaders.AUTHORIZATION);
-
         // 1️有 Token：走 JWT → tenantId
         // ✅ 协议端点彻底不介入（架构正确）
         if (path.startsWith("/oauth2/")) {
             return chain.filter(exchange);
         }
+
+
+        String auth = exchange.getRequest()
+                .getHeaders()
+                .getFirst(HttpHeaders.AUTHORIZATION);
+
+
 
         /*
         * ✅ Gateway 只负责：按路径 → 转发到对应微服务
@@ -133,19 +132,13 @@ public class ClientIdGatewayFilter implements GatewayFilter, Ordered {
         *
         * */
         if (StringUtils.isNotBlank(auth) && auth.startsWith("Bearer ")) {
-            return resolveTenantFromJwt(auth.substring(7))
-                    .flatMap(tenantId ->
-                            chain.filter(
-                                    exchange.mutate()
-                                            .request(mutateTenantHeader(exchange, tenantId))
-                                            .build()
-                            )
-                    )
-                    .switchIfEmpty(unauthorized(exchange, "JWT 中缺失 tenantId"));
+            log.info("【ClientIdGatewayFilter】JWT 请求，直接放行，由资源服务器解析 tenantId");
+            return chain.filter(exchange);
         }
 
-
-        // 2️无 Token：走 clientId 白名单
+        /*
+         * ✅ 无 Token：走 clientId 白名单（匿名 / 公共接口）
+         */
         return resolveClientId(exchange)
                 .flatMap(clientId -> {
                     if (!clientWhitelistWithRedisService.isValid(clientId)) {
@@ -164,13 +157,7 @@ public class ClientIdGatewayFilter implements GatewayFilter, Ordered {
                 .switchIfEmpty(unauthorized(exchange, "缺失 X-Client-Id"));
     }
 
-    /**
-     * ✅ 解析 clientId（JWT > Header）
-     * JWT 是权威来源，Header 是传输载体
-     */
-    private Mono<Long> resolveTenantFromJwt(String token) {
-        return gatewayJwtParser.parseTenantId(token);
-    }
+
 
     private Mono<String> resolveClientId(ServerWebExchange exchange) {
         String clientId = exchange.getRequest()
@@ -183,14 +170,6 @@ public class ClientIdGatewayFilter implements GatewayFilter, Ordered {
         return Mono.empty();
     }
 
-    /*
-    Header 注入（只注入，不覆盖）
-    * */
-    private ServerHttpRequest mutateTenantHeader(ServerWebExchange exchange, Long tenantId) {
-        return exchange.getRequest().mutate()
-                .header(HEADER_TEENANT_ID, tenantId.toString())
-                .build();
-    }
 
         /*
     Header 注入（只注入，不覆盖）
