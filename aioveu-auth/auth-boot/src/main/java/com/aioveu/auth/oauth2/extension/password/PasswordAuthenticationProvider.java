@@ -291,6 +291,7 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
         log.info("步骤5: 构建令牌生成上下文 - 访问令牌");
         DefaultOAuth2TokenContext.Builder tokenContextBuilder = DefaultOAuth2TokenContext.builder()
                 .registeredClient(registeredClient)     // 注册的客户端信息
+                //👉 JWT Customizer 应该从这个 principal 里拿用户
                 .principal(usernamePasswordAuthentication) // 身份验证成功的认证信息(用户名、权限等信息)
                 .authorizationServerContext(AuthorizationServerContextHolder.getContext())  // 授权服务器上下文
                 .authorizedScopes(authorizedScopes)    // 授权的权限范围

@@ -2,7 +2,7 @@ package com.aioveu.common.security.resource.filter;
 
 import com.aioveu.common.core.TokenManager.service.TokenManagerService;
 import com.aioveu.common.security.resource.config.property.SecurityProperties;
-import com.aioveu.common.security.core.model.SecurityFilterOrders;
+import com.aioveu.common.security.resource.config.property.SecurityFilterOrders;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -108,6 +108,9 @@ public class JwtBlacklistFilter extends OncePerRequestFilter implements Ordered 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         AntPathMatcher matcher = new AntPathMatcher();
+
+        log.error("🚨 WHITELIST PATHS = {}", securityProperties.getWhitelistPaths());
+        log.error("🚨 Request URI = {}", request.getRequestURI());
 
         return securityProperties.getWhitelistPaths().stream()
                 .anyMatch(path -> matcher.match(path, request.getRequestURI()));

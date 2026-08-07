@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
@@ -54,29 +55,19 @@ public class JwtEncodingCustomizerConfiguration {
             }
 
             // ✅ 从 Authorization 中取你存进去的 Principal
-            OAuth2Authorization authorization = context.getAuthorization();
-
-
-            if (authorization == null) {
-                log.warn("【JWT】OAuth2Authorization 为空，无法写入租户信息");
-                return;
-            }
-
-            //正好对接你 Provider 里存的 SysUserDetails
-            Object principalAttr = authorization.getAttribute(Principal.class.getName());
-
-
-            //👉 “我从 OAuth2 授权记录里，拿出来的那个‘用户对象’，是不是我认识的 UsernamePasswordAuthenticationToken？”
+            Authentication principal = context.getPrincipal();
+            log.info("【JwtTokenCustomizer】JWT Customizer 应该从这个 principal 里拿用户principal:{}",principal);
+            //👉👉 JWT Customizer 应该从这个 principal 里拿用户
             //✅ 是 → 继续往下走，把 SysUserDetails拿出来写进 JWT
             //“如果不是，instanceof = false，取反为真，进入 if，return 空”
             //所以这里的 return意思是：
             //“我不改 JWT claims，直接结束本次定制逻辑”
-            if (!(principalAttr instanceof UsernamePasswordAuthenticationToken authToken)) {
+            if (!(principal instanceof UsernamePasswordAuthenticationToken authToken)) {
                 log.warn("【JWT】Authorization 中不存在 UsernamePasswordAuthenticationToken");
                 return;
             }
 
-            log.warn("【JwtTokenCustomizer】开始处理令牌定制 +++++++++++++");
+            log.info("【JwtTokenCustomizer】开始处理令牌定制 +++++++++++++");
 
             JwtClaimsSet.Builder claims = context.getClaims();
 
