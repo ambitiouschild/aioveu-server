@@ -102,12 +102,7 @@ public class MyTenantLineHandler implements TenantLineHandler {
 
     private static final Set<String> DEFAULT_IGNORE_TABLES = Set.of(
             "sys_tenant",
-            "sys_user",
-            "sys_role",
-            "sys_menu",
-            "pay_config_wechat",
-            "pay_config_alipay",
-            "ums_member"
+            "sys_menu"
     );
 
     /**
