@@ -10,10 +10,12 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 
+import java.security.Principal;
 import java.util.Collection;
 import java.util.Map;
 
@@ -46,13 +48,31 @@ public class JwtEncodingCustomizerConfiguration {
 
             log.info("=== 【JwtTokenCustomizer】开始处理令牌定制 JwtTokenCustomizer 被调用 ===");
 
-
             // 只处理 access_token
             if (!OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
                 return;
             }
 
-            if (!(context.getPrincipal() instanceof UsernamePasswordAuthenticationToken authToken)) {
+            // ✅ 从 Authorization 中取你存进去的 Principal
+            OAuth2Authorization authorization = context.getAuthorization();
+
+
+            if (authorization == null) {
+                log.warn("【JWT】OAuth2Authorization 为空，无法写入租户信息");
+                return;
+            }
+
+            //正好对接你 Provider 里存的 SysUserDetails
+            Object principalAttr = authorization.getAttribute(Principal.class.getName());
+
+
+            //👉 “我从 OAuth2 授权记录里，拿出来的那个‘用户对象’，是不是我认识的 UsernamePasswordAuthenticationToken？”
+            //✅ 是 → 继续往下走，把 SysUserDetails拿出来写进 JWT
+            //“如果不是，instanceof = false，取反为真，进入 if，return 空”
+            //所以这里的 return意思是：
+            //“我不改 JWT claims，直接结束本次定制逻辑”
+            if (!(principalAttr instanceof UsernamePasswordAuthenticationToken authToken)) {
+                log.warn("【JWT】Authorization 中不存在 UsernamePasswordAuthenticationToken");
                 return;
             }
 
