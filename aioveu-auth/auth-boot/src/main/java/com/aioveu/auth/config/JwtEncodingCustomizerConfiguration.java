@@ -76,6 +76,8 @@ public class JwtEncodingCustomizerConfiguration {
                 return;
             }
 
+            log.warn("【JwtTokenCustomizer】开始处理令牌定制 +++++++++++++");
+
             JwtClaimsSet.Builder claims = context.getClaims();
 
             // ---------- 1. 公共字段 ----------
