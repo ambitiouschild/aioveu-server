@@ -1,8 +1,8 @@
 package com.aioveu.common.security.resource.filter;
 
 import com.aioveu.common.core.TokenManager.service.TokenManagerService;
+import com.aioveu.common.security.core.config.property.SecurityFilterOrders;
 import com.aioveu.common.security.resource.config.property.SecurityProperties;
-import com.aioveu.common.security.resource.config.property.SecurityFilterOrders;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

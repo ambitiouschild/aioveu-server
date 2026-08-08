@@ -3,7 +3,7 @@ package com.aioveu.common.security.tenant.filter;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.aioveu.common.core.tenant.TenantContextHolder;
-import com.aioveu.common.security.tenant.config.TenantFilterOrders;
+import com.aioveu.common.security.core.config.property.SecurityFilterOrders;
 import com.aioveu.common.security.tenant.config.property.TenantResolveProperties;
 import com.aioveu.common.security.tenant.service.Impl.PublicTenantResolver;
 import jakarta.servlet.FilterChain;
@@ -74,7 +74,7 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
 //    }
     @Override
     public int getOrder() {
-        return TenantFilterOrders.PUBLIC_TENANT_FILTER;
+        return SecurityFilterOrders.PUBLIC_TENANT_FILTER;
     }
 
     /**

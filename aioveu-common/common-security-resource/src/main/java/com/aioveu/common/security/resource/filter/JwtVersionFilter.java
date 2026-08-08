@@ -2,8 +2,8 @@ package com.aioveu.common.security.resource.filter;
 
 
 import com.aioveu.common.core.constant.JwtClaimConstants;
+import com.aioveu.common.security.core.config.property.SecurityFilterOrders;
 import com.aioveu.common.security.resource.config.property.SecurityProperties;
-import com.aioveu.common.security.resource.config.property.SecurityFilterOrders;
 import com.aioveu.common.security.resource.utils.ClaimUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

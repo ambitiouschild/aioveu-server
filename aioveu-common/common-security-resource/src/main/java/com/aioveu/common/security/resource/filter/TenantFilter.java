@@ -1,9 +1,8 @@
 package com.aioveu.common.security.resource.filter;
 
 import com.aioveu.common.core.constant.JwtClaimConstants;
-import com.aioveu.common.security.resource.config.property.SecurityFilterOrders;
-import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.common.core.tenant.TenantContextHolder;
+import com.aioveu.common.security.core.config.property.SecurityFilterOrders;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
