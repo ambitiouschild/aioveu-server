@@ -164,8 +164,13 @@ public class TenantFilter extends OncePerRequestFilter implements Ordered {
     /**
      * ✅ 只对 HTTP 请求生效  TenantFilter 永远不加白名单
      */
-
+    /**
+     * 租户过滤器（资源服务器专用）
+     * ✅ 只认 JWT
+     * ❌ 不认 clientId
+     */
     /*
+    *
     *
     *       ✅ 这个 attribute：
                 不是 URL
@@ -175,10 +180,40 @@ public class TenantFilter extends OncePerRequestFilter implements Ordered {
                 👉 这是主流架构里最常见的“内部信号”机制
     *
     * */
+    /**
+     * 该接口仅用于 OAuth2 Password 模式认证链路
+     *
+     * ✅ 由授权服务在认证过程中调用
+     * ✅ 此时尚无用户 JWT
+     * ✅ 不应进入 TenantFilter 的 JWT 校验逻辑
+     *
+     * 不属于业务接口，不属于资源服务器对外 API
+     */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        // ✅ 公共 clientId 请求，TenantFilter 不介入
-        return request.getAttribute("__PUBLIC_CLIENT_REQUEST__") != null;
+
+        String uri = request.getRequestURI();
+
+        /*
+         * 1️认证服务内部调用
+         * - OAuth2 Password 模式
+         * - 无 JWT、无用户态
+         * - 仅用于加载用户凭证
+         */
+        boolean authInternalCall =
+                uri.startsWith("/aioveu/api/v8/admin/tenant/users/")
+                        && uri.contains("/UserAuthCredentials");
+
+        /*
+         * 2️公共 clientId 请求
+         * - 无 JWT
+         * - 由 ClientIdTenantResolutionFilter 托管
+         */
+        boolean publicClientRequest =
+                request.getAttribute("__PUBLIC_CLIENT_REQUEST__") != null;
+
+        // ✅ 两类请求均不应进入 JWT 租户校验
+        return authInternalCall || publicClientRequest;
     }
 
 }
