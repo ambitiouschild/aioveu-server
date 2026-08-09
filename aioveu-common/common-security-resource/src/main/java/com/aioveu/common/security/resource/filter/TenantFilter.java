@@ -162,11 +162,23 @@ public class TenantFilter extends OncePerRequestFilter implements Ordered {
     }
 
     /**
-     * ✅ 只对 HTTP 请求生效
+     * ✅ 只对 HTTP 请求生效  TenantFilter 永远不加白名单
      */
+
+    /*
+    *
+    *       ✅ 这个 attribute：
+                不是 URL
+                不是配置
+                不是业务语义
+                是 Filter 之间的技术契约
+                👉 这是主流架构里最常见的“内部信号”机制
+    *
+    * */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return false;
+        // ✅ 公共 clientId 请求，TenantFilter 不介入
+        return request.getAttribute("__PUBLIC_CLIENT_REQUEST__") != null;
     }
 
 }

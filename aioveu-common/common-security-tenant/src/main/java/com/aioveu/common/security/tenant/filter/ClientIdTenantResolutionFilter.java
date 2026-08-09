@@ -1,10 +1,9 @@
 package com.aioveu.common.security.tenant.filter;
 
 
-import cn.hutool.core.collection.CollectionUtil;
+
 import com.aioveu.common.core.tenant.TenantContextHolder;
 import com.aioveu.common.security.core.config.property.SecurityFilterOrders;
-import com.aioveu.common.security.tenant.config.property.TenantResolveProperties;
 import com.aioveu.common.security.tenant.service.Impl.PublicTenantResolver;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -52,8 +51,7 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
 
     private static final String HEADER_CLIENT_ID = "X-Client-Id";
     private static final String HEADER_CLIENT_VERIFIED = "X-Client-Verified";
-    private final TenantResolveProperties tenantResolveProperties;
-    private static final AntPathMatcher antPathMatcher = new AntPathMatcher();
+
     /**
      * 公共租户解析器
      *
@@ -110,58 +108,8 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
 
         // ✅ 1. 有 JWT = 直接跳过（最关键的放行）
         String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.hasText(auth) && auth.startsWith("Bearer ")) {
-            log.info("【ClientIdTenantResolutionFilter】JWT 存在即跳过, JWT detected, skip filter, URI={}", request.getRequestURI());
-
-            //GET /aioveu/api/v8/admin/tenant/users/xinhuan/3/UserAuthCredentials 这个接口不会获得mp的tenantId
-            return true; // ✅ 不执行本 Filter
-        }
-
-        /*
-        * shouldNotFilter()的语义是：
-                ✅ true  = 不执行这个 Filter
-        * */
-
-        List<String> whitelist = tenantResolveProperties.getWhitelistPaths();
-
-        // 2️白名单为空 → 跳过
-        if (CollectionUtil.isEmpty(whitelist)) {
-            return true;  // ❌ 不解析 clientId
-        }
-
-
-        /*
-        * shouldNotFilter()的语义是：
-                ✅ false = 执行这个 Filter
-                * // ✅ 在白名单 → 执行 Filter → false
-                *  // ✅ 不在白名单 → 跳过 Filter → true
-        * */
-
-        /*
-         * shouldNotFilter() 语义说明：
-         *
-         * ✅ true  = 跳过当前 Filter（不执行）
-         * ✅ false = 执行当前 Filter
-         *
-         * 白名单逻辑：
-         * - URI 在白名单 → isWhitelist = true → return false → 执行 Filter
-         * - URI 不在白名单 → isWhitelist = false → return true → 跳过 Filter
-         */
-
-//        boolean isWhitelist = whitelist.stream()
-//                .anyMatch(uri::startsWith);
-
-
-        /*
-        * 加了 AntPathMatcher，**和 {username}就都能用了。 ✅
-        * ✅ 加了 AntPathMatcher，**一定可以用
-        * ⚠️ {username}虽然“能匹配”，但不推荐、不优雅、不专业
-        * */
-        boolean isWhitelist = whitelist.stream()
-                .anyMatch(pattern -> antPathMatcher.match(pattern, uri));
-
-        log.info("【ClientIdTenantResolutionFilter】URI={}, isWhitelist={}", uri, isWhitelist);
-        return !isWhitelist;
+        // 有 JWT 就跳过，没 JWT 就执行
+        return StringUtils.hasText(auth) && auth.startsWith("Bearer ");
     }
 
 
@@ -265,6 +213,11 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
         //✅ TenantContextHolder 里有✅ TenantContextHolder 里有
         TenantContextHolder.setTenantId(tenantId);
         log.info("【ClientIdTenantResolutionFilter】设置到上下文 tenantId：{}", tenantId);
+
+
+        // ✅ 关键：标记这是公共 clientId 请求
+        // ✅ 标记这是一个 clientId 公共请求，供 TenantFilter 识别并跳过
+        request.setAttribute("__PUBLIC_CLIENT_REQUEST__", true);
 
         try {
             filterChain.doFilter(request, response);
