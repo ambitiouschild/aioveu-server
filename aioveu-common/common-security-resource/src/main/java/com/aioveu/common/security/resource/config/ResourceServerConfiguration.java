@@ -30,10 +30,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtValidators;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
@@ -188,15 +185,14 @@ public class ResourceServerConfiguration {
      *      4. 自定义异常处理器
      *
      * @param http HttpSecurity对象，用于构建安全配置
-     * @param introspector HandlerMappingIntrospector，用于MVC路径匹配
      * @return SecurityFilterChain 安全过滤器链
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, HandlerMappingIntrospector introspector) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            JwtDecoder jwtDecoder
+    ) throws Exception {
 
-
-        // 创建MVC请求匹配器构建器，支持Spring MVC的路径模式匹配
-        MvcRequestMatcher.Builder mvcMatcherBuilder = new MvcRequestMatcher.Builder(introspector);
 
         // 记录白名单路径，便于调试和监控
         log.info("记录白名单路径，便于调试和监控");
@@ -255,7 +251,12 @@ public class ResourceServerConfiguration {
         http.oauth2ResourceServer(resourceServerConfigurer ->
                         resourceServerConfigurer
                                 // 配置JWT认证，使用自定义的JWT转换器
-                                .jwt(jwtConfigurer -> jwtAuthenticationConverter())  // 只配置了转换器
+//                                .jwt(jwtConfigurer -> jwtAuthenticationConverter())  // 只配置了转换器
+
+                                .jwt(jwt -> jwt
+                                        .decoder(jwtDecoder)   // ✅ 生死线
+                                        .jwtAuthenticationConverter(jwtAuthenticationConverter())
+                                )
                                 // 设置自定义认证入口点（处理401未认证）
                                 .authenticationEntryPoint(authenticationEntryPoint)
                                 // 设置自定义访问拒绝处理器（处理403权限不足）
@@ -416,26 +417,20 @@ public class ResourceServerConfiguration {
 
 
     @Bean
-    public JwtDecoder jwtDecoder(SecurityProperties securityProperties) {
+    public JwtDecoder jwtDecoder(OAuth2ResourceServerProperties resourceServerProperties) {
 
         // ✅ 从配置读取 jwk-set-uri
         // ✅ 直接拿到 yml 里的 jwk-set-uri
         String jwkSetUri = resourceServerProperties.getJwt().getJwkSetUri();
-
+//        String issuerUri = resourceServerProperties.getJwt().getIssuerUri();
         log.info("🔑 Loaded jwk-set-uri from spring config: {}", jwkSetUri);
+//        log.info("🔑 Loaded issuer-uri from spring config: {}", issuerUri);
 
         NimbusJwtDecoder decoder = NimbusJwtDecoder
                 .withJwkSetUri(jwkSetUri)
                 .build();
 
-        // ✅ 关闭 audience 校验
-        OAuth2TokenValidator<Jwt> validator =
-                new DelegatingOAuth2TokenValidator<>(
-                        JwtValidators.createDefault(),
-                        (jwt) -> OAuth2TokenValidatorResult.success()
-                );
-
-        decoder.setJwtValidator(validator);
+        //✅ 完全不自定义 validator，只用时间校验
         return decoder;
     }
 
