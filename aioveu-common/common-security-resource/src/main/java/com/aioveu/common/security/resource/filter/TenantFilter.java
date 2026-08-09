@@ -76,9 +76,17 @@ public class TenantFilter extends OncePerRequestFilter implements Ordered {
         return SecurityFilterOrders.TENANT_FILTER;
     }
 
-    /*
-    * 方案3：调试SecurityUtils.getTenantId()
-    * */
+    /**
+     * 租户过滤器（资源服务器专用）
+     *
+     * ✅ 职责：
+     * 1. 从 Spring Security Context 中读取 JwtAuthenticationToken
+     * 2. 从 JWT claim 中获取 tenant_id
+     * 3. 设置到 TenantContextHolder
+     *
+     * ❌ 不解析 Header / 参数
+     * ❌ 不使用 SecurityUtils（Filter 是边界，不是消费者）
+     */
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
@@ -100,28 +108,27 @@ public class TenantFilter extends OncePerRequestFilter implements Ordered {
         Authentication authentication =
                 SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication instanceof JwtAuthenticationToken jwtAuth) {
 
-            Jwt jwt = jwtAuth.getToken();
-            Object tenantIdObj = jwt.getClaim(JwtClaimConstants.Tenant.ID);
-
-            if (tenantIdObj instanceof Number n) {
-                long tenantId = n.longValue();
-                TenantContextHolder.setTenantId(tenantId);
-                log.info("【TenantFilter】从 JWT 设置租户ID: {}", tenantId);
-                log.info("【TenantFilter】TenantContextHolder = 复印件,设置租户ID到设置到租户上下文: " + tenantId);
-            } else {
-                throw new IllegalStateException(
-                        "JWT 缺失 tenant_id，URI=" + request.getRequestURI()
-                );
-            }
-        } else {
-            // 匿名请求不应进入 /me
+        if (!(authentication instanceof JwtAuthenticationToken jwtAuth)) {
+            // ✅ 安全边界异常，不是业务异常
             throw new IllegalStateException(
-                    "非 JWT 认证请求，URI=" + request.getRequestURI()
+                    "Non-JWT authenticated request rejected, uri=" + uri
+            );
+        }
+        Jwt jwt = jwtAuth.getToken();
+        Object tenantIdObj = jwt.getClaim(JwtClaimConstants.Tenant.ID);
+
+
+        if (!(tenantIdObj instanceof Number)) {
+            throw new IllegalStateException(
+                    "JWT missing required claim 'tenant_id', uri=" + uri
             );
         }
 
+        long tenantId = ((Number) tenantIdObj).longValue();
+        TenantContextHolder.setTenantId(tenantId);
+        log.debug("【TenantFilter】TenantContextHolder set tenantId={}, uri={}",
+                tenantId, uri);
 
         try {
 
@@ -134,32 +141,6 @@ public class TenantFilter extends OncePerRequestFilter implements Ordered {
         }
     }
 
-    /*
-    * 原因 1：安全红线
-        资源服务器永远不应该相信前端传来的 tenantId
-    * */
-    private Long getTenantIdFromRequest(HttpServletRequest request) {
-        // 1. 从Header获取
-        String tenantIdHeader = request.getHeader("X-Tenant-Id");
-        if (StringUtils.hasText(tenantIdHeader)) {
-            return Long.parseLong(tenantIdHeader);
-        }
-
-        // 2. 从参数获取
-        String tenantIdParam = request.getParameter("tenantId");
-        if (StringUtils.hasText(tenantIdParam)) {
-            return Long.parseLong(tenantIdParam);
-        }
-
-        // 3. 从Basic认证解析（如果是mall-app:123456格式）
-        String authHeader = request.getHeader("Authorization");
-        if (StringUtils.hasText(authHeader) && authHeader.startsWith("Basic ")) {
-            // 可以解析Basic认证，看是否包含租户信息
-            // 这取决于您的认证服务设计
-        }
-
-        return null;
-    }
 
     /**
      * ✅ 只对 HTTP 请求生效  TenantFilter 永远不加白名单

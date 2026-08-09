@@ -33,4 +33,7 @@ public class SecurityProperties {
      */
 //    @Setter
     private List<String> whitelistPaths = Collections.emptyList();
+
+    /** 受信 audience 列表（validateAudience=true 时生效） */
+    private List<String> trustedAudiences = List.of();
 }

@@ -107,6 +107,9 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
 
         log.error("【ClientIdTenantResolutionFilter】shouldNotFilter called, URI={}", uri);
 
+        log.info("【ClientIdTenantResolutionFilter】🚨 RAW Authorization: {}",
+                request.getHeader("Authorization"));
+
         // 有 JWT → 跳过
         String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (StringUtils.hasText(auth) && auth.startsWith("Bearer ")) {

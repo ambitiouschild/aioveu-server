@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -26,7 +27,13 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
@@ -101,6 +108,9 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 public class ResourceServerConfiguration {
 
 
+    // ✅ 直接注入，不用写任何额外代码
+    //OAuth2ResourceServerProperties是 Spring Boot 自带的
+    private final OAuth2ResourceServerProperties resourceServerProperties;
     // 自定义访问拒绝处理器（403 Forbidden情况）
     private final MyAccessDeniedHandler accessDeniedHandler;
 
@@ -405,8 +415,65 @@ public class ResourceServerConfiguration {
     //------------------------验证JWT时检查黑名单！----集成到 Spring Security------------------------------------
 
 
+    @Bean
+    public JwtDecoder jwtDecoder(SecurityProperties securityProperties) {
+
+        // ✅ 从配置读取 jwk-set-uri
+        // ✅ 直接拿到 yml 里的 jwk-set-uri
+        String jwkSetUri = resourceServerProperties.getJwt().getJwkSetUri();
+
+        log.info("🔑 Loaded jwk-set-uri from spring config: {}", jwkSetUri);
+
+        NimbusJwtDecoder decoder = NimbusJwtDecoder
+                .withJwkSetUri(jwkSetUri)
+                .build();
+
+        // ✅ 关闭 audience 校验
+        OAuth2TokenValidator<Jwt> validator =
+                new DelegatingOAuth2TokenValidator<>(
+                        JwtValidators.createDefault(),
+                        (jwt) -> OAuth2TokenValidatorResult.success()
+                );
+
+        decoder.setJwtValidator(validator);
+        return decoder;
+    }
 
 
-
+//    @Bean
+//    public JwtDecoder jwtDecoder(SecurityProperties props) {
+//
+//        NimbusJwtDecoder decoder =
+//                NimbusJwtDecoder.withJwkSetUri(props.getJwkSetUri()).build();
+//
+//        OAuth2TokenValidator<Jwt> audienceValidator = jwt -> {
+//            List<String> aud = jwt.getAudience();
+//            if (CollectionUtil.isEmpty(aud)) {
+//                return OAuth2TokenValidatorResult.failure(
+//                        new OAuth2Error("invalid_token", "Missing aud", null)
+//                );
+//            }
+//
+//            // ✅ 允许多个受信 aud
+//            if (aud.contains("mall-admin")
+//                    || aud.contains("aioveu-tenant")
+//                    || aud.contains("aioveu-common")) {
+//                return OAuth2TokenValidatorResult.success();
+//            }
+//
+//            return OAuth2TokenValidatorResult.failure(
+//                    new OAuth2Error("invalid_token", "Invalid audience", null)
+//            );
+//        };
+//
+//        decoder.setJwtValidator(
+//                new DelegatingOAuth2TokenValidator<>(
+//                        JwtValidators.createDefault(),
+//                        audienceValidator
+//                )
+//        );
+//
+//        return decoder;
+//    }
 
 }

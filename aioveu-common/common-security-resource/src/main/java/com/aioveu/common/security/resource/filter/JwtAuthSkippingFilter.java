@@ -54,6 +54,10 @@ public class JwtAuthSkippingFilter extends OncePerRequestFilter implements Order
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
+        String auth = request.getHeader("Authorization");
+        log.error("🚨 Authorization present: {}", auth != null);
+        log.error("🚨 FULL Authorization: {}", auth);
+
         filterChain.doFilter(request, response);
     }
 
