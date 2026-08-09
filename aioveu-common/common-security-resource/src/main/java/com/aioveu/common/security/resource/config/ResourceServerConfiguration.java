@@ -18,6 +18,7 @@ import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2Res
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -159,6 +160,12 @@ public class ResourceServerConfiguration {
 //    }
 
 
+
+
+
+
+
+
     /**
      * 数据权限处理器（资源服务器提供）
      */
@@ -169,6 +176,20 @@ public class ResourceServerConfiguration {
         return new MyDataPermissionHandler();
     }
 
+
+    // ✅ 链 1：tenant 公共接口（不走 JWT）
+    @Bean
+    @Order(1)
+    public SecurityFilterChain tenantPublicChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher(
+                        "/aioveu/api/v8/admin/tenant/users/tenants/**",
+                        "/aioveu/api/v8/admin/tenant/users/**/authInfo",
+                        "/aioveu/api/v8/admin/tenant/users/**/UserAuthCredentials"
+                )
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
 
     /**
      * TODO 安全过滤器链配置 - 资源服务器的核心安全配置
@@ -183,37 +204,18 @@ public class ResourceServerConfiguration {
      * @return SecurityFilterChain 安全过滤器链
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(
+    public SecurityFilterChain tenantResourceChain(
             HttpSecurity http
     ) throws Exception {
 
-
-        // 记录白名单路径，便于调试和监控
-        log.info("记录白名单路径，便于调试和监控");
-        log.info("whitelist path:{}", JSONUtil.toJsonStr(securityProperties.getWhitelistPaths()));
-
         // 配置HTTP请求授权规则
         //在 Spring Security 配置中，授权规则的顺序很重要
-        http.authorizeHttpRequests((requests) ->
-                        {
-                            // 配置白名单路径 - 这些路径不需要认证即可访问
-                            if (CollectionUtil.isNotEmpty(securityProperties.getWhitelistPaths())) {
-                                for (String whitelistPath : securityProperties.getWhitelistPaths()) {
-
-//                                    // 使用MVC模式匹配器配置白名单路径为允许所有人访问
-//                                    requests.requestMatchers(mvcMatcherBuilder.pattern(whitelistPath)).permitAll();
-                                     //第二步（强烈建议）：白名单不要用 MvcRequestMatcher
-                                    //改成 AntPathMatcher（稳）
-                                    log.info("PermitAll path: {}", whitelistPath);
-                                    requests.requestMatchers(
-                                            AntPathRequestMatcher.antMatcher(whitelistPath))
-                                            .permitAll();  // 走过滤器，但不认证
-
-                                }
-                            }
-                            // 除白名单外的所有其他请求都需要认证
-                            requests.anyRequest().authenticated();
-                        }
+        http
+                .securityMatcher("/aioveu/api/v8/admin/tenant/**")
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/aioveu/api/v8/admin/tenant/users/me")
+                        .authenticated()
+                        .anyRequest().authenticated()
                 )
                 // 禁用CSRF防护 - 对于REST API通常不需要CSRF保护
                 .csrf(AbstractHttpConfigurer::disable)
@@ -221,19 +223,8 @@ public class ResourceServerConfiguration {
                 //方案1：将租户过滤器移到认证之后（推荐）
                 .addFilterAfter(jwtVersionFilter, BearerTokenAuthenticationFilter.class)
                 .addFilterAfter(jwtBlacklistFilter, BearerTokenAuthenticationFilter.class)
-                .addFilterAfter(tenantFilter, BearerTokenAuthenticationFilter.class)
+                .addFilterAfter(tenantFilter, BearerTokenAuthenticationFilter.class);
 
-        /*
-                    Todo   过滤器执行顺序（重要
-        *                   1. TenantFilter (租户过滤器)        ← 最先执行，设置租户上下文
-                            2. JwtBlacklistFilter (JWT黑名单)  ← 检查Token是否在黑名单
-                            3. JwtAuthenticationFilter (JWT认证) ← 认证用户
-                            4. BearerTokenAuthenticationFilter ← Spring Security的Bearer Token认证
-                            5. UsernamePasswordAuthenticationFilter ← 用户名密码认证
-        *
-        * */
-
-        ;
         // 配置OAuth2资源服务器（JWT令牌认证）
         // 你的代码中没有显式配置JwtDecoder
         // Spring Boot会尝试自动配置
