@@ -61,7 +61,10 @@ public class JwtAuthSkippingFilter extends OncePerRequestFilter implements Order
 
         String uri = request.getRequestURI();
         return uri.startsWith("/aioveu/api/v8/admin/tenant/users/")
-                && uri.contains("/UserAuthCredentials");
+                && (
+                uri.contains("/UserAuthCredentials")
+                        || uri.endsWith("/tenants/" + extractUsername(uri))
+        );
     }
 
 

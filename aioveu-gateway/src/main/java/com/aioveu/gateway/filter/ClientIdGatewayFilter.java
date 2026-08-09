@@ -172,7 +172,7 @@ public class ClientIdGatewayFilter implements GatewayFilter, Ordered {
 
 
         /*
-    Header 注入（只注入，不覆盖）
+    Header 注入（只注入，不覆盖）  Gateway 签名，下游验签  如果你一定要用 Header 标识“这是网关来的”：
     * */
     private ServerHttpRequest mutateClientVerifiedHeader(ServerWebExchange exchange, String clientId) {
         return exchange.getRequest().mutate()

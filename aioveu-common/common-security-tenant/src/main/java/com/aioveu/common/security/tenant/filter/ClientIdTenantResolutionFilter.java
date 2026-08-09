@@ -4,6 +4,7 @@ package com.aioveu.common.security.tenant.filter;
 
 import com.aioveu.common.core.tenant.TenantContextHolder;
 import com.aioveu.common.security.core.config.property.SecurityFilterOrders;
+import com.aioveu.common.security.tenant.config.property.TenantPublicProperties;
 import com.aioveu.common.security.tenant.service.Impl.PublicTenantResolver;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -51,7 +52,7 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
 
     private static final String HEADER_CLIENT_ID = "X-Client-Id";
     private static final String HEADER_CLIENT_VERIFIED = "X-Client-Verified";
-
+    private final TenantPublicProperties tenantPublicProperties;
     /**
      * 公共租户解析器
      *
@@ -106,10 +107,20 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
 
         log.error("【ClientIdTenantResolutionFilter】shouldNotFilter called, URI={}", uri);
 
-        // ✅ 1. 有 JWT = 直接跳过（最关键的放行）
+        // 有 JWT → 跳过
         String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
-        // 有 JWT 就跳过，没 JWT 就执行
-        return StringUtils.hasText(auth) && auth.startsWith("Bearer ");
+        if (StringUtils.hasText(auth) && auth.startsWith("Bearer ")) {
+            return true;
+        }
+
+        // ✅ 登录前接口 → 跳过
+        if (uri.startsWith("/aioveu/api/v8/admin/tenant/users/tenants/")) {
+            return true;
+        }
+
+        // 不在公共租户路径 → 跳过
+        return tenantPublicProperties.getWhitelistPaths().stream()
+                .noneMatch(p -> new AntPathMatcher().match(p, uri));
     }
 
 
