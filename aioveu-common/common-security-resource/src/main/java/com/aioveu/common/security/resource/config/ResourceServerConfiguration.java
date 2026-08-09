@@ -219,11 +219,9 @@ public class ResourceServerConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 //方案1：将租户过滤器移到认证之后（推荐）
-                // ✅ JWT 相关过滤器
-                .addFilterBefore(jwtVersionFilter, BearerTokenAuthenticationFilter.class)
-                .addFilterBefore(jwtBlacklistFilter, BearerTokenAuthenticationFilter.class)
-                // ✅ 所有请求：从 JWT 拿 tenantId
-                .addFilterBefore(tenantFilter, BearerTokenAuthenticationFilter.class)
+                .addFilterAfter(jwtVersionFilter, BearerTokenAuthenticationFilter.class)
+                .addFilterAfter(jwtBlacklistFilter, BearerTokenAuthenticationFilter.class)
+                .addFilterAfter(tenantFilter, BearerTokenAuthenticationFilter.class)
 
         /*
                     Todo   过滤器执行顺序（重要

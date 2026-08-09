@@ -108,6 +108,7 @@ public class TenantFilter extends OncePerRequestFilter implements Ordered {
         Authentication authentication =
                 SecurityContextHolder.getContext().getAuthentication();
 
+        log.info("【TenantFilter】authentication:{}",authentication);
 
         if (!(authentication instanceof JwtAuthenticationToken jwtAuth)) {
             // ✅ 安全边界异常，不是业务异常
