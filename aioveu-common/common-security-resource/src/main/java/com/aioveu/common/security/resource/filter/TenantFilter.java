@@ -194,6 +194,11 @@ public class TenantFilter extends OncePerRequestFilter implements Ordered {
 
         String uri = request.getRequestURI();
 
+        // 1️认证前接口
+        if (uri.startsWith("/aioveu/api/v8/admin/tenant/users/tenants/")) {
+            return true; // ✅ 我不执行
+        }
+
         /*
          * 1️认证服务内部调用
          * - OAuth2 Password 模式

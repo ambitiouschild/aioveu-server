@@ -31,6 +31,11 @@ import java.io.IOException;
  * @Version 1.0
  **/
 
+/*
+* JwtAuthSkippingFilter是一个防御性 Filter，
+* 用于防止认证前请求因缺失 JWT 而被 Spring Security 误判为认证失败。它本身不解析、不校验、不设置上下文。
+*
+* */
 @Slf4j
 @Component  // ✅ 让 Spring 自动管理  步骤2：确保 JwtAuthSkippingFilter @Component
 @RequiredArgsConstructor  // 使用 Lombok 自动生成构造函数
@@ -60,12 +65,11 @@ public class JwtAuthSkippingFilter extends OncePerRequestFilter implements Order
     protected boolean shouldNotFilter(HttpServletRequest request) {
 
         String uri = request.getRequestURI();
-        return uri.startsWith("/aioveu/api/v8/admin/tenant/users/")
-                && (
-                uri.contains("/UserAuthCredentials")
-                        || uri.endsWith("/tenants/" + extractUsername(uri))
-        );
+        // ✅ 永远不跳过
+        // 是否跳过，由 Security 白名单决定
+        return false;
     }
+
 
 
 }
