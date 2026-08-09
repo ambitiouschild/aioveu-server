@@ -5,7 +5,6 @@ import cn.hutool.json.JSONUtil;
 import com.aioveu.common.core.constant.JwtClaimConstants;
 import com.aioveu.common.security.resource.config.property.SecurityProperties;
 import com.aioveu.common.security.resource.exception.MyAccessDeniedHandler;
-import com.aioveu.common.security.resource.filter.JwtAuthSkippingFilter;
 import com.aioveu.common.security.resource.filter.JwtBlacklistFilter;
 import com.aioveu.common.security.resource.filter.JwtVersionFilter;
 import com.aioveu.common.security.resource.filter.TenantFilter;
@@ -27,9 +26,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
-import org.springframework.security.oauth2.core.OAuth2TokenValidator;
-import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
@@ -114,7 +110,6 @@ public class ResourceServerConfiguration {
     // 自定义认证入口点（401 Unauthorized情况）
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
-    private final JwtAuthSkippingFilter jwtAuthSkippingFilter;
     /**
      * 创建黑名单检查过滤器  集成到 Spring Security
      * 方案A：让 Spring 自动管理过滤器（推荐）
@@ -189,8 +184,7 @@ public class ResourceServerConfiguration {
      */
     @Bean
     public SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
-            JwtDecoder jwtDecoder
+            HttpSecurity http
     ) throws Exception {
 
 
@@ -224,9 +218,6 @@ public class ResourceServerConfiguration {
                 // 禁用CSRF防护 - 对于REST API通常不需要CSRF保护
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // 注册过滤器 - 注意顺序很重要！  //在Security配置类中直接注册（推荐）
-                // ✅ 1️认证期内部调用：最先跳过 认证期内部调用（最早）
-                .addFilterBefore(jwtAuthSkippingFilter, BearerTokenAuthenticationFilter.class)
                 //方案1：将租户过滤器移到认证之后（推荐）
                 // ✅ JWT 相关过滤器
                 .addFilterBefore(jwtVersionFilter, BearerTokenAuthenticationFilter.class)
@@ -251,12 +242,7 @@ public class ResourceServerConfiguration {
         http.oauth2ResourceServer(resourceServerConfigurer ->
                         resourceServerConfigurer
                                 // 配置JWT认证，使用自定义的JWT转换器
-//                                .jwt(jwtConfigurer -> jwtAuthenticationConverter())  // 只配置了转换器
-
-                                .jwt(jwt -> jwt
-                                        .decoder(jwtDecoder)   // ✅ 生死线
-                                        .jwtAuthenticationConverter(jwtAuthenticationConverter())
-                                )
+                                .jwt(jwtConfigurer -> jwtAuthenticationConverter())  // 只配置了转换器
                                 // 设置自定义认证入口点（处理401未认证）
                                 .authenticationEntryPoint(authenticationEntryPoint)
                                 // 设置自定义访问拒绝处理器（处理403权限不足）
@@ -414,61 +400,5 @@ public class ResourceServerConfiguration {
 //    }
 
     //------------------------验证JWT时检查黑名单！----集成到 Spring Security------------------------------------
-
-
-    @Bean
-    public JwtDecoder jwtDecoder(OAuth2ResourceServerProperties resourceServerProperties) {
-
-        // ✅ 从配置读取 jwk-set-uri
-        // ✅ 直接拿到 yml 里的 jwk-set-uri
-        String jwkSetUri = resourceServerProperties.getJwt().getJwkSetUri();
-//        String issuerUri = resourceServerProperties.getJwt().getIssuerUri();
-        log.info("🔑 Loaded jwk-set-uri from spring config: {}", jwkSetUri);
-//        log.info("🔑 Loaded issuer-uri from spring config: {}", issuerUri);
-
-        NimbusJwtDecoder decoder = NimbusJwtDecoder
-                .withJwkSetUri(jwkSetUri)
-                .build();
-
-        //✅ 完全不自定义 validator，只用时间校验
-        return decoder;
-    }
-
-
-//    @Bean
-//    public JwtDecoder jwtDecoder(SecurityProperties props) {
-//
-//        NimbusJwtDecoder decoder =
-//                NimbusJwtDecoder.withJwkSetUri(props.getJwkSetUri()).build();
-//
-//        OAuth2TokenValidator<Jwt> audienceValidator = jwt -> {
-//            List<String> aud = jwt.getAudience();
-//            if (CollectionUtil.isEmpty(aud)) {
-//                return OAuth2TokenValidatorResult.failure(
-//                        new OAuth2Error("invalid_token", "Missing aud", null)
-//                );
-//            }
-//
-//            // ✅ 允许多个受信 aud
-//            if (aud.contains("mall-admin")
-//                    || aud.contains("aioveu-tenant")
-//                    || aud.contains("aioveu-common")) {
-//                return OAuth2TokenValidatorResult.success();
-//            }
-//
-//            return OAuth2TokenValidatorResult.failure(
-//                    new OAuth2Error("invalid_token", "Invalid audience", null)
-//            );
-//        };
-//
-//        decoder.setJwtValidator(
-//                new DelegatingOAuth2TokenValidator<>(
-//                        JwtValidators.createDefault(),
-//                        audienceValidator
-//                )
-//        );
-//
-//        return decoder;
-//    }
 
 }
