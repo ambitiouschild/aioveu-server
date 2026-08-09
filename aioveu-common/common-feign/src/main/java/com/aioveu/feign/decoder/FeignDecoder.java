@@ -7,6 +7,7 @@ import feign.Response;
 import feign.codec.DecodeException;
 import feign.codec.Decoder;
 import org.springframework.cloud.openfeign.support.SpringDecoder;
+import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.lang.reflect.Method;

@@ -5,6 +5,7 @@ import cn.hutool.json.JSONUtil;
 import com.aioveu.common.core.constant.JwtClaimConstants;
 import com.aioveu.common.security.resource.config.property.SecurityProperties;
 import com.aioveu.common.security.resource.exception.MyAccessDeniedHandler;
+import com.aioveu.common.security.resource.filter.JwtAuthSkippingFilter;
 import com.aioveu.common.security.resource.filter.JwtBlacklistFilter;
 import com.aioveu.common.security.resource.filter.JwtVersionFilter;
 import com.aioveu.common.security.resource.filter.TenantFilter;
@@ -106,7 +107,7 @@ public class ResourceServerConfiguration {
     // 自定义认证入口点（401 Unauthorized情况）
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
-
+    private final JwtAuthSkippingFilter jwtAuthSkippingFilter;
     /**
      * 创建黑名单检查过滤器  集成到 Spring Security
      * 方案A：让 Spring 自动管理过滤器（推荐）
@@ -218,6 +219,8 @@ public class ResourceServerConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 注册过滤器 - 注意顺序很重要！  //在Security配置类中直接注册（推荐）
+                // ✅ 1️认证期内部调用：最先跳过 认证期内部调用（最早）
+                .addFilterBefore(jwtAuthSkippingFilter, BearerTokenAuthenticationFilter.class)
                 //方案1：将租户过滤器移到认证之后（推荐）
                 // ✅ JWT 相关过滤器
                 .addFilterBefore(jwtVersionFilter, BearerTokenAuthenticationFilter.class)
