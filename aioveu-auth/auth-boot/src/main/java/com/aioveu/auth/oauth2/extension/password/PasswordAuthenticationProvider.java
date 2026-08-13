@@ -208,36 +208,19 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
 
                 //----------------------------------------------------------
                 // ✅ ===== 写 token_version（唯一正确位置）=====
-                Long userId = null;
                 if (usernamePasswordAuthentication.getPrincipal() instanceof SysUserDetails sysUserDetails) {
-                    userId = sysUserDetails.getUserId();
-                }
-
-                if (userId != null) {
+                    Long userId = sysUserDetails.getUserId();
                     String versionKey = RedisConstants.Auth.USER_TOKEN_VERSION + userId;
-                    //获取当前版本号
-//            Long tokenVersion = stringRedisTemplate.opsForValue().increment(versionKey); //INCR返回的就是 Long,INCR返回的就是 Long
-
                     Boolean absent = stringRedisTemplate.opsForValue()
                             .setIfAbsent(versionKey, "1");
+
 
                     Long tokenVersion = absent != null && absent
                             ? 1L
                             : stringRedisTemplate.opsForValue().increment(versionKey);
 
-                    // ✅ 放入 additionalParameters，供 JWT Customizer 使用
-                    //但实际上 JWT Customizer 根本拿不到。**
-                    // ❌ 这里是只读 Map
-                    //不要往 additionalParameters里塞东西
-//                    additionalParameters.put(JwtClaimConstants.Token.VERSION, tokenVersion);
-
-
-                    // ✅ 放进 details（不是 additionalParameters）
-                    Map<String, Object> details = new HashMap<>();
-                    details.put(JwtClaimConstants.Token.VERSION, tokenVersion);
-
-                    ((UsernamePasswordAuthenticationToken) usernamePasswordAuthentication)
-                            .setDetails(details);
+                    // ✅ 核心：写进 principal
+                    sysUserDetails.setTokenVersion(tokenVersion);
 
                     log.info("【TokenVersion】用户 {} 登录，token_version = {}", userId, tokenVersion);
                 }
@@ -474,12 +457,14 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
                 log.info("用户 {} 在租户 {} 下的权限: {}",
                         username, tenantId, sysUserDetails.getAuthorities());
 
-                // 3. 重新加载该租户下的权限（如果需要）
-                // 这里可以调用你的权限服务重新加载权限
-//                List<GrantedAuthority> authorities = loadPermissionsForTenant(username, tenantId);
-//                if (authorities != null && !authorities.isEmpty()) {
-//                    sysUserDetails.setAuthorities(authorities);
-//                }
+                // 3. ✅ 租户切换 = 新 token = 新版本
+                // ✅ 租户切换也递增 token_version
+                String versionKey = RedisConstants.Auth.USER_TOKEN_VERSION + sysUserDetails.getUserId();
+                Long tokenVersion = stringRedisTemplate.opsForValue().increment(versionKey);
+                sysUserDetails.setTokenVersion(tokenVersion);
+
+                log.info("【TokenVersion】租户切换，用户 {}，新 token_version = {}",
+                        sysUserDetails.getUserId(), tokenVersion);
             }
 
             // 4. 创建认证对象

@@ -256,10 +256,7 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
                     ? 1L
                     : stringRedisTemplate.opsForValue().increment(versionKey);
 
-            // ✅ 放进 Authentication.details
-            Map<String, Object> details = new HashMap<>();
-            details.put(JwtClaimConstants.Token.VERSION, tokenVersion);
-            usernamePasswordAuthentication.setDetails(details);
+            memberDetails.setTokenVersion(tokenVersion);
 
             log.info("【Wechat TokenVersion】用户 {} 微信登录，memberId:{}, token_version:{}", memberId, tokenVersion);
         }

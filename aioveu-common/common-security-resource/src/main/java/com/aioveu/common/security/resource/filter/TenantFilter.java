@@ -65,15 +65,8 @@ import java.io.IOException;
 @Slf4j
 @RequiredArgsConstructor
 //因为 OncePerRequestFilter本身是一个抽象类，你需要用 extends而不是 implements。
-public class TenantFilter extends OncePerRequestFilter implements Ordered {
+public class TenantFilter extends OncePerRequestFilter{
 
-
-
-
-    @Override
-    public int getOrder() {
-        return SecurityFilterOrders.TENANT_FILTER;
-    }
 
     /**
      * 租户过滤器（资源服务器专用）
@@ -103,9 +96,6 @@ public class TenantFilter extends OncePerRequestFilter implements Ordered {
         log.info("【TenantFilter】🌐 Incoming request | {} {} | query={}",
                 method, uri, query != null ? query : "<none>");
 
-        log.error("🔴 TenantFilter hit, uri={}, auth={}",
-                request.getRequestURI(),
-                SecurityContextHolder.getContext().getAuthentication());
 
         String authHeader = request.getHeader("Authorization");
         log.error("🔴 Authorization header = {}", authHeader);
@@ -126,26 +116,32 @@ public class TenantFilter extends OncePerRequestFilter implements Ordered {
             log.debug("【TenantFilter】Not JwtAuthenticationToken, skip. uri={}", uri);
             filterChain.doFilter(request, response);
             return;
+        }else {
+
+            // ✅ 3️JWT 已解析：取 tenantId
+
+            Jwt jwt = jwtAuth.getToken();
+            Object tenantIdObj = jwt.getClaim(JwtClaimConstants.Tenant.ID);
+
+            log.info("【TenantFilter】✅ JWT authenticated, uri={}, tenantId={}",
+                    uri, tenantIdObj);
+
+            if (!(tenantIdObj instanceof Number)) {
+                // ❌ 这是 JWT 内容非法，不是认证问题
+                response.sendError(
+                        HttpServletResponse.SC_FORBIDDEN,
+                        "Missing or invalid tenant_id in JWT"
+                );
+                return;
+            }
+
+            long tenantId = ((Number) tenantIdObj).longValue();
+            TenantContextHolder.setTenantId(tenantId);
+            log.debug("【TenantFilter】TenantContextHolder set tenantId={}, uri={}",
+                    tenantId, uri);
+
         }
 
-        // ✅ 3️JWT 已解析：取 tenantId
-        Jwt jwt = jwtAuth.getToken();
-        Object tenantIdObj = jwt.getClaim(JwtClaimConstants.Tenant.ID);
-
-
-        if (!(tenantIdObj instanceof Number)) {
-            // ❌ 这是 JWT 内容非法，不是认证问题
-            response.sendError(
-                    HttpServletResponse.SC_FORBIDDEN,
-                    "Missing or invalid tenant_id in JWT"
-            );
-            return;
-        }
-
-        long tenantId = ((Number) tenantIdObj).longValue();
-        TenantContextHolder.setTenantId(tenantId);
-        log.debug("【TenantFilter】TenantContextHolder set tenantId={}, uri={}",
-                tenantId, uri);
 
         try {
 

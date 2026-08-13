@@ -33,7 +33,7 @@ import java.io.IOException;
  **/
 @Slf4j
 @RequiredArgsConstructor
-public class JwtVersionFilter extends OncePerRequestFilter implements Ordered {
+public class JwtVersionFilter extends OncePerRequestFilter{
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final ResourceSecurityProperties resourceSecurityProperties;
@@ -42,11 +42,6 @@ public class JwtVersionFilter extends OncePerRequestFilter implements Ordered {
     static {
         System.err.println("✅ JwtVersionFilter loaded by: " + JwtVersionFilter.class.getName());
         System.err.println("✅ Is proxy: " + JwtVersionFilter.class.getName().contains("$$"));
-    }
-
-    @Override
-    public int getOrder() {
-        return SecurityFilterOrders.JWT_VERSION_FILTER;
     }
 
     @Override
@@ -63,6 +58,13 @@ public class JwtVersionFilter extends OncePerRequestFilter implements Ordered {
             return;
         }
 
+        // ✅ 已校验过的直接放行  ✅ 同一 JWT 只校验一次
+        if (Boolean.TRUE.equals(
+                jwtAuth.getTokenAttributes().get("__version_checked__"))) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         Jwt jwt = jwtAuth.getToken();
 
         Long userId = ClaimUtils.getClaimAsLong(jwt, JwtClaimConstants.User.ID);
@@ -75,16 +77,41 @@ public class JwtVersionFilter extends OncePerRequestFilter implements Ordered {
         }
 
         String versionKey = String.format("auth:user:token:version:%d", userId);
-        Long currentVersion = (Long) redisTemplate.opsForValue().get(versionKey);
+
+        /*
+        * ✅ 生产系统 必须容忍 Redis 短暂不可用
+          ✅ 否则一次 Redis 抖动 = 全站 JWT 用户集体 500
+        * */
+        Long currentVersion;
+        try {
+            currentVersion = (Long) redisTemplate.opsForValue().get(versionKey);
+        } catch (Exception e) {
+            log.error("Redis 读取 token version 失败，userId={}", userId, e);
+            // ✅ 降级：放行（或按你业务策略拒绝）
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if (currentVersion == null || !currentVersion.equals(tokenVersion)) {
-            log.warn("用户已被强制下线: userId={}", userId);
+            log.warn("Token version 失效，拒绝访问，userId={}, tokenVersion={}, currentVersion={}",
+                    userId, tokenVersion, currentVersion);
             throw new OAuth2AuthenticationException(
                     new OAuth2Error("invalid_token", "用户已被强制下线", null)
             );
         }
 
+        // ✅ 标记已校验  ✅ 校验通过后，标记已检查
+        jwtAuth.getTokenAttributes().put("__version_checked__", true);
+
         filterChain.doFilter(request, response);
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        return uri.startsWith("/actuator") ||
+                uri.startsWith("/internal");
+    }
+
 
 }

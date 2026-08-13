@@ -41,7 +41,7 @@ import java.io.IOException;
 
 @Slf4j
 @RequiredArgsConstructor  // 使用 Lombok 自动生成构造函数
-public class JwtBlacklistFilter extends OncePerRequestFilter implements Ordered {
+public class JwtBlacklistFilter extends OncePerRequestFilter {
 
     // ❌ 错误：如果没有 @Autowired 或构造函数注入，这个字段会是 null
     // ✅ 使用 final 字段 + @RequiredArgsConstructor
@@ -49,13 +49,6 @@ public class JwtBlacklistFilter extends OncePerRequestFilter implements Ordered 
 
     private final ResourceSecurityProperties resourceSecurityProperties;
 
-
-
-    @Override
-    public int getOrder() {
-        //（静态引用）
-        return SecurityFilterOrders.JWT_BLACKLIST_FILTER;
-    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

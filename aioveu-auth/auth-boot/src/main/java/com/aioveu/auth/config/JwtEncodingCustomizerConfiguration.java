@@ -85,6 +85,7 @@ public class JwtEncodingCustomizerConfiguration {
             // ---------- 3. 会员用户 ----------
             if (authToken.getPrincipal() instanceof MemberDetails memberDetails) {
                 addMemberClaims(claims, memberDetails);
+                addTokenVersion(claims, memberDetails); // ✅
             }
 
 
@@ -114,7 +115,7 @@ public class JwtEncodingCustomizerConfiguration {
         addClaim(claims, JwtClaimConstants.Tenant.CAN_SWITCH, userDetails.getCanSwitchTenant());
 
         // token_version（从 details 读取）
-        addTokenVersion(claims, authToken);
+        addTokenVersion(claims, userDetails);
 
         // 权限
         addClaim(claims, JwtClaimConstants.User.PERMS, userDetails.getPerms());
@@ -157,17 +158,21 @@ public class JwtEncodingCustomizerConfiguration {
      */
     private void addTokenVersion(
             JwtClaimsSet.Builder claims,
-            UsernamePasswordAuthenticationToken authToken
+            SysUserDetails userDetails
     ) {
-        Object details = authToken.getDetails();
-        if (!(details instanceof Map<?, ?> map)) {
-            return;
+        Long tokenVersion = userDetails.getTokenVersion();
+        if (tokenVersion != null) {
+            addClaim(claims, JwtClaimConstants.Token.VERSION, tokenVersion);
         }
+    }
 
-        Object version = map.get(JwtClaimConstants.Token.VERSION);
-        if (version instanceof Number) {
-            addClaim(claims, JwtClaimConstants.Token.VERSION,
-                    ((Number) version).longValue());
+    private void addTokenVersion(
+            JwtClaimsSet.Builder claims,
+            MemberDetails memberDetails
+    ) {
+        Long tokenVersion = memberDetails.getTokenVersion();
+        if (tokenVersion != null) {
+            addClaim(claims, JwtClaimConstants.Token.VERSION, tokenVersion);
         }
     }
 

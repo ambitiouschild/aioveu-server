@@ -120,9 +120,10 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
 
         CustomRefreshTokenAuthenticationToken  refreshTokenAuthentication =
                 (CustomRefreshTokenAuthenticationToken) authentication;
+
+
+        // 1. 客户端认证
         log.info("1. 类型转换和客户端认证验证");
-
-
         OAuth2ClientAuthenticationToken clientPrincipal = OAuth2AuthenticationProviderUtils
                 .getAuthenticatedClientElseThrowInvalidClient(refreshTokenAuthentication);
         RegisteredClient registeredClient = clientPrincipal.getRegisteredClient();
@@ -133,23 +134,23 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
 
 
         }
+
+
+        // 2. 获取 refresh_token
         // 验证客户端是否支持授权类型(grant_type=wechat_mini_app)
         log.info("2. 验证客户端是否支持刷新令牌授权类型");
         log.info("客户端验证：确保只有注册的客户端可以使用刷新令牌认证流程");
-
-
         Map<String, Object> additionalParameters = refreshTokenAuthentication.getAdditionalParameters();
         //如果 additionalParameters.get("code")返回的不是字符串，这个强制转换就会出问题。
         String refreshTokenValue  = (String) additionalParameters.get(OAuth2ParameterNames.REFRESH_TOKEN);
         log.info("前端请求中的附加参数获取,前端请求中的获取并验证刷新令牌refreshTokenValue:{}",refreshTokenValue);
         //------------------------------------------------
-        // 在获取 code 之后，获取 clientId
-        // 5. ★ 关键修改：获取 clientId
-        String clientId = registeredClient.getClientId();  // OAuth2 客户端ID
         log.info("处理刷新令牌请求, 客户端: {}, 刷新令牌: {}...",
-                clientId,
+                registeredClient.getClientId(),
                 refreshTokenValue.substring(0, Math.min(10, refreshTokenValue.length())));
 
+
+        // 3. 查询授权
         OAuth2Authorization authorization = this.authorizationService.findByToken(
                 refreshTokenValue, OAuth2TokenType.REFRESH_TOKEN);
 
@@ -182,9 +183,9 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
         //✅ 方案 1（最推荐）：从 Authorization 里拿 .attribute("tenant_id", tenantId) // ✅
         //✅ 方案 2：从 JWT 里拿（资源服务器用） claims.put("tenant_id", tenantId);
         //✅ 方案 3：从 clientId 再查一次（不推荐）
-//tenantId 从 Authorization attribute 拿（核心正确）
+        //tenantId 从 Authorization attribute 拿（核心正确）
         Long tenantId = authorization.getAttribute(JwtClaimConstants.Tenant.ID);
-        log.info("获取tenantId: {}", tenantId);
+        log.info("刷新令牌验证通过, openId={}, tenantId={}", openId, tenantId);
         // 7. 重新加载用户
         MemberDetails memberDetails =
                 memberDetailsService.loadMemberByOpenIdAndTenantId(openId,tenantId);
@@ -197,7 +198,7 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
                         memberDetails.getAuthorities()
                 );
 
-        // ✅ token_version 校验（强烈推荐）
+        // 7. ✅ token_version 校验（只读，不 increment）
         Long memberId = memberDetails.getId();
         if (memberId != null) {
             String versionKey = RedisConstants.Auth.USER_TOKEN_VERSION + memberId;
@@ -205,6 +206,7 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
             // ✅ 只读取，不 increment ✅ 这是唯一正确的刷新令牌校验方式
 //            Long tokenVersion = (Long) redisTemplate.opsForValue().get(versionKey);
             String value = stringRedisTemplate.opsForValue().get(versionKey);
+
             if (value == null) {
                 throw new OAuth2AuthenticationException(
                         new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT, "令牌已失效", ERROR_URI)
@@ -212,10 +214,12 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
             }
 
             Long tokenVersion = Long.valueOf(value);
+            // ✅ 写进 MemberDetails（principal）
+            memberDetails.setTokenVersion(tokenVersion);
 
-            Map<String, Object> details = new HashMap<>();
-            details.put(JwtClaimConstants.Token.VERSION, tokenVersion);
-            newAuthentication.setDetails(details);
+            log.info("【TokenVersion】刷新令牌阶段, memberId={}, tokenVersion={}",
+                    memberId, tokenVersion);
+
         }
 
         // 7. 记录刷新令牌使用日志

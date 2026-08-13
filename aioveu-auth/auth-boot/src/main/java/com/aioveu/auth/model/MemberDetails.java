@@ -66,7 +66,7 @@ public class MemberDetails implements UserDetails {
      */
     private String authenticationIdentity;
 
-
+    private Long tokenVersion;
     // ✅ 添加无参构造函数
 //    public MemberDetails() {
 //    }

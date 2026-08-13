@@ -104,7 +104,7 @@ public class SysUserDetails implements UserDetails, CredentialsContainer {
 
     private Set<String> perms;
 
-
+    private Long tokenVersion;
     //=================================================================================
     /**
      * 系统管理用户  使用UserAuthInfo构建
