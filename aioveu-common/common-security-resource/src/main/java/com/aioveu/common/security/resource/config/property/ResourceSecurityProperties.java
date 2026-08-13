@@ -1,8 +1,6 @@
 package com.aioveu.common.security.resource.config.property;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +18,7 @@ import java.util.List;
 @Component
 @ConfigurationProperties(prefix = "security")
 @Data
-public class SecurityProperties {
+public class ResourceSecurityProperties {
 
     /**
      * 白名单路径列表 - 从配置文件动态注入

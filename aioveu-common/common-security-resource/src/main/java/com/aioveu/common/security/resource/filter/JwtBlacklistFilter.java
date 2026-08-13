@@ -2,7 +2,7 @@ package com.aioveu.common.security.resource.filter;
 
 import com.aioveu.common.core.TokenManager.service.TokenManagerService;
 import com.aioveu.common.security.core.config.property.SecurityFilterOrders;
-import com.aioveu.common.security.resource.config.property.SecurityProperties;
+import com.aioveu.common.security.resource.config.property.ResourceSecurityProperties;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,7 +16,6 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -41,7 +40,6 @@ import java.io.IOException;
 */
 
 @Slf4j
-@Component  // ✅ 让 Spring 自动管理  步骤2：确保 JwtBlacklistFilter是 @Component
 @RequiredArgsConstructor  // 使用 Lombok 自动生成构造函数
 public class JwtBlacklistFilter extends OncePerRequestFilter implements Ordered {
 
@@ -49,7 +47,7 @@ public class JwtBlacklistFilter extends OncePerRequestFilter implements Ordered 
     // ✅ 使用 final 字段 + @RequiredArgsConstructor
     private final TokenManagerService tokenManagerService;
 
-    private final SecurityProperties securityProperties;
+    private final ResourceSecurityProperties resourceSecurityProperties;
 
 
 
@@ -68,7 +66,7 @@ public class JwtBlacklistFilter extends OncePerRequestFilter implements Ordered 
 
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
+        log.error("🔴 JWT Filter 之前 auth = {}", authentication);
 
         // 1️只处理 JWT 认证请求
         //只要你带了 Authorization Header，它就一定查黑名单
@@ -109,10 +107,10 @@ public class JwtBlacklistFilter extends OncePerRequestFilter implements Ordered 
     protected boolean shouldNotFilter(HttpServletRequest request) {
         AntPathMatcher matcher = new AntPathMatcher();
 
-        log.error("🚨 WHITELIST PATHS = {}", securityProperties.getWhitelistPaths());
+        log.error("🚨 WHITELIST PATHS = {}", resourceSecurityProperties.getWhitelistPaths());
         log.error("🚨 Request URI = {}", request.getRequestURI());
 
-        return securityProperties.getWhitelistPaths().stream()
+        return resourceSecurityProperties.getWhitelistPaths().stream()
                 .anyMatch(path -> matcher.match(path, request.getRequestURI()));
     }
 

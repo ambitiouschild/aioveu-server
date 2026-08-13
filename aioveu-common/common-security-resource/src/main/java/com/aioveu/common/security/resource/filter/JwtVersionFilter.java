@@ -3,7 +3,7 @@ package com.aioveu.common.security.resource.filter;
 
 import com.aioveu.common.core.constant.JwtClaimConstants;
 import com.aioveu.common.security.core.config.property.SecurityFilterOrders;
-import com.aioveu.common.security.resource.config.property.SecurityProperties;
+import com.aioveu.common.security.resource.config.property.ResourceSecurityProperties;
 import com.aioveu.common.security.resource.utils.ClaimUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,7 +19,6 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -33,12 +32,11 @@ import java.io.IOException;
  * @Version 1.0
  **/
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class JwtVersionFilter extends OncePerRequestFilter implements Ordered {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private final SecurityProperties securityProperties;
+    private final ResourceSecurityProperties resourceSecurityProperties;
 
 
     static {

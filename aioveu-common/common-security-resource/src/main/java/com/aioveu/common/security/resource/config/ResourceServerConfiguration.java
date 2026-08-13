@@ -1,10 +1,11 @@
 package com.aioveu.common.security.resource.config;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONUtil;
+import com.aioveu.common.core.TokenManager.service.TokenManagerService;
 import com.aioveu.common.core.constant.JwtClaimConstants;
-import com.aioveu.common.security.resource.config.property.SecurityProperties;
+import com.aioveu.common.security.resource.config.property.ResourceSecurityProperties;
 import com.aioveu.common.security.resource.exception.MyAccessDeniedHandler;
+import com.aioveu.common.security.resource.exception.MyAuthenticationEntryPoint;
+import com.aioveu.common.security.resource.filter.DebugFilter;
 import com.aioveu.common.security.resource.filter.JwtBlacklistFilter;
 import com.aioveu.common.security.resource.filter.JwtVersionFilter;
 import com.aioveu.common.security.resource.filter.TenantFilter;
@@ -14,12 +15,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -32,11 +33,10 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
+
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
+
 
 /**
  * @Description: TODO 资源服务器配置  - Spring Security OAuth2资源服务器核心配置类
@@ -101,70 +101,38 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 @Slf4j
 public class ResourceServerConfiguration {
 
-
-    // ✅ 直接注入，不用写任何额外代码
-    //OAuth2ResourceServerProperties是 Spring Boot 自带的
-    private final OAuth2ResourceServerProperties resourceServerProperties;
     // 自定义访问拒绝处理器（403 Forbidden情况）
-    private final MyAccessDeniedHandler accessDeniedHandler;
+    private final MyAccessDeniedHandler myAccessDeniedHandler;
 
     // 自定义认证入口点（401 Unauthorized情况）
-    private final AuthenticationEntryPoint authenticationEntryPoint;
-
-    /**
-     * 创建黑名单检查过滤器  集成到 Spring Security
-     * 方案A：让 Spring 自动管理过滤器（推荐）
-     * 步骤1：移除 @Bean配置，让 Spring 自动管理
-     *
-     */
-    //步骤3：在 SecurityConfig中注入过滤器
-    private final JwtBlacklistFilter jwtBlacklistFilter;  // ✅ 自动注入
-
-    private final TenantFilter tenantFilter;  // 注入你的租户过滤器
-
-    private final JwtVersionFilter jwtVersionFilter;
-
-    private final SecurityProperties securityProperties;
+    private final MyAuthenticationEntryPoint myAuthenticationEntryPoint;
 
 
-    /*
-    Spring Security 管的是“认证 / 授权”
-      公共接口不属于 Spring Security
-    * 公共接口的 Filter，不应该进 Security 链
-    ✅ PublicTenantFilter用 FilterRegistrationBean是最佳选择
-    * */
-//    @Bean
-//    public FilterRegistrationBean<PublicTenantFilter> publicTenantFilterRegistration() {
-//
-//        FilterRegistrationBean<PublicTenantFilter> registration =
-//                new FilterRegistrationBean<>();
-//
-//        registration.setFilter(new PublicTenantFilter(publicTenantResolver));
-//        registration.setName("publicTenantFilter");
-//
-//        // ✅ 只对公共接口生效 addUrlPatterns只能匹配“前缀”，不能匹配“后缀”
-////        registration.addUrlPatterns("/public/**");
-//        // ✅ 不限制路径，由 shouldNotFilter 控制
-//        registration.addUrlPatterns("/*");
-//
-//        // ✅ 优先级高于 Spring Security
-////        registration.setOrder(-101);
-//        // ✅ 早于 Spring Security
-//        registration.setOrder(Ordered.HIGHEST_PRECEDENCE + 10);
-//
-//        // ✅ 不依赖 Spring Security 初始化
-//        registration.setAsyncSupported(true);
-//
-//        log.info("【PublicTenantFilter】注册成功，由 shouldNotFilter 控制生效路径");
-//        return registration;
-//    }
+    @Bean
+    public JwtBlacklistFilter jwtBlacklistFilter(
+            TokenManagerService tokenManagerService,
+            ResourceSecurityProperties resourceSecurityProperties
+    ) {
+        return new JwtBlacklistFilter(tokenManagerService, resourceSecurityProperties);
+    }
 
+    @Bean
+    public JwtVersionFilter jwtVersionFilter(
+            RedisTemplate<String, Object> redisTemplate,
+            ResourceSecurityProperties resourceSecurityProperties
+    ) {
+        return new JwtVersionFilter(redisTemplate, resourceSecurityProperties);
+    }
 
+    @Bean
+    public TenantFilter tenantFilter() {
+        return new TenantFilter();
+    }
 
-
-
-
-
+    @Bean
+    public DebugFilter debugFilter() {
+        return new DebugFilter();
+    }
 
     /**
      * 数据权限处理器（资源服务器提供）
@@ -176,20 +144,6 @@ public class ResourceServerConfiguration {
         return new MyDataPermissionHandler();
     }
 
-
-    // ✅ 链 1：tenant 公共接口（不走 JWT）
-    @Bean
-    @Order(1)
-    public SecurityFilterChain tenantPublicChain(HttpSecurity http) throws Exception {
-        http
-                .securityMatcher(
-                        "/aioveu/api/v8/admin/tenant/users/tenants/**",
-                        "/aioveu/api/v8/admin/tenant/users/**/authInfo",
-                        "/aioveu/api/v8/admin/tenant/users/**/UserAuthCredentials"
-                )
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
-        return http.build();
-    }
 
     /**
      * TODO 安全过滤器链配置 - 资源服务器的核心安全配置
@@ -204,22 +158,61 @@ public class ResourceServerConfiguration {
      * @return SecurityFilterChain 安全过滤器链
      */
     @Bean
+    @Order(0)
     public SecurityFilterChain tenantResourceChain(
-            HttpSecurity http
+            HttpSecurity http,
+            JwtBlacklistFilter jwtBlacklistFilter,
+            JwtVersionFilter jwtVersionFilter,
+            TenantFilter tenantFilter,
+            DebugFilter debugFilter,
+            ResourceSecurityProperties resourceSecurityProperties // ✅ 注入
     ) throws Exception {
 
         // 配置HTTP请求授权规则
         //在 Spring Security 配置中，授权规则的顺序很重要
         http
-                .securityMatcher("/aioveu/api/v8/admin/tenant/**")
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/aioveu/api/v8/admin/tenant/users/me")
-                        .authenticated()
-                        .anyRequest().authenticated()
-                )
+                // ✅ 链级匹配：Ant 通配符
+                .securityMatcher("/aioveu/api/v8/**")
+                .authorizeHttpRequests(auth -> {
+
+                    // ✅ 1️白名单（来自每个微服务的 YAML）
+                    if (resourceSecurityProperties.getWhitelistPaths() != null) {
+                        resourceSecurityProperties.getWhitelistPaths().forEach(path ->
+                                auth.requestMatchers(AntPathRequestMatcher.antMatcher(path)).permitAll()
+                        );
+                    }
+
+                    // ✅ 2️明确 JWT 接口（公共模块可写死）
+                    auth.requestMatchers(
+                            AntPathRequestMatcher.antMatcher("/aioveu/api/v8/admin/tenant/users/me")
+                    ).authenticated();
+
+                    // ✅ 3️⃣其余全部 JWT
+                    auth.anyRequest().authenticated();
+                })
                 // 禁用CSRF防护 - 对于REST API通常不需要CSRF保护
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .oauth2ResourceServer(resourceServerConfigurer ->
+                                resourceServerConfigurer
+                                        // 配置JWT认证，使用自定义的JWT转换器
+//                                        .jwt(jwtConfigurer -> jwtAuthenticationConverter())  // 只配置了转换器  // ❌ 没把 converter 设置进去
+                                        .jwt(jwt -> jwt
+                                                .jwtAuthenticationConverter(jwtAuthenticationConverter())
+                                        )
+                                        // 设置自定义认证入口点（处理401未认证）
+                                        .authenticationEntryPoint(myAuthenticationEntryPoint)
+                                        // 设置自定义访问拒绝处理器（处理403权限不足）
+                                        .accessDeniedHandler(myAccessDeniedHandler)
+                        // 没有配置issuer-uri或jwk-set-uri
+                )
+
+                // 现在 BearerTokenAuthenticationFilter是“完全正常工作”的
+                // BearerTokenAuthenticationFilter : Set SecurityContextHolder to JwtAuthenticationToken
+                // 授权也过了
+                //FilterChainProxy : Secured GET /aioveu/api/v8/admin/tenant/users/me
+
+                .addFilterAfter(debugFilter, BearerTokenAuthenticationFilter.class)
                 //方案1：将租户过滤器移到认证之后（推荐）
                 .addFilterAfter(jwtVersionFilter, BearerTokenAuthenticationFilter.class)
                 .addFilterAfter(jwtBlacklistFilter, BearerTokenAuthenticationFilter.class)
@@ -228,16 +221,6 @@ public class ResourceServerConfiguration {
         // 配置OAuth2资源服务器（JWT令牌认证）
         // 你的代码中没有显式配置JwtDecoder
         // Spring Boot会尝试自动配置
-        http.oauth2ResourceServer(resourceServerConfigurer ->
-                        resourceServerConfigurer
-                                // 配置JWT认证，使用自定义的JWT转换器
-                                .jwt(jwtConfigurer -> jwtAuthenticationConverter())  // 只配置了转换器
-                                // 设置自定义认证入口点（处理401未认证）
-                                .authenticationEntryPoint(authenticationEntryPoint)
-                                // 设置自定义访问拒绝处理器（处理403权限不足）
-                                .accessDeniedHandler(accessDeniedHandler)
-                // 没有配置issuer-uri或jwk-set-uri
-        );
 
         return http.build();
     }
@@ -265,19 +248,6 @@ public class ResourceServerConfiguration {
         );
     }
 
-    /**
-     * MVC请求匹配器构建器 - 用于创建基于Spring MVC的路径匹配器
-     *
-     * 优势：支持Spring MVC的完整路径匹配模式，包括路径变量等
-     * 示例：/api/v1/users/{id} 可以正确匹配 /api/v1/users/123
-     *
-     * @param introspector HandlerMappingIntrospector Spring MVC的处理器映射内省器
-     * @return MvcRequestMatcher.Builder MVC请求匹配器构建器
-     */
-    @Bean
-    MvcRequestMatcher.Builder mvc(HandlerMappingIntrospector introspector) {
-        return new MvcRequestMatcher.Builder(introspector);
-    }
 
     /**
      * TODO   自定义JWT认证转换器 - 核心组件：从JWT令牌中提取用户权限信息
@@ -316,31 +286,34 @@ public class ResourceServerConfiguration {
     @Bean
     public Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter() {
 
+
+
         // 创建JWT权限转换器 - 负责从JWT声明中提取权限信息
 //        jwtAuthenticationConverter是在JWT验证之后使用的，用于提取权限。
         // JWT的签名验证（使用公钥）已经在此之前完成
-        log.info("==== 触发获取公钥:第一个需要JWT验证的请求到达时 ====");
-        log.info("====JWT的签名验证（使用公钥）已经在此之前完成====");
-        log.info("jwtAuthenticationConverter是在JWT验证之后使用的，用于提取权限。");
-        log.info("创建JWT权限转换器 - 负责从JWT声明中提取权限信息");
+        log.debug("==== 触发获取公钥:第一个需要JWT验证的请求到达时 ====");
+        log.debug("====JWT的签名验证（使用公钥）已经在此之前完成====");
+        log.debug("jwtAuthenticationConverter是在JWT验证之后使用的，用于提取权限。");
+        log.debug("创建JWT权限转换器 - 负责从JWT声明中提取权限信息");
         JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
 
         // 设置权限前缀为空字符串（默认是"SCOPE_"）
         // 例如：JWT中的"admin"权限转换为"admin"而不是"SCOPE_admin"
-        log.info("设置权限前缀为空字符串（默认是\"SCOPE_\"）");
+        log.debug("设置权限前缀为空字符串（默认是\"SCOPE_\"）");
         jwtGrantedAuthoritiesConverter.setAuthorityPrefix(Strings.EMPTY);
 
         // 设置JWT中存储权限信息的声明字段名（对应JwtTokenCustomizerConfig中设置的声明）
-        log.info("设置JWT中存储权限信息的声明字段名（对应JwtTokenCustomizerConfig中设置的声明）");
+        log.debug("设置JWT中存储权限信息的声明字段名（对应JwtTokenCustomizerConfig中设置的声明）");
         jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName(JwtClaimConstants.User.AUTHORITIES);
 
         // 创建JWT认证转换器 - 主要的认证转换组件
-        log.info("创建JWT认证转换器 - 主要的认证转换组件");
+        log.debug("创建JWT认证转换器 - 主要的认证转换组件");
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
 
         // 设置权限转换器，将JWT中的权限信息转换为Spring Security的权限对象
-        log.info("设置权限转换器，将JWT中的权限信息转换为Spring Security的权限对象");
+        log.debug("设置权限转换器，将JWT中的权限信息转换为Spring Security的权限对象");
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
+
         return jwtAuthenticationConverter;
     }
 

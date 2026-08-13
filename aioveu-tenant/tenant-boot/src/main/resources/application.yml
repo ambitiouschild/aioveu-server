@@ -51,3 +51,9 @@ tenant:
 #  4. 应用配置初始化完成
 #  ↓
 #  5. 向Nacos注册中心注册 aioveu-tenant 服务
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2.jwt: DEBUG
+    com.nimbusds.jose: DEBUG

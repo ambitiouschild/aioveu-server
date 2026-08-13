@@ -63,7 +63,6 @@ import java.io.IOException;
  */
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
 //因为 OncePerRequestFilter本身是一个抽象类，你需要用 extends而不是 implements。
 public class TenantFilter extends OncePerRequestFilter implements Ordered {
@@ -104,26 +103,43 @@ public class TenantFilter extends OncePerRequestFilter implements Ordered {
         log.info("【TenantFilter】🌐 Incoming request | {} {} | query={}",
                 method, uri, query != null ? query : "<none>");
 
+        log.error("🔴 TenantFilter hit, uri={}, auth={}",
+                request.getRequestURI(),
+                SecurityContextHolder.getContext().getAuthentication());
+
+        String authHeader = request.getHeader("Authorization");
+        log.error("🔴 Authorization header = {}", authHeader);
+
         //✅ 正确做法：TenantFilter自己读 JwtAuthenticationToken
         Authentication authentication =
                 SecurityContextHolder.getContext().getAuthentication();
 
-        log.info("【TenantFilter】authentication:{}",authentication);
-
-        if (!(authentication instanceof JwtAuthenticationToken jwtAuth)) {
-            // ✅ 安全边界异常，不是业务异常
-            throw new IllegalStateException(
-                    "Non-JWT authenticated request rejected, uri=" + uri
-            );
+        // ✅ 1️有认证信息：直接放行，留给 JWT 过滤器
+        if (authentication == null) {
+            log.debug("【TenantFilter】No Authentication, skip. uri={}", uri);
+            filterChain.doFilter(request, response);
+            return;
         }
+
+        // ✅ 2️不是 JWT：直接放行
+        if (!(authentication instanceof JwtAuthenticationToken jwtAuth)) {
+            log.debug("【TenantFilter】Not JwtAuthenticationToken, skip. uri={}", uri);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // ✅ 3️JWT 已解析：取 tenantId
         Jwt jwt = jwtAuth.getToken();
         Object tenantIdObj = jwt.getClaim(JwtClaimConstants.Tenant.ID);
 
 
         if (!(tenantIdObj instanceof Number)) {
-            throw new IllegalStateException(
-                    "JWT missing required claim 'tenant_id', uri=" + uri
+            // ❌ 这是 JWT 内容非法，不是认证问题
+            response.sendError(
+                    HttpServletResponse.SC_FORBIDDEN,
+                    "Missing or invalid tenant_id in JWT"
             );
+            return;
         }
 
         long tenantId = ((Number) tenantIdObj).longValue();
