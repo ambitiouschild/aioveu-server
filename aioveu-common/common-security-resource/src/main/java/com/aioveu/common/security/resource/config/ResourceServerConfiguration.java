@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -118,10 +119,11 @@ public class ResourceServerConfiguration {
 
     @Bean
     public JwtVersionFilter jwtVersionFilter(
-            RedisTemplate<String, Object> redisTemplate,
-            ResourceSecurityProperties resourceSecurityProperties
+            ResourceSecurityProperties resourceSecurityProperties,
+            StringRedisTemplate stringRedisTemplate
+
     ) {
-        return new JwtVersionFilter(redisTemplate, resourceSecurityProperties);
+        return new JwtVersionFilter(resourceSecurityProperties,stringRedisTemplate);
     }
 
     @Bean

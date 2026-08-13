@@ -214,6 +214,11 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
             }
 
             Long tokenVersion = Long.valueOf(value);
+
+            String after = stringRedisTemplate.opsForValue().get(versionKey);
+            log.info("【TokenVersion】【Redis 二次校验】key={}, value={}",
+                    versionKey, after);
+
             // ✅ 写进 MemberDetails（principal）
             memberDetails.setTokenVersion(tokenVersion);
 

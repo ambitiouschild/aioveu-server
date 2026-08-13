@@ -1,3 +1,3 @@
-com.aioveu.common.redis.RedisCacheConfiguration
-com.aioveu.common.redis.RedisConfiguration
-com.aioveu.common.redis.BusinessSnGenerator
+com.aioveu.common.redis.config.RedisCacheConfiguration
+com.aioveu.common.redis.config.RedisConfiguration
+com.aioveu.common.redis.utils.BusinessSnGenerator

@@ -219,6 +219,13 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
                             ? 1L
                             : stringRedisTemplate.opsForValue().increment(versionKey);
 
+                    String after = stringRedisTemplate.opsForValue().get(versionKey);
+                    log.info("【TokenVersion】【Redis 二次校验】key={}, value={}",
+                            versionKey, after);
+
+                    log.error("【AUTH-REDIS】{}",
+                            stringRedisTemplate.getConnectionFactory().getConnection().toString());
+
                     // ✅ 核心：写进 principal
                     sysUserDetails.setTokenVersion(tokenVersion);
 

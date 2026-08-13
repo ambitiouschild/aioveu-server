@@ -256,6 +256,10 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
                     ? 1L
                     : stringRedisTemplate.opsForValue().increment(versionKey);
 
+            String after = stringRedisTemplate.opsForValue().get(versionKey);
+            log.info("【TokenVersion】【Redis 二次校验】key={}, value={}",
+                    versionKey, after);
+
             memberDetails.setTokenVersion(tokenVersion);
 
             log.info("【Wechat TokenVersion】用户 {} 微信登录，memberId:{}, token_version:{}", memberId, tokenVersion);

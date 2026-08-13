@@ -1,4 +1,4 @@
-package com.aioveu.common.redis;
+package com.aioveu.common.redis.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

@@ -1,4 +1,4 @@
-package com.aioveu.common.redis;
+package com.aioveu.common.redis.utils;
 
 import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;

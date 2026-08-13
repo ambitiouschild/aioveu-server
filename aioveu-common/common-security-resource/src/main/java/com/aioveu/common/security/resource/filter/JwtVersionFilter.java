@@ -2,6 +2,7 @@ package com.aioveu.common.security.resource.filter;
 
 
 import com.aioveu.common.core.constant.JwtClaimConstants;
+import com.aioveu.common.redis.utils.RedisKeyUtils;
 import com.aioveu.common.security.core.config.property.SecurityFilterOrders;
 import com.aioveu.common.security.resource.config.property.ResourceSecurityProperties;
 import com.aioveu.common.security.resource.utils.ClaimUtils;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -35,9 +37,8 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtVersionFilter extends OncePerRequestFilter{
 
-    private final RedisTemplate<String, Object> redisTemplate;
     private final ResourceSecurityProperties resourceSecurityProperties;
-
+    private final StringRedisTemplate stringRedisTemplate;
 
     static {
         System.err.println("✅ JwtVersionFilter loaded by: " + JwtVersionFilter.class.getName());
@@ -76,7 +77,19 @@ public class JwtVersionFilter extends OncePerRequestFilter{
             );
         }
 
-        String versionKey = String.format("auth:user:token:version:%d", userId);
+        String versionKey = RedisKeyUtils.userTokenVersion(userId);
+        String value = stringRedisTemplate.opsForValue().get(versionKey);
+
+        log.error("【RESOURCE-REDIS】{}",
+                stringRedisTemplate.getConnectionFactory().getConnection().toString());
+
+        if (value == null) {
+            log.warn("Token version 不存在，用户可能被踢下线，userId={}", userId);
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("invalid_token", "用户已被强制下线", null)
+            );
+        }
+
 
         /*
         * ✅ 生产系统 必须容忍 Redis 短暂不可用
@@ -84,7 +97,7 @@ public class JwtVersionFilter extends OncePerRequestFilter{
         * */
         Long currentVersion;
         try {
-            currentVersion = (Long) redisTemplate.opsForValue().get(versionKey);
+            currentVersion = Long.valueOf(value);
         } catch (Exception e) {
             log.error("Redis 读取 token version 失败，userId={}", userId, e);
             // ✅ 降级：放行（或按你业务策略拒绝）
