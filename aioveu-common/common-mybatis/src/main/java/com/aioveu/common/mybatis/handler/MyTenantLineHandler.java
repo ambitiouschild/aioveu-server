@@ -38,7 +38,6 @@ import java.util.Set;
  */
 
 @Slf4j
-// 去掉 @Component / @PostConstruct
 @RequiredArgsConstructor
 public class MyTenantLineHandler implements TenantLineHandler {
 
@@ -46,12 +45,6 @@ public class MyTenantLineHandler implements TenantLineHandler {
     private static final long PLATFORM_TENANT_ID = 0L;
 
     private final TenantMybatisProperties tenantMybatisProperties;
-
-    @PostConstruct
-    public void init() {
-        log.info("=== MyTenantLineHandler 初始化检查 ===");
-        log.info("tenantProperties: {}", tenantMybatisProperties);
-    }
 
     /**
      * 获取租户ID表达式
@@ -120,18 +113,29 @@ public class MyTenantLineHandler implements TenantLineHandler {
             return false;
         }
 
-        // ✅ Job / Platform：全部忽略租户条件
+        // ✅ 先定义，再使用（关键）
+        String lower = tableName.toLowerCase();
+
+        // ✅ 1.Job / Platform：全部忽略租户条件
         if (JobContextHolder.isJob() || TenantContextHolder.isPlatform()) {
             return true;
         }
 
-        // 如果设置了忽略租户标志，则本次查询全部表都跳过租户过滤
+        // ✅ 2.如果设置了忽略租户标志，则本次查询全部表都跳过租户过滤
         if (TenantContextHolder.isIgnoreTenant()) {
             log.debug("【MyTenantLineHandler】全局忽略租户过滤");
             return true;
         }
 
+        // ✅ 3. 系统表：前缀匹配（关键！）
+        if (lower.startsWith("information_schema.")
+                || lower.startsWith("mysql.")
+                || lower.startsWith("performance_schema.")
+                || lower.startsWith("sys.")) {
+            return true;
+        }
 
+        // ✅ 4. 配置 + 默认表忽略（等值）
         Set<String> ignoreTables = tenantMybatisProperties.getIgnoreTables();
         Set<String> allIgnoreTables = new HashSet<>(DEFAULT_IGNORE_TABLES);
         if (ignoreTables != null) {

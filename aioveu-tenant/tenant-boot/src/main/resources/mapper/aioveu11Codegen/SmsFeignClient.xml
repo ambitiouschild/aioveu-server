@@ -6,7 +6,9 @@
 <mapper namespace="com.aioveu.tenant.aioveu11Codegen.mapper.DatabaseMapper">
 
     <!-- 查询数据库表分页 mysql版本-->
-    <select id="getTablePage" resultType="com.aioveu.tenant.aioveu11Codegen.model.vo.TablePageVO" databaseId="mysql">
+    <select id="getTablePage"
+            resultType="com.aioveu.tenant.aioveu11Codegen.model.vo.TablePageVO"
+            databaseId="mysql">
         SELECT
             t1.TABLE_NAME ,
             t1.TABLE_COMMENT ,

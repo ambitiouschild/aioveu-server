@@ -4,6 +4,7 @@ import com.aioveu.tenant.aioveu11Codegen.model.bo.ColumnMetaData;
 import com.aioveu.tenant.aioveu11Codegen.model.bo.TableMetaData;
 import com.aioveu.tenant.aioveu11Codegen.model.query.TableQuery;
 import com.aioveu.tenant.aioveu11Codegen.model.vo.TablePageVO;
+import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Mapper;
@@ -13,12 +14,19 @@ import java.util.List;
 /**
  * @ClassName: DatabaseMapper
  * @Description TODO 数据库映射层
+ *                      正确、官方、100% 生效的写法（推荐）
+ *                      Mapper 接口注解（最稳、最干净）
+ *                      不要写在 XML 里，写在 Mapper 接口上：
+ *                      ✅ 这是 MP 官方主推方式
+ *                      ✅ 不受 XML DTD 限制
+ *                      ✅ 分页 COUNT 也生效
  * @Author 可我不敌可爱
  * @Author 雒世松
  * @Date 2026/2/21 21:59
  * @Version 1.0
  **/
 @Mapper
+@InterceptorIgnore(tenantLine = "true")
 public interface DatabaseMapper extends BaseMapper {
 
     /**
