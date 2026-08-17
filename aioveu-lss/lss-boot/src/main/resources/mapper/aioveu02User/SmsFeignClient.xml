@@ -34,7 +34,7 @@
                     INNER JOIN sys_role r ON sur.role_id = r.id
                 WHERE
                     sur.user_id = u.id
-                    AND r.code = '${@com.aioveu.common.constant.SystemConstants@ROOT_ROLE_CODE}'
+                    AND r.code = '${@com.aioveu.common.core.constant.SystemConstants@ROOT_ROLE_CODE}'
                 )
             </if>
             <if test='queryParams.keywords!=null and queryParams.keywords.trim() neq ""'>
@@ -206,7 +206,7 @@
                     INNER JOIN sys_role r ON sur.role_id = r.id
                 WHERE
                     sur.user_id = u.id
-                    AND r.code = '${@com.aioveu.common.constant.SystemConstants@ROOT_ROLE_CODE}'
+                    AND r.code = '${@com.aioveu.common.core.constant.SystemConstants@ROOT_ROLE_CODE}'
             )
             </if>
             <if test='keywords!=null and keywords.trim() neq ""'>
