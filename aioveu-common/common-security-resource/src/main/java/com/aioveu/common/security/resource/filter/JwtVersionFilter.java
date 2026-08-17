@@ -61,7 +61,7 @@ public class JwtVersionFilter extends OncePerRequestFilter{
 
         // ✅ 已校验过的直接放行  ✅ 同一 JWT 只校验一次
         if (Boolean.TRUE.equals(
-                jwtAuth.getTokenAttributes().get("__version_checked__"))) {
+                request.getAttribute("__jwt_version_checked__"))) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -113,8 +113,8 @@ public class JwtVersionFilter extends OncePerRequestFilter{
             );
         }
 
-        // ✅ 标记已校验  ✅ 校验通过后，标记已检查
-        jwtAuth.getTokenAttributes().put("__version_checked__", true);
+        // ✅ 标记已校验  ✅ 校验通过后，标记已检查  （只在本请求生命周期有效）
+        request.setAttribute("__jwt_version_checked__", true);
 
         filterChain.doFilter(request, response);
     }
