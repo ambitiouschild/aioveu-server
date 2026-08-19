@@ -57,7 +57,14 @@ public class TenantInterceptor implements HandlerInterceptor {
         if (tenantId != null) {
             log.debug("【TenantInterceptor】clear tenantId={}", tenantId);
         }
-        TenantContextHolder.clear();
+
+
+        //方案 1（强烈推荐）：让 Tenant 清理组件识别 public-client
+        Boolean isPublic = request.getAttribute("__PUBLIC_CLIENT_REQUEST__") != null;
+        if (!isPublic) {
+            TenantContextHolder.clear();
+        }
+
         log.info("【TenantInterceptor】TenantInterceptor专责清空租户上下文");
         log.debug("【TenantInterceptor】TenantInterceptor cleared tenant context");
     }

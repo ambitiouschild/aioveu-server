@@ -14,7 +14,11 @@ import com.baomidou.mybatisplus.extension.plugins.handler.DataPermissionHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -37,6 +41,7 @@ import org.springframework.security.oauth2.server.resource.web.authentication.Be
 import org.springframework.security.web.SecurityFilterChain;
 
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 
 /**
@@ -163,12 +168,36 @@ public class ResourceServerConfiguration {
     @Order(0)
     public SecurityFilterChain tenantResourceChain(
             HttpSecurity http,
+            ApplicationContext applicationContext,   // ✅ 加这个
             JwtBlacklistFilter jwtBlacklistFilter,
             JwtVersionFilter jwtVersionFilter,
             TenantFilter tenantFilter,
             DebugFilter debugFilter,
             ResourceSecurityProperties resourceSecurityProperties // ✅ 注入
     ) throws Exception {
+
+        //==============================================
+        // ✅ 运行时拿，不写 tenant 类型
+        // ✅ 按名字拿，不按类型，不冲突
+        //你已经在同一条 SecurityFilterChain里，用“条件装配 + 不 import”的方式，把跨模块租户解析做干净了。
+        //这已经是企业级模块化安全模型的终态，不是踩坑，是结案。
+        OncePerRequestFilter clientIdTenantFilter = null;
+        try {
+            clientIdTenantFilter = applicationContext.getBean(
+                    "clientIdTenantResolutionFilter", OncePerRequestFilter.class);
+        } catch (NoSuchBeanDefinitionException e) {
+            // tenant 模块不存在，直接跳过
+        }
+
+        log.error("🚨 clientIdFilter present: {}", clientIdTenantFilter != null);
+
+        if (clientIdTenantFilter != null) {
+            http.addFilterBefore(
+                    clientIdTenantFilter,
+                    BearerTokenAuthenticationFilter.class
+            );
+        }
+        //==============================================
 
         // 配置HTTP请求授权规则
         //在 Spring Security 配置中，授权规则的顺序很重要
@@ -213,7 +242,6 @@ public class ResourceServerConfiguration {
                 // BearerTokenAuthenticationFilter : Set SecurityContextHolder to JwtAuthenticationToken
                 // 授权也过了
                 //FilterChainProxy : Secured GET /aioveu/api/v8/admin/tenant/users/me
-
                 .addFilterAfter(debugFilter, BearerTokenAuthenticationFilter.class)
                 //方案1：将租户过滤器移到认证之后（推荐）
                 .addFilterAfter(jwtVersionFilter, BearerTokenAuthenticationFilter.class)

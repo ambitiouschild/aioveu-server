@@ -40,9 +40,13 @@ import org.springframework.context.annotation.Primary;
 @Slf4j
 @Configuration
 @ConditionalOnClass(TenantFeignClient.class)    //类路径有 Feign Client 才考虑
-@ConditionalOnBean(TenantFeignClient.class)     //Spring 容器里真的有这个 Bean
 @ConditionalOnMissingBean(TenantLoader.class) // ✅ 关键 “只有在还没有 TenantLoader Bean 时，我才生效” 防止和 DB 版冲突（最关键）
 @AutoConfigureAfter(FeignAutoConfiguration.class) //确保 Feign 已就绪
+/*
+* ✅ 不赌 Bean 早期存在
+✅ 只赌 classpath（稳定）
+✅ 和 DB 版 TenantLoader不冲突
+* */
 public class CommonTenantFeignAutoConfiguration {
 
     @Bean

@@ -6,6 +6,7 @@ import com.aioveu.common.core.tenant.TenantContextHolder;
 import com.aioveu.common.security.core.config.property.SecurityFilterOrders;
 import com.aioveu.common.security.tenant.config.property.TenantPublicProperties;
 import com.aioveu.common.security.tenant.service.Impl.PublicTenantResolver;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,19 +32,32 @@ import java.util.List;
  * @Date 2026/7/10 10:20
  * @Version 1.0
  **/
+
 /**
  * 无认证（无 Token）场景下的租户解析过滤器
- *
+ * <p>
  * ✅ 职责：
  * - 从 X-Client-Id / clientId 参数解析 tenantId
  * - 仅用于公共接口、注册、验证码、Feign 内部调用
- *
+ * <p>
  * ❌ 不用于：
  * - 已认证请求（JWT 场景）
  * - Resource Server
- *
+ * <p>
  * 与 TenantFilter（JWT → ThreadLocal）互斥
  */
+
+/*
+*
+*
+✅ @Component= Spring 容器里已经有这个 Bean
+✅ extends OncePerRequestFilter= Servlet 容器级 Filter 能力
+✅ implements Ordered+ getOrder()= 顺序可表达
+必须被 SecurityFilterChain用 ObjectProvider<OncePerRequestFilter>拉进去，否则永远“有 Bean、不生效”
+* */
+
+
+
 @Slf4j
 @Component  //@Component就是“登记” 不是通过 @Configuration  //但依然是 Spring 管理的 Bean
 @RequiredArgsConstructor
@@ -67,14 +81,21 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
 //    private final PublicTenantResolver publicTenantResolver;
 
     private final ObjectProvider<PublicTenantResolver> tenantResolverProvider;
-
-//    public PublicTenantFilter(PublicTenantResolver publicTenantResolver) {
+    private static final AntPathMatcher MATCHER = new AntPathMatcher();
+    //    public PublicTenantFilter(PublicTenantResolver publicTenantResolver) {
 //        this.publicTenantResolver = publicTenantResolver;
 //    }
     @Override
     public int getOrder() {
         return SecurityFilterOrders.PUBLIC_TENANT_FILTER;
     }
+
+
+    @PostConstruct
+    public void init() {
+        log.error("🚨 ClientIdTenantResolutionFilter BEAN IN CONTAINER");
+    }
+
 
     /**
      * 判断是否跳过当前过滤器
@@ -96,7 +117,7 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
      * @param request 当前 HTTP 请求
      * @return true = 跳过过滤器；false = 执行过滤器
      * @PublicApi从来就不是给 Filter 用的
-     *
+     * <p>
      * 它是给人、给文档、给 AOP、给扫描工具用的
      * 专门处理“白名单请求”的租户解析
      */
@@ -123,9 +144,8 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
 
         // 不在公共租户路径 → 跳过
         return tenantPublicProperties.getWhitelistPaths().stream()
-                .noneMatch(p -> new AntPathMatcher().match(p, uri));
+                .noneMatch(p -> MATCHER.match(p, uri));
     }
-
 
 
     /**
@@ -159,11 +179,11 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
 
     /**
      * ⚠️ Filter 循环依赖解决方案：
-     *
+     * <p>
      * - Filter 使用 ObjectProvider 延迟获取 PublicTenantResolver
      * - 避免在构造期触发 Security / Service 初始化链
      * - 首次请求时再解析租户
-     *
+     * <p>
      * 这是 Spring 官方推荐的 Filter 依赖模式。
      */
     @Override
@@ -237,7 +257,9 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
             filterChain.doFilter(request, response);
         } finally {
             // ✅ 必须清理，防止线程复用
-//            TenantContextHolder.clear();
+            if (request.getAttribute("__PUBLIC_CLIENT_REQUEST__") == null) {
+                TenantContextHolder.clear();
+            }
             log.info("【ClientIdTenantResolutionFilter】tenantId 已设置，由 TenantInterceptor 负责清理");
         }
     }
