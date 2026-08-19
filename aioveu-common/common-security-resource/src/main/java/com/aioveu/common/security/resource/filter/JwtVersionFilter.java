@@ -19,8 +19,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -50,6 +52,18 @@ public class JwtVersionFilter extends OncePerRequestFilter{
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
+
+        String uri = request.getRequestURI();
+
+        // ✅ 白名单直接放行
+        if (resourceSecurityProperties.getWhitelistPaths() != null) {
+            for (String path : resourceSecurityProperties.getWhitelistPaths()) {
+                if (new AntPathRequestMatcher(path).matches(request)) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+            }
+        }
 
         Authentication authentication =
                 SecurityContextHolder.getContext().getAuthentication();
@@ -86,7 +100,7 @@ public class JwtVersionFilter extends OncePerRequestFilter{
         if (value == null) {
             log.warn("Token version 不存在，用户可能被踢下线，userId={}", userId);
             throw new OAuth2AuthenticationException(
-                    new OAuth2Error("invalid_token", "用户已被强制下线", null)
+                    new OAuth2Error(OAuth2ErrorCodes.INVALID_TOKEN, "Token version mismatch", null)
             );
         }
 

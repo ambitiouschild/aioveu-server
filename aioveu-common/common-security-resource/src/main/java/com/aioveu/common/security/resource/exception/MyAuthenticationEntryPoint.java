@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +44,7 @@ public class MyAuthenticationEntryPoint implements AuthenticationEntryPoint {
             HttpServletResponse response,
             AuthenticationException authException)
     throws IOException {
-
+        log.error("commence called, auth={}", SecurityContextHolder.getContext().getAuthentication());
         log.warn("【资源服务器认证失败】{} | {}", request.getRequestURI(), authException.getMessage());
 
         response.setStatus(HttpStatus.UNAUTHORIZED.value());

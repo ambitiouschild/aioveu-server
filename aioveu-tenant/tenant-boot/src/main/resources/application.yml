@@ -15,7 +15,6 @@ project:
 
 tenant:
   mode: db
-
 #  正确的启动流程
 #  1.启动Nacos服务器（单机或集群）
 #  2.在Nacos配置中心创建配置：

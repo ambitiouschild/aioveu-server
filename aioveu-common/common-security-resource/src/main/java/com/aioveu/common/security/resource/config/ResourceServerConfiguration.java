@@ -213,11 +213,18 @@ public class ResourceServerConfiguration {
                         );
                     }
 
+                    // ✅ 补这一行
+                    auth.requestMatchers(
+                            AntPathRequestMatcher.antMatcher("/aioveu/api/v8/app/ums/members/me")
+                    ).authenticated();   // 只验 JWT，不卡角色
+
                     // ✅ 2️明确 JWT 接口（公共模块可写死）
                     auth.requestMatchers(
                             AntPathRequestMatcher.antMatcher("/aioveu/api/v8/admin/tenant/users/me")
                     ).authenticated();
 
+                    //anyRequest().authenticated()能包揽，而且已经包揽了 /me；它不是没拦，
+                    // 而是拦完发现你 JWT 没给任何权限，于是按授权失败把请求送进了 EntryPoint，Context 被清空。
                     // ✅ 3️⃣其余全部 JWT
                     auth.anyRequest().authenticated();
                 })
