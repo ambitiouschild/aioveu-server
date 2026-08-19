@@ -58,4 +58,22 @@ public interface SystemConstants {
         String MEMBER = "MEMBER";   // 小程序 / C端
     }
 
+    //最推荐 —— SubjectType（OAuth2 味最正）
+    /*
+    * 理由：
+        JWT 里本来就叫 sub（subject）
+        不偏袒 User / Member
+    * */
+    interface SubjectType {
+        String USER = "USER";
+        String MEMBER = "MEMBER";
+    }
+
+
+    //业务语义最直白 —— PrincipalType
+    interface PrincipalType {
+        String SYS_USER = "USER";
+        String MEMBER = "MEMBER";
+    }
+
 }

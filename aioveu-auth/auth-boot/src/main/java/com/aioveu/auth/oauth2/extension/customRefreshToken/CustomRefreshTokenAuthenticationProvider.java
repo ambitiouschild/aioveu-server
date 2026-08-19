@@ -257,9 +257,9 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
 
         String userType;
         if (principal instanceof MemberDetails) {
-            userType = SystemConstants.UserType.MEMBER;
+            userType = SystemConstants.SubjectType.MEMBER;
         } else if (principal instanceof SysUserDetails) {
-            userType = SystemConstants.UserType.USER;
+            userType = SystemConstants.SubjectType.USER;
         } else {
             throw new OAuth2AuthenticationException("非法主体");
         }
