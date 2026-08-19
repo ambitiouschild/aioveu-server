@@ -130,7 +130,7 @@ public class JwtTokenManagerImpl implements TokenManagerService {
         } catch (Exception e) {
             log.error("检查令牌吊销状态失败，token解析异常", e);
             // ✅ 解析失败 ≠ 一定是吊销
-            return true;
+            return false; // 或按你业务策略
         }
 
     }
@@ -152,14 +152,10 @@ public class JwtTokenManagerImpl implements TokenManagerService {
 //        log.debug("检查令牌吊销状态: jti={}, 是否吊销={}", jti, isRevoked);
 //        return isRevoked;
 
-        Long userId = (Long) redisTemplate.opsForValue().get(revokedKey);
-
-        if (userId != null) {
-            log.debug("令牌已吊销: jti={}, userId={}", jti, userId);
-            return true;
-        }
-
-        return false;
+        Object value = redisTemplate.opsForValue().get(revokedKey);
+        if (value == null) return false;
+        log.debug("令牌已吊销: jti={}, valueClass={}", jti, value.getClass().getName());
+        return true;
 
 
 
@@ -205,7 +201,8 @@ public class JwtTokenManagerImpl implements TokenManagerService {
             log.info("【JWT Token管理器】令牌加入黑名单，设置TTL: jti={},userId={}, TTL={}秒", jti, userId, ttl);
 
         } else {
-            redisTemplate.opsForValue().set(revokedJtiKey, Boolean.TRUE);
+            //👉 黑名单只关心「是否存在」，不关心 value 类型。
+            redisTemplate.opsForValue().set(revokedJtiKey, userId);
 
             log.info("【JWT Token管理器】令牌加入黑名单，无TTL: jti={}", jti);
         }
