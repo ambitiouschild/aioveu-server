@@ -6,6 +6,7 @@ import com.aioveu.auth.service.SysUserDetailsService;
 import com.aioveu.auth.util.OAuth2AuthenticationProviderUtils;
 import com.aioveu.common.core.constant.JwtClaimConstants;
 import com.aioveu.common.core.constant.RedisConstants;
+import com.aioveu.common.core.constant.SystemConstants;
 import com.aioveu.common.security.core.model.SysUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -198,8 +199,13 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
         // 尝试按 openId（小程序）
         try {
         // 7. 重新加载用户
-            memberDetails =
-                    memberDetailsService.loadMemberByOpenIdAndTenantId(principalName);
+            // 仅当 principalName 看起来像 openId 才试会员
+            if (principalName != null && principalName.length() >= 28) {
+                try {
+                    memberDetails = memberDetailsService.loadMemberByOpenIdAndTenantId(principalName);
+                } catch (Exception ignored) {}
+            }
+
             if (memberDetails != null) {
                 principal = memberDetails;
                 userDetails = null;
@@ -221,9 +227,11 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
         // 8. 构建新的 Authentication
         UsernamePasswordAuthenticationToken newAuthentication =
                 new UsernamePasswordAuthenticationToken(
-                        memberDetails,
+                        principal,
                         null,
-                        memberDetails.getAuthorities()
+                        principal instanceof MemberDetails
+                                ? ((MemberDetails) principal).getAuthorities()
+                                : ((SysUserDetails) principal).getAuthorities()
                 );
 
 
@@ -246,6 +254,16 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
                     new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT, "令牌主体无效", ERROR_URI)
             );
         }
+
+        String userType;
+        if (principal instanceof MemberDetails) {
+            userType = SystemConstants.UserType.MEMBER;
+        } else if (principal instanceof SysUserDetails) {
+            userType = SystemConstants.UserType.USER;
+        } else {
+            throw new OAuth2AuthenticationException("非法主体");
+        }
+        log.info("刷新令牌主体类型: {}, subjectId={}", userType, subjectId);
 
 
         String value = stringRedisTemplate.opsForValue().get(versionKey);
@@ -310,7 +328,8 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
         OAuth2Authorization.Builder authorizationBuilder = OAuth2Authorization.withRegisteredClient(registeredClient)
                 .principalName(principalName)  // ✅ 从原有授权信息中获取主体名称
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)  // 授权类型 ✅ 使用标准的刷新令牌授权类型
-                .attribute(Principal.class.getName(), principalName);  // 主体属性 // ✅attribute 里只存 principalName（String）
+                .attribute(Principal.class.getName(), principalName)  // 主体属性 // ✅attribute 里只存 principalName（String）
+                .attribute(JwtClaimConstants.Token.USER_TYPE, userType);  // ✅ 写用户类型
 
         log.info("9. 更新授权信息:{}", authorizationBuilder);
 

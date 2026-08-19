@@ -52,4 +52,10 @@ public interface SystemConstants {
      */
     String SYSTEM_CONFIG_IP_QPS_LIMIT_KEY = "IP_QPS_THRESHOLD_LIMIT";
 
+    interface UserType {
+
+        String USER = "USER";       // 浏览器 / 后台
+        String MEMBER = "MEMBER";   // 小程序 / C端
+    }
+
 }

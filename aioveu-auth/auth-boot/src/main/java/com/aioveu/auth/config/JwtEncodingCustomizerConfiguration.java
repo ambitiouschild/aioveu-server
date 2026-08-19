@@ -117,7 +117,8 @@ public class JwtEncodingCustomizerConfiguration {
 
         // token_version（从 details 读取）
         addTokenVersion(claims, userDetails);
-
+        // 权限、角色等都写完之后
+        addClaim(claims, JwtClaimConstants.Token.USER_TYPE, "USER"); // ✅ 新增
         // 权限
         addClaim(claims, JwtClaimConstants.User.PERMS, userDetails.getPerms());
 
@@ -136,6 +137,10 @@ public class JwtEncodingCustomizerConfiguration {
         addClaim(claims, JwtClaimConstants.Tenant.ID, memberDetails.getTenantId());
         addClaim(claims, JwtClaimConstants.Member.ID, memberDetails.getId());
         addClaim(claims, JwtClaimConstants.Member.OPENID, memberDetails.getOpenId());
+
+        // 权限、角色等都写完之后
+        addClaim(claims, JwtClaimConstants.Token.USER_TYPE, "MEMBER"); // ✅ 新增
+
         // ✅ 补这一行
         addClaim(claims, JwtClaimConstants.Member.AUTHORITIES,
                 Set.of("ROLE_USER"));

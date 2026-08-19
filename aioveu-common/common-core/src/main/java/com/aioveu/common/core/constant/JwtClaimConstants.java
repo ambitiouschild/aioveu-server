@@ -92,6 +92,7 @@ public interface JwtClaimConstants {
          */
         String VERSION = "tokenVersion";
         String JTI = "jti";
+        String USER_TYPE = "user_type";   // ✅ 新增
     }
 
     /** 会员域 */

@@ -278,7 +278,7 @@ public class OAuth2AuthorizationServerConfiguration {
                                                         // 添加Spring Security自带的刷新令牌提供者 推荐：只用你自己的（因为你做了 token_version）
                                                         // new OAuth2RefreshTokenAuthenticationProvider(authorizationService, tokenGenerator)
 
-                                                        new CustomRefreshTokenAuthenticationProvider(authorizationService, tokenGenerator,memberDetailsService, stringRedisTemplate, reuseRefreshTokens)
+                                                        new CustomRefreshTokenAuthenticationProvider(authorizationService, tokenGenerator,memberDetailsService, sysUserDetailsService,stringRedisTemplate, reuseRefreshTokens)
 
                                                 )
                                         )
