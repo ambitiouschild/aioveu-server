@@ -213,17 +213,13 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
         String openId = sessionInfo.getOpenid(); //微信接口字段：openid✅（全小写，不管它）**  ✅ 接收微信
         log.info("openId获取：从微信响应中提取用户唯一标识openId:{}",openId);
 
-//        MemberDetails memberDetails = memberDetailsService.loadUserByOpenId(openId);
-        Long tenantId = tenantFeignClient.getTenantIdByClientId(clientId).getData();
-
-        log.info("openId获取：getTenantIdByClientId,tenantId:{}",tenantId);
-
 
         //登录期（系统态）接口：租户 ID 按参数传,❌ 不要依赖“租户上下文工具类”, 租户上下文 = 用户态,参数传递 = 系统态
-        MemberDetails memberDetails = memberDetailsService.loadMemberByOpenIdAndTenantId(openId,tenantId);
+        MemberDetails memberDetails = memberDetailsService.loadMemberByOpenIdAndTenantId(openId);
         // ✅ principalName = openId（与 JWT sub 保持一致）
         String principalName = memberDetails.getOpenId();
-        log.info("4. 根据openId加载用户信息principalName:{}", principalName);
+        Long tenantId = memberDetails.getTenantId();
+        log.info("4. 根据openId加载用户信息principalName:{},tenantId:{}", principalName,tenantId);
         log.info("4. 根据openId加载用户信息:{}", memberDetails);
 
         //----------------------------------------------------------

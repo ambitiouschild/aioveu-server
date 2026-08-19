@@ -119,18 +119,17 @@ public class MemberDetailsService {
      * 根据openId和tenantId获取用户信息  新增：通过 openId + tenantId查询用户
      *
      * @param openId  微信公众平台唯一身份标识
-     * @param tenantId  租户id
      * @return {@link MemberDetails}
      */
-    public MemberDetails loadMemberByOpenIdAndTenantId(String openId,Long tenantId) {
+    public MemberDetails loadMemberByOpenIdAndTenantId(String openId) {
 
         // 1. ★ 通过 clientId 查询 wxAppid 和 tenantId
         log.info("=======【Auth MemberDetailsService】根据openId和tenantId获取用户信息,Auth没有走资源服务器的TenantFilter=======");
-        log.info("【Auth MemberDetailsService】根据openId和tenantId获取用户信息{}, tenantId: {}", openId, tenantId);
+        log.info("【Auth MemberDetailsService】根据openId和tenantId获取用户信息{}, tenantId: {}", openId);
         // 根据 openId 和 tenantId 获取微信用户认证信息
         // 调用会员服务API，查询微信openId对应用户
         // 首先尝试获取用户
-        Result<MemberAuthDTO>  memberAuthDTOResult = memberFeignClient.loadMemberByOpenIdAndTenantId(openId,tenantId);
+        Result<MemberAuthDTO>  memberAuthDTOResult = memberFeignClient.loadMemberByOpenIdAndTenantId(openId);
         //   注册失败处理----------------------
         if (!Result.isSuccess(memberAuthDTOResult)) {
             throw new UsernameNotFoundException("会员信息查询失败: " + memberAuthDTOResult.getMsg());
@@ -146,7 +145,7 @@ public class MemberDetailsService {
             memberRegisterInfo.setOpenId(openId);
             memberRegisterInfo.setAvatarUrl("https://cdn.aioveu.com/aioveu/aioveu-server/avatar/avatar.png");
             memberRegisterInfo.setNickName("新注册微信用户");
-            memberRegisterInfo.setTenantId(tenantId);
+            memberRegisterInfo.setTenantId(memberAuthDTO.getTenantId());
             // 注册会员
             //通过Feign客户端调用会员服务的注册接口，将注册信息发送到会员服务，并接收注册结果。
             Result<MemberRegisterDTO> registerMemberResult = memberFeignClient.registerMember(memberRegisterInfo);

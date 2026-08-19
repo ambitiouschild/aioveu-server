@@ -188,7 +188,7 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
         log.info("刷新令牌验证通过, openId={}, tenantId={}", openId, tenantId);
         // 7. 重新加载用户
         MemberDetails memberDetails =
-                memberDetailsService.loadMemberByOpenIdAndTenantId(openId,tenantId);
+                memberDetailsService.loadMemberByOpenIdAndTenantId(openId);
 
         // 8. 构建新的 Authentication
         UsernamePasswordAuthenticationToken newAuthentication =

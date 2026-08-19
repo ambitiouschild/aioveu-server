@@ -142,6 +142,11 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
             return true;
         }
 
+        // ✅ 小程序 / App 公共登录全部放行
+//        if (uri.startsWith("/aioveu/api/v8/app/")) {
+//            return false;
+//        }
+
         // 不在公共租户路径 → 跳过
         return tenantPublicProperties.getWhitelistPaths().stream()
                 .noneMatch(p -> MATCHER.match(p, uri));
@@ -193,11 +198,13 @@ public class ClientIdTenantResolutionFilter extends OncePerRequestFilter impleme
             FilterChain filterChain
     ) throws ServletException, IOException {
 
+        log.error("【ClientIdTenantResolutionFilter】ENTER doFilterInternal, URI={}", request.getRequestURI());
+
         String clientId;
         String verified = request.getHeader(HEADER_CLIENT_VERIFIED);
         log.info("【ClientIdTenantResolutionFilter】请求提取解析verified: {}", verified);
 
-// ✅ Gateway 转发请求
+        // ✅ Gateway 转发请求
         if ("true".equals(verified)) {
             clientId = request.getHeader(HEADER_CLIENT_ID);
             log.info("【ClientIdTenantResolutionFilter】Gateway request, clientId:{}", clientId);

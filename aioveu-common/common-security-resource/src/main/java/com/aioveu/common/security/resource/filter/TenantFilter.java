@@ -98,7 +98,7 @@ public class TenantFilter extends OncePerRequestFilter{
 
 
         String authHeader = request.getHeader("Authorization");
-        log.error("🔴 Authorization header = {}", authHeader);
+        log.error("【TenantFilter】🔴 Authorization header = {}", authHeader);
 
         //✅ 正确做法：TenantFilter自己读 JwtAuthenticationToken
         Authentication authentication =
@@ -130,7 +130,7 @@ public class TenantFilter extends OncePerRequestFilter{
                 // ❌ 这是 JWT 内容非法，不是认证问题
                 response.sendError(
                         HttpServletResponse.SC_FORBIDDEN,
-                        "Missing or invalid tenant_id in JWT"
+                        "【TenantFilter】Missing or invalid tenant_id in JWT"
                 );
                 return;
             }

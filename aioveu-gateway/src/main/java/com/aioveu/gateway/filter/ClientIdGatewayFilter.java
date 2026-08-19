@@ -90,9 +90,10 @@ public class ClientIdGatewayFilter implements GatewayFilter, Ordered {
 
         // 1️有 Token：走 JWT → tenantId
         // ✅ 协议端点彻底不介入（架构正确）
-        if (path.startsWith("/oauth2/")) {
-            return chain.filter(exchange);
-        }
+//        if (path.startsWith("/oauth2/")) {
+//            // 授权服务器自己管 Basic 校验，网关只透传
+//            return chain.filter(exchange);
+//        }
 
 
         String auth = exchange.getRequest()

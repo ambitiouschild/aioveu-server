@@ -2,6 +2,7 @@ package com.aioveu.common.security.tenant.config;
 
 import com.aioveu.common.security.tenant.service.TenantLoader;
 import com.aioveu.tenant.api.TenantFeignClient;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -48,6 +49,12 @@ import org.springframework.context.annotation.Primary;
 ✅ 和 DB 版 TenantLoader不冲突
 * */
 public class CommonTenantFeignAutoConfiguration {
+
+
+    @PostConstruct
+    public void init() {
+        log.error("✅ FeignTenantLoader AUTO CONFIG LOADED");
+    }
 
     @Bean
     @Primary

@@ -59,7 +59,7 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
 
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        log.error("🔴 JWT Filter 之前 auth = {}", authentication);
+        log.error("【JwtBlacklistFilter】🔴 JWT Filter 之前 auth = {}", authentication);
 
         // 1️只处理 JWT 认证请求
         //只要你带了 Authorization Header，它就一定查黑名单
@@ -70,12 +70,12 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
 
         Jwt jwt = jwtAuth.getToken();
         String token = jwt.getTokenValue();
-        log.debug("检查令牌吊销状态: token前{}位...", Math.min(token.length(), 20));
+        log.debug("【JwtBlacklistFilter】检查令牌吊销状态: token前{}位...", Math.min(token.length(), 20));
 
         // 检查黑名单
         if (tokenManagerService.isTokenRevoked(token)) {
 
-            log.warn("令牌已被吊销: token前{}位...", Math.min(token.length(), 20));
+            log.warn("【JwtBlacklistFilter】令牌已被吊销: token前{}位...", Math.min(token.length(), 20));
 
             // ✅ 抛标准异常，交给 Spring Security 处理
             //1️ 不写 JSON，不抢 Spring Security 的活
@@ -100,8 +100,8 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         AntPathMatcher matcher = new AntPathMatcher();
 
-        log.error("🚨 WHITELIST PATHS = {}", resourceSecurityProperties.getWhitelistPaths());
-        log.error("🚨 Request URI = {}", request.getRequestURI());
+        log.error("【JwtBlacklistFilter】🚨 WHITELIST PATHS = {}", resourceSecurityProperties.getWhitelistPaths());
+        log.error("【JwtBlacklistFilter】🚨 Request URI = {}", request.getRequestURI());
 
         return resourceSecurityProperties.getWhitelistPaths().stream()
                 .anyMatch(path -> matcher.match(path, request.getRequestURI()));
