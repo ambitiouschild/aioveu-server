@@ -62,7 +62,7 @@ public class TokenService {
             }
 
             Integer expirationAt = payloads.getInt(JWTPayload.EXPIRES_AT);
-            String blacklistTokenKey = StrUtil.format(RedisConstants.Auth.BLACKLIST_TOKEN, jti);
+            String blacklistTokenKey = RedisConstants.Auth.REVOKED_JTI + jti;
 
             if (expirationAt != null) {
                 int currentTimeSeconds = Convert.toInt(System.currentTimeMillis() / 1000);
@@ -89,7 +89,7 @@ public class TokenService {
         if (jti == null) {
             return false;
         }
-        String blacklistTokenKey = StrUtil.format(RedisConstants.Auth.BLACKLIST_TOKEN, jti);
+        String blacklistTokenKey = RedisConstants.Auth.REVOKED_JTI + jti;
         return redisTemplate.hasKey(blacklistTokenKey);
     }
 

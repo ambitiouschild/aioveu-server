@@ -96,7 +96,7 @@ public class JwtTokenManagerImpl implements TokenManagerService {
     @Override
     public  boolean isTokenRevoked(String token) {
         if (!StringUtils.hasText(token)) {
-            log.warn("Token 为空，视为吊销");
+            log.warn("【JWT Token管理器】Token 为空，视为吊销");
             return true;
         }
 
@@ -114,21 +114,21 @@ public class JwtTokenManagerImpl implements TokenManagerService {
             long now = System.currentTimeMillis() / 1000;
 
             if (expiresAt == null || expiresAt < now) {
-                log.warn("Token 已过期，视为吊销");
+                log.warn("【JWT Token管理器】Token 已过期，视为吊销");
                 return true;
             }
 
             // 2️校验 jti
             String jti = payloads.getStr(JWTPayload.JWT_ID);
             if (!StringUtils.hasText(jti)) {
-                log.warn("Token 缺少 jti，视为吊销");
+                log.warn("【JWT Token管理器】Token 缺少 jti，视为吊销");
                 return true;
             }
 
             // 3️查黑名单（用 get 而不是 hasKey）
             return isTokenRevokedByJti(jti);
         } catch (Exception e) {
-            log.error("检查令牌吊销状态失败，token解析异常", e);
+            log.error("【JWT Token管理器】检查令牌吊销状态失败，token解析异常", e);
             // ✅ 解析失败 ≠ 一定是吊销
             return false; // 或按你业务策略
         }
@@ -140,12 +140,18 @@ public class JwtTokenManagerImpl implements TokenManagerService {
      */
     public boolean isTokenRevokedByJti(String jti) {
         if (!StringUtils.hasText(jti)) {
-            log.warn("jti 为空，令牌无效");
+            log.warn("【JWT Token管理器】jti 为空，令牌无效");
             return true;
         }
+        log.info("【JWT Token管理器】 jti={}", jti);
 
-        String revokedKey = StrUtil.format(RedisConstants.Auth.REVOKED_JTI, jti);
+        //StrUtil.format("auth:version:{}", id)
+//        String revokedKey = StrUtil.format(RedisConstants.Auth.REVOKED_JTI, jti);
+        //简单 key：用拼接（这句就很好）"auth:version:" + id
+        String revokedKey = RedisConstants.Auth.REVOKED_JTI + jti;
 
+
+        log.info("【JWT Token管理器】 revokedKey={}", revokedKey);
         // ✅ 用 get，避免 hasKey 的竞态问题
 //        Boolean revoked = (Boolean) redisTemplate.opsForValue().get(revokedKey);
 //        boolean isRevoked = Boolean.TRUE.equals(revoked);
@@ -154,7 +160,7 @@ public class JwtTokenManagerImpl implements TokenManagerService {
 
         Object value = redisTemplate.opsForValue().get(revokedKey);
         if (value == null) return false;
-        log.debug("令牌已吊销: jti={}, valueClass={}", jti, value.getClass().getName());
+        log.debug("【JWT Token管理器】令牌已吊销: jti={}, valueClass={}", jti, value.getClass().getName());
         return true;
 
 
@@ -173,7 +179,7 @@ public class JwtTokenManagerImpl implements TokenManagerService {
         String versionKey = StrUtil.format(RedisConstants.Auth.USER_TOKEN_VERSION, userId);
         Long newVersion = redisTemplate.opsForValue().increment(versionKey);
 
-        log.info("强制下线用户: userId={}, 新版本={}", userId, newVersion);
+        log.info("【JWT Token管理器】强制下线用户: userId={}, 新版本={}", userId, newVersion);
     }
 
     /*
@@ -186,7 +192,7 @@ public class JwtTokenManagerImpl implements TokenManagerService {
             return;
         }
 
-        String revokedJtiKey = StrUtil.format(RedisConstants.Auth.REVOKED_JTI, jti);
+        String revokedJtiKey = RedisConstants.Auth.REVOKED_JTI + jti;
 
         if (expirationAt != null) {
             int currentTimeSeconds = Convert.toInt(System.currentTimeMillis() / 1000);
@@ -235,10 +241,10 @@ public class JwtTokenManagerImpl implements TokenManagerService {
 
         // 递增版本号，无需设置 TTL（版本号永久有效，避免 TTL 过期导致的安全问题）
         if (newVersion != null) {
-            log.info("用户所有会话已失效: userId={}, 新版本={}", userId, newVersion);
+            log.info("【JWT Token管理器】用户所有会话已失效: userId={}, 新版本={}", userId, newVersion);
             return newVersion;
         } else {
-            log.error("递增版本号失败: userId={}", userId);
+            log.error("【JWT Token管理器】递增版本号失败: userId={}", userId);
             return 0L;
         }
 

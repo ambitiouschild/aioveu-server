@@ -248,7 +248,7 @@ public class JwtAuthTokenManagerImpl implements AuthTokenManagerService {
 
         log.info("通过jti检查令牌是否被吊销");
 
-        String revokedKey = StrUtil.format(RedisConstants.Auth.REVOKED_JTI, jti);
+        String revokedKey = RedisConstants.Auth.REVOKED_JTI + jti;
         boolean isRevoked = Boolean.TRUE.equals(redisTemplate.hasKey(revokedKey));
         log.debug("检查令牌吊销状态: jti={}, 是否吊销={}", jti, isRevoked);
 
@@ -267,7 +267,7 @@ public class JwtAuthTokenManagerImpl implements AuthTokenManagerService {
             return;
         }
 
-        String revokedJtiKey = StrUtil.format(RedisConstants.Auth.REVOKED_JTI, jti);
+        String revokedJtiKey = RedisConstants.Auth.REVOKED_JTI + jti;
 
         if (expirationAt != null) {
             int currentTimeSeconds = Convert.toInt(System.currentTimeMillis() / 1000);
