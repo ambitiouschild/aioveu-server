@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 
+import com.aioveu.common.core.tenant.TenantContextHolder;
 import com.aioveu.common.security.resource.helper.JwtSecurityUtils;
 import com.aioveu.ums.aioveu01Member.converter.UmsMemberConverter;
 import com.aioveu.ums.aioveu01Member.model.form.UmsMemberForm;
@@ -175,15 +176,22 @@ public class UmsMemberServiceImpl extends ServiceImpl<UmsMemberMapper, UmsMember
      * 根据 openId 和 tenantId获取会员认证信息
      *
      * @param openId
-     * @param tenantId
      * @return
      */
     @Override
-    public MemberAuthDTO loadMemberByOpenIdAndTenantId(String openId,Long tenantId) {
+    public MemberAuthDTO loadMemberByOpenIdAndTenantId(String openId) {
 
+        Long tenantId = TenantContextHolder.getTenantId() ;
+
+        if (tenantId == null) {
+            throw new IllegalStateException(
+                    "租户上下文未初始化，请确认请求经 ClientIdTenantResolutionFilter 解析"
+            );
+        }
 
         UmsMember umsMember = this.getOne(new LambdaQueryWrapper<UmsMember>()
                 .eq(UmsMember::getOpenId, openId)
+                .eq(UmsMember::getTenantId, tenantId)
                 .select(UmsMember::getId,     // 会员ID
                         UmsMember::getNickName,  // 昵称
                         UmsMember::getMobile,  // 手机号

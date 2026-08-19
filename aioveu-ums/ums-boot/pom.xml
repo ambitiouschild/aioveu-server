@@ -72,6 +72,11 @@
 
         <dependency>
             <groupId>com.aioveu</groupId>
+            <artifactId>common-security-tenant</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aioveu</groupId>
             <artifactId>common-seata</artifactId>
         </dependency>
 

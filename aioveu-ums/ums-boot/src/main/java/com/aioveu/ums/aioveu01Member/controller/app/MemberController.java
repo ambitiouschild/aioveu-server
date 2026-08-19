@@ -90,10 +90,9 @@ public class MemberController {
     @Operation(summary= "根据 openId 和 tenantId 获取会员认证信息")
     @GetMapping("/openIdAndTenantId/{openId}")
     public Result<MemberAuthDTO> loadMemberByOpenIdAndTenantId(
-            @PathVariable("openId") String openId,
-            @RequestParam("tenantId") Long tenantId
+            @PathVariable("openId") String openId
     ){
-        MemberAuthDTO memberAuthInfo = memberService.loadMemberByOpenIdAndTenantId(openId,tenantId);
+        MemberAuthDTO memberAuthInfo = memberService.loadMemberByOpenIdAndTenantId(openId);
         return Result.success(memberAuthInfo);
     }
 
