@@ -103,6 +103,10 @@ public class JwtVersionFilter extends OncePerRequestFilter{
         Long subjectId = userId != null ? userId : memberId;
         String subjectType = userId != null ? "user" : "member";
 
+
+        log.info("【JwtVersionFilter】令牌版本校验阶段, subjectType={}，subjectId={}, tokenVersion={}",
+                subjectType, subjectId, tokenVersion);
+
         if (value == null) {
             log.warn("Token version 不存在，{} 可能被踢下线，{}Id={}",
                     subjectType, subjectType, subjectId);
