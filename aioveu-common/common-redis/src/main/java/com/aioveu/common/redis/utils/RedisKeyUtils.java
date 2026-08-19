@@ -16,6 +16,10 @@ public class RedisKeyUtils {
         return RedisConstants.Auth.USER_TOKEN_VERSION + userId;
     }
 
+    public static String  memberTokenVersion(Long memberId) {
+        return RedisConstants.Auth.MEMBER_TOKEN_VERSION + memberId;
+    }
+
     public static String accessToken(String token) {
         return RedisConstants.Auth.ACCESS_TOKEN_USER + token;
     }

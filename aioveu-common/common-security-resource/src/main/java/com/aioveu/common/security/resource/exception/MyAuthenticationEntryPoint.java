@@ -45,7 +45,16 @@ public class MyAuthenticationEntryPoint implements AuthenticationEntryPoint {
             AuthenticationException authException)
     throws IOException {
         log.error("commence called, auth={}", SecurityContextHolder.getContext().getAuthentication());
-        log.warn("【资源服务器认证失败】{} | {}", request.getRequestURI(), authException.getMessage());
+//        log.warn("【资源服务器认证失败】{} | {}", request.getRequestURI(), authException.getMessage());
+
+        log.error("🔥 REAL AUTH EXCEPTION", authException); // 打真栈
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json;charset=UTF-8");
+        try {
+            response.getWriter().write("{\"error\":\"" + authException.getMessage() + "\"}");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType("application/json");

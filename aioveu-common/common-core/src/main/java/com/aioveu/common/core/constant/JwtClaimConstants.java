@@ -101,6 +101,12 @@ public interface JwtClaimConstants {
          */
         String ID = "memberId";
         String OPENID = "openId";
+        /**
+         * 权限(角色Code)集合
+         */
+        String AUTHORITIES = "authorities";
+
+        String PERMS = "perms";
     }
 
 }

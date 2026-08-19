@@ -93,6 +93,7 @@ public class MemberDetailsService {
             //避免使用openId立即查询可能的数据延迟问题
             //通过会员ID查询是直接的主键查询，没有同步延迟问题
             if (Result.isSuccess(memberRegisterResult) && memberRegister != null) {
+                memberAuthDTO = new MemberAuthDTO();
                 memberAuthDTO.setId(memberRegister.getId());
                 memberAuthDTO.setNickName(memberRegister.getNickName());
                 memberAuthDTO.setMobile(memberRegister.getMobile());
@@ -145,7 +146,7 @@ public class MemberDetailsService {
             memberRegisterInfo.setOpenId(openId);
             memberRegisterInfo.setAvatarUrl("https://cdn.aioveu.com/aioveu/aioveu-server/avatar/avatar.png");
             memberRegisterInfo.setNickName("新注册微信用户");
-            memberRegisterInfo.setTenantId(memberAuthDTO.getTenantId());
+//            memberRegisterInfo.setTenantId(memberAuthDTO.getTenantId());
             // 注册会员
             //通过Feign客户端调用会员服务的注册接口，将注册信息发送到会员服务，并接收注册结果。
             Result<MemberRegisterDTO> registerMemberResult = memberFeignClient.registerMember(memberRegisterInfo);
@@ -164,6 +165,7 @@ public class MemberDetailsService {
             //避免使用openId立即查询可能的数据延迟问题
             //通过会员ID查询是直接的主键查询，没有同步延迟问题
             if (Result.isSuccess(registerMemberResult) && memberRegister != null) {
+                memberAuthDTO = new MemberAuthDTO();
                 memberAuthDTO.setId(memberRegister.getId());
                 memberAuthDTO.setNickName(memberRegister.getNickName());
                 memberAuthDTO.setMobile(memberRegister.getMobile());

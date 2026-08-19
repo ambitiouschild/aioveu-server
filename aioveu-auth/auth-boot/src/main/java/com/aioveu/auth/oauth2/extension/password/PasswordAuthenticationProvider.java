@@ -15,7 +15,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.*;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
@@ -174,7 +173,7 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
 
         String username = (String) additionalParameters.get(OAuth2ParameterNames.USERNAME);
         String password = (String) additionalParameters.get(OAuth2ParameterNames.PASSWORD);
-        String tenantId = (String) additionalParameters.get("tenant_id");
+        String tenantId = (String) additionalParameters.get(JwtClaimConstants.Tenant.ID);
         log.info("从参数中提取用户名:{} 和 密码:{}",username,password);
 
         Authentication usernamePasswordAuthentication;
@@ -445,9 +444,9 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
             TenantContextHolder.setTenantId(Long.valueOf(tenantId));
 
             // 1. 加载用户基本信息（已包含该租户下的权限）
-            UserDetails userDetails = sysUserDetailsService.loadUserByUsername(username);
+            SysUserDetails sysUserDetails = sysUserDetailsService.loadUserByUsername(username);
 
-            if (userDetails == null) {
+            if (sysUserDetails == null) {
                 throw new OAuth2AuthenticationException(
                         new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT),
                         "用户不存在: " + username
@@ -455,7 +454,7 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
             }
 
             // 2. 如果是 SysUserDetails，设置租户ID
-            if (userDetails instanceof SysUserDetails sysUserDetails) {
+            try {
                 if (tenantId != null) {
                     sysUserDetails.setTenantId(Long.valueOf(tenantId));
                 }
@@ -472,13 +471,15 @@ public class PasswordAuthenticationProvider implements AuthenticationProvider {
 
                 log.info("【TokenVersion】租户切换，用户 {}，新 token_version = {}",
                         sysUserDetails.getUserId(), tokenVersion);
+            } finally {
+                TenantContextHolder.clear();
             }
 
             // 4. 创建认证对象
             return new UsernamePasswordAuthenticationToken(
-                    userDetails,
+                    sysUserDetails,
                     null,  // 凭证为空
-                    userDetails.getAuthorities()
+                    sysUserDetails.getAuthorities()
             );
 
         } catch (Exception e) {

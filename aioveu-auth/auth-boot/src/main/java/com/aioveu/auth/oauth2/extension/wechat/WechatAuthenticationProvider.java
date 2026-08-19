@@ -242,7 +242,7 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
         Long memberId = memberDetails.getId(); // 或 getUserId()，看你 MemberDetails 的字段名
 
         if (memberId != null) {
-            String versionKey = RedisConstants.Auth.USER_TOKEN_VERSION + memberId;
+            String versionKey = RedisConstants.Auth.MEMBER_TOKEN_VERSION + memberId;
 //            Long tokenVersion = stringRedisTemplate.opsForValue().increment(versionKey); //INCR返回的就是 Long,INCR返回的就是 Long
 
             Boolean absent = stringRedisTemplate.opsForValue()

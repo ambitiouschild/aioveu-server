@@ -176,6 +176,7 @@ public class ResourceServerConfiguration {
             ResourceSecurityProperties resourceSecurityProperties // ✅ 注入
     ) throws Exception {
 
+        log.error("🔥🔥🔥 TENANT RESOURCE CHAIN LOADED 🔥🔥🔥");
         //==============================================
         // ✅ 运行时拿，不写 tenant 类型
         // ✅ 按名字拿，不按类型，不冲突
@@ -204,6 +205,7 @@ public class ResourceServerConfiguration {
         http
                 // ✅ 链级匹配：Ant 通配符
                 .securityMatcher("/aioveu/api/v8/**")
+                .anonymous(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> {
 
                     // ✅ 1️白名单（来自每个微服务的 YAML）

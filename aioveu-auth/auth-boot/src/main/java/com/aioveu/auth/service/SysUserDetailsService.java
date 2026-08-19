@@ -114,7 +114,7 @@ public class SysUserDetailsService implements UserDetailsService {
      * Spring Security 的 UserDetailsService.loadUserByUsername方法只能传一个参数（用户名）。这是 Spring Security 的设计约束。
      */
     @Override
-    public UserDetails loadUserByUsername(String username) {
+    public SysUserDetails loadUserByUsername(String username) {
 
 
         // 添加空值检查

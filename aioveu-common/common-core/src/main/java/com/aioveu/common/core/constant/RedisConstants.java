@@ -77,6 +77,8 @@ public interface RedisConstants {
 
         // 用户 Token 版本号（用于按用户失效历史 JWT）：token.tokenVersion != redis.tokenVersion => token 无效
         String USER_TOKEN_VERSION = "auth:user:token_version:";
+
+        String MEMBER_TOKEN_VERSION = "auth:member:token_version:";
     }
 
     /**

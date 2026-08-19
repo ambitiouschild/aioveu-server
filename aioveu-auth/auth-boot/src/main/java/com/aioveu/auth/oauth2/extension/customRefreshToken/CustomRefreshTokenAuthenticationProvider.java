@@ -2,9 +2,11 @@ package com.aioveu.auth.oauth2.extension.customRefreshToken;
 
 import com.aioveu.auth.model.MemberDetails;
 import com.aioveu.auth.service.MemberDetailsService;
+import com.aioveu.auth.service.SysUserDetailsService;
 import com.aioveu.auth.util.OAuth2AuthenticationProviderUtils;
 import com.aioveu.common.core.constant.JwtClaimConstants;
 import com.aioveu.common.core.constant.RedisConstants;
+import com.aioveu.common.security.core.model.SysUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +15,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.*;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
@@ -64,6 +67,7 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
     private final OAuth2AuthorizationService authorizationService;   // OAuth2授权服务，用于保存授权信息
     private final OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator;  // OAuth2令牌生成器
     private final MemberDetailsService memberDetailsService;  // 会员详情服务，用于加载用户信息
+    private final SysUserDetailsService sysUserDetailsService;
 //    private final RedisTemplate<String, Object> redisTemplate;
     private final StringRedisTemplate stringRedisTemplate;
     /**
@@ -176,7 +180,7 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
         // 6. 获取用户认证对象（Authentication），不是 Principal
         //authorization.getAttribute()返回的是 String（principalName），不是 Authentication。
 //        Authentication userAuthentication = authorization.getAttribute(Principal.class.getName());
-        String openId = authorization.getPrincipalName();
+        String principalName = authorization.getPrincipalName();
 
         //刷新令牌阶段，tenantId 怎么拿？✅（重点）
 
@@ -185,10 +189,34 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
         //✅ 方案 3：从 clientId 再查一次（不推荐）
         //tenantId 从 Authorization attribute 拿（核心正确）
         Long tenantId = authorization.getAttribute(JwtClaimConstants.Tenant.ID);
-        log.info("刷新令牌验证通过, openId={}, tenantId={}", openId, tenantId);
+
+        // 7. 按主体类型加载用户
+        Object principal = null;
+        SysUserDetails userDetails = null;
+        MemberDetails memberDetails = null;
+
+        // 尝试按 openId（小程序）
+        try {
         // 7. 重新加载用户
-        MemberDetails memberDetails =
-                memberDetailsService.loadMemberByOpenIdAndTenantId(openId);
+            memberDetails =
+                    memberDetailsService.loadMemberByOpenIdAndTenantId(principalName);
+            if (memberDetails != null) {
+                principal = memberDetails;
+                userDetails = null;
+            }
+        } catch (Exception ignored) {}
+
+        // 尝试按 username（浏览器）
+        if (principal == null) {
+            userDetails = sysUserDetailsService.loadUserByUsername(principalName);
+            principal = userDetails;
+        }
+
+        if (principal == null) {
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT, "用户不存在", ERROR_URI)
+            );
+        }
 
         // 8. 构建新的 Authentication
         UsernamePasswordAuthenticationToken newAuthentication =
@@ -198,38 +226,52 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
                         memberDetails.getAuthorities()
                 );
 
-        // 7. ✅ token_version 校验（只读，不 increment）
-        Long memberId = memberDetails.getId();
-        if (memberId != null) {
-            String versionKey = RedisConstants.Auth.USER_TOKEN_VERSION + memberId;
 
-            // ✅ 只读取，不 increment ✅ 这是唯一正确的刷新令牌校验方式
-//            Long tokenVersion = (Long) redisTemplate.opsForValue().get(versionKey);
-            String value = stringRedisTemplate.opsForValue().get(versionKey);
 
-            if (value == null) {
-                throw new OAuth2AuthenticationException(
-                        new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT, "令牌已失效", ERROR_URI)
-                );
-            }
+        // ================= token_version 校验 =================
+        Long subjectId = null;
+        String versionKey = null;
+        Long tokenVersion = null;
 
-            Long tokenVersion = Long.valueOf(value);
-
-            String after = stringRedisTemplate.opsForValue().get(versionKey);
-            log.info("【TokenVersion】【Redis 二次校验】key={}, value={}",
-                    versionKey, after);
-
-            // ✅ 写进 MemberDetails（principal）
-            memberDetails.setTokenVersion(tokenVersion);
-
-            log.info("【TokenVersion】刷新令牌阶段, memberId={}, tokenVersion={}",
-                    memberId, tokenVersion);
-
+        if (memberDetails != null) {
+            subjectId = memberDetails.getId();
+            versionKey = RedisConstants.Auth.MEMBER_TOKEN_VERSION + subjectId;
+        }else if (userDetails != null) {
+            subjectId = userDetails.getUserId();
+            versionKey = RedisConstants.Auth.USER_TOKEN_VERSION + subjectId;
         }
 
-        // 7. 记录刷新令牌使用日志
-        log.info("刷新令牌验证通过, 用户openId: {}, 客户端clientId: {}",
-                openId, registeredClient.getClientId());
+        if (subjectId == null || versionKey == null) {
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT, "令牌主体无效", ERROR_URI)
+            );
+        }
+
+
+        String value = stringRedisTemplate.opsForValue().get(versionKey);
+        if (value == null) {
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT, "用户已被强制下线或令牌已失效", ERROR_URI)
+            );
+        }
+
+        try {
+            tokenVersion = Long.valueOf(value);
+        } catch (NumberFormatException e) {
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT, "令牌版本格式错误", ERROR_URI)
+            );
+        }
+
+        if (principal instanceof MemberDetails) {
+            ((MemberDetails) principal).setTokenVersion(tokenVersion);
+        } else {
+            ((SysUserDetails) principal).setTokenVersion(tokenVersion);
+        }
+
+        log.info("【TokenVersion】刷新令牌阶段, subjectId={}, tokenVersion={}",
+                subjectId, tokenVersion);
+        //========================================================================
 
         // 访问令牌(Access Token) 构造器
         log.info("6. 构建令牌上下文，准备生成新的访问令牌");
@@ -266,9 +308,9 @@ public class CustomRefreshTokenAuthenticationProvider implements AuthenticationP
 
         // 保存 Authorization 时也用新的 Authentication
         OAuth2Authorization.Builder authorizationBuilder = OAuth2Authorization.withRegisteredClient(registeredClient)
-                .principalName(openId)  // ✅ 从原有授权信息中获取主体名称
+                .principalName(principalName)  // ✅ 从原有授权信息中获取主体名称
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)  // 授权类型 ✅ 使用标准的刷新令牌授权类型
-                .attribute(Principal.class.getName(), openId);  // 主体属性 // ✅attribute 里只存 principalName（String）
+                .attribute(Principal.class.getName(), principalName);  // 主体属性 // ✅attribute 里只存 principalName（String）
 
         log.info("9. 更新授权信息:{}", authorizationBuilder);
 

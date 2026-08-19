@@ -19,6 +19,7 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Toke
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @Description: TODO JWT 自定义字段配置
@@ -135,6 +136,13 @@ public class JwtEncodingCustomizerConfiguration {
         addClaim(claims, JwtClaimConstants.Tenant.ID, memberDetails.getTenantId());
         addClaim(claims, JwtClaimConstants.Member.ID, memberDetails.getId());
         addClaim(claims, JwtClaimConstants.Member.OPENID, memberDetails.getOpenId());
+        // ✅ 补这一行
+        addClaim(claims, JwtClaimConstants.Member.AUTHORITIES,
+                Set.of("ROLE_USER"));
+
+//        addClaim(claims, JwtClaimConstants.User.AUTHORITIES,
+//                AuthorityUtils.authorityListToSet(
+//                        memberDetails.getAuthorities()));
     }
 
 

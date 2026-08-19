@@ -83,24 +83,31 @@ public class JwtVersionFilter extends OncePerRequestFilter{
         Jwt jwt = jwtAuth.getToken();
 
         Long userId = ClaimUtils.getClaimAsLong(jwt, JwtClaimConstants.User.ID);
+        Long memberId = ClaimUtils.getClaimAsLong(jwt, JwtClaimConstants.Member.ID);
         Long tokenVersion = ClaimUtils.getClaimAsLong(jwt, JwtClaimConstants.Token.VERSION);
 
-        if (userId == null || tokenVersion == null) {
-            throw new OAuth2AuthenticationException(
-                    new OAuth2Error("invalid_token", "Token 非法", null)
-            );
+        String versionKey;
+        if (userId != null) {
+            versionKey = RedisKeyUtils.userTokenVersion(userId);
+        } else if (memberId != null) {
+            versionKey = RedisKeyUtils.memberTokenVersion(memberId);
+        }else {
+            throw new OAuth2AuthenticationException("Token 非法");
         }
 
-        String versionKey = RedisKeyUtils.userTokenVersion(userId);
         String value = stringRedisTemplate.opsForValue().get(versionKey);
 
         log.error("【RESOURCE-REDIS】{}",
                 stringRedisTemplate.getConnectionFactory().getConnection().toString());
 
+        Long subjectId = userId != null ? userId : memberId;
+        String subjectType = userId != null ? "user" : "member";
+
         if (value == null) {
-            log.warn("Token version 不存在，用户可能被踢下线，userId={}", userId);
+            log.warn("Token version 不存在，{} 可能被踢下线，{}Id={}",
+                    subjectType, subjectType, subjectId);
             throw new OAuth2AuthenticationException(
-                    new OAuth2Error(OAuth2ErrorCodes.INVALID_TOKEN, "Token version mismatch", null)
+                    new OAuth2Error(OAuth2ErrorCodes.INVALID_TOKEN, "登录已失效，请重新登录", null)
             );
         }
 
@@ -113,15 +120,15 @@ public class JwtVersionFilter extends OncePerRequestFilter{
         try {
             currentVersion = Long.valueOf(value);
         } catch (Exception e) {
-            log.error("Redis 读取 token version 失败，userId={}", userId, e);
+            log.error("Redis 读取 token version 失败，subjectId={}", subjectId, e);
             // ✅ 降级：放行（或按你业务策略拒绝）
             filterChain.doFilter(request, response);
             return;
         }
 
         if (currentVersion == null || !currentVersion.equals(tokenVersion)) {
-            log.warn("Token version 失效，拒绝访问，userId={}, tokenVersion={}, currentVersion={}",
-                    userId, tokenVersion, currentVersion);
+            log.warn("Token version 失效，拒绝访问，subjectId={}, tokenVersion={}, currentVersion={}",
+                    subjectId, tokenVersion, currentVersion);
             throw new OAuth2AuthenticationException(
                     new OAuth2Error("invalid_token", "用户已被强制下线", null)
             );
