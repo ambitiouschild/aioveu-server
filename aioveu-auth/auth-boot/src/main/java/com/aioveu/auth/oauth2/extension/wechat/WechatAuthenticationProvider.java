@@ -324,7 +324,7 @@ public class WechatAuthenticationProvider implements AuthenticationProvider {
 //                .attribute(Principal.class.getName(), usernamePasswordAuthentication);  // 存储完整的 Authentication
 //                .attribute(Principal.class.getName(), usernamePasswordAuthentication.getName());
                 // attribute 里只存 principalName（String）
-                .attribute(JwtClaimConstants.Tenant.ID, tenantId) // ✅ 关键
+                .attribute(JwtClaimConstants.Tenant.ID, String.valueOf(tenantId)) // ✅ String
                 .attribute(Principal.class.getName(), principalName);
         //然后这个认证信息被序列化到数据库。刷新令牌时，Spring Security 尝试反序列化，但 MemberDetails不在 Jackson 白名单中。
         log.info("9. 构建授权信息:{}", authorizationBuilder);
