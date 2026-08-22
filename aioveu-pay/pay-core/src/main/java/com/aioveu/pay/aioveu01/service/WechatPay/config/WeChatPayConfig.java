@@ -1,5 +1,7 @@
 package com.aioveu.pay.aioveu01.service.WechatPay.config;
 
+import com.aioveu.common.core.tenant.TenantContextHolder;
+import com.aioveu.common.web.exception.BizException;
 import com.aioveu.pay.aioveu03PayConfigWechat.model.entity.PayConfigWechat;
 import com.aioveu.pay.aioveu03PayConfigWechat.service.PayConfigWechatService;
 import com.alipay.api.internal.util.file.FileUtils;
@@ -94,6 +96,9 @@ public class WeChatPayConfig {
      */
     public synchronized void loadConfigFromDatabase() {
         try {
+
+            TenantContextHolder.setIgnoreTenant(true);
+
             // 清空缓存
             configCache.clear();
 
@@ -117,7 +122,7 @@ public class WeChatPayConfig {
             }
 
             // 设置默认配置（可以按业务规则选择，比如第一个或标记为默认的）
-            currentConfig = configs.get(0);
+            currentConfig = configs.isEmpty() ? null : configs.get(0);
 
 //            currentConfig = configs.getConfig(0);
             enabled = true;
@@ -127,16 +132,51 @@ public class WeChatPayConfig {
         } catch (Exception e) {
             log.error("【WeChatPayConfig】从数据库加载配置失败", e);
             enabled = false;
+        }finally {
+            TenantContextHolder.setIgnoreTenant(false);
         }
     }
 
     /**
-     * 根据租户和应用获取配置
+     * 根据租户和应用获取配置 ✅ 键值过滤（现在你用的）
      */
-    public PayConfigWechat getConfig(Long tenantId, String appId) {
+    public PayConfigWechat getConfigByTenantIdAndAppId(Long tenantId, String appId) {
+
+        if (tenantId == null || appId == null) {
+            throw new BizException("tenantId 或 appId 不能为空");
+        }
+
         String cacheKey = tenantId + ":" + appId;
-        return configCache.get(cacheKey);
+
+        PayConfigWechat currentConfig = configCache.get(cacheKey);
+        if (currentConfig == null) {
+            throw new BizException(
+                    "微信支付配置不存在: tenantId=" + tenantId + ", appId=" + appId
+            );
+        }
+        return currentConfig;
     }
+
+    /**
+     * 这就是按 key 模糊匹配（前缀匹配）
+     */
+    public PayConfigWechat getConfigByTenantId(Long tenantId) {
+
+        if (tenantId == null) {
+            throw new BizException("tenantId 不能为空");
+        }
+
+        String prefix = tenantId + ":";
+
+        return configCache.entrySet().stream()
+                .filter(e -> e.getKey().startsWith(prefix))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElseThrow(() ->
+                        new BizException("租户[" + tenantId + "]未配置微信支付")
+                );
+    }
+
 
     /**
      * 获取默认配置
@@ -310,6 +350,26 @@ public class WeChatPayConfig {
      * 转换为微信支付SDK需要的Config
      */
     public com.wechat.pay.java.core.Config toSdkConfig() {
+
+
+        // 1. 从上下文拿租户
+        Long tenantId = TenantContextHolder.getTenantId();
+        if (tenantId == null) {
+            throw new BizException("租户上下文为空");
+        }
+
+        // 2. 从缓存里按 tenantId 过滤（你只要第一个匹配）
+        // 遍历 value，按 tenantId 字段过滤
+//        PayConfigWechat currentConfig = configCache.values().stream()
+//                .filter(c -> tenantId.equals(c.getTenantId()))
+//                .findFirst()
+//                .orElseThrow(() ->
+//                        new BizException("租户[" + tenantId + "]未配置微信支付"));
+
+
+//        PayConfigWechat currentConfig = getConfig(tenantId, appId);
+        PayConfigWechat currentConfig = getConfigByTenantId(tenantId);
+
         try {
             if (currentConfig == null) {
                 throw new RuntimeException("【WeChatPayConfig】微信支付配置未初始化");
@@ -449,5 +509,26 @@ public class WeChatPayConfig {
 
         return privateKey;
     }
+
+
+    public PayConfigWechat getConfigByCurrentTenant(String appId) {
+        Long tenantId = TenantContextHolder.getTenantId();
+        if (tenantId == null) {
+            throw new BizException("【WeChatPayConfig】租户上下文为空");
+        }
+        if (StringUtils.isBlank(appId)) {
+            throw new BizException("【WeChatPayConfig】appId 不能为空");
+        }
+
+        String key = tenantId + ":" + appId;
+        PayConfigWechat cfg = configCache.get(key);
+        if (cfg == null) {
+            throw new BizException(
+                    "租户[" + tenantId + "] appId[" + appId + "] 未配置微信支付"
+            );
+        }
+        return cfg;
+    }
+
 
 }

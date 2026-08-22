@@ -111,10 +111,17 @@ public class TenantContextHolder {
      * @param ignore 是否忽略
      */
     public static void setIgnoreTenant(boolean ignore) {
-        FORCE_IGNORE.set(ignore);
+        if (ignore) {
+            FORCE_IGNORE.set(true);
+        } else {
+            FORCE_IGNORE.remove();
+        }
         log.debug("【TenantContextHolder】设置忽略租户标志: {}", ignore);
     }
 
+    public static void clearIgnoreTenant() {
+        FORCE_IGNORE.remove();
+    }
     /**
      * 是否忽略租户
      *
@@ -137,6 +144,8 @@ public class TenantContextHolder {
      * </p>
      */
     public static void clear() {
+
+        // 严格顺序：业务 → 平台 → 强制
         TENANT_ID.remove();
         PLATFORM_FLAG.remove();
         FORCE_IGNORE.remove();

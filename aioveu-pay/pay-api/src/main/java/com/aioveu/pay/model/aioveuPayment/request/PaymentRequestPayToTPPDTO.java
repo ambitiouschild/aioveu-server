@@ -23,7 +23,6 @@ import java.util.Map;
  **/
 /**
  * 支付下单请求 DTO（对外接口）
- * 所有业务语义字段均使用整型编码，由 {@link com.aioveu.common.enums.pay}
  * 包下的枚举统一定义；Service 层负责将编码转换为枚举，以保障接口兼容性与内部类型安全。
  */
 @Getter
@@ -34,8 +33,20 @@ import java.util.Map;
 @AllArgsConstructor
 public class PaymentRequestPayToTPPDTO implements Serializable {
 
+    /* =========================
+     * 多租户支付路由（新增）
+     * ========================= */
+    @NotNull(message = "【PaymentRequestPayToTPPDTO】租户ID不能为空")
+    @Schema(description = "租户ID（由网关/Token解析设置）")
+    private Long tenantId;
 
+    @NotBlank(message = "【PaymentRequestPayToTPPDTO】微信应用ID不能为空")
+    @Schema(description = "微信应用ID（appId / mpAppId / appAppId）")
+    private String appId;
 
+    /* =========================
+     * 原有业务字段
+     * ========================= */
     private String userAgent;
 
     @NotBlank(message = "【PaymentRequestPayToTPPDTO】业务订单号不能为空")

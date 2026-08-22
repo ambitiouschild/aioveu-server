@@ -66,6 +66,11 @@ public class MyTenantLineHandler implements TenantLineHandler {
         log.info("【MyTenantLineHandler】如果TenantContextHolder有租户id就赋值到租户上下文工具类: {}", tenantId);
         log.info("【MyTenantLineHandler】过滤器 → 解析Token → 设置租户上下文 → 后续所有组件都从上下文获取");
 
+
+        if (TenantContextHolder.isIgnoreTenant()) {
+            return null; // 不拼 tenant_id
+        }
+
         if (tenantId != null) {
             return new LongValue(tenantId);
         }

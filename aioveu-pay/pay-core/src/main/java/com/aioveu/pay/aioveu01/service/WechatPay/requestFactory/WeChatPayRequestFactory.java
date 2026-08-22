@@ -2,6 +2,7 @@ package com.aioveu.pay.aioveu01.service.WechatPay.requestFactory;
 
 import com.aioveu.pay.aioveu01.service.WechatPay.config.WeChatPayConfig;
 import com.aioveu.pay.model.aioveuPayment.request.PaymentRequestPayToTPPDTO;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -168,5 +169,6 @@ public class WeChatPayRequestFactory {
 
         return amount.multiply(BigDecimal.valueOf(AMOUNT_MULTIPLIER)).intValue();
     }
+
 
 }
